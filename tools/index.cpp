@@ -18,16 +18,22 @@ const int NUM_WORDS = NUM_BITS / (8 * sizeof(Word));
 int main(int argc, char**argv)
 {
   if (argc < 4) {
-    std::cerr << "Usage: " << argv[0] << " <method> <in_file> <out_file>" << std::endl;
+    std::cerr << "Usage: " << argv[0] << " [options] <method> <in_file> <out_file>" << std::endl;
     std::cerr << std::endl;
     std::cerr << "Methods:" << std::endl;
     std::cerr << "    -paths        Create hashed fingerprints from paths" << std::endl;
     std::cerr << "    -trees        Create hashed fingerprints from trees" << std::endl;
     std::cerr << "    -subgraphs    Create hashed fingerprints from subgraphs" << std::endl;
+    std::cerr << std::endl;
+    std::cerr << "Options:" << std::endl;
+    std::cerr << "    -k <number>   The maximum size of the path/tree/subgraph (default is 7)" << std::endl;
+
+    std::cerr << std::endl;
     return 0;
   }
 
-  ParseArgs args(argc, argv, ParseArgs::Args(), ParseArgs::Args("method", "in_file", "out_file"));
+  ParseArgs args(argc, argv, ParseArgs::Args("-k(number)"), ParseArgs::Args("method", "in_file", "out_file"));
+  int k = args.IsArg("-k") ? args.GetArgInt("-k", 0) : 7;
   std::string methodString = args.GetArgString("method");
   std::string inFile = args.GetArgString("in_file");
   std::string outFile = args.GetArgString("out_file");
@@ -57,10 +63,11 @@ int main(int argc, char**argv)
 
   // open molecule file
   MoleculeFile file(inFile);
-  Molecule mol;
+  HeMol mol;
 
   Word fingerprint[NUM_WORDS];
   std::vector<int> bitCounts;
+    
 
   // process molecules
   while (file.read_molecule(mol)) {
@@ -69,20 +76,20 @@ int main(int argc, char**argv)
 
     switch (method) {
       case PathsMethod:
-        path_fingerprint(&mol, fingerprint, 7, NUM_WORDS, PRIME);
+        path_fingerprint(&mol, fingerprint, k, NUM_WORDS, PRIME);
         break;
       case TreesMethod:
-        tree_fingerprint(&mol, fingerprint, 7, NUM_WORDS, PRIME);
+        tree_fingerprint(&mol, fingerprint, k, NUM_WORDS, PRIME);
         break;
       case SubgraphsMethod:
-        subgraph_fingerprint(&mol, fingerprint, 7, NUM_WORDS, PRIME);
+        subgraph_fingerprint(&mol, fingerprint, k, NUM_WORDS, PRIME);
         break;
     }
 
     int bitCount = bit_count(fingerprint, NUM_WORDS);
     bitCounts.push_back(bitCount);
 
-    std::cout << "Molecule " << file.current() << ": " <<  bitCount << " bits " << std::endl;
+    //std::cout << "Molecule " << file.current() << ": " <<  bitCount << " bits " << std::endl;
 
     for (int i = 0; i < NUM_WORDS; ++i)
       write64(ofs, fingerprint[i]);

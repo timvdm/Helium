@@ -1,6 +1,5 @@
-#include "../src/molecule.h"
-#include "../src/fileio.h"
 #include "../src/enumeratepaths.h"
+#include "../src/fileio.h"
 
 #include "test.h"
 
@@ -9,7 +8,7 @@ using namespace Helium;
 void testEnumeratePaths(const std::string &smiles, int expected)
 {
   std::cout << "Testing: " << smiles << std::endl;
-  Molecule mol;
+  HeMol mol;
   read_smiles(smiles, mol);
 
   std::vector<std::vector<unsigned int> > paths = enumerate_paths(&mol, 7);

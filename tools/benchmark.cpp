@@ -34,7 +34,7 @@ void benchmark_read(const std::string &filename)
 
   // open molecule file
   MoleculeFile file(get_filename(filename));
-  Molecule mol;
+  HeMol mol;
 
   // read molecules
   while (file.read_molecule(mol));
@@ -64,11 +64,11 @@ void benchmark_enumerate_subgraphs(const std::string &filename, int size = 7)
 
   // open molecule file
   MoleculeFile file(get_filename(filename));
-  Molecule mol;
+  HeMol mol;
 
   // read molecules
   while (file.read_molecule(mol)) {
-    EnumerateSubgraphsCallback<Molecule> callback;
+    EnumerateSubgraphsCallback<HeMol> callback;
     enumerate_subgraphs(&mol, callback, size);
   }
 

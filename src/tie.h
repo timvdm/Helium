@@ -1,6 +1,8 @@
 #ifndef HELIUM_TIE_H
 #define HELIUM_TIE_H
 
+#include <utility>
+
 namespace Helium {
 
   template<typename T1, typename T2>

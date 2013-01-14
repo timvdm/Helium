@@ -1,6 +1,7 @@
 #ifndef HELIUM_FILEIO_H
 #define HELIUM_FILEIO_H
 
+#include "hemol.h"
 #include "util.h"
 
 #include <openbabel/mol.h>
@@ -88,9 +89,6 @@ namespace Helium {
   template<typename MoleculeType>
   bool read_molecule(std::istream &is, MoleculeType &mol)
   {
-    typedef typename molecule_traits<MoleculeType>::atom_factory atom_factory;
-    typedef typename molecule_traits<MoleculeType>::bond_factory bond_factory;
-
     mol.m_atoms.clear();
     mol.m_bonds.clear();
 
@@ -140,9 +138,7 @@ namespace Helium {
       else
         charge = 0;
 
-      mol.m_atoms.push_back(atom_factory::instance()->create(i, aromatic, cyclic, element, mass,
-                                                 hydrogens, charge));
-
+      mol.m_atoms.push_back(new HeAtom(i, aromatic, cyclic, element, mass, hydrogens, charge));
     }
 
     unsigned short source, target;
@@ -152,10 +148,10 @@ namespace Helium {
       read16(is, target);
       read8(is, props);
 
-      Atom *s = mol.m_atoms[source];
-      Atom *t = mol.m_atoms[target];
+      HeAtom *s = mol.m_atoms[source];
+      HeAtom *t = mol.m_atoms[target];
 
-      mol.m_bonds.push_back(bond_factory::instance()->create(i, s, t, props & 128, props & 64, props & 63));
+      mol.m_bonds.push_back(new HeBond(i, s, t, props & 128, props & 64, props & 63));
 
       s->addBond(mol.m_bonds.back());
       t->addBond(mol.m_bonds.back());
@@ -178,6 +174,15 @@ namespace Helium {
     std::ifstream ifs("tmp");
     assert(ifs);
     read_molecule(ifs, mol);
+  }
+
+  std::string normalize_smiles(const std::string &smiles)
+  {
+    OpenBabel::OBMol obmol;
+    OpenBabel::OBConversion conv;
+    conv.SetInAndOutFormats("smi", "smi");
+    conv.ReadString(&obmol, smiles);
+    return conv.WriteString(&obmol, true);
   }
 
   class MoleculeFile

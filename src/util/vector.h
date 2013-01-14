@@ -65,6 +65,35 @@ namespace Helium {
     return set.size();
   }
 
+  template<typename T>
+  void renumber(std::vector<T> &v)
+  {
+    std::set<T> values;
+    for (std::size_t i = 0; i < v.size(); ++i)
+      values.insert(v[i]);
+    T newValue = 0;
+    for (typename std::set<T>::iterator i = values.begin(); i != values.end(); ++i) {
+      for (std::size_t j = 0; j < v.size(); ++j)
+        if (v[j] == *i)
+          v[j] = newValue;
+      ++newValue;
+    }
+  }
+
+  template<typename T1, typename T2>
+  bool contains(const std::vector<T1> &v, const T2 &value)
+  {
+    return std::find(v.begin(), v.end(), value) != v.end();
+  }
+
+  template<typename T1, typename T2>
+  std::size_t index_of(const std::vector<T1> &v, const T2 &value)
+  {
+    typename std::vector<T1>::const_iterator pos = std::find(v.begin(), v.end(), value);
+    assert(pos != v.end());
+    return pos - v.begin();
+  }
+
 }
 
 #endif

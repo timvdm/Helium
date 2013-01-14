@@ -1,6 +1,5 @@
-#include "../src/molecule.h"
-#include "../src/fileio.h"
 #include "../src/enumeratesubgraphs.h"
+#include "../src/fileio.h"
 
 #include "test.h"
 
@@ -54,7 +53,7 @@ void test_impl_all_combinations()
 void testEnumerateSubgraphs(const std::string &smiles, int size = 7, bool trees = false)
 {
   std::cout << "Testing: " << smiles << std::endl;
-  Molecule mol;
+  HeMol mol;
   read_smiles(smiles, mol);
 
   EnumerateSubgraphsCallback callback_correct, callback_slow, callback_fast;
@@ -65,6 +64,8 @@ void testEnumerateSubgraphs(const std::string &smiles, int size = 7, bool trees 
   //enumerate_subgraphs_slow(&mol, callback_slow, size);
   std::cout << "    Fast algorithm:" << std::endl;
   enumerate_subgraphs(&mol, callback_fast, size, trees);
+
+  std::cout << mol;
 
   /*
   std::set<std::pair<std::vector<bool>, std::vector<bool> > >::iterator i;
@@ -98,4 +99,9 @@ int main()
   testEnumerateSubgraphs("C2C1C(C2)C1C", 7, true);
   testEnumerateSubgraphs("C2C1(C2)C1C", 7, true);
   testEnumerateSubgraphs("NCc1ccc2c(cnn2C)c1", 7, true);
+  
+  testEnumerateSubgraphs("Clc1ccccc1", 7, true);
+  
+  
+  testEnumerateSubgraphs("ClC1CC1", 7, true);
 }

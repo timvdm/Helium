@@ -1,10 +1,12 @@
 #ifndef HELIUM_ENUMERATESUBGRAPHS_H
 #define HELIUM_ENUMERATESUBGRAPHS_H
 
-#include "tie.h"
+#include "molecule.h"
 #include "components.h"
 #include "substructure.h"
-#include "timeout.h"
+#include "tie.h"
+#include "util.h"
+//#include "timeout.h"
 
 #include <set>
 
@@ -36,6 +38,53 @@ namespace Helium {
     std::vector<bool> atoms;
     std::vector<bool> bonds;
   };
+
+
+
+  template<typename MoleculeType>
+  bool is_cyclic(MoleculeType *mol, typename molecule_traits<MoleculeType>::atom_type atom,
+      std::vector<bool> &visitedAtoms, std::vector<bool> &visitedBonds)
+  {
+    typedef typename molecule_traits<MoleculeType>::atom_bond_iter atom_bond_iter;
+
+    visitedAtoms[get_index(mol, atom)] = true;
+
+    atom_bond_iter bond, end_bonds;
+    tie(bond, end_bonds) = get_bonds(mol, atom);
+    for (; bond != end_bonds; ++bond) {
+      if (visitedBonds[get_index(mol, *bond)])
+        continue;
+      visitedBonds[get_index(mol, *bond)] = true;
+
+      if (visitedAtoms[get_index(mol, get_other(mol, *bond, atom))])
+        return true;
+      if (is_cyclic(mol, get_other(mol, *bond, atom), visitedAtoms, visitedBonds))
+        return true;
+    }
+    return false;
+  }
+
+
+  template<typename MoleculeType>
+  bool is_cyclic(MoleculeType *mol)
+  {
+    typedef typename molecule_traits<MoleculeType>::mol_atom_iter mol_atom_iter;
+
+    std::vector<bool> visitedAtoms(num_atoms(mol));
+    std::vector<bool> visitedBonds(num_bonds(mol));
+
+    mol_atom_iter atom, end_atoms;
+    tie(atom, end_atoms) = get_atoms(mol);
+    for (; atom != end_atoms; ++atom) {
+      if (visitedAtoms[get_index(mol, *atom)])
+        continue;
+      if (is_cyclic(mol, *atom, visitedAtoms, visitedBonds))
+        return true;
+    }
+
+    return false;
+  }
+
 
   /**
    * Brute force subgraph enumeration for testing purposes.
@@ -89,36 +138,33 @@ namespace Helium {
         if (!sameComponent)
           continue;
         
+        /*
+        std::cout << "combination: ";
+        for (int i = 0; i < size; ++i)
+          std::cout << comb[i] << " ";
+        std::cout << std::endl;
+        */
+
         std::vector<bool> atoms(num_atoms(mol));
         std::vector<bool> bonds(num_bonds(mol));
 
-        bool isCyclic = false;
-        //std::cout << "combination: ";
         for (int i = 0; i < size; ++i) {
-          //std::cout << comb[i] << " ";
           bonds[comb[i]] = true;
           unsigned int source = get_index(mol, get_source(mol, get_bond(mol, comb[i])));
           unsigned int target = get_index(mol, get_target(mol, get_bond(mol, comb[i])));
-          // don't allow cyclic subgraphs when enumerating trees
-          if (trees && atoms[source] && atoms[target]) {
-            isCyclic = true;
-            break;
-          }
-
           atoms[source] = true;
           atoms[target] = true;
         }
-        //std::cout << std::endl;
-        
-        if (isCyclic)
-          continue;
         
         if (std::count(atoms.begin(), atoms.end(), true) > maxSize)
           continue;
 
         if (size > 1) {
+          Substructure<MoleculeType> substruct(mol, atoms, bonds);
+          // don't allow cyclic subgraphs when enumerating trees
+          if (trees && is_cyclic(&substruct))
+            continue;
           // make sure the all subgraph bonds are connected
-          Substructure substruct(mol, atoms, bonds);
           std::vector<unsigned int> subcomponents = connected_bond_components(&substruct);
           if (unique_elements(subcomponents) > 1)
             continue;
@@ -421,7 +467,7 @@ namespace Helium {
   {
     typedef typename molecule_traits<MoleculeType>::mol_bond_iter mol_bond_iter;
 
-    Timeout timeout(500000); // 5s timeout
+    //Timeout timeout(500000); // 5s timeout
 
     assert(maxSize >= 0);
     if (maxSize == 0)
@@ -466,7 +512,7 @@ namespace Helium {
 
     while (!seeds.empty()) {
       // check timeout
-      timeout.check();
+      //timeout.check();
 
       impl::SubgraphSeed seed = seeds.back();
       seeds.pop_back();
@@ -510,25 +556,9 @@ namespace Helium {
         assert(std::count(subgraph.atoms.begin(), subgraph.atoms.end(), true) <= maxSize);
         
 
-        if (trees) {
-          bool isCyclic = false;
-          std::vector<bool> visitedAtoms(num_atoms(mol));
-          for (std::size_t j = 0; j < bonds.size(); ++j) {
-            if (!bonds[j])
-              continue;
-            unsigned int source = get_index(mol, get_source(mol, get_bond(mol, j)));
-            unsigned int target = get_index(mol, get_target(mol, get_bond(mol, j)));
-            if (visitedAtoms[source] && visitedAtoms[target]) {
-              isCyclic = true;
-              break;
-            }
-            visitedAtoms[source] = true;
-            visitedAtoms[target] = true;
-          }
-
-          if (isCyclic)
-            continue;        
-        }
+        Substructure<MoleculeType> substruct(mol, atoms, bonds);
+        if (trees && is_cyclic(&substruct))
+          continue;
 
         callback(subgraph);
         

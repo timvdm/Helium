@@ -1,4 +1,3 @@
-#include "../src/molecule.h"
 #include "../src/substructure.h"
 #include "../src/fileio.h"
 
@@ -8,7 +7,7 @@ using namespace Helium;
 
 int main()
 {
-  Molecule mol;
+  HeMol mol;
   read_smiles("CNOSP", mol);
 
   std::vector<bool> atoms(5), bonds(4);
@@ -18,7 +17,7 @@ int main()
   bonds[1] = true;
   bonds[2] = true;
 
-  Substructure substruct(&mol, atoms, bonds);
+  Substructure<HeMol> substruct(&mol, atoms, bonds);
 
   ////////////////////////////////////////////////
   //
@@ -31,7 +30,7 @@ int main()
 
   // test get_atoms
   unsigned int numAtoms = 0;
-  molecule_traits<Substructure>::mol_atom_iter atom, end_atoms;
+  molecule_traits<Substructure<HeMol> >::mol_atom_iter atom, end_atoms;
   tie(atom, end_atoms) = get_atoms(&substruct);
   for (; atom != end_atoms; ++atom)
     ++numAtoms;
@@ -47,7 +46,7 @@ int main()
 
   // test get_bonds
   unsigned int numBonds = 0;
-  molecule_traits<Substructure>::mol_bond_iter bond, end_bonds;
+  molecule_traits<Substructure<HeMol> >::mol_bond_iter bond, end_bonds;
   tie(bond, end_bonds) = get_bonds(&substruct);
   for (; bond != end_bonds; ++bond)
     ++numBonds;
@@ -73,7 +72,7 @@ int main()
 
   // test get_bonds
   numBonds = 0;
-  molecule_traits<Substructure>::atom_bond_iter atom_bond, end_atom_bonds;
+  molecule_traits<Substructure<HeMol> >::atom_bond_iter atom_bond, end_atom_bonds;
   tie(atom_bond, end_atom_bonds) = get_bonds(&substruct, get_atom(&substruct, 0));
   for (; atom_bond != end_atom_bonds; ++atom_bond)
     ++numBonds;
@@ -93,7 +92,7 @@ int main()
 
   // test get_nbrs
   unsigned int numNbrs = 0;
-  molecule_traits<Substructure>::atom_atom_iter nbr, end_nbrs;
+  molecule_traits<Substructure<HeMol> >::atom_atom_iter nbr, end_nbrs;
   tie(nbr, end_nbrs) = get_nbrs(&substruct, get_atom(&substruct, 0));
   for (; nbr != end_nbrs; ++nbr)
     ++numNbrs;

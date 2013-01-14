@@ -1,7 +1,11 @@
 #ifndef HELIUM_ENUMERATEPATHS_H
 #define HELIUM_ENUMERATEPATHS_H
 
+#include "molecule.h"
 #include "tie.h"
+
+#include <vector>
+#include <algorithm>
 
 namespace Helium {
 

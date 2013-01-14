@@ -32,3 +32,13 @@ const char* pregolya_expr(const char *expr) { return expr; }
 
 #define COMPARE(a,b) \
   pregolya_compare(a, b, P_EXPR( a == b ), __FILE__, __LINE__, FUNCTION_SIGNATURE)
+
+
+#ifndef DATADIR
+#define DATADIR "./"
+#endif
+
+std::string datadir()
+{
+  return DATADIR + std::string("/");
+}

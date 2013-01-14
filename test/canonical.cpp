@@ -1,16 +1,17 @@
-#include "../src/molecule.h"
-#include "../src/fileio.h"
 #include "../src/canonical.h"
+#include "../src/fileio.h"
 #include "../src/extendedconnectivities.h"
+#include "../src/components.h"
+
 
 #include "test.h"
 
 using namespace Helium;
 
-void testCanonicalPath(const std::string &smiles)
+void test_canonical_path(const std::string &smiles)
 {
   std::cout << "Testing: " << smiles << std::endl;
-  Molecule mol;
+  HeMol mol;
   read_smiles(smiles, mol);
 
   std::vector<unsigned int> forward, backward;
@@ -19,16 +20,16 @@ void testCanonicalPath(const std::string &smiles)
     backward.push_back(num_atoms(&mol) - i - 1);
   }
 
-  std::vector<unsigned long> forwardCode = canonicalize_path(&mol, forward).second;
-  std::vector<unsigned long> backwardCode = canonicalize_path(&mol, backward).second;
+  std::vector<unsigned long> forwardCode = canonicalize_path<canonical_path_atom_invariant>(&mol, forward).second;
+  std::vector<unsigned long> backwardCode = canonicalize_path<canonical_path_atom_invariant>(&mol, backward).second;
 
   COMPARE(forwardCode, backwardCode);
 }
 
-void testCanonicalize(const std::string &smiles)
+void test_canonicalize(const std::string &smiles)
 {
   std::cout << "Testing: " << smiles << std::endl;
-  Molecule mol;
+  HeMol mol;
   read_smiles(smiles, mol);
 
   std::vector<unsigned long> symmetry = extended_connectivities(&mol);
@@ -36,12 +37,75 @@ void testCanonicalize(const std::string &smiles)
   canonicalize(&mol, symmetry);
 }
 
+bool shuffle_test_mol(HeMol *mol)
+{
+  bool pass = true;
+  std::vector<unsigned int> atoms;
+  for (unsigned int i = 0; i < num_atoms(mol); ++i)
+    atoms.push_back(i);
+
+  std::vector<unsigned long> ref_code = canonicalize(mol, extended_connectivities(mol)).second;
+
+  for (int i = 0; i < 10; ++i) {
+    std::random_shuffle(atoms.begin(), atoms.end());
+    mol->renumberAtoms(atoms);
+    std::vector<unsigned long> code = canonicalize(mol, extended_connectivities(mol)).second;
+    COMPARE(ref_code, code);
+    if (ref_code != code)
+      pass = false;
+  }
+
+  return pass;
+}
+
+void shuffle_test_smiles(const std::string &smiles)
+{
+  std::cout << "Testing " << smiles << "..." << std::endl;
+  HeMol mol;
+  read_smiles(smiles, mol);
+  shuffle_test_mol(&mol);
+}
+
+void shuffle_test(const std::string &filename)
+{
+  std::cout << "Shuffle test..." << std::endl;
+  MoleculeFile file(filename);
+
+  unsigned int idx, numAtoms = -1;
+
+  HeMol mol;
+  while (file.read_molecule(mol)) {
+    if (unique_elements(connected_bond_components(&mol)) > 1)
+      continue;
+    if ((file.current() % 1000) == 0)
+      std::cout << "Testing molecule " << file.current() << "..." << std::endl;
+    if (!shuffle_test_mol(&mol) && num_atoms(&mol) < numAtoms) {
+      numAtoms = num_atoms(&mol);
+      idx = file.current();    
+    }
+  }
+  std::cout << "smallest: " << idx << std::endl;
+}
+
 int main()
 {
-  testCanonicalPath("CCCCN");
-  testCanonicalPath("CCCCOC");
+  shuffle_test_smiles("Clc1ccc2c(CCN2C(=O)C)c1");
+//  return 0;
 
-  testCanonicalize("CCC(C)C");
-  testCanonicalize("CCC(C(C)C)C");
-  testCanonicalize("c1ccccc1");
+  test_canonical_path("CCCCN");
+  test_canonical_path("CCCCOC");
+
+  test_canonicalize("CCC(C)C");
+  test_canonicalize("CCC(C(C)C)C");
+  test_canonicalize("c1ccccc1");
+
+
+  shuffle_test_smiles("[Cl-].OC(=O)C(CS)[NH3+]");
+  shuffle_test_smiles("Cl.NCc1ncc(Br)c(C)c1");
+  shuffle_test_smiles("C=CCc1c(O)nc(C)nc1O");
+  shuffle_test_smiles("Clc1ccc(cc1)Cc1c(C)nc(N)[nH]c1=O");
+  shuffle_test_smiles("COc1cc(C)nc(Cl)n1");
+  shuffle_test_smiles("C1CN1");
+  
+  shuffle_test(datadir() + "1K.hem");
 }

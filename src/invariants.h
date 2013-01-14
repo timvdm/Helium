@@ -2,6 +2,7 @@
 #define HELIUM_INVARIANTS_H
 
 #include "tie.h"
+#include "molecule.h"
 
 namespace Helium {
 
@@ -10,19 +11,19 @@ namespace Helium {
   {
     unsigned int invariant = 0;
     // bit 0: aromatic
-    invariant |= is_aromatic(mol, atom);
+    //invariant |= is_aromatic(mol, atom);
     // bit 1: cyclic
-    invariant |= is_cyclic(mol, atom) << 1;
+    //invariant |= is_cyclic(mol, atom) << 1;
     // bit 2-8: element
     invariant |= get_element(mol, atom) << 2;
     // bit 9-15: mass
-    invariant |= get_mass(mol, atom) << 9;
+    //invariant |= get_mass(mol, atom) << 9;
     // bit 16-19: degree
     invariant |= get_degree(mol, atom) << 16;
     // bit 20-22: hydrogens
     //invariant |= num_hydrogens(mol, atom) << 20;
     // bit 23-26: charge
-    invariant |= (get_charge(mol, atom) + 7) << 23;
+    //invariant |= (get_charge(mol, atom) + 7) << 23;
 
     return invariant;
   }
@@ -32,9 +33,9 @@ namespace Helium {
   {
     unsigned int invariant = 0;
     // bit 0: aromatic
-    invariant |= is_aromatic(mol, bond);
+    //invariant |= is_aromatic(mol, bond);
     // bit 1: cyclic
-    invariant |= is_cyclic(mol, bond) << 1;
+    //invariant |= is_cyclic(mol, bond) << 1;
     // bit 2-4: element
     invariant |= get_order(mol, bond) << 2;
 

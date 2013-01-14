@@ -1,4 +1,3 @@
-#include "../src/molecule.h"
 #include "../src/fileio.h"
 
 #include "test.h"
@@ -7,7 +6,7 @@ using namespace Helium;
 
 int main()
 {
-  Molecule mol;
+  HeMol mol;
   read_smiles("c1ccccc1Cl", mol);
 
   COMPARE(7, num_atoms(&mol));

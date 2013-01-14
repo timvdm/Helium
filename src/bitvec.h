@@ -10,10 +10,22 @@ namespace Helium {
 
   const int BitsPerWord = sizeof(Word) * 8;
 
+  inline unsigned int num_words_for_bits(unsigned int numBits)
+  {
+    return (numBits + numBits % BitsPerWord) / BitsPerWord;
+  }
+
   inline void zero(Word *bitvec, int numWords)
   {
     for (int i = 0; i < numWords; ++i)
       bitvec[i] = 0;
+  }
+
+  inline Word* copy(const Word *bitvec, int numWords)
+  {
+    Word *result = new Word[numWords];
+    std::copy(bitvec, bitvec + numWords, result);
+    return result;
   }
 
   inline bool is_subset_superset(const Word *bitvec1, const Word *bitvec2, int numWords)
@@ -68,7 +80,7 @@ namespace Helium {
       *(bitvec + i) = 0;
   }
 
-  inline bool get(int index, const Word *bitvec, int numWord)
+  inline bool get(int index, const Word *bitvec, int numWord = 0) // FIXME
   {
     int word = index / (sizeof(Word) * 8);
     int offset = index % (sizeof(Word) * 8);
@@ -76,7 +88,7 @@ namespace Helium {
     return *(bitvec + word) & bit;
   }
 
-  inline void set(int index, Word *bitvec, int numWord)
+  inline void set(int index, Word *bitvec, int numWord = 0) // FIXME
   {
     int word = index / (sizeof(Word) * 8);
     int offset = index % (sizeof(Word) * 8);
@@ -84,7 +96,7 @@ namespace Helium {
     *(bitvec + word) |= bit;
   }
 
-  inline void reset(int index, Word *bitvec, int numWord)
+  inline void reset(int index, Word *bitvec, int numWord = 0) // FIXME
   {
     int word = index / (sizeof(Word) * 8);
     int offset = index % (sizeof(Word) * 8);

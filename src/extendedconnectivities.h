@@ -59,7 +59,7 @@ namespace Helium {
     for (int i = 0; i < 100; ++i) { // should never reach 100...
       impl::extended_connectivities_iterate(mol, ec);
       unsigned int nextNumClasses = unique_elements(ec);
-      if (numClasses >= nextNumClasses)
+      if (numClasses == nextNumClasses)
         break;
       numClasses = nextNumClasses;      
     }

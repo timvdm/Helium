@@ -10,7 +10,7 @@ void test_isomorphisms(const std::string &smiles)
   std::cout << "Testing: " << smiles << std::endl;
   HeMol mol;
   read_smiles(smiles, mol);
-  isomorphism_search<DefaultAtomMatcher, DefaultBondMatcher, HeMol, HeMol>(&mol, &mol);
+  isomorphism_search<DefaultAtomMatcher, DefaultBondMatcher, HeMol, HeMol>(mol, mol);
 }
 
 int main()

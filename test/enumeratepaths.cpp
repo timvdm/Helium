@@ -11,7 +11,7 @@ void testEnumeratePaths(const std::string &smiles, int expected)
   HeMol mol;
   read_smiles(smiles, mol);
 
-  std::vector<std::vector<unsigned int> > paths = enumerate_paths(&mol, 7);
+  std::vector<std::vector<unsigned int> > paths = enumerate_paths(mol, 7);
 
   COMPARE(expected, paths.size());
 

@@ -18,6 +18,8 @@ namespace Helium {
     typedef typename MoleculeType::mol_bond_iter mol_bond_iter;
     typedef typename MoleculeType::atom_atom_iter atom_atom_iter;
     typedef typename MoleculeType::atom_bond_iter atom_bond_iter;
+    
+    typedef typename MoleculeType::const_atom_iter const_atom_iter;
 
     static Index null_index()
     {

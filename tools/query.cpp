@@ -56,13 +56,13 @@ int main(int argc, char**argv)
   Word queryFingerprint[NUM_WORDS];
   switch (method) {
     case PathsMethod:
-      path_fingerprint(&mol, queryFingerprint, 7, NUM_WORDS, PRIME);
+      path_fingerprint(mol, queryFingerprint, 7, NUM_WORDS, PRIME);
       break;
     case TreesMethod:
-      tree_fingerprint(&mol, queryFingerprint, 7, NUM_WORDS, PRIME);
+      tree_fingerprint(mol, queryFingerprint, 7, NUM_WORDS, PRIME);
       break;
     case SubgraphsMethod:
-      subgraph_fingerprint(&mol, queryFingerprint, 7, NUM_WORDS, PRIME);
+      subgraph_fingerprint(mol, queryFingerprint, 7, NUM_WORDS, PRIME);
       break;
   }
 

@@ -10,7 +10,7 @@ void test_cyclomatic_number(const std::string &smiles, unsigned int expected)
   std::cout << "Testing: " << smiles << std::endl;
   HeMol mol;
   read_smiles(smiles, mol);
-  COMPARE(expected, cyclomatic_number(&mol));
+  COMPARE(expected, cyclomatic_number(mol));
 }
 
 void test_relevant_cycles(const std::string &smiles, std::vector<std::pair<unsigned int, unsigned int> > &expected)
@@ -20,7 +20,7 @@ void test_relevant_cycles(const std::string &smiles, std::vector<std::pair<unsig
   read_smiles(smiles, mol);
 
 
-  std::vector<std::vector<Index> > cycles = relevant_cycles(&mol);
+  std::vector<std::vector<Index> > cycles = relevant_cycles(mol);
   std::map<unsigned int, unsigned int> cycleSizeCounts;
   for (std::size_t i = 0; i < cycles.size(); ++i)
     cycleSizeCounts[cycles[i].size()]++;

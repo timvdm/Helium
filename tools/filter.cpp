@@ -39,7 +39,7 @@ int main(int argc, char**argv)
 
   // process molecules
   while (file.read_molecule(mol)) {
-    sizes[num_atoms(&mol)].push_back(file.current());
+    sizes[num_atoms(mol)].push_back(file.current());
   }
 
   //std::cout << "num_sizes: " << sizes.size() << std::endl;

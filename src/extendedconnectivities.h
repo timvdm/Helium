@@ -8,7 +8,7 @@ namespace Helium {
   namespace impl {
 
     template<typename MoleculeType>
-    void extended_connectivities_iterate(MoleculeType *mol, std::vector<unsigned long> &ec)
+    void extended_connectivities_iterate(MoleculeType &mol, std::vector<unsigned long> &ec)
     {
       typedef typename molecule_traits<MoleculeType>::mol_atom_iter mol_atom_iter;
       typedef typename molecule_traits<MoleculeType>::atom_atom_iter nbr_iter;
@@ -43,7 +43,7 @@ namespace Helium {
   }
 
   template<typename MoleculeType>
-  std::vector<unsigned long> extended_connectivities(MoleculeType *mol)
+  std::vector<unsigned long> extended_connectivities(MoleculeType &mol)
   {
     typedef typename molecule_traits<MoleculeType>::mol_atom_iter mol_atom_iter;
 

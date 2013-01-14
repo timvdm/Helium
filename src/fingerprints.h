@@ -32,7 +32,7 @@ namespace Helium {
    *        bits in the fingerprint is ideal.
    */
   template<typename MoleculeType>
-  void path_fingerprint(MoleculeType *mol, Word *fingerprint, int size = 7, int numWords = 16, int hashPrime = 1021)
+  void path_fingerprint(MoleculeType &mol, Word *fingerprint, int size = 7, int numWords = 16, int hashPrime = 1021)
   {
     assert(hashPrime <= numWords * sizeof(Word) * 8);
     boost::hash<std::vector<unsigned long> > hash;
@@ -51,7 +51,7 @@ namespace Helium {
     {
       struct EnumerateSubgraphsCallback
       {
-        EnumerateSubgraphsCallback(MoleculeType *mol_, Word *fp, int words, int prime)
+        EnumerateSubgraphsCallback(MoleculeType &mol_, Word *fp, int words, int prime)
             : mol(mol_), fingerprint(fp), numWords(words), hashPrime(prime)
         {
           zero(fingerprint, numWords);
@@ -61,26 +61,26 @@ namespace Helium {
         {
           Substructure<MoleculeType> substruct(mol, subgraph.atoms, subgraph.bonds);
 
-          std::vector<unsigned long> symmetry = extended_connectivities(&substruct);
-          std::vector<unsigned long> code = canonicalize(&substruct, symmetry).second;
+          std::vector<unsigned long> symmetry = extended_connectivities(substruct);
+          std::vector<unsigned long> code = canonicalize(substruct, symmetry).second;
          
           /*
           std::vector<unsigned int> labels;
           std::vector<unsigned long> code;
-          tie(labels, code) = canonicalize(&substruct, symmetry);
+          tie(labels, code) = canonicalize(substruct, symmetry);
           */
 
           set(m_hash(code) % hashPrime, fingerprint, numWords);
         }
 
-        MoleculeType *mol;
+        MoleculeType &mol;
         Word *fingerprint;
         boost::hash<std::vector<unsigned long> > m_hash;
         int numWords;
         int hashPrime;
       };
 
-      SubgraphsFingerprint(MoleculeType *mol, Word *fp, int size, bool trees, int numWords, int hashPrime)
+      SubgraphsFingerprint(MoleculeType &mol, Word *fp, int size, bool trees, int numWords, int hashPrime)
           : callback(mol, fp, numWords, hashPrime)
       {
         // enumerate subgraphs
@@ -93,14 +93,14 @@ namespace Helium {
   }
 
   template<typename MoleculeType>
-  void tree_fingerprint(MoleculeType *mol, Word *fingerprint, int size = 7, int numWords = 16, int hashPrime = 1021)
+  void tree_fingerprint(MoleculeType &mol, Word *fingerprint, int size = 7, int numWords = 16, int hashPrime = 1021)
   {
     assert(hashPrime <= numWords * sizeof(Word) * 8);
     impl::SubgraphsFingerprint<MoleculeType>(mol, fingerprint, size, true, numWords, hashPrime);
   }
 
   template<typename MoleculeType>
-  void subgraph_fingerprint(MoleculeType *mol, Word *fingerprint, int size = 7, int numWords = 16, int hashPrime = 1021)
+  void subgraph_fingerprint(MoleculeType &mol, Word *fingerprint, int size = 7, int numWords = 16, int hashPrime = 1021)
   {
     assert(hashPrime <= numWords * sizeof(Word) * 8);
     impl::SubgraphsFingerprint<MoleculeType>(mol, fingerprint, size, false, numWords, hashPrime);

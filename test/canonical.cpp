@@ -15,13 +15,13 @@ void test_canonical_path(const std::string &smiles)
   read_smiles(smiles, mol);
 
   std::vector<unsigned int> forward, backward;
-  for (unsigned int i = 0; i < num_atoms(&mol); ++i) {
+  for (unsigned int i = 0; i < num_atoms(mol); ++i) {
     forward.push_back(i);
-    backward.push_back(num_atoms(&mol) - i - 1);
+    backward.push_back(num_atoms(mol) - i - 1);
   }
 
-  std::vector<unsigned long> forwardCode = canonicalize_path<canonical_path_atom_invariant>(&mol, forward).second;
-  std::vector<unsigned long> backwardCode = canonicalize_path<canonical_path_atom_invariant>(&mol, backward).second;
+  std::vector<unsigned long> forwardCode = canonicalize_path<canonical_path_atom_invariant>(mol, forward).second;
+  std::vector<unsigned long> backwardCode = canonicalize_path<canonical_path_atom_invariant>(mol, backward).second;
 
   COMPARE(forwardCode, backwardCode);
 }
@@ -32,12 +32,12 @@ void test_canonicalize(const std::string &smiles)
   HeMol mol;
   read_smiles(smiles, mol);
 
-  std::vector<unsigned long> symmetry = extended_connectivities(&mol);
+  std::vector<unsigned long> symmetry = extended_connectivities(mol);
   std::cout << "symmetry: " << symmetry << std::endl;
-  canonicalize(&mol, symmetry);
+  canonicalize(mol, symmetry);
 }
 
-bool shuffle_test_mol(HeMol *mol)
+bool shuffle_test_mol(HeMol &mol)
 {
   bool pass = true;
   std::vector<unsigned int> atoms;
@@ -48,7 +48,7 @@ bool shuffle_test_mol(HeMol *mol)
 
   for (int i = 0; i < 10; ++i) {
     std::random_shuffle(atoms.begin(), atoms.end());
-    mol->renumberAtoms(atoms);
+    mol.renumberAtoms(atoms);
     std::vector<unsigned long> code = canonicalize(mol, extended_connectivities(mol)).second;
     COMPARE(ref_code, code);
     if (ref_code != code)
@@ -63,7 +63,7 @@ void shuffle_test_smiles(const std::string &smiles)
   std::cout << "Testing " << smiles << "..." << std::endl;
   HeMol mol;
   read_smiles(smiles, mol);
-  shuffle_test_mol(&mol);
+  shuffle_test_mol(mol);
 }
 
 void shuffle_test(const std::string &filename)
@@ -75,12 +75,12 @@ void shuffle_test(const std::string &filename)
 
   HeMol mol;
   while (file.read_molecule(mol)) {
-    if (unique_elements(connected_bond_components(&mol)) > 1)
+    if (unique_elements(connected_bond_components(mol)) > 1)
       continue;
     if ((file.current() % 1000) == 0)
       std::cout << "Testing molecule " << file.current() << "..." << std::endl;
-    if (!shuffle_test_mol(&mol) && num_atoms(&mol) < numAtoms) {
-      numAtoms = num_atoms(&mol);
+    if (!shuffle_test_mol(mol) && num_atoms(mol) < numAtoms) {
+      numAtoms = num_atoms(mol);
       idx = file.current();    
     }
   }

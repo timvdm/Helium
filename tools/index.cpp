@@ -76,13 +76,13 @@ int main(int argc, char**argv)
 
     switch (method) {
       case PathsMethod:
-        path_fingerprint(&mol, fingerprint, k, NUM_WORDS, PRIME);
+        path_fingerprint(mol, fingerprint, k, NUM_WORDS, PRIME);
         break;
       case TreesMethod:
-        tree_fingerprint(&mol, fingerprint, k, NUM_WORDS, PRIME);
+        tree_fingerprint(mol, fingerprint, k, NUM_WORDS, PRIME);
         break;
       case SubgraphsMethod:
-        subgraph_fingerprint(&mol, fingerprint, k, NUM_WORDS, PRIME);
+        subgraph_fingerprint(mol, fingerprint, k, NUM_WORDS, PRIME);
         break;
     }
 

@@ -19,7 +19,7 @@ namespace Helium {
         typedef typename molecule_traits<MoleculeType>::atom_atom_iter atom_atom_iter;
 
       public:
-        EnumeratePaths(MoleculeType *mol, int size) : m_mol(mol), m_size(size)
+        EnumeratePaths(MoleculeType &mol, int size) : m_mol(mol), m_size(size)
         {
           m_paths.resize(size);
         }
@@ -82,7 +82,7 @@ namespace Helium {
           paths.push_back(path);
         }
 
-        MoleculeType *m_mol;
+        MoleculeType &m_mol;
         std::vector<std::vector<std::vector<unsigned int> > > m_paths;
         int m_size;
     };
@@ -90,7 +90,7 @@ namespace Helium {
   } // namespace impl
 
   template<typename MoleculeType>
-  std::vector<std::vector<unsigned int> > enumerate_paths(MoleculeType *mol, int size)
+  std::vector<std::vector<unsigned int> > enumerate_paths(MoleculeType &mol, int size)
   {
     impl::EnumeratePaths<MoleculeType> ep(mol, size);
     return ep.paths();

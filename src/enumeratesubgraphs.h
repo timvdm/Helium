@@ -42,7 +42,7 @@ namespace Helium {
 
 
   template<typename MoleculeType>
-  bool is_cyclic(MoleculeType *mol, typename molecule_traits<MoleculeType>::atom_type atom,
+  bool is_cyclic(MoleculeType &mol, typename molecule_traits<MoleculeType>::atom_type atom,
       std::vector<bool> &visitedAtoms, std::vector<bool> &visitedBonds)
   {
     typedef typename molecule_traits<MoleculeType>::atom_bond_iter atom_bond_iter;
@@ -66,7 +66,7 @@ namespace Helium {
 
 
   template<typename MoleculeType>
-  bool is_cyclic(MoleculeType *mol)
+  bool is_cyclic(MoleculeType &mol)
   {
     typedef typename molecule_traits<MoleculeType>::mol_atom_iter mol_atom_iter;
 
@@ -90,7 +90,7 @@ namespace Helium {
    * Brute force subgraph enumeration for testing purposes.
    */
   template<typename MoleculeType, typename CallbackType>
-  void enumerate_subgraphs_correct(MoleculeType *mol, CallbackType &callback, int maxSize, bool trees = false)
+  void enumerate_subgraphs_correct(MoleculeType &mol, CallbackType &callback, int maxSize, bool trees = false)
   {
     typedef typename molecule_traits<MoleculeType>::mol_bond_iter mol_bond_iter;
 
@@ -162,10 +162,10 @@ namespace Helium {
         if (size > 1) {
           Substructure<MoleculeType> substruct(mol, atoms, bonds);
           // don't allow cyclic subgraphs when enumerating trees
-          if (trees && is_cyclic(&substruct))
+          if (trees && is_cyclic(substruct))
             continue;
           // make sure the all subgraph bonds are connected
-          std::vector<unsigned int> subcomponents = connected_bond_components(&substruct);
+          std::vector<unsigned int> subcomponents = connected_bond_components(substruct);
           if (unique_elements(subcomponents) > 1)
             continue;
         }
@@ -259,7 +259,7 @@ namespace Helium {
 
       template<typename MoleculeType, typename CallbackType>
       void find_subgraphs(
-          MoleculeType *mol,
+          MoleculeType &mol,
           CallbackType &callback,
           int maxSize,
           bool trees)
@@ -336,7 +336,7 @@ namespace Helium {
   } // namespace impl
 
   template<typename MoleculeType, typename CallbackType>
-  void enumerate_subgraphs_slow(MoleculeType *mol, CallbackType &callback, int maxSize, bool trees = false)
+  void enumerate_subgraphs_slow(MoleculeType &mol, CallbackType &callback, int maxSize, bool trees = false)
   {
     impl::EnumerateSubgraphsSlow es;
     es.find_subgraphs(mol, callback, maxSize, trees);
@@ -363,7 +363,7 @@ namespace Helium {
     // [(bond index, target atom index)]
     template<typename MoleculeType>
     std::vector<std::pair<unsigned int, unsigned int> > find_extensions(
-        MoleculeType *mol,
+        MoleculeType &mol,
         const std::vector<bool> &visited,
         const std::vector<bool> &newAtoms, const std::vector<bool> &allAtoms, bool trees)
     {
@@ -463,7 +463,7 @@ namespace Helium {
 
 
   template<typename MoleculeType, typename CallbackType>
-  void enumerate_subgraphs(MoleculeType *mol, CallbackType &callback, int maxSize, bool trees = false)
+  void enumerate_subgraphs(MoleculeType &mol, CallbackType &callback, int maxSize, bool trees = false)
   {
     typedef typename molecule_traits<MoleculeType>::mol_bond_iter mol_bond_iter;
 
@@ -557,7 +557,7 @@ namespace Helium {
         
 
         Substructure<MoleculeType> substruct(mol, atoms, bonds);
-        if (trees && is_cyclic(&substruct))
+        if (trees && is_cyclic(substruct))
           continue;
 
         callback(subgraph);

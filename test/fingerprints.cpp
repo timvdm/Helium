@@ -14,8 +14,8 @@ void test_path_fingerprint(const std::string &substructure, const std::string &s
   read_smiles(superstructure, super);
 
   Word subFp[16], superFp[16];
-  path_fingerprint(&sub, subFp);
-  path_fingerprint(&super, superFp);
+  path_fingerprint(sub, subFp);
+  path_fingerprint(super, superFp);
 
   //print(subFp, 16);
   //print(superFp, 16);
@@ -32,9 +32,9 @@ void test_tree_fingerprint(const std::string &substructure, const std::string &s
 
   Word subFp[16], superFp[16];
   std::cout << "    generating query fingerprint..." << std::endl;
-  tree_fingerprint(&sub, subFp);
+  tree_fingerprint(sub, subFp);
   std::cout << "    generating queried fingerprint..." << std::endl;
-  tree_fingerprint(&super, superFp);
+  tree_fingerprint(super, superFp);
 
   //print(subFp, 16);
   //print(superFp, 16);

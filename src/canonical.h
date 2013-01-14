@@ -12,7 +12,7 @@ namespace Helium {
   namespace impl {
 
     template<template <typename> class AtomInvariant, typename MoleculeType, typename T>
-    std::vector<unsigned long> canonical_path_code(MoleculeType *mol, const std::vector<T> &path)
+    std::vector<unsigned long> canonical_path_code(MoleculeType &mol, const std::vector<T> &path)
     {
       typedef typename molecule_traits<MoleculeType>::bond_type bond_type;
 
@@ -38,10 +38,10 @@ namespace Helium {
 
       AtomInvariant<Substructure<MoleculeType> > atomInvariant;
       for (std::size_t i = 1; i < subPath.size(); ++i) {
-        result.push_back(atomInvariant(&substruct, get_atom(&substruct, subPath[i-1])));
-        result.push_back(bond_invariant(&substruct, bonds[i-1]));
+        result.push_back(atomInvariant(substruct, get_atom(substruct, subPath[i-1])));
+        result.push_back(bond_invariant(substruct, bonds[i-1]));
       }
-      result.push_back(atomInvariant(&substruct, get_atom(&substruct, subPath.back())));
+      result.push_back(atomInvariant(substruct, get_atom(substruct, subPath.back())));
 
       return result;
     }
@@ -51,14 +51,14 @@ namespace Helium {
   template<typename MoleculeType>
   struct canonical_path_atom_invariant
   {
-    unsigned int operator()(MoleculeType *mol, typename molecule_traits<MoleculeType>::atom_type atom) const
+    unsigned int operator()(MoleculeType &mol, typename molecule_traits<MoleculeType>::atom_type atom) const
     {
       return get_element(mol, atom);
     }
   };
 
   template<template<typename> class AtomInvariant, typename MoleculeType, typename T>
-  std::pair<std::vector<unsigned int>, std::vector<unsigned long> > canonicalize_path(MoleculeType *mol,
+  std::pair<std::vector<unsigned int>, std::vector<unsigned long> > canonicalize_path(MoleculeType &mol,
       const std::vector<T> &path)
   {
     std::vector<unsigned long> forwardCode = impl::canonical_path_code<AtomInvariant>(mol, path);
@@ -107,7 +107,7 @@ namespace Helium {
         typedef typename molecule_traits<MoleculeType>::atom_bond_iter atom_bond_iter;
 
       public:
-        Canonicalize(MoleculeType *mol, const std::vector<unsigned long> &symmetry)
+        Canonicalize(MoleculeType &mol, const std::vector<unsigned long> &symmetry)
             : m_mol(mol), m_symmetry(symmetry), m_visited(num_bonds(mol))
         {
         }
@@ -303,7 +303,7 @@ namespace Helium {
           }
         }
 
-        MoleculeType *m_mol;
+        MoleculeType &m_mol;
         const std::vector<unsigned long> &m_symmetry;
         std::vector<Index> m_atoms; // canonical atom order
         std::vector<Index> m_bonds; // canonical bond order
@@ -330,7 +330,7 @@ namespace Helium {
    * @return The canonical atom order and canonical code.
    */
   template<typename MoleculeType, typename T>
-  std::pair<std::vector<Index>, std::vector<unsigned long> > canonicalize(MoleculeType *mol, const std::vector<T> &symmetry)
+  std::pair<std::vector<Index>, std::vector<unsigned long> > canonicalize(MoleculeType &mol, const std::vector<T> &symmetry)
   {
     if (DEBUG_CANON) {
       std::cout << "+---------------------------+" << std::endl;

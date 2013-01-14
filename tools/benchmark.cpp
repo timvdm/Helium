@@ -69,7 +69,7 @@ void benchmark_enumerate_subgraphs(const std::string &filename, int size = 7)
   // read molecules
   while (file.read_molecule(mol)) {
     EnumerateSubgraphsCallback<HeMol> callback;
-    enumerate_subgraphs(&mol, callback, size);
+    enumerate_subgraphs(mol, callback, size);
   }
 
   boost::timer::cpu_times elapsed = timer.elapsed();
@@ -119,8 +119,8 @@ int main(int argc, char**argv)
       std::cout << file.current() << std::endl;
 
     // enumerate subgraphs
-    EnumerateSubgraphsCallback<Molecule> callback(&mol);
-    enumerate_subgraphs(&mol, callback, 7);
+    EnumerateSubgraphsCallback<Molecule> callback(mol);
+    enumerate_subgraphs(mol, callback, 7);
 
     int bitCount = bit_count(callback.fingerprint, NUM_WORDS);
     bitCounts.push_back(bitCount);

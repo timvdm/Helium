@@ -34,13 +34,13 @@
 namespace Helium {
 
   template<typename MoleculeType>
-  Size cyclomatic_number(MoleculeType *mol, Size numComponents)
+  Size cyclomatic_number(MoleculeType &mol, Size numComponents)
   {
     return num_bonds(mol) - num_atoms(mol) + numComponents;
   }
 
   template<typename MoleculeType>
-  Size cyclomatic_number(MoleculeType *mol)
+  Size cyclomatic_number(MoleculeType &mol)
   {
     return cyclomatic_number(mol, num_connected_components(mol));
   }
@@ -53,7 +53,7 @@ namespace Helium {
       typedef typename molecule_traits<MoleculeType>::atom_type atom_type;
       typedef typename molecule_traits<QueryType>::atom_type query_atom_type;
 
-      bool operator()(QueryType *query, query_atom_type queryAtom, MoleculeType *mol, atom_type atom) const
+      bool operator()(QueryType &query, query_atom_type queryAtom, MoleculeType &mol, atom_type atom) const
       {
         return is_cyclic(mol, atom);
       }
@@ -65,7 +65,7 @@ namespace Helium {
       typedef typename molecule_traits<MoleculeType>::bond_type bond_type;
       typedef typename molecule_traits<QueryType>::bond_type query_bond_type;
 
-      bool operator()(QueryType *query, query_bond_type queryAtom, MoleculeType *mol, bond_type bond) const
+      bool operator()(QueryType &query, query_bond_type queryAtom, MoleculeType &mol, bond_type bond) const
       {
         return is_cyclic(mol, bond);
       }
@@ -74,7 +74,7 @@ namespace Helium {
   }
 
   template<typename MoleculeType>
-  std::vector<std::vector<Index> > relevant_cycles(MoleculeType *mol, Size cyclomaticNumber)
+  std::vector<std::vector<Index> > relevant_cycles(MoleculeType &mol, Size cyclomaticNumber)
   {
     std::vector<std::vector<Index> > cycles;
 
@@ -89,7 +89,7 @@ namespace Helium {
 
       // find all cycles of size
       MappingList mappings;
-      if (isomorphism_search<impl::CycleAtomMatcher, impl::CycleBondMatcher, MoleculeType, HeMol, MappingList>(mol, &cycleMol, mappings)) {
+      if (isomorphism_search<impl::CycleAtomMatcher, impl::CycleBondMatcher, MoleculeType, HeMol, MappingList>(mol, cycleMol, mappings)) {
         for (std::size_t i = 0; i < mappings.maps.size(); ++i)
           cycles.push_back(mappings.maps[i]);      
       }
@@ -102,7 +102,7 @@ namespace Helium {
   }
 
   template<typename MoleculeType>
-  std::vector<std::vector<Index> > relevant_cycles(MoleculeType *mol)
+  std::vector<std::vector<Index> > relevant_cycles(MoleculeType &mol)
   {
     return relevant_cycles(mol, cyclomatic_number(mol));
   }

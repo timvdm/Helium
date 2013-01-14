@@ -59,11 +59,11 @@ void testEnumerateSubgraphs(const std::string &smiles, int size = 7, bool trees 
   EnumerateSubgraphsCallback callback_correct, callback_slow, callback_fast;
 
   std::cout << "    Correct algorithm:" << std::endl;
-  enumerate_subgraphs_correct(&mol, callback_correct, size, trees);
+  enumerate_subgraphs_correct(mol, callback_correct, size, trees);
   //std::cout << "    Slow algorithm:" << std::endl;
-  //enumerate_subgraphs_slow(&mol, callback_slow, size);
+  //enumerate_subgraphs_slow(mol, callback_slow, size);
   std::cout << "    Fast algorithm:" << std::endl;
-  enumerate_subgraphs(&mol, callback_fast, size, trees);
+  enumerate_subgraphs(mol, callback_fast, size, trees);
 
   std::cout << mol;
 

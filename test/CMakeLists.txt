@@ -11,7 +11,7 @@ set(tests
   util
   components
   fingerprints
-  maximalmatching
+  #maximalmatching
   isomorphism
   cycles
   )

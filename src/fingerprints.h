@@ -1,3 +1,29 @@
+/**
+ * Copyright (c) 2013, Tim Vandermeersch
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *     * Redistributions of source code must retain the above copyright
+ *       notice, this list of conditions and the following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright
+ *       notice, this list of conditions and the following disclaimer in the
+ *       documentation and/or other materials provided with the distribution.
+ *     * Neither the name of the <organization> nor the
+ *       names of its contributors may be used to endorse or promote products
+ *       derived from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL <COPYRIGHT HOLDER> BE LIABLE FOR ANY
+ * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 #ifndef HELIUM_FINGERPRINTS_H
 #define HELIUM_FINGERPRINTS_H
 
@@ -15,7 +41,7 @@
 namespace Helium {
 
   /**
-   * Calculate the path-based fingerprint for the specified molecule. All paths
+   * Compute the path-based fingerprint for the specified molecule. All paths
    * in the molecular graph will be enumerated upto the specified size. For each
    * path, a canonical code is generated which is hashed using the @p hashPrime
    * number to set a bit in the @p fingerprint corresponding to that path.
@@ -36,11 +62,30 @@ namespace Helium {
   {
     assert(hashPrime <= numWords * sizeof(Word) * 8);
     boost::hash<std::vector<unsigned long> > hash;
+    // set all bits to 0
     zero(fingerprint, numWords);
+    // enumerate the paths
     std::vector<std::vector<unsigned int> > paths = enumerate_paths(mol, size);
+    // set the bits
     for (std::size_t i = 0; i < paths.size(); ++i) {
-      std::vector<unsigned long> canonicalCode = canonicalize_path<canonical_path_atom_invariant>(mol, paths[i]).second;
-      set(hash(canonicalCode) % hashPrime, fingerprint, numWords);
+      std::vector<bool> atoms(num_atoms(mol));
+      std::vector<bool> bonds(num_bonds(mol));
+
+      // set bits for atoms/bonds in the path
+      for (std::size_t j = 0; j < paths[i].size(); ++j) {
+        atoms[paths[i][j]] = true;
+        if (j + 1 < paths[i].size())
+          bonds[get_index(mol, get_bond(mol, get_atom(mol, paths[i][j]), get_atom(mol, paths[i][j + 1])))] = true;
+      }
+
+      // create path molecule
+      Substructure<MoleculeType> substruct(mol, atoms, bonds);
+      // compute symmetry classes
+      std::vector<unsigned long> symmetry = extended_connectivities(substruct);
+      // canonicalize the path
+      std::vector<unsigned long> code = canonicalize(substruct, symmetry).second;
+      // set the bit for the hashed canonical code modulo the hash prime.
+      set(hash(code) % hashPrime, fingerprint);
     }
   }
 
@@ -49,35 +94,49 @@ namespace Helium {
     template<typename MoleculeType>
     struct SubgraphsFingerprint
     {
+      /**
+       * The subgraph enumeration callback. This functor computes the
+       * fingerprint by canonicalizing each subgraph and setting the bit for
+       * the hashed value of the subgraph's canonical code modulo the hash
+       * prime.
+       */
       struct EnumerateSubgraphsCallback
       {
+        /**
+         * Constructor.
+         *
+         * @param mol_ The molecule,
+         * @param fp The fingerprint bit vector.
+         * @param words The number of words for the @p fp bit vector.
+         * @param prime The prime to use for taking the modulo (e.g. the largest
+         *              prime smaller than the number of bits in the fingerprint.
+         */
         EnumerateSubgraphsCallback(MoleculeType &mol_, Word *fp, int words, int prime)
             : mol(mol_), fingerprint(fp), numWords(words), hashPrime(prime)
         {
           zero(fingerprint, numWords);
         }
 
+        /**
+         * Callback function, gets called for every subgraph found in the molecule.
+         */
         void operator()(const Subgraph &subgraph)
         {
+          // create the subgraph molecule
           Substructure<MoleculeType> substruct(mol, subgraph.atoms, subgraph.bonds);
-
+          // compute symmetry classes
           std::vector<unsigned long> symmetry = extended_connectivities(substruct);
+          // canonicalize the subgraph
           std::vector<unsigned long> code = canonicalize(substruct, symmetry).second;
-         
-          /*
-          std::vector<unsigned int> labels;
-          std::vector<unsigned long> code;
-          tie(labels, code) = canonicalize(substruct, symmetry);
-          */
-
-          set(m_hash(code) % hashPrime, fingerprint, numWords);
+          // set the bit for the hashed canonical code modulo the hash prime.
+          set(m_hash(code) % hashPrime, fingerprint);
         }
 
-        MoleculeType &mol;
-        Word *fingerprint;
-        boost::hash<std::vector<unsigned long> > m_hash;
-        int numWords;
-        int hashPrime;
+        MoleculeType &mol; //!< The molecule
+        Word *fingerprint; //!< The fingerprint bit vector
+        boost::hash<std::vector<unsigned long> > m_hash; //!< The hash function
+        int numWords; //!< The number of words for the fingerprint bit vector
+        int hashPrime; //!< The modulo prime number
       };
 
       SubgraphsFingerprint(MoleculeType &mol, Word *fp, int size, bool trees, int numWords, int hashPrime)
@@ -87,11 +146,28 @@ namespace Helium {
         enumerate_subgraphs(mol, callback, size, trees);
       }
 
-      EnumerateSubgraphsCallback callback;
+      EnumerateSubgraphsCallback callback; //!< Subgraph enumerator callback
     };
 
   }
 
+  /**
+   * Compute the tree-based fingerprint for the specified molecule. All trees
+   * in the molecular graph will be enumerated upto the specified size. For each
+   * tree, a canonical code is generated which is hashed using the @p hashPrime
+   * number to set a bit in the @p fingerprint corresponding to that tree.
+   *
+   * @param mol The molecule which models the MoleculeConcept.
+   * @param fingerprint Pointer to the fingerprint memory. This memory must be
+   *        the correct size (see @p numWords).
+   * @param size Maximum number of atoms in the trees.
+   * @param numWords The number of words the fingerprint has. Each word has
+   *        8 * sizeof(Word) bits which is usually 64 bit. This means the
+   *        default value 16 results in fingerprints of 1024 bits.
+   * @param hashPrime A prime number to hash the trees so they will fit in the
+   *        fingerprint. The largest prime, less than or equal to the number of
+   *        bits in the fingerprint is ideal.
+   */
   template<typename MoleculeType>
   void tree_fingerprint(MoleculeType &mol, Word *fingerprint, int size = 7, int numWords = 16, int hashPrime = 1021)
   {
@@ -99,6 +175,23 @@ namespace Helium {
     impl::SubgraphsFingerprint<MoleculeType>(mol, fingerprint, size, true, numWords, hashPrime);
   }
 
+  /**
+   * Compute the subgraph-based fingerprint for the specified molecule. All subgraphs
+   * in the molecular graph will be enumerated upto the specified size. For each
+   * subgraph, a canonical code is generated which is hashed using the @p hashPrime
+   * number to set a bit in the @p fingerprint corresponding to that subgraph.
+   *
+   * @param mol The molecule which models the MoleculeConcept.
+   * @param fingerprint Pointer to the fingerprint memory. This memory must be
+   *        the correct size (see @p numWords).
+   * @param size Maximum number of atoms in the subgraphs.
+   * @param numWords The number of words the fingerprint has. Each word has
+   *        8 * sizeof(Word) bits which is usually 64 bit. This means the
+   *        default value 16 results in fingerprints of 1024 bits.
+   * @param hashPrime A prime number to hash the subgraphs so they will fit in the
+   *        fingerprint. The largest prime, less than or equal to the number of
+   *        bits in the fingerprint is ideal.
+   */
   template<typename MoleculeType>
   void subgraph_fingerprint(MoleculeType &mol, Word *fingerprint, int size = 7, int numWords = 16, int hashPrime = 1021)
   {
@@ -106,264 +199,6 @@ namespace Helium {
     impl::SubgraphsFingerprint<MoleculeType>(mol, fingerprint, size, false, numWords, hashPrime);
   }
 
-  enum FingerprintType
-  {
-    PathBasedFingerprint,
-    TreeBasedFingerprint,
-    SubgraphBasedFingerprint
-  };
-
-  class FingerprintFile
-  {
-    public:
-      FingerprintFile(const std::string &filename) : m_ifs(filename.c_str()), m_current(-1)
-      {
-        if (m_ifs)
-          read32(m_ifs, m_numFingerprints);    
-        m_numWords = 16;
-      }
-
-      unsigned int num_fingerprints() const
-      {
-        return m_numFingerprints;
-      }
-
-      unsigned int current() const
-      {
-        return m_current;
-      }
-
-      bool read_fingerprint(Word *fingerprint)
-      {
-        if (!m_ifs)
-          return false;
-        ++m_current;
-        if (m_current == m_numFingerprints)
-          return false;
-        for (int i = 0; i < m_numWords; ++i)
-          read64(m_ifs, fingerprint[i]);
-        return m_ifs;
-      }
-
-    private:
-      std::ifstream m_ifs;
-      unsigned int m_numFingerprints;
-      unsigned int m_current;
-      int m_numWords;
-  };
-
-  struct InvertedFingerprintFileHeader
-  {
-    InvertedFingerprintFileHeader() : magic_number(get_magic_number())
-    {
-    }
-
-    static unsigned int get_magic_number()
-    {
-      return 0x48650001;
-    }
-
-    unsigned int magic_number;
-    unsigned int bits_per_word;
-    unsigned int bits_per_fingerprint;
-    unsigned int words_per_fingerprint;
-    unsigned int words_per_fpbit;
-    unsigned int num_fingerprints;
-  };
-
-  class InvertedFingerprintOutputFile
-  {
-    public:
-      InvertedFingerprintOutputFile(unsigned int bitsPerFingerprint, unsigned int numFingerprints, const std::string &filename) 
-          : m_ofs(filename.c_str(), std::ios_base::out | std::ios_base::binary), m_current(0)
-      {
-        // setup m_header
-        m_header.bits_per_word = sizeof(Word) * 8; // e.g. 64
-        m_header.bits_per_fingerprint = bitsPerFingerprint; // e.g. 1024
-        m_header.words_per_fingerprint = m_header.bits_per_fingerprint / m_header.bits_per_word; // e.g. 16
-        m_header.words_per_fpbit = (numFingerprints + numFingerprints % m_header.bits_per_word) / m_header.bits_per_word;
-        m_header.num_fingerprints = numFingerprints;
-
-        // write m_header
-        if (!m_ofs)
-          throw std::runtime_error(make_string("Could not open ", filename, " for writing."));
-        
-        // write the header
-        m_ofs.write(reinterpret_cast<const char*>(&m_header), sizeof(InvertedFingerprintFileHeader));
-        // allocate data
-        m_data = new Word[m_header.words_per_fpbit * m_header.bits_per_fingerprint];
-      }
-
-      ~InvertedFingerprintOutputFile()
-      {
-        // write the data
-        m_ofs.write(reinterpret_cast<const char*>(m_data), m_header.words_per_fpbit * m_header.bits_per_fingerprint * sizeof(Word));
-        delete [] m_data;
-      }
-
-      void write(Word *fingerprint)
-      {
-        // check each bit in the fingerprint
-        for (int i = 0; i < m_header.bits_per_fingerprint; ++i) {
-          // skip this bit if it is not set
-          if (!get(i, fingerprint))
-            continue;
-
-          // set the correct bit
-          set(i * m_header.words_per_fpbit * 64 + m_current, m_data);
-        }
-        ++m_current;
-      }
-
-    private:
-      InvertedFingerprintFileHeader m_header;
-      std::ofstream m_ofs;
-      unsigned int m_current;
-      Word *m_data;
-  };
-
-  class InvertedFingerprintFile
-  {
-    public:
-      InvertedFingerprintFile(const std::string &filename) : m_ifs(filename.c_str(), std::ios_base::in | std::ios_base::binary)
-      {
-        if (!m_ifs)
-          throw std::runtime_error(make_string("Could not open ", filename, " for reading."));
-
-        // read the header
-        m_ifs.read(reinterpret_cast<char*>(&m_header), sizeof(InvertedFingerprintFileHeader));
-
-        // check magic number
-        if (m_header.magic_number != m_header.get_magic_number())
-          throw std::runtime_error(make_string(filename, " is not an inverted fingerprint file."));
-
-        // allocate memory
-        m_data = new Word[m_header.words_per_fpbit];
-      }
-
-      ~InvertedFingerprintFile()
-      {
-        delete [] m_data;
-      }
-
-      unsigned int num_fingerprints() const
-      {
-        return m_header.num_fingerprints;
-      }
-
-      Word* allocate_result() const
-      {
-        return new Word[m_header.words_per_fpbit];
-      }
-
-      void search(Word *fingerprint, Word *result)
-      {
-        bool first = true;
-        for (int i = 0; i < m_header.bits_per_fingerprint; ++i) { // foreach bit
-          // skip this bit if it is not set
-          if (!get(i, fingerprint))
-            continue;
-        
-
-          // compute offset for this fingerprint bit
-          unsigned int offset = i * m_header.words_per_fpbit;
-          
-          m_ifs.seekg(sizeof(InvertedFingerprintFileHeader) + offset * sizeof(Word));
-          m_ifs.read(reinterpret_cast<char*>(m_data), m_header.words_per_fpbit * sizeof(Word));
-
-          if (first) {
-            // if this is the first bit, just set result
-            for (unsigned int j = 0; j < m_header.words_per_fpbit; ++j)
-              result[j] = m_data[j];
-            first = false;
-          } else {
-            // do set intersection
-            for (unsigned int j = 0; j < m_header.words_per_fpbit; ++j)
-              result[j] &= m_data[j];
-          }
-        }
-      }
-
-    private:
-      InvertedFingerprintFileHeader m_header;
-      std::ifstream m_ifs;
-      Word *m_data;
-  };
-
-  class InvertedFingerprintFileCached
-  {
-    public:
-      InvertedFingerprintFileCached(const std::string &filename)
-      {
-        // open the file
-        std::ifstream ifs(filename.c_str(), std::ios_base::in | std::ios_base::binary);
-        if (!ifs)
-          throw std::runtime_error(make_string("Could not open ", filename, " for reading."));
-
-        // read the header
-        ifs.read(reinterpret_cast<char*>(&m_header), sizeof(InvertedFingerprintFileHeader));
-
-        // check magic number
-        if (m_header.magic_number != m_header.get_magic_number())
-          throw std::runtime_error(make_string(filename, " is not an inverted fingerprint file."));
-
-        // allocate memory
-        m_data = new Word[m_header.words_per_fpbit * m_header.bits_per_fingerprint];
-        // read the data
-        ifs.read(reinterpret_cast<char*>(m_data), m_header.words_per_fpbit * m_header.bits_per_fingerprint * sizeof(Word));
-      }
-
-      ~InvertedFingerprintFileCached()
-      {
-        delete [] m_data;
-      }
-
-      unsigned int num_fingerprints() const
-      {
-        return m_header.num_fingerprints;
-      }
-
-      Word* allocate_fingerprint() const
-      {
-        return new Word[m_header.words_per_fingerprint];
-      }
-      
-      Word* allocate_result() const
-      {
-        return new Word[m_header.words_per_fpbit];
-      }
-
-      void search(Word *fingerprint, Word *result)
-      {
-        bool first = true;
-        for (int i = 0; i < m_header.bits_per_fingerprint; ++i) { // foreach bit
-          // skip this bit if it is not set
-          if (!get(i, fingerprint))
-            continue;
-
-          // compute offset for this fingerprint bit
-          unsigned int offset = i * m_header.words_per_fpbit;
-
-          if (first) {
-            // if this is the first bit, just set result
-            for (unsigned int j = 0; j < m_header.words_per_fpbit; ++j)
-              result[j] = m_data[offset + j];
-            first = false;
-          } else {
-            // do set intersection
-            for (unsigned int j = 0; j < m_header.words_per_fpbit; ++j)
-              result[j] &= m_data[offset + j];
-          }
-        }
-      }
-
-    private:
-      InvertedFingerprintFileHeader m_header;
-      Word *m_data;
-  };
-
-
-  
 }
 
 #endif

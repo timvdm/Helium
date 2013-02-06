@@ -70,7 +70,7 @@ namespace Helium {
   /**
    * Helper function to easily assign std::pair values to two variables.
    *
-   * @example
+   * @code
    * std::pair<int, int> foo()
    * {
    *   ...
@@ -82,7 +82,7 @@ namespace Helium {
    *   tie(a, b) = foo();
    *   ...
    * }
-   * @endexample
+   * @endcode
    */
   template<typename T1, typename T2>
   impl::tie_impl<T1, T2> tie(T1 &first, T2 &second)

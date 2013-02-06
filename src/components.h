@@ -36,7 +36,7 @@
 namespace Helium {
 
   namespace impl {
-    
+
     /**
      * Find all bond belonging to the same component using a recursive DFS search.
      */
@@ -46,17 +46,20 @@ namespace Helium {
     {
       typedef typename molecule_traits<MoleculeType>::atom_bond_iter atom_bond_iter;
 
+      // iterator over atom's bonds
       atom_bond_iter bond, end_bonds;
       tie(bond, end_bonds) = get_bonds(mol, atom);
       for (; bond != end_bonds; ++bond) {
         // skip already visited bonds
         if (components[get_index(mol, *bond)] != molecule_traits<MoleculeType>::null_index())
           continue;
+        // assign component to bond
         components[get_index(mol, *bond)] = number;
-        connected_bond_components(mol, get_other(mol, *bond, atom), number, components);      
+        // recursive call
+        connected_bond_components(mol, get_other(mol, *bond, atom), number, components);
       }
     }
-   
+
   }
 
   /**
@@ -109,7 +112,7 @@ namespace Helium {
     typedef typename molecule_traits<MoleculeType>::mol_atom_iter mol_atom_iter;
 
     std::vector<unsigned int> atom_components(num_atoms(mol), molecule_traits<MoleculeType>::null_index());
-    
+
     // convert bond components to atom components
     std::vector<unsigned int> bond_components(connected_bond_components(mol));
     mol_bond_iter bond, end_bonds;
@@ -127,7 +130,7 @@ namespace Helium {
     for (; atom != end_atoms; ++atom)
       if (atom_components[get_index(mol, *atom)] == molecule_traits<MoleculeType>::null_index())
         atom_components[get_index(mol, *atom)] = number++;
- 
+
     return atom_components;
   }
 
@@ -145,7 +148,7 @@ namespace Helium {
   {
     return unique_elements(connected_bond_components(mol));
   }
-  
+
 }
 
 #endif

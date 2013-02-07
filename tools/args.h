@@ -1,7 +1,41 @@
+/**
+ * Copyright (c) 2013, Tim Vandermeersch
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *     * Redistributions of source code must retain the above copyright
+ *       notice, this list of conditions and the following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright
+ *       notice, this list of conditions and the following disclaimer in the
+ *       documentation and/or other materials provided with the distribution.
+ *     * Neither the name of the <organization> nor the
+ *       names of its contributors may be used to endorse or promote products
+ *       derived from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL <COPYRIGHT HOLDER> BE LIABLE FOR ANY
+ * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 #include "../src/util.h"
 
+#include <map>
+
+/**
+ * Utility class to help processing command line arguments.
+ */
 class ParseArgs
 {
+  /**
+   * Helper structure to hold information about optional arguments.
+   */
   struct OptionalArg
   {
     OptionalArg(const std::string &option_) : option(option_)
@@ -18,6 +52,9 @@ class ParseArgs
   };
 
   public:
+    /**
+     * Helper function to create a list of arguments.
+     */
     static std::vector<std::string> Args(
         const std::string &str1 = std::string(), const std::string &str2 = std::string(),
         const std::string &str3 = std::string(), const std::string &str4 = std::string(),
@@ -45,6 +82,30 @@ class ParseArgs
       return result;
     }
 
+    /**
+     * Constructor. Use the Args() helper function to specify the @p optional
+     * and @p required arguments. The optional arguments may also have parameters.
+     * For example:
+     *
+     * @code
+     * ParseArgs::Args("-foo(bar1,bar2)")
+     * @endcode
+     *
+     * This is an optional argument -foo that has two arguments. Could be used
+     * like this:
+     *
+     * @code
+     * ./tool -foo bar 42
+     * @endcode
+     *
+     * The actual names of the optional parameters are not used and are only there
+     * for human readablility.
+     *
+     * @param argc The argument count (from main).
+     * @param argv The argument array (from main).
+     * @param optional Optional arguments including parameters.
+     * @param required Required arguments.
+     */
     ParseArgs(int argc, char **argv, const std::vector<std::string> &optional, const std::vector<std::string> &required) : m_valid(false)
     {
       if (static_cast<std::size_t>(argc) < required.size())
@@ -65,19 +126,6 @@ class ParseArgs
         else
           optionalArgs.push_back(optional[i]);
       }
-
-      optionalArgs.push_back(OptionalArg("-O$"));
-      optionalArgs.push_back(OptionalArg("-dblneg"));
-      optionalArgs.push_back(OptionalArg("-elim1"));
-      optionalArgs.push_back(OptionalArg("-elim0"));
-      optionalArgs.push_back(OptionalArg("-dup"));
-      optionalArgs.push_back(OptionalArg("-neg"));
-      optionalArgs.push_back(OptionalArg("-binary1"));
-      optionalArgs.push_back(OptionalArg("-binary2"));
-      optionalArgs.push_back(OptionalArg("-prop"));
-      optionalArgs.push_back(OptionalArg("-factor"));
-      optionalArgs.push_back(OptionalArg("-atomorder"));
-      optionalArgs.push_back(OptionalArg("-bondorder"));
 
       for (std::size_t i = 1; i < argc - required.size(); ++i) {
         for (std::size_t j = 0; j < optionalArgs.size(); ++j) {
@@ -113,16 +161,25 @@ class ParseArgs
       m_valid = true;
     }
 
+    /**
+     * Were the arguments valid (i.e. enough arguments, recognised, ...)
+     */
     bool IsValid() const
     {
       return m_valid;
     }
 
+    /**
+     * Get the number of arguments.
+     */
     int GetArgCount() const
     {
       return m_args.size() + m_argargs.size();
     }
 
+    /**
+     * Check if the @p key argument was set (e.g. "-foo").
+     */
     bool IsArg(const std::string &key)
     {
       if (m_args.find(key) != m_args.end())
@@ -144,7 +201,7 @@ class ParseArgs
       std::stringstream ss(m_args[key]);
       int result;
       ss >> result;
-      return result; 
+      return result;
     }
 
     std::string GetArgString(const std::string &key, int arg)
@@ -161,7 +218,7 @@ class ParseArgs
       std::stringstream ss(m_argargs[key][arg]);
       int result;
       ss >> result;
-      return result; 
+      return result;
     }
 
   private:

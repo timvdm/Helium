@@ -54,7 +54,7 @@ namespace Helium {
    *
    * @return The number of words needed to store @p numBits bits.
    */
-  inline unsigned int num_words_for_bits(unsigned int numBits)
+  inline unsigned int bitvec_num_words_for_bits(unsigned int numBits)
   {
     return (numBits + numBits % BitsPerWord) / BitsPerWord;
   }
@@ -65,7 +65,7 @@ namespace Helium {
    * @param bitvec The bit vector to zero.
    * @param numWords The number of words for @p bitvec.
    */
-  inline void zero(Word *bitvec, int numWords)
+  inline void bitvec_zero(Word *bitvec, int numWords)
   {
     for (int i = 0; i < numWords; ++i)
       bitvec[i] = 0;
@@ -79,7 +79,7 @@ namespace Helium {
    *
    * @return A pointer to the copied bit vector.
    */
-  inline Word* copy(const Word *bitvec, int numWords)
+  inline Word* bitvec_copy(const Word *bitvec, int numWords)
   {
     Word *result = new Word[numWords];
     std::copy(bitvec, bitvec + numWords, result);
@@ -97,7 +97,7 @@ namespace Helium {
    *
    * @return True if @p bitvec1 is a subset of @p bitvec2.
    */
-  inline bool is_subset_superset(const Word *bitvec1, const Word *bitvec2, int numWords)
+  inline bool bitvec_is_subset_superset(const Word *bitvec1, const Word *bitvec2, int numWords)
   {
     for (int i = 0; i < numWords; ++i)
       if (bitvec1[i] & ~bitvec2[i])
@@ -114,7 +114,7 @@ namespace Helium {
    *
    * @return The bit count.
    */
-  inline int bit_count(Word word)
+  inline int bitvec_count(Word word)
   {
 #if __GNUC__ > 3 || (__GNUC__ == 3 && __GNUC_MINOR__ >= 4)
     return __builtin_popcountl(word);
@@ -140,7 +140,7 @@ namespace Helium {
    *
    * @return The bit count.
    */
-  inline int bit_count(const Word *bitvec, int numWords)
+  inline int bitvec_count(const Word *bitvec, int numWords)
   {
 #if __GNUC__ > 3 || (__GNUC__ == 3 && __GNUC_MINOR__ >= 4)
     // use popcount
@@ -171,7 +171,7 @@ namespace Helium {
    *
    * @return The valuefor the bit at the specified @p index.
    */
-  inline bool get(int index, const Word *bitvec)
+  inline bool bitvec_get(int index, const Word *bitvec)
   {
     int word = index / (sizeof(Word) * 8);
     int offset = index % (sizeof(Word) * 8);
@@ -186,7 +186,7 @@ namespace Helium {
    * bits in the @p bitvec.
    * @param bitvec The bit vector.
    */
-  inline void set(int index, Word *bitvec)
+  inline void bitvec_set(int index, Word *bitvec)
   {
     int word = index / (sizeof(Word) * 8);
     int offset = index % (sizeof(Word) * 8);
@@ -201,7 +201,7 @@ namespace Helium {
    * bits in the @p bitvec.
    * @param bitvec The bit vector.
    */
-  inline void reset(int index, Word *bitvec)
+  inline void bitvec_reset(int index, Word *bitvec)
   {
     int word = index / (sizeof(Word) * 8);
     int offset = index % (sizeof(Word) * 8);
@@ -214,7 +214,7 @@ namespace Helium {
    *
    * @param word The bit vector word to print.
    */
-  inline void print(Word word)
+  inline void bitvec_print(Word word)
   {
     Word bit = 1;
     for (int j = 0; j < BitsPerWord; ++j) {
@@ -236,7 +236,7 @@ namespace Helium {
    * @param numWords The number of words for @p bitvec.
    * @param spaces If true, a space will be inserted between bit vector words.
    */
-  inline void print(const Word *bitvec, int numWords, bool spaces = true)
+  inline void bitvec_print(const Word *bitvec, int numWords, bool spaces = true)
   {
     for (int i = 0; i < numWords; ++i) {
       Word bit = 1;
@@ -262,7 +262,7 @@ namespace Helium {
    * @param ofs The STL file output stream.
    * @param size The value to write to the stream.
    */
-  inline void write_size(std::ofstream &ofs, unsigned long size)
+  inline void bitvec_write_size(std::ofstream &ofs, unsigned long size)
   {
     ofs.seekp(0);
     ofs.write(reinterpret_cast<const char*>(&size), sizeof(unsigned long));
@@ -275,7 +275,7 @@ namespace Helium {
    *
    * @return The value read from the STL file input stream.
    */
-  inline unsigned long read_size(std::ifstream &ifs)
+  inline unsigned long bitvec_read_size(std::ifstream &ifs)
   {
     unsigned long size;
     ifs.seekg(0);
@@ -290,7 +290,7 @@ namespace Helium {
    * @param bitvec The bit vector to write.
    * @param numWords The number of words for @p bitvec.
    */
-  inline void write(std::ofstream &ofs, const Word *bitvec, int numWords)
+  inline void bitvec_write(std::ofstream &ofs, const Word *bitvec, int numWords)
   {
     ofs.write(reinterpret_cast<const char*>(bitvec), sizeof(Word) * numWords);
   }
@@ -302,7 +302,7 @@ namespace Helium {
    * @param bitvec The bit vector to store the read data in.
    * @param numWords The number of words for @p bitvec.
    */
-  inline void read(std::ifstream &ifs, Word *bitvec, int numWords)
+  inline void bitvec_read(std::ifstream &ifs, Word *bitvec, int numWords)
   {
     ifs.read(reinterpret_cast<char*>(bitvec), sizeof(Word) * numWords);
   }

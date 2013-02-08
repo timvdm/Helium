@@ -210,6 +210,68 @@ namespace Helium {
   }
 
   /**
+   * Compute the Tanimoto coefficient of difference between two bit vectors.
+   * This function is slower than the Tanimoto function below since both the
+   * union and intersection bit counts have to be computed.
+   *
+   * \f[
+   *   T_{\mathrm{sim}} = \frac{| A \wedge B |}{| A \vee B |}
+   * \f]
+   */
+  inline double bitvec_tanimoto(const Word *bitvec1, const Word *bitvec2, int numWords)
+  {
+    int andCount = 0;
+    int orCount = 0;
+
+    for (int i = 0; i < numWords; ++i) {
+      Word andbv = bitvec1[i] & bitvec2[i];
+      Word orbv = bitvec1[i] | bitvec2[i];
+#if __GNUC__ > 3 || (__GNUC__ == 3 && __GNUC_MINOR__ >= 4)
+      //andCount += __builtin_popcountl(andfp);
+      //orCount += __builtin_popcountl(orfp);
+      andCount += __builtin_popcountll(andbv);
+      orCount += __builtin_popcountll(orbv);
+#else
+      for (; andbv; andbv = andbv << 1)
+        if(andbv < 0)
+          ++andbits;
+      for (; orbv; orbv = orbv << 1)
+        if(orbv < 0)
+          ++orbits;
+#endif
+    }
+
+    return static_cast<double>(andCount) / orCount;
+  }
+
+  /**
+   * Compute the Tanimoto coefficient of difference between two bit vectors.
+   * When the bit counts of both bit vectors are known, the inclusion-exclusion
+   * principle can be used to compute the Tanimoto coefficient faster.
+   *
+   * \f[
+   *   T_{\mathrm{sim}} = \frac{| A \wedge B |}{|A| + |B| - | A \vee B |}
+   * \f]
+   */
+  inline double bitvec_tanimoto(const Word *bitvec1, const Word *bitvec2, int bitCount1, int bitCount2, int numWords)
+  {
+    int andCount = 0;
+
+    for (int i = 0; i < numWords; ++i) {
+      Word andfp = bitvec1[i] & bitvec2[i];
+#if __GNUC__ > 3 || (__GNUC__ == 3 && __GNUC_MINOR__ >= 4)
+      andCount += __builtin_popcountl(andfp);
+#else
+      for(; andfp; andfp = andfp << 1)
+        if(andfp < 0)
+          ++andbits;
+#endif
+    }
+
+    return static_cast<double>(andCount) / (bitCount1 + bitCount2 - andCount);
+  }
+
+  /**
    * Print a single bit vector word to std::cout.
    *
    * @param word The bit vector word to print.

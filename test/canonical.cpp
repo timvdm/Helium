@@ -8,24 +8,6 @@
 
 using namespace Helium;
 
-void test_canonical_path(const std::string &smiles)
-{
-  std::cout << "Testing: " << smiles << std::endl;
-  HeMol mol;
-  read_smiles(smiles, mol);
-
-  std::vector<unsigned int> forward, backward;
-  for (unsigned int i = 0; i < num_atoms(mol); ++i) {
-    forward.push_back(i);
-    backward.push_back(num_atoms(mol) - i - 1);
-  }
-
-  std::vector<unsigned long> forwardCode = canonicalize_path<canonical_path_atom_invariant>(mol, forward).second;
-  std::vector<unsigned long> backwardCode = canonicalize_path<canonical_path_atom_invariant>(mol, backward).second;
-
-  COMPARE(forwardCode, backwardCode);
-}
-
 void test_canonicalize(const std::string &smiles)
 {
   std::cout << "Testing: " << smiles << std::endl;
@@ -90,10 +72,6 @@ void shuffle_test(const std::string &filename)
 int main()
 {
   shuffle_test_smiles("Clc1ccc2c(CCN2C(=O)C)c1");
-//  return 0;
-
-  test_canonical_path("CCCCN");
-  test_canonical_path("CCCCOC");
 
   test_canonicalize("CCC(C)C");
   test_canonicalize("CCC(C(C)C)C");

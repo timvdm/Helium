@@ -1,6 +1,7 @@
 #include "../src/molecule.h"
 #include "../src/fileio.h"
 
+#include "../src/fileio/fingerprints.h"
 #include "../src/fingerprints.h"
 
 #include <numeric>

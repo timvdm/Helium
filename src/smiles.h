@@ -24,37 +24,30 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-#include "header.h"
+#ifndef HELIUM_XXX_H
+#define HELIUM_XXX_H
 
-#include "../src/fileio/file.h"
+#include "hemol.h"
 
-#include "args.h"
+#include <smiley.h>
 
 namespace Helium {
 
-  std::string HeaderTool::usage(const std::string &command) const
-  {
-    std::stringstream ss;
-    ss << "Usage: " << command << " <filename>" << std::endl;
-    ss << std::endl;
-    return ss.str();
+  namespace impl {
+
+    template<typename 
+  
   }
 
-  int HeaderTool::run(int argc, char**argv)
+  template<typename MoleculeType>
+  void read_smiles(const std::string &smiles, MoleculeType &mol)
   {
-    ParseArgs args(argc, argv, ParseArgs::Args(), ParseArgs::Args("filename"));
-    // required arguments
-    std::string filename = args.GetArgString("filename");
-
-    BinaryInputFile file(filename);
-
-    std::string header(file.header());
-    std::cout << file.header();
-
-    if (header[header.size() - 1] != '\n')
-      std::cout << std::endl;
-
-    return 0;
+    Smiley::Parser parser;
   }
+
+
+
 
 }
+
+#endif

@@ -42,6 +42,20 @@
 #include "util/vector.h"
 #include "util/functor.h"
 
+#define UNREACHABLE_RETURN_REF(type) \
+  assert(0); \
+  return *(new type);
+
+#define ENABLE_TIMERS
+#ifdef ENABLE_TIMERS
+  #include <boost/timer/timer.hpp>
+  #define TIMER(message) \
+    std::cout << message; \
+    boost::timer::auto_cpu_timer t;
+#else
+  #define TIMER(message)
+#endif
+
 namespace Helium {
 
   /**
@@ -167,7 +181,6 @@ namespace Helium {
     std::rotate(first,k,last);
     return false;
   }
-
 
 }
 

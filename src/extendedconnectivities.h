@@ -59,7 +59,7 @@ namespace Helium {
      * Renumber the extended connectivities values to be in the range [0,n-1]
      * where n is the number of unique values.
      */
-    void extended_connectivities_renumber(std::vector<unsigned long> &ec)
+    inline void extended_connectivities_renumber(std::vector<unsigned long> &ec)
     {
       std::set<unsigned long> classes;
       for (std::size_t i = 0; i < ec.size(); ++i)

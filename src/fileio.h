@@ -18,7 +18,7 @@ namespace Helium {
     Charge = 8
   };
 
-  void write_molecule(std::ostream &os, OpenBabel::OBMol *mol)
+  inline void write_molecule(std::ostream &os, OpenBabel::OBMol *mol)
   {
     std::vector<unsigned short> indices(mol->NumAtoms());
     unsigned short numAtoms = 0;
@@ -89,6 +89,11 @@ namespace Helium {
   template<typename MoleculeType>
   bool read_molecule(std::istream &is, MoleculeType &mol)
   {
+    for (std::size_t i = 0; i < mol.m_atoms.size(); ++i)
+      delete mol.m_atoms[i];
+    for (std::size_t i = 0; i < mol.m_bonds.size(); ++i)
+      delete mol.m_bonds[i];
+
     mol.m_atoms.clear();
     mol.m_bonds.clear();
 
@@ -176,7 +181,7 @@ namespace Helium {
     read_molecule(ifs, mol);
   }
 
-  std::string normalize_smiles(const std::string &smiles)
+  inline std::string normalize_smiles(const std::string &smiles)
   {
     OpenBabel::OBMol obmol;
     OpenBabel::OBConversion conv;

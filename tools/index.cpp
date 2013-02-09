@@ -35,14 +35,15 @@
 
 #include "args.h"
 
-using namespace Helium;
-
 namespace Helium {
 
   std::string IndexTool::usage(const std::string &command) const
   {
     std::stringstream ss;
     ss << "Usage: " << command << " [options] <method> <in_file> <out_file>" << std::endl;
+    ss << std::endl;
+    ss << "The index tool can be used to create fingerprint index files. Any contents in the output" << std::endl;
+    ss << "file will be overwritten." << std::endl;
     ss << std::endl;
     ss << "Methods:" << std::endl;
     ss << "    -paths        Create hashed fingerprints from paths" << std::endl;
@@ -54,27 +55,6 @@ namespace Helium {
     ss << "    -bits <n>     The number of bits in the fingerprint (default is 1024)" << std::endl;
     ss << std::endl;
     return ss.str();
-  }
-
-  /**
-   * @return True if @p n is a prime number.
-   */
-  unsigned long is_prime(unsigned long n)
-  {
-    for (unsigned long i = 2; i < n; ++i)
-      if (!(n % i))
-        return false;
-    return true;
-  }
-
-  /**
-   * @return The the largest prime less than or equal to n.
-   */
-  unsigned long previous_prime(unsigned long n)
-  {
-    while (!is_prime(n))
-      --n;
-    return n;
   }
 
   /**
@@ -168,20 +148,20 @@ namespace Helium {
     // create JSON header
     std::stringstream json;
     json << "{" << std::endl;
-    json << "  'filetype': 'fingerprints'," << std::endl;
-    json << "  'order': 'row-major'," << std::endl;
-    json << "  'num_bits': " << bits << "," << std::endl;
-    json << "  'num_fingerprints': " << file.numMolecules() << "," << std::endl;
-    json << "  'fingerprint': {" << std::endl;
-    json << "    'name': 'Helium::" << methodString.substr(1) << "_fingerprint (k = " << k << ", bits = " << bits << ")'," << std::endl;
-    json << "    'type': 'Helium::" << methodString.substr(1) << "_fingerprint'," << std::endl;
-    json << "    'k': " << k << "," << std::endl;
-    json << "    'prime': " << prime << std::endl;
+    json << "  \"filetype\": \"fingerprints\"," << std::endl;
+    json << "  \"order\": \"row-major\"," << std::endl;
+    json << "  \"num_bits\": " << bits << "," << std::endl;
+    json << "  \"num_fingerprints\": " << file.numMolecules() << "," << std::endl;
+    json << "  \"fingerprint\": {" << std::endl;
+    json << "    \"name\": \"Helium::" << methodString.substr(1) << "_fingerprint (k = " << k << ", bits = " << bits << ")\"," << std::endl;
+    json << "    \"type\": \"Helium::" << methodString.substr(1) << "_fingerprint\"," << std::endl;
+    json << "    \"k\": " << k << "," << std::endl;
+    json << "    \"prime\": " << prime << std::endl;
     json << "  }," << std::endl;
-    json << "  'statistics': {" << std::endl;
-    json << "    'average_count': " << average_count << "," << std::endl;
-    json << "    'min_count': " << min_count << "," << std::endl;
-    json << "    'max_count': " << max_count << std::endl;
+    json << "  \"statistics\": {" << std::endl;
+    json << "    \"average_count\": " << average_count << "," << std::endl;
+    json << "    \"min_count\": " << min_count << "," << std::endl;
+    json << "    \"max_count\": " << max_count << std::endl;
     json << "  }" << std::endl;
     json << "}" << std::endl;
 

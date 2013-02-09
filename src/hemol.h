@@ -13,47 +13,54 @@ namespace Helium {
 
   class HeBond;
   class HeMol;
-  
-  template<typename HeAtomType, typename HeBondType>
-  class nbr_iterator
-  {
-    public:
-      nbr_iterator()
-      {
-      }
+ 
+  namespace impl {
 
-      nbr_iterator(HeAtomType *atom, typename std::vector<HeBondType*>::iterator iter) : m_atom(atom), m_iter(iter)
-      {
-      }
+    template<typename HeAtomType, typename HeBondType>
+    class nbr_iterator
+    {
+      public:
+        nbr_iterator()
+        {
+        }
 
-      HeAtomType* operator*() const
-      {
-        return (*m_iter)->other(m_atom);
-      }
+        nbr_iterator(HeAtomType *atom, typename std::vector<HeBondType*>::iterator iter) : m_atom(atom), m_iter(iter)
+        {
+        }
 
-      nbr_iterator<HeAtomType, HeBondType>& operator++()
-      {
-        ++m_iter;
-        return *this;
-      }
+        HeAtomType* operator*() const
+        {
+          return (*m_iter)->other(m_atom);
+        }
 
-      nbr_iterator<HeAtomType, HeBondType> operator++(int)
-      {
-        nbr_iterator<HeAtomType, HeBondType> tmp = *this;
-        ++m_iter;
-        return tmp;
-      }
+        nbr_iterator<HeAtomType, HeBondType>& operator++()
+        {
+          ++m_iter;
+          return *this;
+        }
 
-      bool operator!=(const nbr_iterator<HeAtomType, HeBondType> &other)
-      {
-        return m_iter != other.m_iter;
-      }
+        nbr_iterator<HeAtomType, HeBondType> operator++(int)
+        {
+          nbr_iterator<HeAtomType, HeBondType> tmp = *this;
+          ++m_iter;
+          return tmp;
+        }
 
-    private:
-      HeAtomType *m_atom;
-      typename std::vector<HeBondType*>::iterator m_iter;
-  };
+        bool operator!=(const nbr_iterator<HeAtomType, HeBondType> &other)
+        {
+          return m_iter != other.m_iter;
+        }
 
+      private:
+        HeAtomType *m_atom;
+        typename std::vector<HeBondType*>::iterator m_iter;
+    };
+
+  }
+
+  /**
+   * @brief Class representing an atom in an HeMol.
+   */
   class HeAtom
   {
     public:
@@ -69,10 +76,10 @@ namespace Helium {
         return std::make_pair(m_bonds.begin(), m_bonds.end());
       }
 
-      std::pair<nbr_iterator<HeAtom, HeBond>, nbr_iterator<HeAtom, HeBond> > nbrs()
+      std::pair<impl::nbr_iterator<HeAtom, HeBond>, impl::nbr_iterator<HeAtom, HeBond> > nbrs()
       {
-        return std::make_pair(nbr_iterator<HeAtom, HeBond>(this, m_bonds.begin()),
-                              nbr_iterator<HeAtom, HeBond>(this, m_bonds.end()));
+        return std::make_pair(impl::nbr_iterator<HeAtom, HeBond>(this, m_bonds.begin()),
+                              impl::nbr_iterator<HeAtom, HeBond>(this, m_bonds.end()));
       }
 
       Index index() const
@@ -194,6 +201,9 @@ namespace Helium {
   template<typename MoleculeType>
   bool read_molecule(std::istream &is, MoleculeType &mol);
 
+  /**
+   * @brief Class representing a molecule.
+   */
   class HeMol
   {
     public:
@@ -204,10 +214,11 @@ namespace Helium {
       typedef std::vector<HeAtom*>::iterator mol_atom_iter;
       typedef std::vector<HeBond*>::iterator mol_bond_iter;
       typedef std::vector<HeBond*>::iterator atom_bond_iter;
-      typedef nbr_iterator<HeAtom, HeBond> atom_atom_iter;
+      typedef impl::nbr_iterator<HeAtom, HeBond> atom_atom_iter;
 
       // constant iterators
       typedef std::vector<HeAtom*>::const_iterator const_atom_iter;
+      typedef std::vector<HeBond*>::const_iterator const_bond_iter;
 
       ~HeMol()
       {
@@ -238,6 +249,11 @@ namespace Helium {
       }
 
       std::pair<std::vector<HeBond*>::iterator, std::vector<HeBond*>::iterator> bonds()
+      {
+        return std::make_pair(m_bonds.begin(), m_bonds.end());
+      }
+
+      std::pair<const_bond_iter, const_bond_iter> bonds() const
       {
         return std::make_pair(m_bonds.begin(), m_bonds.end());
       }
@@ -289,6 +305,8 @@ namespace Helium {
       std::vector<HeBond*> m_bonds;
   };
 
+  //@cond dev
+
   //////////////////////////////////////////////////////////////////////////////
   //
   // Molecule
@@ -337,6 +355,12 @@ namespace Helium {
 
   inline std::pair<typename molecule_traits<HeMol>::mol_bond_iter, typename molecule_traits<HeMol>::mol_bond_iter>
   get_bonds(HeMol &mol)
+  {
+    return mol.bonds();
+  }
+
+  inline std::pair<typename molecule_traits<HeMol>::const_bond_iter, typename molecule_traits<HeMol>::const_bond_iter>
+  get_bonds(const HeMol &mol)
   {
     return mol.bonds();
   }
@@ -456,8 +480,12 @@ namespace Helium {
     return 0;
   }
 
+  //@endcond
 
-  std::ostream& operator<<(std::ostream &os, HeMol &mol)
+  /**
+   * @brief STL output stream operator for HeMol.
+   */
+  inline std::ostream& operator<<(std::ostream &os, HeMol &mol)
   {
     os << "Molecule:" << std::endl;
     os << "    Atoms:\tindex\telement" << std::endl;

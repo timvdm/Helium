@@ -13,7 +13,13 @@
 
 namespace Helium {
 
+  /**
+   * Type used to represent a single isomorphism mapping.
+   */
   typedef std::vector<Index> IsomorphismMapping;
+  /**
+   * Type used to represent multiple isomorphism mappings.
+   */
   typedef std::vector<IsomorphismMapping> IsomorphismMappings;
 
   /**

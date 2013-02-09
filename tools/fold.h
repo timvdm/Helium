@@ -24,37 +24,55 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-#include "header.h"
+#ifndef HELIUM_FOLDTOOL_H
+#define HELIUM_FOLDTOOL_H
 
-#include "../src/fileio/file.h"
-
-#include "args.h"
+#include "tool.h"
 
 namespace Helium {
 
-  std::string HeaderTool::usage(const std::string &command) const
+  /**
+   * Tool for folding fingerprint indexes.
+   */
+  class FoldTool : public HeliumTool
   {
-    std::stringstream ss;
-    ss << "Usage: " << command << " <filename>" << std::endl;
-    ss << std::endl;
-    return ss.str();
-  }
+    public:
+      /**
+       * Get tool name (e.g. index, query, ...)
+       */
+      std::string name() const
+      {
+        return "fold";
+      }
 
-  int HeaderTool::run(int argc, char**argv)
-  {
-    ParseArgs args(argc, argv, ParseArgs::Args(), ParseArgs::Args("filename"));
-    // required arguments
-    std::string filename = args.GetArgString("filename");
+      /**
+       * Get description.
+       */
+      std::string description() const
+      {
+        return "Fold fingerprint index files";
+      }
 
-    BinaryInputFile file(filename);
+      /**
+       * Get usage information.
+       */
+      std::string usage(const std::string &command) const;
 
-    std::string header(file.header());
-    std::cout << file.header();
+      /**
+       * Get the number of required arguments.
+       */
+      int requiredArgs() const
+      {
+        // method, input file, output file
+        return 3;
+      }
 
-    if (header[header.size() - 1] != '\n')
-      std::cout << std::endl;
-
-    return 0;
-  }
+      /**
+       * Perform tool action.
+       */
+      int run(int argc, char **argv);
+  };
 
 }
+
+#endif

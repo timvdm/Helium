@@ -8,209 +8,214 @@
 #include "tie.h"
 #include "hemol.h"
 
-//#include <iostream>
-
 namespace Helium {
 
-  template<typename SubstructureType>
-  class substructure_atom_iterator
-  {
-    public:
-      typedef typename SubstructureType::molecule_type molecule_type;
-      typedef typename molecule_traits<molecule_type>::atom_type atom_type;
-      typedef typename molecule_traits<molecule_type>::mol_atom_iter mol_atom_iter;
+  //@cond dev
 
-      substructure_atom_iterator()
-      {
-      }
+  namespace impl {
 
-      substructure_atom_iterator(SubstructureType *substructure, const mol_atom_iter &iter, const mol_atom_iter &end)
+    template<typename SubstructureType>
+    class substructure_atom_iterator
+    {
+      public:
+        typedef typename SubstructureType::molecule_type molecule_type;
+        typedef typename molecule_traits<molecule_type>::atom_type atom_type;
+        typedef typename molecule_traits<molecule_type>::mol_atom_iter mol_atom_iter;
+
+        substructure_atom_iterator()
+        {
+        }
+
+        substructure_atom_iterator(SubstructureType *substructure, const mol_atom_iter &iter, const mol_atom_iter &end)
           : m_substructure(substructure), m_iter(iter), m_end(end)
-      {
-        while (m_iter != m_end && m_substructure->isHidden(*m_iter))
+        {
+          while (m_iter != m_end && m_substructure->isHidden(*m_iter))
+            ++m_iter;
+        }
+
+        atom_type operator*() const
+        {
+          return *m_iter;
+        }
+
+        substructure_atom_iterator<SubstructureType>& operator++()
+        {
           ++m_iter;
-      }
+          while (m_iter != m_end && m_substructure->isHidden(*m_iter))
+            ++m_iter;
+          return *this;
+        }
 
-      atom_type operator*() const
-      {
-        return *m_iter;
-      }
-
-      substructure_atom_iterator<SubstructureType>& operator++()
-      {
-        ++m_iter;
-        while (m_iter != m_end && m_substructure->isHidden(*m_iter))
+        substructure_atom_iterator<SubstructureType> operator++(int)
+        {
+          substructure_atom_iterator<SubstructureType> tmp = *this;
           ++m_iter;
-        return *this;
-      }
+          while (m_iter != m_end && m_substructure->isHidden(*m_iter))
+            ++m_iter;
+          return tmp;
+        }
 
-      substructure_atom_iterator<SubstructureType> operator++(int)
-      {
-        substructure_atom_iterator<SubstructureType> tmp = *this;
-        ++m_iter;
-        while (m_iter != m_end && m_substructure->isHidden(*m_iter))
-          ++m_iter;
-        return tmp;
-      }
+        bool operator!=(const substructure_atom_iterator<SubstructureType> &other)
+        {
+          return m_iter != other.m_iter;
+        }
 
-      bool operator!=(const substructure_atom_iterator<SubstructureType> &other)
-      {
-        return m_iter != other.m_iter;
-      }
+      private:
+        SubstructureType *m_substructure;
+        mol_atom_iter m_iter;
+        mol_atom_iter m_end;
+    };
 
-    private:
-      SubstructureType *m_substructure;
-      mol_atom_iter m_iter;
-      mol_atom_iter m_end;
-  };
+    template<typename SubstructureType>
+    class substructure_bond_iterator
+    {
+        public:
+          typedef typename SubstructureType::molecule_type molecule_type;
+          typedef typename molecule_traits<molecule_type>::bond_type bond_type;
+          typedef typename molecule_traits<molecule_type>::mol_bond_iter mol_bond_iter;
 
-  template<typename SubstructureType>
-  class substructure_bond_iterator
-  {
-    public:
-      typedef typename SubstructureType::molecule_type molecule_type;
-      typedef typename molecule_traits<molecule_type>::bond_type bond_type;
-      typedef typename molecule_traits<molecule_type>::mol_bond_iter mol_bond_iter;
+          substructure_bond_iterator()
+          {
+          }
 
-      substructure_bond_iterator()
-      {
-      }
+          substructure_bond_iterator(SubstructureType *substructure, const mol_bond_iter &iter, const mol_bond_iter &end)
+            : m_substructure(substructure), m_iter(iter), m_end(end)
+          {
+            while (m_iter != m_end && m_substructure->isHidden(*m_iter))
+              ++m_iter;
+          }
 
-      substructure_bond_iterator(SubstructureType *substructure, const mol_bond_iter &iter, const mol_bond_iter &end)
+          bond_type operator*() const
+          {
+            return *m_iter;
+          }
+
+          substructure_bond_iterator<SubstructureType>& operator++()
+          {
+            ++m_iter;
+            while (m_iter != m_end && m_substructure->isHidden(*m_iter))
+              ++m_iter;
+            return *this;
+          }
+
+          substructure_bond_iterator<SubstructureType> operator++(int)
+          {
+            substructure_bond_iterator<SubstructureType> tmp = *this;
+            ++m_iter;
+            while (m_iter != m_end && m_substructure->isHidden(*m_iter))
+              ++m_iter;
+            return tmp;
+          }
+
+          bool operator!=(const substructure_bond_iterator<SubstructureType> &other)
+          {
+            return m_iter != other.m_iter;
+          }
+
+        private:
+          SubstructureType *m_substructure;
+          mol_bond_iter m_iter;
+          mol_bond_iter m_end;
+    };
+
+    template<typename SubstructureType>
+    class substructure_atom_bond_iterator
+    {
+      public:
+        typedef typename SubstructureType::molecule_type molecule_type;
+        typedef typename molecule_traits<molecule_type>::bond_type bond_type;
+        typedef typename molecule_traits<molecule_type>::atom_bond_iter atom_bond_iter;
+
+        substructure_atom_bond_iterator()
+        {
+        }
+
+        substructure_atom_bond_iterator(const SubstructureType *substructure, const atom_bond_iter &iter, const atom_bond_iter &end)
           : m_substructure(substructure), m_iter(iter), m_end(end)
-      {
-        while (m_iter != m_end && m_substructure->isHidden(*m_iter))
+        {
+          while (m_iter != m_end && m_substructure->isHidden(*m_iter))
+            ++m_iter;
+        }
+
+        bond_type operator*() const
+        {
+          return *m_iter;
+        }
+
+        substructure_atom_bond_iterator<SubstructureType>& operator++()
+        {
           ++m_iter;
-      }
+          while (m_iter != m_end && m_substructure->isHidden(*m_iter))
+            ++m_iter;
+          return *this;
+        }
 
-      bond_type operator*() const
-      {
-        return *m_iter;
-      }
-
-      substructure_bond_iterator<SubstructureType>& operator++()
-      {
-        ++m_iter;
-        while (m_iter != m_end && m_substructure->isHidden(*m_iter))
+        substructure_atom_bond_iterator<SubstructureType> operator++(int)
+        {
+          substructure_atom_bond_iterator<SubstructureType> tmp = *this;
           ++m_iter;
-        return *this;
-      }
+          while (m_iter != m_end && m_substructure->isHidden(*m_iter))
+            ++m_iter;
+          return tmp;
+        }
 
-      substructure_bond_iterator<SubstructureType> operator++(int)
-      {
-        substructure_bond_iterator<SubstructureType> tmp = *this;
-        ++m_iter;
-        while (m_iter != m_end && m_substructure->isHidden(*m_iter))
+        bool operator!=(const substructure_atom_bond_iterator<SubstructureType> &other)
+        {
+          return m_iter != other.m_iter;
+        }
+
+      private:
+        const SubstructureType *m_substructure;
+        atom_bond_iter m_iter;
+        atom_bond_iter m_end;
+    };
+
+    template<typename SubstructureType>
+    class substructure_nbr_iterator
+    {
+        typedef typename molecule_traits<SubstructureType>::atom_type atom_type;
+        typedef typename molecule_traits<SubstructureType>::bond_type bond_type;
+        typedef typename molecule_traits<SubstructureType>::atom_bond_iter atom_bond_iter;
+      public:
+        substructure_nbr_iterator()
+        {
+        }
+
+        substructure_nbr_iterator(atom_type atom, atom_bond_iter iter) : m_atom(atom), m_iter(iter)
+        {
+        }
+
+        atom_type operator*() const
+        {
+          return (*m_iter)->other(m_atom);
+        }
+
+        substructure_nbr_iterator& operator++()
+        {
           ++m_iter;
-        return tmp;
-      }
+          return *this;
+        }
 
-      bool operator!=(const substructure_bond_iterator<SubstructureType> &other)
-      {
-        return m_iter != other.m_iter;
-      }
-
-    private:
-      SubstructureType *m_substructure;
-      mol_bond_iter m_iter;
-      mol_bond_iter m_end;
-  };
-
- 
-  template<typename SubstructureType>
-  class substructure_atom_bond_iterator
-  {
-    public:
-      typedef typename SubstructureType::molecule_type molecule_type;
-      typedef typename molecule_traits<molecule_type>::bond_type bond_type;
-      typedef typename molecule_traits<molecule_type>::atom_bond_iter atom_bond_iter;
-
-      substructure_atom_bond_iterator()
-      {
-      }
-
-      substructure_atom_bond_iterator(const SubstructureType *substructure, const atom_bond_iter &iter, const atom_bond_iter &end)
-          : m_substructure(substructure), m_iter(iter), m_end(end)
-      {
-        while (m_iter != m_end && m_substructure->isHidden(*m_iter))
+        substructure_nbr_iterator operator++(int)
+        {
+          substructure_nbr_iterator tmp = *this;
           ++m_iter;
-      }
+          return tmp;
+        }
 
-      bond_type operator*() const
-      {
-        return *m_iter;
-      }
+        bool operator!=(const substructure_nbr_iterator &other)
+        {
+          return m_iter != other.m_iter;
+        }
 
-      substructure_atom_bond_iterator<SubstructureType>& operator++()
-      {
-        ++m_iter;
-        while (m_iter != m_end && m_substructure->isHidden(*m_iter))
-          ++m_iter;
-        return *this;
-      }
+      private:
+        atom_type m_atom;
+        atom_bond_iter m_iter;
+    };
 
-      substructure_atom_bond_iterator<SubstructureType> operator++(int)
-      {
-        substructure_atom_bond_iterator<SubstructureType> tmp = *this;
-        ++m_iter;
-        while (m_iter != m_end && m_substructure->isHidden(*m_iter))
-          ++m_iter;
-        return tmp;
-      }
+  }
 
-      bool operator!=(const substructure_atom_bond_iterator<SubstructureType> &other)
-      {
-        return m_iter != other.m_iter;
-      }
-
-    private:
-      const SubstructureType *m_substructure;
-      atom_bond_iter m_iter;
-      atom_bond_iter m_end;
-  };
-
-  template<typename SubstructureType>
-  class substructure_nbr_iterator
-  {
-      typedef typename molecule_traits<SubstructureType>::atom_type atom_type;
-      typedef typename molecule_traits<SubstructureType>::bond_type bond_type;
-      typedef typename molecule_traits<SubstructureType>::atom_bond_iter atom_bond_iter;
-    public:
-      substructure_nbr_iterator()
-      {
-      }
-
-      substructure_nbr_iterator(atom_type atom, atom_bond_iter iter) : m_atom(atom), m_iter(iter)
-      {
-      }
-
-      atom_type operator*() const
-      {
-        return (*m_iter)->other(m_atom);
-      }
-
-      substructure_nbr_iterator& operator++()
-      {
-        ++m_iter;
-        return *this;
-      }
-
-      substructure_nbr_iterator operator++(int)
-      {
-        substructure_nbr_iterator tmp = *this;
-        ++m_iter;
-        return tmp;
-      }
-
-      bool operator!=(const substructure_nbr_iterator &other)
-      {
-        return m_iter != other.m_iter;
-      }
-
-    private:
-      atom_type m_atom;
-      atom_bond_iter m_iter;
-  };
+  //@endcond
 
   template<typename MoleculeType>
   class Substructure
@@ -221,12 +226,13 @@ namespace Helium {
       typedef typename molecule_traits<molecule_type>::atom_type atom_type;
       typedef typename molecule_traits<molecule_type>::bond_type bond_type;
 
-      typedef substructure_atom_iterator<Substructure> mol_atom_iter;
-      typedef substructure_bond_iterator<Substructure> mol_bond_iter;
-      typedef substructure_atom_bond_iterator<Substructure> atom_bond_iter;
-      typedef substructure_nbr_iterator<Substructure> atom_atom_iter;
+      typedef impl::substructure_atom_iterator<Substructure> mol_atom_iter;
+      typedef impl::substructure_bond_iterator<Substructure> mol_bond_iter;
+      typedef impl::substructure_atom_bond_iterator<Substructure> atom_bond_iter;
+      typedef impl::substructure_nbr_iterator<Substructure> atom_atom_iter;
       
-      typedef substructure_atom_iterator<Substructure> const_atom_iter;
+      typedef impl::substructure_atom_iterator<Substructure> const_atom_iter;
+      typedef impl::substructure_bond_iterator<Substructure> const_bond_iter;
 
       Substructure(molecule_type &mol, const std::vector<bool> &atoms,                      
           const std::vector<bool> &bonds) : m_mol(mol),
@@ -357,7 +363,7 @@ namespace Helium {
       std::vector<Index> m_bondIndices;
   };
 
-
+  //@cond dev
 
   //////////////////////////////////////////////////////////////////////////////
   //
@@ -557,6 +563,7 @@ namespace Helium {
     return 0;
   }
 
+  //@endcond
 
 }
 

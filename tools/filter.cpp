@@ -55,18 +55,18 @@ int main(int argc, char**argv)
   for (std::map<int, std::vector<unsigned int> >::iterator i = sizes.begin(); i != sizes.end(); ++i)
     write32(ofs, i->first);
   // write filters
-  Word *filter = new Word[num_words_for_bits(file.numMolecules())];
+  Word *filter = new Word[bitvec_num_words_for_bits(file.numMolecules())];
   for (std::map<int, std::vector<unsigned int> >::iterator i = sizes.begin(); i != sizes.end(); ++i) {
     //std::cout << i->first << " atoms: " << i->second.size() << " molecules" << std::endl;
-    zero(filter, num_words_for_bits(file.numMolecules()));
+    bitvec_zero(filter, bitvec_num_words_for_bits(file.numMolecules()));
     std::cout << i->first << ": ";
     for (std::size_t j = 0; j < i->second.size(); ++j) {
-      set(i->second[j], filter);
+      bitvec_set(i->second[j], filter);
       std::cout << i->second[j] << " ";
     }
     std::cout << std::endl;
     //std::cout << i->first << " -> " << (static_cast<unsigned int>(ofs.tellp()) - 4 * (2 + sizes.size())) / sizeof(Word) << std::endl;
-    ofs.write(reinterpret_cast<const char*>(filter), sizeof(Word) * num_words_for_bits(file.numMolecules()));
+    ofs.write(reinterpret_cast<const char*>(filter), sizeof(Word) * bitvec_num_words_for_bits(file.numMolecules()));
   }
 
   delete [] filter;

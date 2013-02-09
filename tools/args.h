@@ -204,6 +204,16 @@ class ParseArgs
       return result;
     }
 
+    double GetArgDouble(const std::string &key)
+    {
+      if (m_args.find(key) == m_args.end())
+        return -1;
+      std::stringstream ss(m_args[key]);
+      double result;
+      ss >> result;
+      return result;
+    }
+
     std::string GetArgString(const std::string &key, int arg)
     {
       if (m_argargs.find(key) != m_argargs.end())
@@ -217,6 +227,16 @@ class ParseArgs
         return -1;
       std::stringstream ss(m_argargs[key][arg]);
       int result;
+      ss >> result;
+      return result;
+    }
+
+    double GetArgDouble(const std::string &key, int arg)
+    {
+      if (m_argargs.find(key) == m_argargs.end())
+        return -1;
+      std::stringstream ss(m_argargs[key][arg]);
+      double result;
       ss >> result;
       return result;
     }

@@ -65,6 +65,7 @@ namespace Helium {
   }
 
 
+  // replace with check for cyclomatic number????
   template<typename MoleculeType>
   bool is_cyclic(MoleculeType &mol)
   {

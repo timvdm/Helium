@@ -63,7 +63,7 @@ namespace Helium {
     assert(hashPrime <= numWords * sizeof(Word) * 8);
     boost::hash<std::vector<unsigned long> > hash;
     // set all bits to 0
-    zero(fingerprint, numWords);
+    bitvec_zero(fingerprint, numWords);
     // enumerate the paths
     std::vector<std::vector<unsigned int> > paths = enumerate_paths(mol, size);
     // set the bits
@@ -85,7 +85,7 @@ namespace Helium {
       // canonicalize the path
       std::vector<unsigned long> code = canonicalize(substruct, symmetry).second;
       // set the bit for the hashed canonical code modulo the hash prime.
-      set(hash(code) % hashPrime, fingerprint);
+      bitvec_set(hash(code) % hashPrime, fingerprint);
     }
   }
 
@@ -114,7 +114,7 @@ namespace Helium {
         EnumerateSubgraphsCallback(MoleculeType &mol_, Word *fp, int words, int prime)
             : mol(mol_), fingerprint(fp), numWords(words), hashPrime(prime)
         {
-          zero(fingerprint, numWords);
+          bitvec_zero(fingerprint, numWords);
         }
 
         /**
@@ -129,7 +129,7 @@ namespace Helium {
           // canonicalize the subgraph
           std::vector<unsigned long> code = canonicalize(substruct, symmetry).second;
           // set the bit for the hashed canonical code modulo the hash prime.
-          set(m_hash(code) % hashPrime, fingerprint);
+          bitvec_set(m_hash(code) % hashPrime, fingerprint);
         }
 
         MoleculeType &mol; //!< The molecule

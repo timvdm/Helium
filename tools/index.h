@@ -32,7 +32,7 @@
 namespace Helium {
 
   /**
-   * Tool for  creating and managing fingerprint indexes.
+   * Tool for  creating fingerprint indexes.
    */
   class IndexTool : public HeliumTool
   {
@@ -50,7 +50,7 @@ namespace Helium {
        */
       std::string description() const
       {
-        return "Create and manipulate fingerprint index files";
+        return "Create fingerprint index files";
       }
 
       /**

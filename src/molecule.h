@@ -42,7 +42,6 @@ namespace Helium {
   typedef unsigned int Size;
 
   //@cond dev
-  //@{
 
   template<typename MoleculeType>
   struct molecule_traits
@@ -182,7 +181,7 @@ namespace Helium {
   template<typename MoleculeType>
   bool get_order(const MoleculeType *mol, typename molecule_traits<MoleculeType>::bond_type bond);
 
-  //@}
+  //@endcond
 
 }
 

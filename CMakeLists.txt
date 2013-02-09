@@ -2,30 +2,35 @@ cmake_minimum_required(VERSION 2.6)
 project(Helium)
 
 # set the module path
-set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake/modules)
+set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake)
 
+#
 # find and setup OpenBabel
+#
 find_package(OpenBabel2 REQUIRED)
-include_directories(${OPENBABEL2_INCLUDE_DIR})
+if (OPENBABEL2_FOUND)
+  message(STATUS "OpenBabel found: ${OPENBABEL2_INCLUDE_DIR}")
+  include_directories(${OPENBABEL2_INCLUDE_DIR})
+endif()
 
-#find and setup JsonCpp
-set(JsonCpp_DIR "/usr/local/lib")
-find_package(JsonCpp)
-include_directories(${JsonCpp_INCLUDE_DIRS})
+#
+# Find and setup Eigen3
+#
+find_package(Eigen3)
+if (EIGEN3_FOUND)
+  message(STATUS "Eigen3 found: ${EIGEN3_INCLUDE_DIR}")
+  include_directories(${EIGEN3_INCLUDE_DIR})
+endif()
 
-# FIXME
-include_directories("/usr/local/include/eigen3")
+#
+# Setup 3th party jsoncpp
+#
+include_directories(${CMAKE_SOURCE_DIR}/src/thirdparty)
+include_directories(${CMAKE_SOURCE_DIR}/src/thirdparty/jsoncpp)
 
-set(Helium_LIBRARIES
-  ${OPENBABEL2_LIBRARIES}
-  ${JsonCpp_LIBRARIES}
-  boost_timer
-  boost_system
-  pthread
-)
-
-
+#
 # compiler options
+#
 set(CMAKE_CXX_FLAGS "-g -pedantic -Wall -O2 -Wno-sign-compare ${CMAKE_CXX_FLAGS}")
 
 
@@ -55,16 +60,53 @@ set(Helium_util_HDRS
   src/util/vector.h
 )
 
-# install target for smiley header file
+set(Helium_fileio_HDRS
+  src/fileio/fingerprints.h
+)
+
+set(Helium_SRCS
+  src/fileio/file.cpp
+  src/thirdparty/jsoncpp/jsoncpp.cpp
+)
+
+#
+# Helium library
+#
+add_library(helium SHARED ${Helium_SRCS})
+
+set(Helium_LIBRARIES
+  helium
+  boost_timer
+  boost_system
+  pthread
+)
+
+#
+# install target for header files
+#
 set(INCLUDE_INSTALL_DIR  "include" CACHE STRING "Install dir for include files")
 install(FILES ${Helium_HDRS} DESTINATION "${INCLUDE_INSTALL_DIR}/Helium")
 install(FILES ${Helium_util_HDRS} DESTINATION "${INCLUDE_INSTALL_DIR}/Helium/util")
+install(FILES ${Helium_fileio_HDRS} DESTINATION "${INCLUDE_INSTALL_DIR}/Helium/fileio")
 
-# unit test
+#
+# unit tests
+#
 enable_testing()
 set(TEST_PATH ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
 add_subdirectory(test)
 
 add_subdirectory(tools)
 
+#
+# add a target to generate API documentation with Doxygen
+#
+find_package(Doxygen)
+if(DOXYGEN_FOUND)
+  configure_file(${CMAKE_SOURCE_DIR}/Doxyfile.in ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile @ONLY)
+  add_custom_target(doc ${DOXYGEN_EXECUTABLE} ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile
+    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+    COMMENT "Generating API documentation with Doxygen" VERBATIM
+  )
+endif(DOXYGEN_FOUND)
 

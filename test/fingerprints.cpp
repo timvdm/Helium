@@ -20,7 +20,7 @@ void test_path_fingerprint(const std::string &substructure, const std::string &s
   //print(subFp, 16);
   //print(superFp, 16);
 
-  ASSERT(is_subset_superset(subFp, superFp, 16));
+  ASSERT(bitvec_is_subset_superset(subFp, superFp, 16));
 }
 
 void test_tree_fingerprint(const std::string &substructure, const std::string &superstructure)
@@ -40,10 +40,10 @@ void test_tree_fingerprint(const std::string &substructure, const std::string &s
   //print(superFp, 16);
   
   for (unsigned int i = 0; i < 1024; ++i)
-    if (get(i, subFp) && !get(i, superFp))
+    if (bitvec_get(i, subFp) && !bitvec_get(i, superFp))
       std::cout << "bit " << i << " is not in queried fingerprint" << std::endl;
 
-  ASSERT(is_subset_superset(subFp, superFp, 16));
+  ASSERT(bitvec_is_subset_superset(subFp, superFp, 16));
 }
 
 void test_fingerprint(const std::string &substructure, const std::string &superstructure)

@@ -2,6 +2,7 @@
 #include "../src/fileio.h"
 
 #include "../src/fingerprints.h"
+#include "../src/fileio/fingerprints.h"
 
 #include <numeric>
 #include <boost/functional/hash.hpp>
@@ -78,7 +79,7 @@ int main(int argc, char**argv)
   file.search(queryFingerprint, screen);
 
   for (unsigned int i = 0; i < file.num_fingerprints(); ++i)
-    if (get(i, screen))
+    if (bitvec_get(i, screen))
       ++hits;
   /*
   */

@@ -87,6 +87,53 @@ namespace Helium {
   }
 
   /**
+   * Get the bit value for the specified bit index.
+   *
+   * @param index The bit's index. The index should be less than the number of
+   * bits in the @p bitvec.
+   * @param bitvec The bit vector.
+   *
+   * @return The valuefor the bit at the specified @p index.
+   */
+  inline bool bitvec_get(int index, const Word *bitvec)
+  {
+    int word = index / (sizeof(Word) * 8);
+    int offset = index % (sizeof(Word) * 8);
+    Word bit = static_cast<Word>(1) << offset;
+    return *(bitvec + word) & bit;
+  }
+
+  /**
+   * Set the bit at the specified bit index (to 1).
+   *
+   * @param index The bit's index. The index should be less than the number of
+   * bits in the @p bitvec.
+   * @param bitvec The bit vector.
+   */
+  inline void bitvec_set(int index, Word *bitvec)
+  {
+    int word = index / (sizeof(Word) * 8);
+    int offset = index % (sizeof(Word) * 8);
+    Word bit = static_cast<Word>(1) << offset;
+    *(bitvec + word) |= bit;
+  }
+
+  /**
+   * Reset the bit at the specified bit index (to 0).
+   *
+   * @param index The bit's index. The index should be less than the number of
+   * bits in the @p bitvec.
+   * @param bitvec The bit vector.
+   */
+  inline void bitvec_reset(int index, Word *bitvec)
+  {
+    int word = index / (sizeof(Word) * 8);
+    int offset = index % (sizeof(Word) * 8);
+    Word bit = static_cast<Word>(1) << offset;
+    *(bitvec + word) &= ~bit;
+  }
+
+  /**
    * Check if @p bitvec1 is a subset of @p bitvec2 (i.e. all bits set in
    * @p bitvec1 are also set in @p bitvec2). Both bitvectors should have the
    * same number of bits.
@@ -162,52 +209,36 @@ namespace Helium {
 #endif
   }
 
-  /**
-   * Get the bit value for the specified bit index.
-   *
-   * @param index The bit's index. The index should be less than the number of
-   * bits in the @p bitvec.
-   * @param bitvec The bit vector.
-   *
-   * @return The valuefor the bit at the specified @p index.
-   */
-  inline bool bitvec_get(int index, const Word *bitvec)
-  {
-    int word = index / (sizeof(Word) * 8);
-    int offset = index % (sizeof(Word) * 8);
-    Word bit = static_cast<Word>(1) << offset;
-    return *(bitvec + word) & bit;
-  }
 
   /**
-   * Set the bit at the specified bit index (to 1).
+   * Get the bit count (i.e. number of bits set to 1 or the population count)
+   * for a range of a bit vector.
    *
-   * @param index The bit's index. The index should be less than the number of
-   * bits in the @p bitvec.
    * @param bitvec The bit vector.
+   * @param begin The first bit index.
+   * @param end The one-past-the-end bit index.
+   *
+   * @return The bit count for the range [begin,end).
    */
-  inline void bitvec_set(int index, Word *bitvec)
+  inline int bitvec_count(const Word *bitvec, int begin, int end)
   {
-    int word = index / (sizeof(Word) * 8);
-    int offset = index % (sizeof(Word) * 8);
-    Word bit = static_cast<Word>(1) << offset;
-    *(bitvec + word) |= bit;
+    const int bits_per_word = 8 * sizeof(Word);
+    const int lft = begin / bits_per_word;
+    const int rgt = end / bits_per_word;
+
+    int count = 0;
+    // count bits in partial word on the left
+    for (int i = lft * bits_per_word + (begin % bits_per_word); i < (lft + 1) * bits_per_word; ++i)
+      count += bitvec_get(i, bitvec);
+    // count bits in full words in the middle
+    count += bitvec_count(bitvec + lft + 1, rgt - lft - 1);
+    // count bits in partial word on the right
+    for (int i = rgt * bits_per_word; i < rgt * bits_per_word + (end % bits_per_word); ++i)
+      count += bitvec_get(i, bitvec);
+
+    return count;
   }
 
-  /**
-   * Reset the bit at the specified bit index (to 0).
-   *
-   * @param index The bit's index. The index should be less than the number of
-   * bits in the @p bitvec.
-   * @param bitvec The bit vector.
-   */
-  inline void bitvec_reset(int index, Word *bitvec)
-  {
-    int word = index / (sizeof(Word) * 8);
-    int offset = index % (sizeof(Word) * 8);
-    Word bit = static_cast<Word>(1) << offset;
-    *(bitvec + word) &= ~bit;
-  }
 
   /**
    * Compute the Tanimoto coefficient of difference between two bit vectors.

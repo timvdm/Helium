@@ -103,7 +103,7 @@ namespace Helium {
        */
       operator bool() const
       {
-        return m_ifs;
+        return (bool)m_ifs;
       }
 
       /**
@@ -124,7 +124,7 @@ namespace Helium {
        */
       bool seek(std::ios_base::streampos pos)
       {
-        return m_ifs.seekg(pos + m_offset);
+        return (bool)m_ifs.seekg(pos + m_offset);
       }
 
       /*
@@ -157,13 +157,13 @@ namespace Helium {
        */
       bool read(char *data, std::size_t size)
       {
-        return m_ifs.read(data, size);
+        return (bool)m_ifs.read(data, size);
       }
 
       template<typename T>
       bool read(T *data, std::size_t size)
       {
-        return m_ifs.read(reinterpret_cast<char*>(data), size);
+        return (bool)m_ifs.read(reinterpret_cast<char*>(data), size);
       }
 
     private:
@@ -238,7 +238,7 @@ namespace Helium {
        */
       operator bool() const
       {
-        return m_ofs;
+        return (bool)m_ofs;
       }
 
       /**
@@ -259,7 +259,7 @@ namespace Helium {
        */
       bool seek(std::ios_base::streampos pos)
       {
-        return m_ofs.seekp(pos + m_offset);
+        return (bool)m_ofs.seekp(pos + m_offset);
       }
 
       /**
@@ -272,13 +272,13 @@ namespace Helium {
        */
       bool write(const char *data, std::size_t size)
       {
-        return m_ofs.write(data, size);
+        return (bool)m_ofs.write(data, size);
       }
 
       template<typename T>
       bool write(const T *data, std::size_t size)
       {
-        return m_ofs.write(reinterpret_cast<const char*>(data), size);
+        return (bool)m_ofs.write(reinterpret_cast<const char*>(data), size);
       }
 
 

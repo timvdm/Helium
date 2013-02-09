@@ -5,6 +5,10 @@
 
 #include <numeric>
 
+#ifdef USE_CPP11
+#include <future>
+#endif
+
 namespace Helium {
 
   /**
@@ -36,6 +40,67 @@ namespace Helium {
 
     return result;
   }
+
+  
+
+#ifdef USE_CPP11
+
+  namespace impl {
+
+    template<typename RowMajorFingerprintStorageType>
+    std::vector<std::pair<unsigned int, double> > brute_force_similarity_search(const Word *query,
+        RowMajorFingerprintStorageType &storage, unsigned int begin, unsigned int end, double Tmin, unsigned int k = 0)
+    {
+      int numWords = bitvec_num_words_for_bits(storage.numBits());
+
+      std::vector<std::pair<unsigned int, double> > result;
+      for (unsigned int i = begin; i < end; ++i) {
+        const Word *fingerprint = storage.fingerprint(i);
+        double T = bitvec_tanimoto(query, fingerprint, numWords);
+        if (T >= Tmin)
+          result.push_back(std::make_pair(i, T));
+      }
+
+      return result;
+    }
+
+  }
+
+
+
+  template<typename RowMajorFingerprintStorageType>
+  std::vector<std::pair<unsigned int, double> > brute_force_similarity_search_threaded(const Word *query,
+      RowMajorFingerprintStorageType &storage, double Tmin, unsigned int k = 0)
+  {
+    TIMER("brute_force_fimilarity_search():");
+
+    unsigned int numFingerprints = storage.numFingerprints();
+    unsigned int taskSize = numFingerprints / 4;
+
+
+    std::cout << "starting threads" << std::endl;
+
+    auto future1 = std::async(impl::brute_force_similarity_search<RowMajorFingerprintStorageType>, query, storage, 0, taskSize, Tmin, k);
+    auto future2 = std::async(impl::brute_force_similarity_search<RowMajorFingerprintStorageType>, query, storage, taskSize, 2 * taskSize, Tmin, k);
+    auto future3 = std::async(impl::brute_force_similarity_search<RowMajorFingerprintStorageType>, query, storage, 2 * taskSize, 3 * taskSize, Tmin, k);
+    auto future4 = std::async(impl::brute_force_similarity_search<RowMajorFingerprintStorageType>, query, storage, 3 * taskSize, numFingerprints, Tmin, k);
+
+    std::cout << "threads running..." << std::endl;
+    
+    std::vector<std::pair<unsigned int, double> > tmp;
+    std::vector<std::pair<unsigned int, double> > result(future1.get());
+
+    tmp = future2.get();
+    std::copy(tmp.begin(), tmp.end(), std::back_inserter(result));
+    tmp = future3.get();
+    std::copy(tmp.begin(), tmp.end(), std::back_inserter(result));
+    tmp = future4.get();
+    std::copy(tmp.begin(), tmp.end(), std::back_inserter(result));
+
+    return result;
+  }
+
+#endif
 
   /**
    * @brief Similarity search fingerpint index.

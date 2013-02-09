@@ -29,6 +29,7 @@
 
 #include <iostream>
 #include <fstream>
+#include <cmath>
 
 namespace Helium {
 
@@ -163,7 +164,7 @@ namespace Helium {
    */
   inline int bitvec_count(Word word)
   {
-#if __GNUC__ > 3 || (__GNUC__ == 3 && __GNUC_MINOR__ >= 4)
+#ifdef HAVE_POPCNT
     return __builtin_popcountl(word);
 #else
     int count = 0;
@@ -189,7 +190,7 @@ namespace Helium {
    */
   inline int bitvec_count(const Word *bitvec, int numWords)
   {
-#if __GNUC__ > 3 || (__GNUC__ == 3 && __GNUC_MINOR__ >= 4)
+#ifdef HAVE_POPCNT
     // use popcount
     int count = 0;
     for (int i = 0; i < numWords; ++i)
@@ -240,6 +241,24 @@ namespace Helium {
   }
 
 
+  inline int bitvec_union_count(const Word *bitvec1, const Word *bitvec2, int numWords)
+  {
+    int count = 0;
+
+    for (int i = 0; i < numWords; ++i) {
+      Word andfp = bitvec1[i] & bitvec2[i];
+#ifdef HAVE_POPCNT
+      count += __builtin_popcountl(andfp);
+#else
+      for (; andfp; andfp = andfp << 1)
+        if (andfp < 0)
+          ++count;
+#endif
+    }
+
+    return count;
+  }
+
   /**
    * Compute the Tanimoto coefficient of difference between two bit vectors.
    * This function is slower than the Tanimoto function below since both the
@@ -248,6 +267,12 @@ namespace Helium {
    * \f[
    *   T_{\mathrm{sim}} = \frac{| A \wedge B |}{| A \vee B |}
    * \f]
+   *
+   * @param bitvec1 The first bit vector (\f$A\f$).
+   * @param bitvec2 The first bit vector (\f$B\f$).
+   * @param numWords The number of words in the bit vectors.
+   *
+   * @return The Tanimoto coefficient of difference.
    */
   inline double bitvec_tanimoto(const Word *bitvec1, const Word *bitvec2, int numWords)
   {
@@ -257,7 +282,7 @@ namespace Helium {
     for (int i = 0; i < numWords; ++i) {
       Word andbv = bitvec1[i] & bitvec2[i];
       Word orbv = bitvec1[i] | bitvec2[i];
-#if __GNUC__ > 3 || (__GNUC__ == 3 && __GNUC_MINOR__ >= 4)
+#ifdef HAVE_POPCNT
       //andCount += __builtin_popcountl(andfp);
       //orCount += __builtin_popcountl(orfp);
       andCount += __builtin_popcountll(andbv);
@@ -265,10 +290,10 @@ namespace Helium {
 #else
       for (; andbv; andbv = andbv << 1)
         if(andbv < 0)
-          ++andbits;
+          ++andCount;
       for (; orbv; orbv = orbv << 1)
         if(orbv < 0)
-          ++orbits;
+          ++orCount;
 #endif
     }
 
@@ -283,23 +308,158 @@ namespace Helium {
    * \f[
    *   T_{\mathrm{sim}} = \frac{| A \wedge B |}{|A| + |B| - | A \vee B |}
    * \f]
+   *
+   * @param bitvec1 The first bit vector (\f$A\f$).
+   * @param bitvec2 The first bit vector (\f$B\f$).
+   * @param bitCount1 The bit count for the first bit vector (\f$|A|\f$).
+   * @param bitCount2 The bit count for the second bit vector (\f$|B|\f$).
+   * @param numWords The number of words in the bit vectors.
+   *
+   * @return The Tanimoto coefficient of difference.
    */
   inline double bitvec_tanimoto(const Word *bitvec1, const Word *bitvec2, int bitCount1, int bitCount2, int numWords)
   {
-    int andCount = 0;
-
-    for (int i = 0; i < numWords; ++i) {
-      Word andfp = bitvec1[i] & bitvec2[i];
-#if __GNUC__ > 3 || (__GNUC__ == 3 && __GNUC_MINOR__ >= 4)
-      andCount += __builtin_popcountl(andfp);
-#else
-      for(; andfp; andfp = andfp << 1)
-        if(andfp < 0)
-          ++andbits;
-#endif
-    }
-
+    int andCount = bitvec_union_count(bitvec1, bitvec2, numWords);
     return static_cast<double>(andCount) / (bitCount1 + bitCount2 - andCount);
+  }
+
+  /**
+   * Compute the Cosine coefficient of difference between two bit vectors.
+   *
+   * \f[
+   *   C_{\mathrm{sim}} = \frac{| A \wedge B |}{\sqrt{|A| |B|}}
+   * \f]
+   *
+   * @param bitvec1 The first bit vector (\f$A\f$).
+   * @param bitvec2 The first bit vector (\f$B\f$).
+   * @param bitCount1 The bit count for the first bit vector (\f$|A|\f$).
+   * @param bitCount2 The bit count for the second bit vector (\f$|B|\f$).
+   * @param numWords The number of words in the bit vectors.
+   *
+   * @return The Cosine coefficient of difference.
+   */
+  inline double bitvec_cosine(const Word *bitvec1, const Word *bitvec2, int bitCount1, int bitCount2, int numWords)
+  {
+    int andCount = bitvec_union_count(bitvec1, bitvec2, numWords);
+    return static_cast<double>(andCount) / std::sqrt(bitCount1 * bitCount2);
+  }
+
+  /**
+   * Compute the Cosine coefficient of difference between two bit vectors.
+   *
+   * \f[
+   *   C_{\mathrm{sim}} = \frac{| A \wedge B |}{\sqrt{|A| |B|}}
+   * \f]
+   *
+   * @param bitvec1 The first bit vector (\f$A\f$).
+   * @param bitvec2 The first bit vector (\f$B\f$).
+   * @param numWords The number of words in the bit vectors.
+   *
+   * @return The Cosine coefficient of difference.
+   */
+  inline double bitvec_cosine(const Word *bitvec1, const Word *bitvec2, int numWords)
+  {
+    int andCount = bitvec_union_count(bitvec1, bitvec2, numWords);
+    return static_cast<double>(andCount) / std::sqrt(bitvec_count(bitvec1, numWords) * bitvec_count(bitvec2, numWords));
+  }
+
+  /**
+   * Compute the Hamming coefficient of difference between two bit vectors.
+   *
+   * \f[
+   *   H_{\mathrm{sim}} = |A| + |B| - 2 | A \wedge B |
+   * \f]
+   *
+   * @param bitvec1 The first bit vector (\f$A\f$).
+   * @param bitvec2 The first bit vector (\f$B\f$).
+   * @param bitCount1 The bit count for the first bit vector (\f$|A|\f$).
+   * @param bitCount2 The bit count for the second bit vector (\f$|B|\f$).
+   * @param numWords The number of words in the bit vectors.
+   *
+   * @return The Hamming coefficient of difference.
+   */
+  inline double bitvec_hamming(const Word *bitvec1, const Word *bitvec2, int bitCount1, int bitCount2, int numWords)
+  {
+    int andCount = bitvec_union_count(bitvec1, bitvec2, numWords);
+    return bitCount1 + bitCount2 - 2 * andCount;
+  }
+
+  /**
+   * Compute the Hamming coefficient of difference between two bit vectors.
+   *
+   * \f[
+   *   H_{\mathrm{sim}} = |A| + |B| - 2 | A \wedge B |
+   * \f]
+   *
+   * @param bitvec1 The first bit vector (\f$A\f$).
+   * @param bitvec2 The first bit vector (\f$B\f$).
+   * @param numWords The number of words in the bit vectors.
+   *
+   * @return The Hamming coefficient of difference.
+   */
+  inline double bitvec_hamming(const Word *bitvec1, const Word *bitvec2, int numWords)
+  {
+    int andCount = bitvec_union_count(bitvec1, bitvec2, numWords);
+    return bitvec_count(bitvec1, numWords) + bitvec_count(bitvec2, numWords) - 2 * andCount;
+  }
+
+  /**
+   * Compute the Russell-Rao coefficient of difference between two bit vectors.
+   *
+   * \f[
+   *   R_{\mathrm{sim}} = \frac{| A \wedge B |}{m}
+   * \f]
+   *
+   * @param bitvec1 The first bit vector (\f$A\f$).
+   * @param bitvec2 The first bit vector (\f$B\f$).
+   * @param numWords The number of words in the bit vectors (\f$m\f$ / (8 * sizeof(Word))).
+   *
+   * @return The Russell-Rao coefficient of difference.
+   */
+  inline double bitvec_russell_rao(const Word *bitvec1, const Word *bitvec2, int numWords)
+  {
+    int andCount = bitvec_union_count(bitvec1, bitvec2, numWords);
+    return static_cast<double>(andCount) / (numWords * 8 * sizeof(Word));
+  }
+
+  /**
+   * Compute the Forbes coefficient of difference between two bit vectors.
+   *
+   * \f[
+   *   F_{\mathrm{sim}} = \frac{| A \wedge B | m}{|A| |B|}
+   * \f]
+   *
+   * @param bitvec1 The first bit vector (\f$A\f$).
+   * @param bitvec2 The first bit vector (\f$B\f$).
+   * @param bitCount1 The bit count for the first bit vector (\f$|A|\f$).
+   * @param bitCount2 The bit count for the second bit vector (\f$|B|\f$).
+   * @param numWords The number of words in the bit vectors (\f$m\f$ / (8 * sizeof(Word))).
+   *
+   * @return The Forbes coefficient of difference.
+   */
+  inline double bitvec_forbes(const Word *bitvec1, const Word *bitvec2, int bitCount1, int bitCount2, int numWords)
+  {
+    int andCount = bitvec_union_count(bitvec1, bitvec2, numWords);
+    return static_cast<double>(andCount * numWords * 8 * sizeof(Word)) / (bitCount1 * bitCount2);
+  }
+
+  /**
+   * Compute the Forbes coefficient of difference between two bit vectors.
+   *
+   * \f[
+   *   F_{\mathrm{sim}} = \frac{| A \wedge B | m}{|A| |B|}
+   * \f]
+   *
+   * @param bitvec1 The first bit vector (\f$A\f$).
+   * @param bitvec2 The first bit vector (\f$B\f$).
+   * @param numWords The number of words in the bit vectors (\f$m\f$ / (8 * sizeof(Word))).
+   *
+   * @return The Forbes coefficient of difference.
+   */
+  inline double bitvec_forbes(const Word *bitvec1, const Word *bitvec2, int numWords)
+  {
+    int andCount = bitvec_union_count(bitvec1, bitvec2, numWords);
+    return static_cast<double>(andCount * numWords * 8 * sizeof(Word)) / (bitvec_count(bitvec1, numWords) * bitvec_count(bitvec2, numWords));
   }
 
   /**

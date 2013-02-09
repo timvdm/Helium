@@ -33,6 +33,21 @@ include_directories(${CMAKE_SOURCE_DIR}/src/thirdparty/jsoncpp)
 #
 set(CMAKE_CXX_FLAGS "-g -pedantic -Wall -O2 -Wno-sign-compare ${CMAKE_CXX_FLAGS}")
 
+option(USE_CPP11 "Use C++11 features" OFF)
+if (USE_CPP11)
+  set(CMAKE_CXX_FLAGS "-std=c++0x -stdlib=libc++ ${CMAKE_CXX_FLAGS}")
+  add_definitions(-DHAVE_CPP11)
+endif()
+
+include(CheckCXXSourceCompiles)
+check_cxx_source_compiles("int main() { __builtin_popcountll(0); }" HAVE_POPCNT)
+if (HAVE_POPCNT)
+  add_definitions(-DHAVE_POPCNT)
+endif()
+
+
+
+
 
 set(Helium_HDRS
   src/bitvec.h
@@ -79,6 +94,7 @@ set(Helium_LIBRARIES
   boost_timer
   boost_system
   pthread
+  ${OPENBABEL2_LIBRARIES}
 )
 
 #

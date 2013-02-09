@@ -162,7 +162,7 @@ namespace Helium {
       t->addBond(mol.m_bonds.back());
     }
 
-    return is;
+    return (bool)is;
   }
 
   template<typename MoleculeType>

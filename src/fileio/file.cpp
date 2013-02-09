@@ -49,7 +49,7 @@ namespace Helium {
     // set offset
     m_offset = m_ifs.tellg();
 
-    return m_ifs;
+    return (bool)m_ifs;
   }
 
 #define HEADER_SIZE 128000
@@ -74,7 +74,7 @@ namespace Helium {
     m_ofs.seekp(2 * sizeof(unsigned int) + HEADER_SIZE);
     m_offset = m_ofs.tellp();
 
-    return m_ofs;
+    return (bool)m_ofs;
   }
 
   bool BinaryOutputFile::writeHeader(const std::string &header)
@@ -102,7 +102,7 @@ namespace Helium {
     // restore file stream position
     m_ofs.seekp(pos);
 
-    return m_ofs;
+    return (bool)m_ofs;
   }
 
 }

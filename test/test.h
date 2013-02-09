@@ -15,7 +15,7 @@
 }
 
 template <typename T1, typename T2>
-void pregolya_compare(T1 a, T2 b, const char *expr, const char *file, int line, const char *func_name)
+void __test_compare__(T1 a, T2 b, const char *expr, const char *file, int line, const char *func_name)
 {
   if (!(a == b))
     std::cout << file << ":" << line << ": " << expr << " [" << a << " == " << b << "] (FAIL)" << std::endl;
@@ -27,11 +27,11 @@ void pregolya_compare(T1 a, T2 b, const char *expr, const char *file, int line, 
 #define REQUIRE(exp) \
   ( (exp) ? static_cast<void>(0) : report_error(#exp, __FILE__, __LINE__, FUNCTION_SIGNATURE, true) )
 
-const char* pregolya_expr(const char *expr) { return expr; }
-#define P_EXPR(expr) pregolya_expr(#expr)
+const char* __test_expr__(const char *expr) { return expr; }
+#define P_EXPR(expr) __test_expr__(#expr)
 
 #define COMPARE(a,b) \
-  pregolya_compare(a, b, P_EXPR( a == b ), __FILE__, __LINE__, FUNCTION_SIGNATURE)
+  __test_compare__(a, b, P_EXPR( a == b ), __FILE__, __LINE__, FUNCTION_SIGNATURE)
 
 
 #ifndef DATADIR

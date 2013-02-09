@@ -56,7 +56,7 @@
   #define TIMER(message)
 #endif
 
-namespace Helium {
+namespace std {
 
   /**
    * @brief STL output stream operator for std::set.
@@ -80,6 +80,10 @@ namespace Helium {
     os << "( " << p.first << " " << p.second << " )";
     return os;
   }
+
+}
+
+namespace Helium {
 
   /**
    * @brief Compute the factorial of a mumber.

@@ -5,7 +5,17 @@
 #include <set>
 #include <ostream>
 
-namespace Helium {
+namespace std {
+
+  template<typename T>
+  std::ostream& operator<<(std::ostream &os, const std::vector<T> &v)
+  {
+    os << "[ ";
+    for (std::size_t i = 0; i < v.size(); ++i)
+      os << v[i] << " ";
+    os << "]";
+    return os;
+  }
 
   template<typename T>
   bool operator<(const std::vector<T> &v1, const std::vector<T> &v2)
@@ -46,15 +56,9 @@ namespace Helium {
     return true;
   }  
 
-  template<typename T>
-  std::ostream& operator<<(std::ostream &os, const std::vector<T> &v)
-  {
-    os << "[ ";
-    for (std::size_t i = 0; i < v.size(); ++i)
-      os << v[i] << " ";
-    os << "]";
-    return os;
-  }
+}
+
+namespace Helium {
 
   template<typename T>
   std::size_t unique_elements(const std::vector<T> &v)

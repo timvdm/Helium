@@ -114,7 +114,11 @@ namespace Helium {
     // perform search
     std::vector<std::pair<unsigned int, double> > result;
     if (brute) {
+#ifdef USE_CPP11
+      result = brute_force_similarity_search_threaded(queryFingerprint, storage, Tmin);
+#else
       result = brute_force_similarity_search(queryFingerprint, storage, Tmin);
+#endif
     } else {
       SimilaritySearchIndex<InMemoryRowMajorFingerprintStorage> index(storage, k);
       result = index.search(queryFingerprint, Tmin);

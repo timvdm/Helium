@@ -1,3 +1,29 @@
+/**
+ * Copyright (c) 2013, Tim Vandermeersch
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *     * Redistributions of source code must retain the above copyright
+ *       notice, this list of conditions and the following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright
+ *       notice, this list of conditions and the following disclaimer in the
+ *       documentation and/or other materials provided with the distribution.
+ *     * Neither the name of the <organization> nor the
+ *       names of its contributors may be used to endorse or promote products
+ *       derived from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL <COPYRIGHT HOLDER> BE LIABLE FOR ANY
+ * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 #ifndef HELIUM_CANONICAL_H
 #define HELIUM_CANONICAL_H
 
@@ -8,70 +34,6 @@
 #define DEBUG_CANON 0
 
 namespace Helium {
-
-  namespace impl {
-
-    template<template <typename> class AtomInvariant, typename MoleculeType, typename T>
-    std::vector<unsigned long> canonical_path_code(MoleculeType &mol, const std::vector<T> &path)
-    {
-      typedef typename molecule_traits<MoleculeType>::bond_type bond_type;
-
-      std::vector<unsigned long> result;
-      if (path.empty())
-        return result;
-
-      std::vector<bool> atomBits(num_atoms(mol));
-      std::vector<bool> bondBits(num_bonds(mol));
-      std::vector<bond_type> bonds;
-
-      atomBits[get_index(mol, get_atom(mol, path[0]))] = true;
-      for (std::size_t i = 1; i < path.size(); ++i) {
-        atomBits[get_index(mol, get_atom(mol, path[i]))] = true;
-        bond_type bond = get_bond(mol, get_atom(mol, path[i-1]), get_atom(mol, path[i]));
-        bonds.push_back(bond);
-        bondBits[get_index(mol, bond)] = true;
-      }
-
-      Substructure<MoleculeType> substruct(mol, atomBits, bondBits);
-      std::vector<T> subPath(path);
-      renumber(subPath);
-
-      AtomInvariant<Substructure<MoleculeType> > atomInvariant;
-      for (std::size_t i = 1; i < subPath.size(); ++i) {
-        result.push_back(atomInvariant(substruct, get_atom(substruct, subPath[i-1])));
-        result.push_back(bond_invariant(substruct, bonds[i-1]));
-      }
-      result.push_back(atomInvariant(substruct, get_atom(substruct, subPath.back())));
-
-      return result;
-    }
-
-  }
-
-  template<typename MoleculeType>
-  struct canonical_path_atom_invariant
-  {
-    unsigned int operator()(MoleculeType &mol, typename molecule_traits<MoleculeType>::atom_type atom) const
-    {
-      return get_element(mol, atom);
-    }
-  };
-
-  template<template<typename> class AtomInvariant, typename MoleculeType, typename T>
-  std::pair<std::vector<unsigned int>, std::vector<unsigned long> > canonicalize_path(MoleculeType &mol,
-      const std::vector<T> &path)
-  {
-    std::vector<unsigned long> forwardCode = impl::canonical_path_code<AtomInvariant>(mol, path);
-    std::vector<T> pathCopy(path.size());
-    for (std::size_t i = 0; i < path.size(); ++i)
-      pathCopy[i] = path[path.size() - i - 1];
-    std::vector<unsigned long> backwardCode = impl::canonical_path_code<AtomInvariant>(mol, pathCopy);
-
-    if (forwardCode < backwardCode)
-      return std::make_pair(path, forwardCode);
-    return std::make_pair(pathCopy, backwardCode);
-  }
-
 
   namespace impl {
 
@@ -97,7 +59,7 @@ namespace Helium {
       Index source; // canonical source index
       Index target; // canonical target index
     };
-  
+
     template<typename MoleculeType>
     class Canonicalize
     {
@@ -172,11 +134,11 @@ namespace Helium {
                 closures.push_back(Closure(get_index(m_mol, *bond), source, target));
                 m_visited[get_index(m_mol, *bond)] = true;
               }
-            
+
             // do the sorting: [1 3] < [1 4]
             std::sort(closures.begin(), closures.end(), Closure::compare());
             numClosures += closures.size();
-        
+
             for (std::size_t j = 0; j < closures.size(); ++j) {
               // add the closure bond to the code
               code.push_back(closures[j].source);
@@ -233,10 +195,10 @@ namespace Helium {
 
           if (DEBUG_CANON)
             std::cout << "next(" << get_index(m_mol, atom) << ")" << std::endl;
-              
+
           if (std::find(m_atoms.begin(), m_atoms.end(), get_index(m_mol, atom)) != m_atoms.end())
             return;
-          
+
           assert(std::find(m_atoms.begin(), m_atoms.end(), get_index(m_mol, atom)) == m_atoms.end());
 
           // map the atom
@@ -259,7 +221,7 @@ namespace Helium {
 
             std::vector<std::pair<bond_type, atom_type> > stackCopy(stack);
             std::vector<std::pair<bond_type, atom_type> > bonds;
-          
+
 
             // append unvisited bonds around atom to stack
             atom_bond_iter bond, end_bonds;
@@ -272,7 +234,7 @@ namespace Helium {
                 continue;
               bonds.push_back(std::make_pair(*bond, other));
             }
-          
+
 
             // sort the new bonds
             std::sort(bonds.begin(), bonds.end(), compare_first<bond_type, atom_type>());
@@ -285,7 +247,7 @@ namespace Helium {
               next(stack);
             } while (!last && (last = std::next_permutation(bonds.begin(), bonds.end(), compare_first<bond_type, atom_type>())));
 
-            // process stack 
+            // process stack
             while (!stack.empty())
               next(stack);
 

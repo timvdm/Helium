@@ -89,16 +89,7 @@ namespace Helium {
         if (depth == m_k - 1)
           endBit = (depth + 1) * (m_numBits / m_k) + (m_numBits % ((depth + 1) * (m_numBits / m_k)));
 
-        /*
-        int bitCount = 0;
-        for (int i = beginBit; i < endBit; ++i)
-          if (bitvec_get(i, fingerprint))
-            ++bitCount;
-
-        return bitCount;
-        */
-
-        return bitvec_count(fingerprint, bitvec_num_words_for_bits(m_numBits), beginBit, endBit);
+        return bitvec_count(fingerprint, beginBit, endBit);
       }
 
       int childSize() const

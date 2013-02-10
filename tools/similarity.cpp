@@ -59,17 +59,17 @@ namespace Helium {
       path_fingerprint(mol, fingerprint, k, words, prime);
       return fingerprint;
     }
-      
+
     if (type == "Helium::trees_fingerprint") {
       tree_fingerprint(mol, fingerprint, k, words, prime);
       return fingerprint;
     }
- 
+
     if (type == "Helium::subgraph_fingerprint") {
       subgraph_fingerprint(mol, fingerprint, k, words, prime);
       return fingerprint;
     }
- 
+
     std::cerr << "Fingerprint type \"" << type << "\" not recognised" << std::endl;
 
     delete [] fingerprint;
@@ -87,6 +87,9 @@ namespace Helium {
     ss << "Options:" << std::endl;
     ss << "    -Tmin <n>     The minimum tanimoto score (default is 0.7)" << std::endl;
     ss << "    -brute        Do brute force search (default is to use index)" << std::endl;
+#ifdef HAVE_CPP11
+    ss << "    -brute        Do brute force search (default is to use index)" << std::endl;
+#endif
     ss << "    -k <n>        When using an index (i.e. no -brute), specify the dimension for the kD-grid (default is 3)" << std::endl;
     ss << std::endl;
     return ss.str();
@@ -94,10 +97,11 @@ namespace Helium {
 
   int SimilarityTool::run(int argc, char**argv)
   {
-    ParseArgs args(argc, argv, ParseArgs::Args("-Tmin(number)", "-brute", "-k(number)"), ParseArgs::Args("query", "fingerprint_file"));
+    ParseArgs args(argc, argv, ParseArgs::Args("-Tmin(number)", "-brute", "-brute-mt", "-k(number)"), ParseArgs::Args("query", "fingerprint_file"));
     // optional arguments
     const double Tmin = args.IsArg("-Tmin") ? args.GetArgDouble("-Tmin", 0) : 0.7;
     const bool brute = args.IsArg("-brute");
+    const bool brute_mt = args.IsArg("-brute-mt");
     const int k = args.IsArg("-k") ? args.GetArgInt("-k", 0) : 3;
     // required arguments
     std::string smiles = args.GetArgString("query");
@@ -113,12 +117,13 @@ namespace Helium {
 
     // perform search
     std::vector<std::pair<unsigned int, double> > result;
-    if (brute) {
-#ifdef USE_CPP11
+#ifdef HAVE_CPP11
+    if (brute_mt) {
       result = brute_force_similarity_search_threaded(queryFingerprint, storage, Tmin);
-#else
-      result = brute_force_similarity_search(queryFingerprint, storage, Tmin);
+    } else
 #endif
+    if (brute) {
+      result = brute_force_similarity_search(queryFingerprint, storage, Tmin);
     } else {
       SimilaritySearchIndex<InMemoryRowMajorFingerprintStorage> index(storage, k);
       result = index.search(queryFingerprint, Tmin);

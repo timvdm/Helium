@@ -72,6 +72,12 @@ namespace Helium {
     // process molecules
     for (unsigned int i = 0; i < inputFile.numFingerprints(); ++i) {
 
+      const Word *unfolded = inputFile.fingerprint(i);
+
+      bitvec_zero(folded, words);
+      for (int j = 0; j < inputFile.numBits(); ++j)
+        if (bitvec_get(j, unfolded))
+          bitvec_set(j % prime, folded);
 
       // record bit count
       int bitCount = bitvec_count(folded, words);
@@ -88,9 +94,19 @@ namespace Helium {
     unsigned int max_count = *std::max_element(bitCounts.begin(), bitCounts.end());
 
     // create JSON header
+    std::string json = inputFile.header();
+    Json::Reader reader;
+    Json::Value data;
+    reader.parse(json, data);
+    data["num_bits"] = bits;
+    data["fingerprint"]["prime"] = prime;
+    data["statistics"]["average_count"] = average_count;
+    data["statistics"]["min_count"] = min_count;
+    data["statistics"]["max_count"] = max_count;
 
     // write JSON header
-    //outputFile.writeHeader(json.str());
+    Json::StyledWriter writer;
+    outputFile.writeHeader(writer.write(data));
 
     return 0;
   }

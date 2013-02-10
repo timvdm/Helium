@@ -228,12 +228,12 @@ namespace Helium {
           delete m_bonds[i];
       }
 
-      Size numHeAtoms() const
+      Size numAtoms() const
       {
         return m_atoms.size();
       }
 
-      Size numHeBonds() const
+      Size numBonds() const
       {
         return m_bonds.size();
       }
@@ -321,7 +321,7 @@ namespace Helium {
 
   inline Size num_atoms(const HeMol &mol)
   {
-    return mol.numHeAtoms();
+    return mol.numAtoms();
   }
 
   inline std::pair< molecule_traits<HeMol>::mol_atom_iter,  molecule_traits<HeMol>::mol_atom_iter>
@@ -350,7 +350,7 @@ namespace Helium {
 
   inline Size num_bonds(const HeMol &mol)
   {
-    return mol.numHeBonds();
+    return mol.numBonds();
   }
 
   inline std::pair< molecule_traits<HeMol>::mol_bond_iter,  molecule_traits<HeMol>::mol_bond_iter>

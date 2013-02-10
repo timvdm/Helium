@@ -101,7 +101,9 @@ namespace Helium {
     // optional arguments
     const double Tmin = args.IsArg("-Tmin") ? args.GetArgDouble("-Tmin", 0) : 0.7;
     const bool brute = args.IsArg("-brute");
+#ifdef HAVE_CPP11
     const bool brute_mt = args.IsArg("-brute-mt");
+#endif
     const int k = args.IsArg("-k") ? args.GetArgInt("-k", 0) : 3;
     // required arguments
     std::string smiles = args.GetArgString("query");

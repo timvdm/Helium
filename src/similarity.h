@@ -1,3 +1,29 @@
+/**
+ * Copyright (c) 2013, Tim Vandermeersch
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *     * Redistributions of source code must retain the above copyright
+ *       notice, this list of conditions and the following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright
+ *       notice, this list of conditions and the following disclaimer in the
+ *       documentation and/or other materials provided with the distribution.
+ *     * Neither the name of the <organization> nor the
+ *       names of its contributors may be used to endorse or promote products
+ *       derived from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL <COPYRIGHT HOLDER> BE LIABLE FOR ANY
+ * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 #ifndef HELIUM_SIMILARITY_H
 #define HELIUM_SIMILARITY_H
 
@@ -5,7 +31,7 @@
 
 #include <numeric>
 
-#ifdef USE_CPP11
+#ifdef HAVE_CPP11
 #include <future>
 #endif
 
@@ -25,7 +51,7 @@ namespace Helium {
    */
   template<typename RowMajorFingerprintStorageType>
   std::vector<std::pair<unsigned int, double> > brute_force_similarity_search(const Word *query,
-      RowMajorFingerprintStorageType &storage, double Tmin, unsigned int k = 0)
+      RowMajorFingerprintStorageType &storage, double Tmin)
   {
     TIMER("brute_force_fimilarity_search():");
     int numWords = bitvec_num_words_for_bits(storage.numBits());
@@ -41,52 +67,71 @@ namespace Helium {
     return result;
   }
 
-  
-
-#ifdef USE_CPP11
+#ifdef HAVE_CPP11
 
   namespace impl {
 
+    /**
+     * Functor for threaded brute force similarity search.
+     */
     template<typename RowMajorFingerprintStorageType>
-    std::vector<std::pair<unsigned int, double> > brute_force_similarity_search(const Word *query,
-        RowMajorFingerprintStorageType &storage, unsigned int begin, unsigned int end, double Tmin, unsigned int k = 0)
+    struct BruteForceSimilaritySearch
     {
-      int numWords = bitvec_num_words_for_bits(storage.numBits());
-
-      std::vector<std::pair<unsigned int, double> > result;
-      for (unsigned int i = begin; i < end; ++i) {
-        const Word *fingerprint = storage.fingerprint(i);
-        double T = bitvec_tanimoto(query, fingerprint, numWords);
-        if (T >= Tmin)
-          result.push_back(std::make_pair(i, T));
+      BruteForceSimilaritySearch(const Word *query_, RowMajorFingerprintStorageType &storage_,
+          unsigned int begin_, unsigned int end_, double Tmin_) : query(query_),
+          storage(storage_), begin(begin_), end(end_), Tmin(Tmin_)
+      {
       }
 
-      return result;
-    }
+      std::vector<std::pair<unsigned int, double> > operator()()
+      {
+        int numWords = bitvec_num_words_for_bits(storage.numBits());
+
+        std::vector<std::pair<unsigned int, double> > result;
+        for (unsigned int i = begin; i < end; ++i) {
+          const Word *fingerprint = storage.fingerprint(i);
+          double T = bitvec_tanimoto(query, fingerprint, numWords);
+          if (T >= Tmin)
+            result.push_back(std::make_pair(i, T));
+        }
+
+        return result;
+      }
+
+      const Word *query;
+      RowMajorFingerprintStorageType &storage;
+      unsigned int begin;
+      unsigned int end;
+      double Tmin;
+    };
 
   }
 
-
-
+  /**
+   * @brief Brute force similarity search.
+   *
+   * This function computes the tanimoto coefficient between the query and
+   * all fingerprints in the fingerprint sotrage. If the tanimoto is above the
+   * specified threshold, it is added to the list of results.
+   *
+   * @param query The query fingerprint.
+   * @param storage The fingerprints to search.
+   * @param Tmin The minimum tanimoto score, must be in the range [0,1].
+   */
   template<typename RowMajorFingerprintStorageType>
   std::vector<std::pair<unsigned int, double> > brute_force_similarity_search_threaded(const Word *query,
-      RowMajorFingerprintStorageType &storage, double Tmin, unsigned int k = 0)
+      RowMajorFingerprintStorageType &storage, double Tmin)
   {
-    TIMER("brute_force_fimilarity_search():");
+    TIMER("brute_force_fimilarity_search_threaded():");
 
     unsigned int numFingerprints = storage.numFingerprints();
     unsigned int taskSize = numFingerprints / 4;
 
+    auto future1 = std::async(impl::BruteForceSimilaritySearch<RowMajorFingerprintStorageType>(query, storage, 0, taskSize, Tmin));
+    auto future2 = std::async(impl::BruteForceSimilaritySearch<RowMajorFingerprintStorageType>(query, storage, taskSize, 2 * taskSize, Tmin));
+    auto future3 = std::async(impl::BruteForceSimilaritySearch<RowMajorFingerprintStorageType>(query, storage, 2 * taskSize, 3 * taskSize, Tmin));
+    auto future4 = std::async(impl::BruteForceSimilaritySearch<RowMajorFingerprintStorageType>(query, storage, 3 * taskSize, numFingerprints, Tmin));
 
-    std::cout << "starting threads" << std::endl;
-
-    auto future1 = std::async(impl::brute_force_similarity_search<RowMajorFingerprintStorageType>, query, storage, 0, taskSize, Tmin, k);
-    auto future2 = std::async(impl::brute_force_similarity_search<RowMajorFingerprintStorageType>, query, storage, taskSize, 2 * taskSize, Tmin, k);
-    auto future3 = std::async(impl::brute_force_similarity_search<RowMajorFingerprintStorageType>, query, storage, 2 * taskSize, 3 * taskSize, Tmin, k);
-    auto future4 = std::async(impl::brute_force_similarity_search<RowMajorFingerprintStorageType>, query, storage, 3 * taskSize, numFingerprints, Tmin, k);
-
-    std::cout << "threads running..." << std::endl;
-    
     std::vector<std::pair<unsigned int, double> > tmp;
     std::vector<std::pair<unsigned int, double> > result(future1.get());
 
@@ -150,7 +195,7 @@ namespace Helium {
       {
         int beginBit = depth * (m_numBits / m_k);
         int endBit = (depth + 1) * (m_numBits / m_k);
-        
+
         if (depth == m_k - 1)
           endBit = (depth + 1) * (m_numBits / m_k) + (m_numBits % ((depth + 1) * (m_numBits / m_k)));
 
@@ -184,7 +229,7 @@ namespace Helium {
             child = new TreeNode(childSize());
             node->children[count] = child;
           }
-        
+
           node = child;
           ++depth;
         }
@@ -252,7 +297,7 @@ namespace Helium {
             return;
         }
       }
-        
+
       void clearDFS(TreeNode *node, int depth)
       {
         ++depth;
@@ -265,7 +310,7 @@ namespace Helium {
           else
             delete node->children[i]; // delete leaf node
         }
-        
+
         delete node;
       }
 
@@ -306,7 +351,7 @@ namespace Helium {
 
         std::vector<std::pair<unsigned int, double> > hits;
         tanimotoDFS(fingerprint, threshold, maxResults, m_tree, 0, &n_j[0], &bitCounts[0], count, hits);
-        
+
         return hits;
       }
 

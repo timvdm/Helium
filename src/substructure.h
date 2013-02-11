@@ -187,7 +187,8 @@ namespace Helium {
 
         atom_type operator*() const
         {
-          return (*m_iter)->other(m_atom);
+          // FIXME
+          return (*m_iter).other(m_atom);
         }
 
         substructure_nbr_iterator& operator++()
@@ -457,25 +458,25 @@ namespace Helium {
   template<typename SubstructureType>
   bool is_aromatic(const SubstructureType &mol, typename molecule_traits<SubstructureType>::atom_type atom)
   {
-    return atom->isAromatic();
+    return is_aromatic(mol.mol(), atom);
   }
 
   template<typename SubstructureType>
   bool is_cyclic(const SubstructureType &mol, typename molecule_traits<SubstructureType>::atom_type atom)
   {
-    return atom->isCyclic();
+    return is_cyclic(mol.mol(), atom);
   }
 
   template<typename SubstructureType>
   int get_element(const SubstructureType &mol, typename molecule_traits<SubstructureType>::atom_type atom)
   {
-    return atom->element();
+    return get_element(mol.mol(), atom);
   }
 
   template<typename SubstructureType>
   int get_mass(const SubstructureType &mol, typename molecule_traits<SubstructureType>::atom_type atom)
   {
-    return atom->mass();
+    return get_mass(mol.mol(), atom);
   }
 
   template<typename SubstructureType>
@@ -492,13 +493,13 @@ namespace Helium {
   template<typename SubstructureType>
   int num_hydrogens(const SubstructureType &mol, typename molecule_traits<SubstructureType>::atom_type atom)
   {
-    return atom->hydrogens();
+    return get_hydrogens(mol.mol(), atom);
   }
 
   template<typename SubstructureType>
   int get_charge(const SubstructureType &mol, typename molecule_traits<SubstructureType>::atom_type atom)
   {
-    return atom->charge();
+    return get_charge(mol.mol(), atom);
   }
 
   //////////////////////////////////////////////////////////////////////////////
@@ -516,13 +517,13 @@ namespace Helium {
   template<typename SubstructureType>
   typename molecule_traits<SubstructureType>::atom_type get_source(const SubstructureType &mol, typename molecule_traits<SubstructureType>::bond_type bond)
   {
-    return bond->source();
+    return get_source(mol.mol(), bond);
   }
 
   template<typename SubstructureType>
   typename molecule_traits<SubstructureType>::atom_type get_target(const SubstructureType &mol, typename molecule_traits<SubstructureType>::bond_type bond)
   {
-    return bond->target();
+    return get_target(mol.mol(), bond);
   }
   
   template<typename SubstructureType>
@@ -530,25 +531,25 @@ namespace Helium {
                                                      typename molecule_traits<SubstructureType>::bond_type bond, 
                                                      typename molecule_traits<SubstructureType>::atom_type atom)
   {
-    return bond->other(atom);
+    return get_other(mol.mol(), bond, atom);
   }
 
   template<typename SubstructureType>
   bool is_aromatic(const SubstructureType &mol, typename molecule_traits<SubstructureType>::bond_type bond)
   {
-    return bond->isAromatic();
+    return is_aromatic(mol.mol(), bond);
   }
 
   template<typename SubstructureType>
   bool is_cyclic(const SubstructureType &mol, typename molecule_traits<SubstructureType>::bond_type bond)
   {
-    return bond->isCyclic();
+    return is_cyclic(mol.mol(), bond);
   }
 
   template<typename SubstructureType>
   bool get_order(const SubstructureType &mol, typename molecule_traits<SubstructureType>::bond_type bond)
   {
-    return bond->order();
+    return get_order(mol.mol(), bond);
   }
 
   template<typename SubstructureType>

@@ -100,6 +100,7 @@ set(Helium_fileio_HDRS
 )
 
 set(Helium_SRCS
+  src/hemol.cpp
   src/fileio/file.cpp
   src/thirdparty/jsoncpp/jsoncpp.cpp
 )

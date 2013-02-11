@@ -22,15 +22,18 @@ void test_canonicalize(const std::string &smiles)
 bool shuffle_test_mol(HeMol &mol)
 {
   bool pass = true;
-  std::vector<unsigned int> atoms;
-  for (unsigned int i = 0; i < num_atoms(mol); ++i)
+  std::vector<Index> atoms;
+  for (std::size_t i = 0; i < num_atoms(mol); ++i)
     atoms.push_back(i);
 
   std::vector<unsigned long> ref_code = canonicalize(mol, extended_connectivities(mol)).second;
 
   for (int i = 0; i < 10; ++i) {
     std::random_shuffle(atoms.begin(), atoms.end());
+    //std::cout << "P: " << atoms << std::endl;
+    //std::cout << mol << std::endl;
     mol.renumberAtoms(atoms);
+    //std::cout << mol << std::endl;
     std::vector<unsigned long> code = canonicalize(mol, extended_connectivities(mol)).second;
     COMPARE(ref_code, code);
     if (ref_code != code)
@@ -84,6 +87,6 @@ int main()
   shuffle_test_smiles("Clc1ccc(cc1)Cc1c(C)nc(N)[nH]c1=O");
   shuffle_test_smiles("COc1cc(C)nc(Cl)n1");
   shuffle_test_smiles("C1CN1");
-  
+
   shuffle_test(datadir() + "1K.hem");
 }

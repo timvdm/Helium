@@ -89,13 +89,7 @@ namespace Helium {
   template<typename MoleculeType>
   bool read_molecule(std::istream &is, MoleculeType &mol)
   {
-    for (std::size_t i = 0; i < mol.m_atoms.size(); ++i)
-      delete mol.m_atoms[i];
-    for (std::size_t i = 0; i < mol.m_bonds.size(); ++i)
-      delete mol.m_bonds[i];
-
-    mol.m_atoms.clear();
-    mol.m_bonds.clear();
+    mol.clear();
 
     if (!is)
       return false;
@@ -107,9 +101,6 @@ namespace Helium {
 
     if (!is)
       return false;
-
-    mol.m_atoms.reserve(numAtoms);
-    mol.m_bonds.reserve(numBonds);
 
     unsigned char flags, aromaticCyclic, aromatic = 0, cyclic = 0;
     unsigned char element, mass, hydrogens;
@@ -143,7 +134,14 @@ namespace Helium {
       else
         charge = 0;
 
-      mol.m_atoms.push_back(new HeAtom(i, aromatic, cyclic, element, mass, hydrogens, charge));
+
+      HeAtom atom = mol.addAtom();
+      atom.setAromatic(aromatic);
+      atom.setCyclic(cyclic);
+      atom.setElement(element);
+      atom.setMass(mass);
+      atom.setHydrogens(hydrogens);
+      atom.setCharge(charge);
     }
 
     unsigned short source, target;
@@ -153,13 +151,13 @@ namespace Helium {
       read16(is, target);
       read8(is, props);
 
-      HeAtom *s = mol.m_atoms[source];
-      HeAtom *t = mol.m_atoms[target];
+      HeAtom s = mol.atom(source);
+      HeAtom t = mol.atom(target);
 
-      mol.m_bonds.push_back(new HeBond(i, s, t, props & 128, props & 64, props & 63));
-
-      s->addBond(mol.m_bonds.back());
-      t->addBond(mol.m_bonds.back());
+      HeBond bond = mol.addBond(s, t);
+      bond.setAromatic(props & 128);
+      bond.setCyclic(props & 64);
+      bond.setOrder(props & 63);
     }
 
     return (bool)is;

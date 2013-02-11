@@ -4,6 +4,7 @@
 #include <vector>
 #include <set>
 #include <ostream>
+#include <cassert>
 
 namespace std {
 

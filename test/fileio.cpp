@@ -42,6 +42,8 @@ int main()
   HeMol mol;
   read_smiles("c1ccccc1Cl", mol);
 
+  std::cout << mol << std::endl;
+
   COMPARE(7, num_atoms(mol));
   COMPARE(7, num_bonds(mol));
 

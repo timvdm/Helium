@@ -32,13 +32,6 @@ void test_binary_file()
     COMPARE(i + 1, value);
   }
 
-  in.seek(0);
-  ASSERT(in.read(&value, sizeof(char)));
-  COMPARE(1, value);
-
-  in.seek(9);
-  ASSERT(in.read(&value, sizeof(char)));
-  COMPARE(10, value);
 }
 
 int main()

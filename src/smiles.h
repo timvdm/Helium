@@ -24,8 +24,8 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-#ifndef HELIUM_XXX_H
-#define HELIUM_XXX_H
+#ifndef HELIUM_SMILES_H
+#define HELIUM_SMILES_H
 
 #include "hemol.h"
 
@@ -35,18 +35,48 @@ namespace Helium {
 
   namespace impl {
 
-    template<typename 
-  
+    template<typename MoleculeType>
+    struct SmileyCallback : public Smiley::CallbackBase
+    {
+      SmileyCallback(MoleculeType &mol_) : mol(mol_)
+      {
+      }
+
+      void clear()
+      {
+        mol.clear();
+      }
+
+      void addAtom(int element, bool aromatic, int isotope, int hCount, int charge, int atomClass)
+      {
+        typename molecule_traits<MoleculeType>::atom_type atom = mol.addAtom();
+        atom.setElement(element);
+        atom.setAromatic(aromatic);
+        atom.setMass(isotope);
+        atom.setHydrogens(hCount);
+        atom.setCharge(charge);
+      }
+
+      void addBond(int source, int target, int order, bool isUp, bool isDown)
+      {
+        typename molecule_traits<MoleculeType>::bond_type bond = mol.addBond(mol.atom(source), mol.atom(target));
+        if (order == 5)
+          bond.setAromatic(true);
+        bond.setOrder(order);
+      }
+
+      MoleculeType &mol;
+    };
+
   }
 
   template<typename MoleculeType>
-  void read_smiles(const std::string &smiles, MoleculeType &mol)
+  void parse_smiles(const std::string &smiles, MoleculeType &mol)
   {
-    Smiley::Parser parser;
+    impl::SmileyCallback<MoleculeType> callback(mol);
+    Smiley::Parser<impl::SmileyCallback<MoleculeType> > parser(callback);
+    parser.parse(smiles);
   }
-
-
-
 
 }
 

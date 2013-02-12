@@ -14,6 +14,7 @@ set(tests
   #maximalmatching
   isomorphism
   cycles
+  smiles
   )
 
 foreach(test ${tests})

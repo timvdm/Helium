@@ -8,7 +8,15 @@
 
 using namespace Helium;
 
-/*
+std::string normalize_smiles(const std::string &smiles)
+{
+  OpenBabel::OBMol obmol;
+  OpenBabel::OBConversion conv;
+  conv.SetInAndOutFormats("smi", "smi");
+  conv.ReadString(&obmol, smiles);
+  return conv.WriteString(&obmol, true);
+}
+
 void write_molecule(std::ostream &os, OpenBabel::OBMol *mol)
 {
   std::vector<unsigned short> indices(mol->NumAtoms());
@@ -76,7 +84,6 @@ void write_molecule(std::ostream &os, OpenBabel::OBMol *mol)
     write8<unsigned char>(os, props);
   }
 }
-*/
 
 
 int main(int argc, char**argv)

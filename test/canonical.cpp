@@ -2,6 +2,7 @@
 #include "../src/fileio.h"
 #include "../src/extendedconnectivities.h"
 #include "../src/components.h"
+#include "../src/smiles.h"
 
 
 #include "test.h"
@@ -12,7 +13,7 @@ void test_canonicalize(const std::string &smiles)
 {
   std::cout << "Testing: " << smiles << std::endl;
   HeMol mol;
-  read_smiles(smiles, mol);
+  parse_smiles(smiles, mol);
 
   std::vector<unsigned long> symmetry = extended_connectivities(mol);
   std::cout << "symmetry: " << symmetry << std::endl;
@@ -47,7 +48,7 @@ void shuffle_test_smiles(const std::string &smiles)
 {
   std::cout << "Testing " << smiles << "..." << std::endl;
   HeMol mol;
-  read_smiles(smiles, mol);
+  parse_smiles(smiles, mol);
   shuffle_test_mol(mol);
 }
 

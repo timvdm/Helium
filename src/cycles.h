@@ -29,7 +29,7 @@
 
 #include "components.h"
 #include "isomorphism.h"
-#include "fileio.h"
+#include "smiles.h"
 
 namespace Helium {
 
@@ -46,7 +46,7 @@ namespace Helium {
   }
 
   namespace impl {
- 
+
     template<typename MoleculeType, typename QueryType>
     struct CycleAtomMatcher
     {
@@ -70,7 +70,7 @@ namespace Helium {
         return is_cyclic(mol, bond);
       }
     };
- 
+
   }
 
   template<typename MoleculeType>
@@ -85,13 +85,13 @@ namespace Helium {
       // create query
       std::string smiles = "*1" + std::string(size - 1, '*') + "1";
       HeMol cycleMol;
-      read_smiles(smiles, cycleMol);
+      parse_smiles(smiles, cycleMol);
 
       // find all cycles of size
       MappingList mappings;
       if (isomorphism_search<impl::CycleAtomMatcher, impl::CycleBondMatcher, MoleculeType, HeMol, MappingList>(mol, cycleMol, mappings)) {
         for (std::size_t i = 0; i < mappings.maps.size(); ++i)
-          cycles.push_back(mappings.maps[i]);      
+          cycles.push_back(mappings.maps[i]);
       }
 
       // increment cycle size

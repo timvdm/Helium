@@ -163,22 +163,6 @@ namespace Helium {
     return (bool)is;
   }
 
-  template<typename MoleculeType>
-  void read_smiles(const std::string &smiles, MoleculeType &mol)
-  {
-    OpenBabel::OBMol obmol;
-    OpenBabel::OBConversion conv;
-    conv.SetInFormat("smi");
-    conv.ReadString(&obmol, smiles);
-    std::ofstream ofs("tmp");
-    assert(ofs);
-    write_molecule(ofs, &obmol);
-    ofs.close();
-    std::ifstream ifs("tmp");
-    assert(ifs);
-    read_molecule(ifs, mol);
-  }
-
   inline std::string normalize_smiles(const std::string &smiles)
   {
     OpenBabel::OBMol obmol;
@@ -194,7 +178,7 @@ namespace Helium {
       MoleculeFile(const std::string &filename) : m_ifs(filename.c_str()), m_current(-1)
       {
         if (m_ifs)
-          read32(m_ifs, m_numMolecules);          
+          read32(m_ifs, m_numMolecules);
       }
 
       unsigned int numMolecules() const

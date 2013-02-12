@@ -1,5 +1,5 @@
 #include "../src/substructure.h"
-#include "../src/fileio.h"
+#include "../src/smiles.h"
 
 #include "test.h"
 
@@ -8,7 +8,7 @@ using namespace Helium;
 int main()
 {
   HeMol mol;
-  read_smiles("CNOSP", mol);
+  parse_smiles("CNOSP", mol);
 
   std::vector<bool> atoms(5), bonds(4);
   atoms[1] = true;

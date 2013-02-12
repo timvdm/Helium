@@ -75,7 +75,23 @@ namespace Helium {
   {
     impl::SmileyCallback<MoleculeType> callback(mol);
     Smiley::Parser<impl::SmileyCallback<MoleculeType> > parser(callback);
-    parser.parse(smiles);
+
+    //parser.parse(smiles);
+    try {
+      parser.parse(smiles);
+    } catch (Smiley::Exception &e) {
+      if (e.type() == Smiley::Exception::SyntaxError)
+        std::cerr << "Syntax";
+      else
+        std::cerr << "Semantics";
+      std::cerr << "Error: " << e.what() << "." << std::endl;
+      std::cerr << smiles << std::endl;
+      for (std::size_t i = 0; i < e.pos(); ++i)
+        std::cerr << " ";
+      for (std::size_t i = 0; i < e.length(); ++i)
+        std::cerr << "^";
+      std::cerr << std::endl;
+    }
   }
 
 }

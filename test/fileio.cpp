@@ -37,15 +37,4 @@ void test_binary_file()
 int main()
 {
   test_binary_file();
-
-
-  HeMol mol;
-  read_smiles("c1ccccc1Cl", mol);
-
-  std::cout << mol << std::endl;
-
-  COMPARE(7, num_atoms(mol));
-  COMPARE(7, num_bonds(mol));
-
-  COMPARE(6, get_element(mol, get_atom(mol, 0)));
 }

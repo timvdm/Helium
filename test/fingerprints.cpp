@@ -1,5 +1,5 @@
 #include "../src/fingerprints.h"
-#include "../src/fileio.h"
+#include "../src/smiles.h"
 
 #include "test.h"
 
@@ -10,8 +10,8 @@ void test_path_fingerprint(const std::string &substructure, const std::string &s
 {
   std::cout << "Testing (path): " << substructure << " < " << superstructure << std::endl;
   HeMol sub, super;
-  read_smiles(substructure, sub);
-  read_smiles(superstructure, super);
+  parse_smiles(substructure, sub);
+  parse_smiles(superstructure, super);
 
   Word subFp[16], superFp[16];
   path_fingerprint(sub, subFp);
@@ -27,8 +27,8 @@ void test_tree_fingerprint(const std::string &substructure, const std::string &s
 {
   std::cout << "Testing (tree): " << substructure << " < " << superstructure << std::endl;
   HeMol sub, super;
-  read_smiles(substructure, sub);
-  read_smiles(superstructure, super);
+  parse_smiles(substructure, sub);
+  parse_smiles(superstructure, super);
 
   Word subFp[16], superFp[16];
   std::cout << "    generating query fingerprint..." << std::endl;

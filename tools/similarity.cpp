@@ -27,7 +27,7 @@
 #include "similarity.h"
 
 #include "../src/similarity.h"
-#include "../src/fileio.h"
+#include "../src/smiles.h"
 #include "../src/fileio/fingerprints.h"
 
 #include <json/json.h>
@@ -114,7 +114,7 @@ namespace Helium {
 
     // compute query fingerprint
     HeMol query;
-    read_smiles(smiles, query);
+    parse_smiles(smiles, query);
     Word *queryFingerprint = compute_fingerprint(storage.header(), query);
 
     // perform search

@@ -1,5 +1,5 @@
 #include "../src/enumeratepaths.h"
-#include "../src/fileio.h"
+#include "../src/smiles.h"
 
 #include "test.h"
 
@@ -9,7 +9,7 @@ void testEnumeratePaths(const std::string &smiles, int expected)
 {
   std::cout << "Testing: " << smiles << std::endl;
   HeMol mol;
-  read_smiles(smiles, mol);
+  parse_smiles(smiles, mol);
 
   std::vector<std::vector<unsigned int> > paths = enumerate_paths(mol, 7);
 

@@ -13,6 +13,7 @@ set(helium_tool_SRCS
   index.cpp
   fold.cpp
   similarity.cpp
+  transpose.cpp
 )
 
 add_executable(helium_tool ${helium_tool_SRCS})

@@ -122,8 +122,17 @@ namespace Helium {
         std::sort(result.begin(), result.end(), compare_first<unsigned int, double>());
 
         // print results
-        for (std::size_t i = 0; i < result.size(); ++i)
-          std::cout << result[i].first << "\t" << result[i].second << std::endl;
+        Json::Value data;
+        data["hits"] = Json::Value(Json::arrayValue);
+        for (std::size_t i = 0; i < result.size(); ++i) {
+          data["hits"][Json::ArrayIndex(i)] = Json::Value(Json::objectValue);
+          Json::Value &obj = data["hits"][Json::ArrayIndex(i)];
+          obj["index"] = result[i].first;
+          obj["tanimoto"] = result[i].second;
+        }
+
+        Json::StyledWriter writer;
+        std::cout << writer.write(data);
 
         if (!queryFingerprint)
           return 0;

@@ -28,21 +28,15 @@
 #define HELIUM_HELIUMTOOL_H
 
 #include <string>
+#include <vector>
 
 namespace Helium {
 
-  /**
-   * Base class for command line tools.
-   */
-  class HeliumTool
+  class HeliumTool;
+
+  class HeliumToolFactory
   {
     public:
-      /**
-       * Constructor.
-       */
-      virtual ~HeliumTool()
-      {
-      }
       /**
        * Get tool name (e.g. "index", "query", ...)
        */
@@ -61,6 +55,51 @@ namespace Helium {
        * Get the number of required arguments.
        */
       virtual int requiredArgs() const = 0;
+      /**
+       * Get an instance of the tool.
+       */
+      virtual HeliumTool* instance() const = 0;
+  };
+
+#define HELIUM_TOOL(tool, desc, args, klass) \
+  klass##Factory() { HeliumTool::registerTool(this); } \
+  std::string name() const { return tool; } \
+  std::string description() const { return desc; } \
+  int requiredArgs() const { return args; } \
+  HeliumTool* instance() const { return new klass; }
+
+  /**
+   * Base class for command line tools.
+   */
+  class HeliumTool
+  {
+    public:
+      /**
+       * Constructor.
+       */
+      virtual ~HeliumTool()
+      {
+      }
+
+      /**
+       * Get a list of all plugins.
+       */
+      static std::vector<HeliumToolFactory*>& toolFactories()
+      {
+        static std::vector<HeliumToolFactory*> *list = 0;
+        if (!list)
+          list = new std::vector<HeliumToolFactory*>();
+        return *list;
+      }
+
+      /**
+       * Register a tool facotry.
+       */
+      static void registerTool(HeliumToolFactory *factory)
+      {
+        toolFactories().push_back(factory);
+      }
+
       /**
        * Perform tool action.
        */

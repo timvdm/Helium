@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-#include "header.h"
+#include "tool.h"
 
 #include "../src/fileio/file.h"
 
@@ -32,29 +32,44 @@
 
 namespace Helium {
 
-  std::string HeaderTool::usage(const std::string &command) const
+  class HeaderTool : public HeliumTool
   {
-    std::stringstream ss;
-    ss << "Usage: " << command << " <filename>" << std::endl;
-    ss << std::endl;
-    return ss.str();
-  }
+    public:
+      int run(int argc, char**argv)
+      {
+        ParseArgs args(argc, argv, ParseArgs::Args(), ParseArgs::Args("filename"));
+        // required arguments
+        std::string filename = args.GetArgString("filename");
 
-  int HeaderTool::run(int argc, char**argv)
+        BinaryInputFile file(filename);
+
+        std::string header(file.header());
+        std::cout << file.header();
+
+        if (header[header.size() - 1] != '\n')
+          std::cout << std::endl;
+
+        return 0;
+      }
+  };
+
+  class HeaderToolFactory : public HeliumToolFactory
   {
-    ParseArgs args(argc, argv, ParseArgs::Args(), ParseArgs::Args("filename"));
-    // required arguments
-    std::string filename = args.GetArgString("filename");
+    public:
+      HELIUM_TOOL("header", "Extract the JSON header from binary Helium files", 1, HeaderTool);
 
-    BinaryInputFile file(filename);
+      /**
+       * Get usage information.
+       */
+      std::string usage(const std::string &command) const
+      {
+        std::stringstream ss;
+        ss << "Usage: " << command << " <filename>" << std::endl;
+        ss << std::endl;
+        return ss.str();
+      }
+  };
 
-    std::string header(file.header());
-    std::cout << file.header();
-
-    if (header[header.size() - 1] != '\n')
-      std::cout << std::endl;
-
-    return 0;
-  }
+  HeaderToolFactory theHeaderToolFactory;
 
 }

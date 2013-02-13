@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-#include "fold.h"
+#include "tool.h"
 
 #include "../src/fileio/fingerprints.h"
 #include "../src/fingerprints.h"
@@ -37,78 +37,100 @@ using namespace Helium;
 
 namespace Helium {
 
-  std::string FoldTool::usage(const std::string &command) const
+  /**
+   * Tool for folding fingerprint indexes.
+   */
+  class FoldTool : public HeliumTool
   {
-    std::stringstream ss;
-    ss << "Usage: " << command << " <bits> <in_file> <out_file>" << std::endl;
-    ss << std::endl;
-    ss << "The fold tool can be used to fold fingerprint index files. Any bits argument specifies" << std::endl;
-    ss << "the new number of bits, this must be less than the number of bits in the input file." << std::endl;
-    ss << std::endl;
-    return ss.str();
-  }
+    public:
+      /**
+       * Perform tool action.
+       */
+      int run(int argc, char **argv)
+      {
+        ParseArgs args(argc, argv, ParseArgs::Args(), ParseArgs::Args("bits", "in_file", "out_file"));
+        // required arguments
+        const int bits = args.GetArgInt("bits");
+        const int words = bits / (8 * sizeof(Word));
+        const int prime = previous_prime(bits);
+        std::string inFile = args.GetArgString("in_file");
+        std::string outFile = args.GetArgString("out_file");
 
-  int FoldTool::run(int argc, char**argv)
+        // open input file
+        InMemoryRowMajorFingerprintStorage inputFile(inFile);
+
+        // open output file
+        RowMajorFingerprintOutputFile outputFile(outFile, bits);
+
+        // allocate bit vector
+        Word *folded = new Word[words];
+        // keep track of bit counts
+        std::vector<int> bitCounts;
+
+        // process molecules
+        for (unsigned int i = 0; i < inputFile.numFingerprints(); ++i) {
+
+          const Word *unfolded = inputFile.fingerprint(i);
+
+          bitvec_zero(folded, words);
+          for (int j = 0; j < inputFile.numBits(); ++j)
+            if (bitvec_get(j, unfolded))
+              bitvec_set(j % prime, folded);
+
+          // record bit count
+          int bitCount = bitvec_count(folded, words);
+          bitCounts.push_back(bitCount);
+
+          outputFile.writeFingerprint(folded);
+        }
+
+        // free bit vector
+        delete [] folded;
+
+        unsigned int average_count = std::accumulate(bitCounts.begin(), bitCounts.end(), 0) / inputFile.numFingerprints();
+        unsigned int min_count = *std::min_element(bitCounts.begin(), bitCounts.end());
+        unsigned int max_count = *std::max_element(bitCounts.begin(), bitCounts.end());
+
+        // create JSON header
+        std::string json = inputFile.header();
+        Json::Reader reader;
+        Json::Value data;
+        reader.parse(json, data);
+        data["num_bits"] = bits;
+        data["fingerprint"]["prime"] = prime;
+        data["statistics"]["average_count"] = average_count;
+        data["statistics"]["min_count"] = min_count;
+        data["statistics"]["max_count"] = max_count;
+
+        // write JSON header
+        Json::StyledWriter writer;
+        outputFile.writeHeader(writer.write(data));
+
+        return 0;
+      }
+
+  };
+
+  class FoldToolFactory : public HeliumToolFactory
   {
-    ParseArgs args(argc, argv, ParseArgs::Args(), ParseArgs::Args("bits", "in_file", "out_file"));
-    // required arguments
-    const int bits = args.GetArgInt("bits");
-    const int words = bits / (8 * sizeof(Word));
-    const int prime = previous_prime(bits);
-    std::string inFile = args.GetArgString("in_file");
-    std::string outFile = args.GetArgString("out_file");
+    public:
+      HELIUM_TOOL("fold", "Fold fingerprint index files", 3, FoldTool);
 
-    // open input file
-    InMemoryRowMajorFingerprintStorage inputFile(inFile);
+      /**
+       * Get usage information.
+       */
+      std::string usage(const std::string &command) const
+      {
+        std::stringstream ss;
+        ss << "Usage: " << command << " <bits> <in_file> <out_file>" << std::endl;
+        ss << std::endl;
+        ss << "The fold tool can be used to fold fingerprint index files. Any bits argument specifies" << std::endl;
+        ss << "the new number of bits, this must be less than the number of bits in the input file." << std::endl;
+        ss << std::endl;
+        return ss.str();
+      }
+  };
 
-    // open output file
-    RowMajorFingerprintOutputFile outputFile(outFile, bits);
-
-    // allocate bit vector
-    Word *folded = new Word[words];
-    // keep track of bit counts
-    std::vector<int> bitCounts;
-
-    // process molecules
-    for (unsigned int i = 0; i < inputFile.numFingerprints(); ++i) {
-
-      const Word *unfolded = inputFile.fingerprint(i);
-
-      bitvec_zero(folded, words);
-      for (int j = 0; j < inputFile.numBits(); ++j)
-        if (bitvec_get(j, unfolded))
-          bitvec_set(j % prime, folded);
-
-      // record bit count
-      int bitCount = bitvec_count(folded, words);
-      bitCounts.push_back(bitCount);
-
-      outputFile.writeFingerprint(folded);
-    }
-
-    // free bit vector
-    delete [] folded;
-
-    unsigned int average_count = std::accumulate(bitCounts.begin(), bitCounts.end(), 0) / inputFile.numFingerprints();
-    unsigned int min_count = *std::min_element(bitCounts.begin(), bitCounts.end());
-    unsigned int max_count = *std::max_element(bitCounts.begin(), bitCounts.end());
-
-    // create JSON header
-    std::string json = inputFile.header();
-    Json::Reader reader;
-    Json::Value data;
-    reader.parse(json, data);
-    data["num_bits"] = bits;
-    data["fingerprint"]["prime"] = prime;
-    data["statistics"]["average_count"] = average_count;
-    data["statistics"]["min_count"] = min_count;
-    data["statistics"]["max_count"] = max_count;
-
-    // write JSON header
-    Json::StyledWriter writer;
-    outputFile.writeHeader(writer.write(data));
-
-    return 0;
-  }
+  FoldToolFactory theFoldToolFactory;
 
 }

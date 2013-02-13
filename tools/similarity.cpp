@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-#include "similarity.h"
+#include "tool.h"
 
 #include "../src/similarity.h"
 #include "../src/smiles.h"
@@ -76,73 +76,92 @@ namespace Helium {
     return 0;
   }
 
-  std::string SimilarityTool::usage(const std::string &command) const
+  class SimilarityTool : public HeliumTool
   {
-    std::stringstream ss;
-    ss << "Usage: " << command << " [options] <query> <fingerprint_file>" << std::endl;
-    ss << std::endl;
-    ss << "Perform a similarity search on a fingerprint file. The fingerprint file must store the" << std::endl;
-    ss << "fingerprints in row-major order. The query has to be a SMILES string." << std::endl;
-    ss << std::endl;
-    ss << "Options:" << std::endl;
-    ss << "    -Tmin <n>     The minimum tanimoto score (default is 0.7)" << std::endl;
-    ss << "    -brute        Do brute force search (default is to use index)" << std::endl;
+    public:
+      /**
+       * Perform tool action.
+       */
+      int run(int argc, char **argv)
+      {
+        ParseArgs args(argc, argv, ParseArgs::Args("-Tmin(number)", "-brute", "-brute-mt", "-k(number)"), ParseArgs::Args("query", "fingerprint_file"));
+        // optional arguments
+        const double Tmin = args.IsArg("-Tmin") ? args.GetArgDouble("-Tmin", 0) : 0.7;
+        const bool brute = args.IsArg("-brute");
 #ifdef HAVE_CPP11
-    ss << "    -brute        Do brute force search (default is to use index)" << std::endl;
+        const bool brute_mt = args.IsArg("-brute-mt");
 #endif
-    ss << "    -k <n>        When using an index (i.e. no -brute), specify the dimension for the kD-grid (default is 3)" << std::endl;
-    ss << std::endl;
-    return ss.str();
-  }
+        const int k = args.IsArg("-k") ? args.GetArgInt("-k", 0) : 3;
+        // required arguments
+        std::string smiles = args.GetArgString("query");
+        std::string filename = args.GetArgString("fingerprint_file");
 
-  int SimilarityTool::run(int argc, char**argv)
+        // open fingerprint file
+        InMemoryRowMajorFingerprintStorage storage(filename);
+
+        // compute query fingerprint
+        HeMol query;
+        parse_smiles(smiles, query);
+        Word *queryFingerprint = compute_fingerprint(storage.header(), query);
+
+        // perform search
+        std::vector<std::pair<unsigned int, double> > result;
+#ifdef HAVE_CPP11
+        if (brute_mt) {
+          result = brute_force_similarity_search_threaded(queryFingerprint, storage, Tmin);
+        } else
+#endif
+          if (brute) {
+            result = brute_force_similarity_search(queryFingerprint, storage, Tmin);
+          } else {
+            SimilaritySearchIndex<InMemoryRowMajorFingerprintStorage> index(storage, k);
+            result = index.search(queryFingerprint, Tmin);
+          }
+
+
+        std::sort(result.begin(), result.end(), compare_first<unsigned int, double>());
+
+        // print results
+        for (std::size_t i = 0; i < result.size(); ++i)
+          std::cout << result[i].first << "\t" << result[i].second << std::endl;
+
+        if (!queryFingerprint)
+          return 0;
+
+        delete [] queryFingerprint;
+        return 0;
+      }
+
+  };
+  
+  class SimilarityToolFactory : public HeliumToolFactory
   {
-    ParseArgs args(argc, argv, ParseArgs::Args("-Tmin(number)", "-brute", "-brute-mt", "-k(number)"), ParseArgs::Args("query", "fingerprint_file"));
-    // optional arguments
-    const double Tmin = args.IsArg("-Tmin") ? args.GetArgDouble("-Tmin", 0) : 0.7;
-    const bool brute = args.IsArg("-brute");
+    public:
+      HELIUM_TOOL("similarity", "Perform a similarity search on a fingerprint index file", 2, SimilarityTool);
+
+      /**
+       * Get usage information.
+       */
+      std::string usage(const std::string &command) const
+      {
+        std::stringstream ss;
+        ss << "Usage: " << command << " [options] <query> <fingerprint_file>" << std::endl;
+        ss << std::endl;
+        ss << "Perform a similarity search on a fingerprint file. The fingerprint file must store the" << std::endl;
+        ss << "fingerprints in row-major order. The query has to be a SMILES string." << std::endl;
+        ss << std::endl;
+        ss << "Options:" << std::endl;
+        ss << "    -Tmin <n>     The minimum tanimoto score (default is 0.7)" << std::endl;
+        ss << "    -brute        Do brute force search (default is to use index)" << std::endl;
 #ifdef HAVE_CPP11
-    const bool brute_mt = args.IsArg("-brute-mt");
+        ss << "    -brute        Do brute force search (default is to use index)" << std::endl;
 #endif
-    const int k = args.IsArg("-k") ? args.GetArgInt("-k", 0) : 3;
-    // required arguments
-    std::string smiles = args.GetArgString("query");
-    std::string filename = args.GetArgString("fingerprint_file");
+        ss << "    -k <n>        When using an index (i.e. no -brute), specify the dimension for the kD-grid (default is 3)" << std::endl;
+        ss << std::endl;
+        return ss.str();
+      }
+  };
 
-    // open fingerprint file
-    InMemoryRowMajorFingerprintStorage storage(filename);
-
-    // compute query fingerprint
-    HeMol query;
-    parse_smiles(smiles, query);
-    Word *queryFingerprint = compute_fingerprint(storage.header(), query);
-
-    // perform search
-    std::vector<std::pair<unsigned int, double> > result;
-#ifdef HAVE_CPP11
-    if (brute_mt) {
-      result = brute_force_similarity_search_threaded(queryFingerprint, storage, Tmin);
-    } else
-#endif
-    if (brute) {
-      result = brute_force_similarity_search(queryFingerprint, storage, Tmin);
-    } else {
-      SimilaritySearchIndex<InMemoryRowMajorFingerprintStorage> index(storage, k);
-      result = index.search(queryFingerprint, Tmin);
-    }
-
-
-    std::sort(result.begin(), result.end(), compare_first<unsigned int, double>());
-
-    // print results
-    for (std::size_t i = 0; i < result.size(); ++i)
-      std::cout << result[i].first << "\t" << result[i].second << std::endl;
-
-    if (!queryFingerprint)
-      return 0;
-
-    delete [] queryFingerprint;
-    return 0;
-  }
+  SimilarityToolFactory theSimilarityToolFactory;
 
 }

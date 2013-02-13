@@ -1,3 +1,29 @@
+/**
+ * Copyright (c) 2013, Tim Vandermeersch
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *     * Redistributions of source code must retain the above copyright
+ *       notice, this list of conditions and the following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright
+ *       notice, this list of conditions and the following disclaimer in the
+ *       documentation and/or other materials provided with the distribution.
+ *     * Neither the name of the <organization> nor the
+ *       names of its contributors may be used to endorse or promote products
+ *       derived from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL <COPYRIGHT HOLDER> BE LIABLE FOR ANY
+ * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 #ifndef HELIUM_ISOMORPHISM_H
 #define HELIUM_ISOMORPHISM_H
 
@@ -73,7 +99,7 @@ namespace Helium {
     /**
      * Clear mapping implementations.
      */
-    inline void clear_mappig(NoMapping &mapping) 
+    inline void clear_mappig(NoMapping &mapping)
     {
       mapping.match = false;
     }
@@ -81,7 +107,7 @@ namespace Helium {
     {
       mapping.count = 0;
     }
-    inline void clear_mappig(SingleMapping &mapping) 
+    inline void clear_mappig(SingleMapping &mapping)
     {
       mapping.map.clear();
     }
@@ -93,7 +119,7 @@ namespace Helium {
     /**
      * Add mapping implementations.
      */
-    inline void add_mapping(NoMapping &mapping, const IsomorphismMapping &map) 
+    inline void add_mapping(NoMapping &mapping, const IsomorphismMapping &map)
     {
       mapping.match = true;
     }
@@ -101,7 +127,7 @@ namespace Helium {
     {
       mapping.count++;
     }
-    inline void add_mapping(SingleMapping &mapping, const IsomorphismMapping &map) 
+    inline void add_mapping(SingleMapping &mapping, const IsomorphismMapping &map)
     {
       mapping.map = map;
     }
@@ -113,7 +139,7 @@ namespace Helium {
     /**
      * Empty mapping implementations.
      */
-    inline bool empty_mappig(NoMapping &mapping) 
+    inline bool empty_mappig(NoMapping &mapping)
     {
       return !mapping.match;
     }
@@ -121,7 +147,7 @@ namespace Helium {
     {
       return mapping.count == 0;
     }
-    inline bool empty_mappig(SingleMapping &mapping) 
+    inline bool empty_mappig(SingleMapping &mapping)
     {
       return mapping.map.empty();
     }
@@ -303,7 +329,7 @@ namespace Helium {
             query_atom_type queryAtom = m_bondSwap[0] ? get_target(m_query, get_bond(m_query, m_dfsBonds[0])) : get_source(m_query, get_bond(m_query, m_dfsBonds[0]));
 
             // try to match each atom in the molecule against the first atom
-            // epxression in the SMARTS 
+            // epxression in the SMARTS
             mol_atom_iter atom, end_atoms;
             tie(atom, end_atoms) = get_atoms(m_mol);
             for (; atom != end_atoms; ++atom) {
@@ -341,6 +367,9 @@ namespace Helium {
 
   }
 
+  /**
+   * @brief The default atom matcher for isomorphism searches.
+   */
   template<typename MoleculeType, typename QueryType>
   struct DefaultAtomMatcher
   {
@@ -353,6 +382,9 @@ namespace Helium {
     }
   };
 
+  /**
+   * @brief The default bond matcher for isomorphism searches.
+   */
   template<typename MoleculeType, typename QueryType>
   struct DefaultBondMatcher
   {

@@ -55,7 +55,8 @@ namespace Helium {
 
       bool operator()(QueryType &query, query_atom_type queryAtom, MoleculeType &mol, atom_type atom) const
       {
-        return is_cyclic(mol, atom);
+        return true;
+        //return is_cyclic(mol, atom);
       }
     };
 
@@ -67,7 +68,8 @@ namespace Helium {
 
       bool operator()(QueryType &query, query_bond_type queryAtom, MoleculeType &mol, bond_type bond) const
       {
-        return is_cyclic(mol, bond);
+        return true;
+        //return is_cyclic(mol, bond);
       }
     };
 

@@ -1045,7 +1045,8 @@ namespace Smiley {
        */
       void addBond(int source, int target, int order, bool isUp, bool isDown, int rnum = 0)
       {
-        std::cout << "addBond(" << source << ", " << target << ", " << order << ", rnum = " << rnum << ")" << std::endl;
+        if (DEBUG)
+          std::cout << "addBond(" << source << ", " << target << ", " << order << ", rnum = " << rnum << ")" << std::endl;
         //print_chiralNbrs();
 
         if (order == -1) {
@@ -2414,10 +2415,12 @@ namespace Smiley {
             }
             addBond(ringBond->first, m_prev, ringBond->second[j].order, ringBond->second[j].isUp, ringBond->second[j].isDown, rnum);
           } else {
+            /*
             std::cout << "adding ring bond..." << std::endl;
             for (std::size_t i = 0; i < m_aromaticAtoms.size(); ++i)
               std::cout << m_aromaticAtoms[i] << " ";
             std::cout << std::endl;
+            */
             addBond(ringBond->first, m_prev, m_bondOrder, m_isUp, m_isDown, rnum);
           }
           // remove the ringbond from the list so it can be reused
@@ -2426,7 +2429,7 @@ namespace Smiley {
             m_ringBonds.erase(ringBond);
         } else {
           // add the ringbond to the list
-          std::cout << m_prev << std::endl;
+          //std::cout << m_prev << std::endl;
           m_ringBonds[m_prev].push_back(RingBondInfo(rnum, m_bondOrder, m_isUp, m_isDown, m_explicitBond, pos));
           m_chiralInfo[m_prev].nbrs.push_back(-rnum);
           m_callback.startRingBond(rnum);

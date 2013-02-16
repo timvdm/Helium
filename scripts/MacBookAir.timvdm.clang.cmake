@@ -21,8 +21,8 @@ set(CTEST_START_WITH_EMPTY_BINARY_DIRECTORY TRUE)
 
 # this is the initial cache to use for the binary tree, be careful to escape
 # any quotes inside of this string if you use it
-set(CTEST_INITIAL_CACHE "ENABLE_TESTS:BOOL=ON
-BUILDNAME:STRING=Clang++ on MacOSX 10.7
+set(CTEST_INITIAL_CACHE "CMAKE_CXX_COMPILER:STRING=clang++
+BUILDNAME:STRING=clang++ on MacOSX
 SITE:STRING=MacBookAir.timvdm
 CVSCOMMAND:FILEPATH=/usr/bin/git
 MAKECOMMAND:STRING=make -j5

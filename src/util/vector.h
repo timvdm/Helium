@@ -5,6 +5,7 @@
 #include <set>
 #include <ostream>
 #include <cassert>
+#include <algorithm>
 
 namespace std {
 
@@ -91,10 +92,10 @@ namespace Helium {
     return std::find(v.begin(), v.end(), value) != v.end();
   }
 
-  template<typename T1, typename T2>
-  std::size_t index_of(const std::vector<T1> &v, const T2 &value)
+  template<typename T>
+  std::size_t index_of(const std::vector<T> &v, const typename std::vector<T>::value_type &value)
   {
-    typename std::vector<T1>::const_iterator pos = std::find(v.begin(), v.end(), value);
+    typename std::vector<T>::const_iterator pos = std::find(v.begin(), v.end(), value);
     assert(pos != v.end());
     return pos - v.begin();
   }

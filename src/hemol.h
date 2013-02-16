@@ -364,10 +364,10 @@ namespace Helium {
       typedef impl::HeBond<HeMol> bond_type;
 
       // iterators
-      typedef impl::atom_iterator<HeMol> mol_atom_iter;
-      typedef impl::bond_iterator<HeMol> mol_bond_iter;
-      typedef std::vector<bond_type>::iterator atom_bond_iter;
-      typedef impl::nbr_iterator<atom_type, bond_type> atom_atom_iter;
+      typedef impl::atom_iterator<HeMol> atom_iter;
+      typedef impl::bond_iterator<HeMol> bond_iter;
+      typedef std::vector<bond_type>::iterator incident_iter;
+      typedef impl::nbr_iterator<atom_type, bond_type> nbr_iter;
 
       ~HeMol()
       {
@@ -383,14 +383,14 @@ namespace Helium {
         return m_order.size();
       }
 
-      std::pair<mol_atom_iter, mol_atom_iter> atoms()
+      std::pair<atom_iter, atom_iter> atoms()
       {
-        return std::make_pair(mol_atom_iter(this, 0), mol_atom_iter(this, m_element.size()));
+        return std::make_pair(atom_iter(this, 0), atom_iter(this, m_element.size()));
       }
 
-      std::pair<mol_bond_iter, mol_bond_iter> bonds()
+      std::pair<bond_iter, bond_iter> bonds()
       {
-        return std::make_pair(mol_bond_iter(this, 0), mol_bond_iter(this, m_order.size()));
+        return std::make_pair(bond_iter(this, 0), bond_iter(this, m_order.size()));
       }
 
       atom_type atom(Index index) const
@@ -469,7 +469,7 @@ namespace Helium {
     return mol.numAtoms();
   }
 
-  inline std::pair< molecule_traits<HeMol>::mol_atom_iter,  molecule_traits<HeMol>::mol_atom_iter>
+  inline std::pair< molecule_traits<HeMol>::atom_iter,  molecule_traits<HeMol>::atom_iter>
   get_atoms(HeMol &mol)
   {
     return mol.atoms();
@@ -492,7 +492,7 @@ namespace Helium {
     return mol.numBonds();
   }
 
-  inline std::pair< molecule_traits<HeMol>::mol_bond_iter,  molecule_traits<HeMol>::mol_bond_iter>
+  inline std::pair< molecule_traits<HeMol>::bond_iter,  molecule_traits<HeMol>::bond_iter>
   get_bonds(HeMol &mol)
   {
     return mol.bonds();
@@ -514,13 +514,13 @@ namespace Helium {
     return atom.index();
   }
 
-  inline std::pair< molecule_traits<HeMol>::atom_bond_iter,  molecule_traits<HeMol>::atom_bond_iter>
+  inline std::pair< molecule_traits<HeMol>::incident_iter,  molecule_traits<HeMol>::incident_iter>
   get_bonds(const HeMol &mol,  molecule_traits<HeMol>::atom_type atom)
   {
     return atom.bonds();
   }
 
-  inline std::pair< molecule_traits<HeMol>::atom_atom_iter,  molecule_traits<HeMol>::atom_atom_iter>
+  inline std::pair< molecule_traits<HeMol>::nbr_iter,  molecule_traits<HeMol>::nbr_iter>
   get_nbrs(const HeMol &mol,  molecule_traits<HeMol>::atom_type atom)
   {
     return atom.nbrs();
@@ -605,7 +605,7 @@ namespace Helium {
   inline  molecule_traits<HeMol>::bond_type get_bond(const HeMol &mol,  molecule_traits<HeMol>::atom_type source,
                                                                                 molecule_traits<HeMol>::atom_type target)
   {
-    molecule_traits<HeMol>::atom_bond_iter bond, end_bonds;
+    molecule_traits<HeMol>::incident_iter bond, end_bonds;
     tie(bond, end_bonds) = get_bonds(mol, source);
     for (; bond != end_bonds; ++bond)
       if (get_other(mol, *bond, source) == target)
@@ -622,13 +622,13 @@ namespace Helium {
   {
     os << "Molecule:" << std::endl;
     os << "    Atoms:\tindex\telement" << std::endl;
-    molecule_traits<HeMol>::mol_atom_iter atom, end_atoms;
+    molecule_traits<HeMol>::atom_iter atom, end_atoms;
     tie(atom, end_atoms) = mol.atoms();
     for (; atom != end_atoms; ++atom)
       os << "          \t" << (*atom).index() << "\t" << (*atom).element() << std::endl;
 
     os << "    Bonds:\tsource\ttarget\torder" << std::endl;
-    molecule_traits<HeMol>::mol_bond_iter bond, end_bonds;
+    molecule_traits<HeMol>::bond_iter bond, end_bonds;
     tie(bond, end_bonds) = mol.bonds();
     for (; bond != end_bonds; ++bond)
       os << "          \t" << (*bond).source().index() << "\t" << (*bond).target().index() << "\t" << (*bond).order() << std::endl;

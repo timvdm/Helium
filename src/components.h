@@ -44,10 +44,10 @@ namespace Helium {
     void connected_bond_components(MoleculeType &mol, typename molecule_traits<MoleculeType>::atom_type atom,
         unsigned int number, std::vector<unsigned int> &components)
     {
-      typedef typename molecule_traits<MoleculeType>::atom_bond_iter atom_bond_iter;
+      typedef typename molecule_traits<MoleculeType>::incident_iter incident_iter;
 
       // iterator over atom's bonds
-      atom_bond_iter bond, end_bonds;
+      incident_iter bond, end_bonds;
       tie(bond, end_bonds) = get_bonds(mol, atom);
       for (; bond != end_bonds; ++bond) {
         // skip already visited bonds
@@ -76,13 +76,13 @@ namespace Helium {
   template<typename MoleculeType>
   std::vector<unsigned int> connected_bond_components(MoleculeType &mol)
   {
-    typedef typename molecule_traits<MoleculeType>::mol_bond_iter mol_bond_iter;
+    typedef typename molecule_traits<MoleculeType>::bond_iter bond_iter;
 
     unsigned int number = 0;
     std::vector<unsigned int> components(num_bonds(mol), molecule_traits<MoleculeType>::null_index());
 
     // start searching from each (non-visited) bond
-    mol_bond_iter bond, end_bonds;
+    bond_iter bond, end_bonds;
     tie(bond, end_bonds) = get_bonds(mol);
     for (; bond != end_bonds; ++bond) {
       if (components[get_index(mol, *bond)] != molecule_traits<MoleculeType>::null_index())
@@ -108,14 +108,14 @@ namespace Helium {
   template<typename MoleculeType>
   std::vector<unsigned int> connected_atom_components(MoleculeType &mol)
   {
-    typedef typename molecule_traits<MoleculeType>::mol_bond_iter mol_bond_iter;
-    typedef typename molecule_traits<MoleculeType>::mol_atom_iter mol_atom_iter;
+    typedef typename molecule_traits<MoleculeType>::bond_iter bond_iter;
+    typedef typename molecule_traits<MoleculeType>::atom_iter atom_iter;
 
     std::vector<unsigned int> atom_components(num_atoms(mol), molecule_traits<MoleculeType>::null_index());
 
     // convert bond components to atom components
     std::vector<unsigned int> bond_components(connected_bond_components(mol));
-    mol_bond_iter bond, end_bonds;
+    bond_iter bond, end_bonds;
     tie(bond, end_bonds) = get_bonds(mol);
     for (; bond != end_bonds; ++bond) {
       unsigned int number = bond_components[get_index(mol, *bond)];
@@ -125,7 +125,7 @@ namespace Helium {
 
     // handle isolated atoms
     unsigned int number = unique_elements(atom_components);
-    mol_atom_iter atom, end_atoms;
+    atom_iter atom, end_atoms;
     tie(atom, end_atoms) = get_atoms(mol);
     for (; atom != end_atoms; ++atom)
       if (atom_components[get_index(mol, *atom)] == molecule_traits<MoleculeType>::null_index())

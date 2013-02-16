@@ -29,6 +29,27 @@
 
 #include <utility>
 
+#define FOREACH_ATOM(atom, mol, molecule_type) \
+  typename molecule_traits<molecule_type>::atom_iter atom, end_##atom##__; \
+  tie(atom, end_##atom##__) = get_atoms(mol); \
+  for (; atom != end_##atom##__; ++atom)
+
+#define FOREACH_BOND(bond, mol, molecule_type) \
+  typename molecule_traits<molecule_type>::bond_iter bond, end_##bond##__; \
+  tie(bond, end_##bond##__) = get_bonds(mol); \
+  for (; bond != end_##bond##__; ++bond)
+
+#define FOREACH_NBR(nbr, atom, mol, molecule_type) \
+  typename molecule_traits<molecule_type>::nbr_iter nbr, end_##nbr##__; \
+  tie(nbr, end_##nbr##__) = get_nbrs(mol, atom); \
+  for (; nbr != end_##nbr##__; ++nbr)
+
+#define FOREACH_INCIDENT(bond, atom, mol, molecule_type) \
+  typename molecule_traits<molecule_type>::incident_iter bond, end_##bond##__; \
+  tie(bond, end_##bond##__) = get_bonds(mol, atom); \
+  for (; bond != end_##bond##__; ++bond)
+
+
 namespace Helium {
 
   /**
@@ -49,10 +70,10 @@ namespace Helium {
     typedef typename MoleculeType::atom_type atom_type;
     typedef typename MoleculeType::bond_type bond_type;
 
-    typedef typename MoleculeType::mol_atom_iter mol_atom_iter;
-    typedef typename MoleculeType::mol_bond_iter mol_bond_iter;
-    typedef typename MoleculeType::atom_atom_iter atom_atom_iter;
-    typedef typename MoleculeType::atom_bond_iter atom_bond_iter;
+    typedef typename MoleculeType::atom_iter atom_iter;
+    typedef typename MoleculeType::bond_iter bond_iter;
+    typedef typename MoleculeType::nbr_iter nbr_iter;
+    typedef typename MoleculeType::incident_iter incident_iter;
 
     static Index null_index()
     {
@@ -86,7 +107,7 @@ namespace Helium {
   Size num_atoms(const MoleculeType *mol);
 
   template<typename MoleculeType>
-  std::pair<typename molecule_traits<MoleculeType>::mol_atom_iter, typename molecule_traits<MoleculeType>::mol_atom_iter>
+  std::pair<typename molecule_traits<MoleculeType>::atom_iter, typename molecule_traits<MoleculeType>::atom_iter>
   get_atoms(MoleculeType *mol);
 
   template<typename MoleculeType>
@@ -102,7 +123,7 @@ namespace Helium {
   Size num_bonds(const MoleculeType *mol);
 
   template<typename MoleculeType>
-  std::pair<typename molecule_traits<MoleculeType>::mol_bond_iter, typename molecule_traits<MoleculeType>::mol_bond_iter>
+  std::pair<typename molecule_traits<MoleculeType>::bond_iter, typename molecule_traits<MoleculeType>::bond_iter>
   get_bonds(MoleculeType *mol);
 
   template<typename MoleculeType>
@@ -122,11 +143,11 @@ namespace Helium {
   Index get_index(const MoleculeType *mol, typename molecule_traits<MoleculeType>::atom_type atom);
 
   template<typename MoleculeType>
-  std::pair<typename molecule_traits<MoleculeType>::atom_bond_iter, typename molecule_traits<MoleculeType>::atom_bond_iter>
+  std::pair<typename molecule_traits<MoleculeType>::incident_iter, typename molecule_traits<MoleculeType>::incident_iter>
   get_bonds(const MoleculeType *mol, typename molecule_traits<MoleculeType>::atom_type atom);
 
   template<typename MoleculeType>
-  std::pair<typename molecule_traits<MoleculeType>::atom_atom_iter, typename molecule_traits<MoleculeType>::atom_atom_iter>
+  std::pair<typename molecule_traits<MoleculeType>::nbr_iter, typename molecule_traits<MoleculeType>::nbr_iter>
   get_nbrs(const MoleculeType *mol, typename molecule_traits<MoleculeType>::atom_type atom);
 
   template<typename MoleculeType>

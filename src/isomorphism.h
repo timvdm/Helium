@@ -170,11 +170,11 @@ namespace Helium {
       public:
         typedef typename molecule_traits<QueryType>::atom_type query_atom_type;
         typedef typename molecule_traits<QueryType>::bond_type query_bond_type;
-        typedef typename molecule_traits<QueryType>::atom_bond_iter query_atom_bond_iter;
+        typedef typename molecule_traits<QueryType>::incident_iter query_incident_iter;
 
         typedef typename molecule_traits<MoleculeType>::atom_type atom_type;
-        typedef typename molecule_traits<MoleculeType>::mol_atom_iter mol_atom_iter;
-        typedef typename molecule_traits<MoleculeType>::atom_bond_iter atom_bond_iter;
+        typedef typename molecule_traits<MoleculeType>::atom_iter atom_iter;
+        typedef typename molecule_traits<MoleculeType>::incident_iter incident_iter;
 
         Isomorphism(MoleculeType &mol, QueryType &query) : m_mol(mol), m_query(query)
         {
@@ -184,7 +184,7 @@ namespace Helium {
 
         void dfsBonds(query_atom_type atom, std::vector<bool> &visited)
         {
-          query_atom_bond_iter bond, end_bonds;
+          query_incident_iter bond, end_bonds;
           tie(bond, end_bonds) = get_bonds(m_query, atom);
           for (; bond != end_bonds; ++bond) {
             if (visited[get_index(m_query, *bond)])
@@ -233,7 +233,7 @@ namespace Helium {
           if (DEBUG_ISOMORPHISM)
             std::cout << "mapping bond: " << get_index(m_query, querySource) << "-" << get_index(m_query, queryTarget) << std::endl;
 
-          atom_bond_iter bond, end_bonds;
+          incident_iter bond, end_bonds;
           tie(bond, end_bonds) = get_bonds(m_mol, atom);
           for (; bond != end_bonds; ++bond) {
             if (!m_bondMatcher(m_query, queryBond, m_mol, *bond))
@@ -304,7 +304,7 @@ namespace Helium {
           if (!num_bonds(m_query)) {
             query_atom_type queryAtom = get_atom(m_query, 0);
 
-            mol_atom_iter atom, end_atoms;
+            atom_iter atom, end_atoms;
             tie(atom, end_atoms) = get_atoms(m_mol);
             for (; atom != end_atoms; ++atom) {
               if (!m_atomMatcher(m_query, queryAtom, m_mol, *atom))
@@ -330,7 +330,7 @@ namespace Helium {
 
             // try to match each atom in the molecule against the first atom
             // epxression in the SMARTS
-            mol_atom_iter atom, end_atoms;
+            atom_iter atom, end_atoms;
             tie(atom, end_atoms) = get_atoms(m_mol);
             for (; atom != end_atoms; ++atom) {
               if (!m_atomMatcher(m_query, queryAtom, m_mol, *atom))

@@ -57,7 +57,8 @@ namespace Helium {
         std::string outFile = args.GetArgString("out_file");
 
         // open input file
-        InMemoryRowMajorFingerprintStorage inputFile(inFile);
+        InMemoryRowMajorFingerprintStorage inputFile;
+        inputFile.load(inFile);
 
         // open output file
         RowMajorFingerprintOutputFile outputFile(outFile, bits);

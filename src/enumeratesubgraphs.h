@@ -45,11 +45,11 @@ namespace Helium {
   bool is_cyclic(MoleculeType &mol, typename molecule_traits<MoleculeType>::atom_type atom,
       std::vector<bool> &visitedAtoms, std::vector<bool> &visitedBonds)
   {
-    typedef typename molecule_traits<MoleculeType>::atom_bond_iter atom_bond_iter;
+    typedef typename molecule_traits<MoleculeType>::incident_iter incident_iter;
 
     visitedAtoms[get_index(mol, atom)] = true;
 
-    atom_bond_iter bond, end_bonds;
+    incident_iter bond, end_bonds;
     tie(bond, end_bonds) = get_bonds(mol, atom);
     for (; bond != end_bonds; ++bond) {
       if (visitedBonds[get_index(mol, *bond)])
@@ -69,12 +69,12 @@ namespace Helium {
   template<typename MoleculeType>
   bool is_cyclic(MoleculeType &mol)
   {
-    typedef typename molecule_traits<MoleculeType>::mol_atom_iter mol_atom_iter;
+    typedef typename molecule_traits<MoleculeType>::atom_iter atom_iter;
 
     std::vector<bool> visitedAtoms(num_atoms(mol));
     std::vector<bool> visitedBonds(num_bonds(mol));
 
-    mol_atom_iter atom, end_atoms;
+    atom_iter atom, end_atoms;
     tie(atom, end_atoms) = get_atoms(mol);
     for (; atom != end_atoms; ++atom) {
       if (visitedAtoms[get_index(mol, *atom)])
@@ -93,7 +93,7 @@ namespace Helium {
   template<typename MoleculeType, typename CallbackType>
   void enumerate_subgraphs_correct(MoleculeType &mol, CallbackType &callback, int maxSize, bool trees = false)
   {
-    typedef typename molecule_traits<MoleculeType>::mol_bond_iter mol_bond_iter;
+    typedef typename molecule_traits<MoleculeType>::bond_iter bond_iter;
 
     assert(maxSize >= 0);
     if (maxSize == 0)
@@ -266,14 +266,14 @@ namespace Helium {
           bool trees)
       {
         typedef typename molecule_traits<MoleculeType>::atom_type atom_type;
-        typedef typename molecule_traits<MoleculeType>::mol_atom_iter mol_atom_iter;
-        typedef typename molecule_traits<MoleculeType>::mol_bond_iter mol_bond_iter;
+        typedef typename molecule_traits<MoleculeType>::atom_iter atom_iter;
+        typedef typename molecule_traits<MoleculeType>::bond_iter bond_iter;
 
         std::vector<Subgraph> subgraphs;
         bloom_filter<std::vector<bool> > filter;
 
         // set up the initial set of subgraphs
-        mol_atom_iter atom, end_atoms;
+        atom_iter atom, end_atoms;
         tie(atom, end_atoms) = get_atoms(mol);
         for (; atom != end_atoms; ++atom) {
           // make an initial subgraph with the atom and no bonds
@@ -290,7 +290,7 @@ namespace Helium {
           subgraphs.pop_back();
 
           // for each bond in the molecule
-          mol_bond_iter bond, end_bonds;
+          bond_iter bond, end_bonds;
           tie(bond, end_bonds) = get_bonds(mol);
           for (; bond != end_bonds; ++bond) {
             // skip the bond if it is already in the subgraph
@@ -369,7 +369,7 @@ namespace Helium {
         const std::vector<bool> &newAtoms, const std::vector<bool> &allAtoms, bool trees)
     {
       typedef typename molecule_traits<MoleculeType>::atom_type atom_type;
-      typedef typename molecule_traits<MoleculeType>::atom_bond_iter atom_bond_iter;
+      typedef typename molecule_traits<MoleculeType>::incident_iter incident_iter;
 
       /*
       std::cout << "find_extensions(" << std::endl;
@@ -387,7 +387,7 @@ namespace Helium {
         if (!newAtoms[i])
           continue;
 
-        atom_bond_iter bond, end_bonds;
+        incident_iter bond, end_bonds;
         tie(bond, end_bonds) = get_bonds(mol, get_atom(mol, i));
         for (; bond != end_bonds; ++bond) {
           if (visited[get_index(mol, *bond)])
@@ -466,7 +466,7 @@ namespace Helium {
   template<typename MoleculeType, typename CallbackType>
   void enumerate_subgraphs(MoleculeType &mol, CallbackType &callback, int maxSize, bool trees = false)
   {
-    typedef typename molecule_traits<MoleculeType>::mol_bond_iter mol_bond_iter;
+    typedef typename molecule_traits<MoleculeType>::bond_iter bond_iter;
 
     //Timeout timeout(500000); // 5s timeout
 
@@ -490,7 +490,7 @@ namespace Helium {
     // generate the initial seeds
     // seeds[i] starts with bond i and bonds 0-i will not be used to extend the seed
     // for each seed, we also keep track of all possible ways to extend it
-    mol_bond_iter bond, end_bonds;
+    bond_iter bond, end_bonds;
     tie(bond, end_bonds) = get_bonds(mol);
     for (; bond != end_bonds; ++bond) {
       visited[get_index(mol, *bond)] = true;

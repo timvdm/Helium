@@ -41,11 +41,20 @@ namespace Helium {
    *
    * @section fingerprints_files Fingerprint File Classes
    *
+   * To create Helium binary fingerprint files, the RowMajorFingerprintOutputFile
+   * and ColumnMajorFingerprintOutputFile classes can be used. The difference
+   * between row-major and column-major order files is explained below.
    *
-   *
-   *
+   * For reading fingerprints, the InMemoryRowMajorFingerprintStorage and
+   * InMemoryColumnMajorFingerprintStorage classes can be used. The classes
+   * load and keep the fingerprint data in main memory. As an alternative,
+   * the memory mapped equivalents MemoryMappedRowMajorFingerprintStorage and
+   * MemoryMappedColumnMajorFingerprintStorage classes can be used. Additional
+   * fingerprint storage classes can be added by following the fingerprint
+   * storage concept described below.
    *
    * @section fingerprints_file_format Binary File Format
+   *
    * Like all Helium binary files, the fingerprint file formats include a JSON
    * header containing all information about the binary data contained in the
    * file. Below is an example of such a header.
@@ -243,38 +252,69 @@ query: 00001011 (bit 5, 7 & 8 are set)
    * bit in the fingerprint (e.g. in the range [0,1023] for a 1024-bit
    * fingerprint). The returned pointer should point to a memory location
    * containing num_fingerprints bits.
-   *
-   *
    */
 
 
 
+  /**
+   * @brief Output file for storing fingerprints in row-major order.
+   */
   class RowMajorFingerprintOutputFile
   {
     public:
+      /**
+       * Constructor.
+       *
+       * @param filename The ouput filename.
+       * @param numBits The number of bits in the fingerprints (e.g. 1024).
+       */
       RowMajorFingerprintOutputFile(const std::string &filename, unsigned int numBits) : m_file(filename)
       {
         m_numBytes = bitvec_num_words_for_bits(numBits) * sizeof(Word);
       }
 
+      /**
+       * Write a single fingerprint to the file.
+       *
+       * @param fingerprint Pointer to the fingerprint.
+       *
+       * @return True if the fingerprint was successfully written to the file.
+       */
       bool writeFingerprint(Word *fingerprint)
       {
         return m_file.write(fingerprint, m_numBytes);
       }
 
+      /**
+       * Write the JSON header to the file.
+       *
+       * @param header The JSON header.
+       *
+       * @return True if the header was successfully written to the file.
+       */
       bool writeHeader(const std::string &header)
       {
         return m_file.writeHeader(header);
       }
 
     private:
-      BinaryOutputFile m_file;
-      unsigned int m_numBytes;
+      BinaryOutputFile m_file; //!< The output file.
+      unsigned int m_numBytes; //!< The number of bytes in a fingerprint.
   };
 
+  /**
+   * @brief Output file for storing fingerprints in column-major order.
+   */
   class ColumnMajorFingerprintOutputFile
   {
     public:
+      /**
+       * Constructor.
+       *
+       * @param filename The output filename.
+       * @param numBits The number of bits in the fingerprint (e.g. 1024).
+       * @param numFingerprints The number of fingerprints that will be written to the file.
+       */
       ColumnMajorFingerprintOutputFile(const std::string &filename, unsigned int numBits,
           unsigned int numFingerprints) : m_file(filename), m_numBits(numBits),
           m_numFingerprints(numFingerprints), m_current(0)
@@ -283,6 +323,9 @@ query: 00001011 (bit 5, 7 & 8 are set)
         m_data = new Word[bitvec_num_words_for_bits(numFingerprints) * numBits];
       }
 
+      /**
+       * Destructor.
+       */
       ~ColumnMajorFingerprintOutputFile()
       {
         // write the data
@@ -290,6 +333,13 @@ query: 00001011 (bit 5, 7 & 8 are set)
         delete [] m_data;
       }
 
+      /**
+       * Write a single fingerprint to the file.
+       *
+       * @param fingerprint Pointer to the fingerprint.
+       *
+       * @return True if the fingerprint was successfully written to the file.
+       */
       bool writeFingerprint(Word *fingerprint)
       {
         // check each bit in the fingerprint
@@ -306,31 +356,38 @@ query: 00001011 (bit 5, 7 & 8 are set)
         return true;
       }
 
+      /**
+       * Write the JSON header to the file.
+       *
+       * @param header The JSON header.
+       *
+       * @return True if the header was successfully written to the file.
+       */
       bool writeHeader(const std::string &header)
       {
         return m_file.writeHeader(header);
       }
 
     private:
-      BinaryOutputFile m_file;
-      unsigned int m_numBits;
-      unsigned int m_numFingerprints;
-      unsigned int m_current;
-      Word *m_data;
+      BinaryOutputFile m_file; //!< The output file.
+      unsigned int m_numBits; //!< The number of bits in the fingerprint.
+      unsigned int m_numFingerprints; //!< The number of fingerprints that will be written.
+      unsigned int m_current; //!< The current fingerprint being written.
+      Word *m_data; //!< Pointer to all fingerprint bits.
   };
 
   class InMemoryRowMajorFingerprintStorage
   {
     public:
-      InMemoryRowMajorFingerprintStorage(const std::string &filename)
+      InMemoryRowMajorFingerprintStorage() : m_fingerprints(0), m_numBits(0),
+          m_numFingerprints(0), m_init(false)
       {
-        TIMER("Loading InMemoryRowMajorFingerprintStorage:");
-        load(filename);
       }
 
       ~InMemoryRowMajorFingerprintStorage()
       {
-        delete [] m_fingerprints;
+        if (m_fingerprints)
+          delete [] m_fingerprints;
       }
 
       std::string header() const
@@ -350,12 +407,14 @@ query: 00001011 (bit 5, 7 & 8 are set)
 
       Word* fingerprint(unsigned int index) const
       {
+        if (!m_init)
+          return 0;
         return m_fingerprints + bitvec_num_words_for_bits(m_numBits) * index;
       }
 
-    private:
       void load(const std::string &filename)
       {
+        TIMER("InMemoryRowMajorFingerprintStorage::load():");
         // open the file
         BinaryInputFile file(filename);
         if (!file) {
@@ -391,12 +450,16 @@ query: 00001011 (bit 5, 7 & 8 are set)
         // allocate memory
         m_fingerprints = new Word[bitvec_num_words_for_bits(m_numBits) * m_numFingerprints];
         file.read(m_fingerprints, bitvec_num_words_for_bits(m_numBits) * m_numFingerprints * sizeof(Word));
+
+        m_init = true;
       }
 
+    private:
       std::string m_json; //!< JSON header
       Word *m_fingerprints;
       unsigned int m_numBits;
       unsigned int m_numFingerprints;
+      bool m_init;
   };
 
   class InMemoryColumnMajorFingerprintStorage

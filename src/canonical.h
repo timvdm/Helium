@@ -65,8 +65,8 @@ namespace Helium {
     {
         typedef typename molecule_traits<MoleculeType>::atom_type atom_type;
         typedef typename molecule_traits<MoleculeType>::bond_type bond_type;
-        typedef typename molecule_traits<MoleculeType>::mol_atom_iter mol_atom_iter;
-        typedef typename molecule_traits<MoleculeType>::atom_bond_iter atom_bond_iter;
+        typedef typename molecule_traits<MoleculeType>::atom_iter atom_iter;
+        typedef typename molecule_traits<MoleculeType>::incident_iter incident_iter;
 
       public:
         Canonicalize(MoleculeType &mol, const std::vector<unsigned long> &symmetry)
@@ -77,7 +77,7 @@ namespace Helium {
         void canonicalize()
         {
           // select atom(s) with lowest symmetry class
-          mol_atom_iter atom, end_atoms;
+          atom_iter atom, end_atoms;
           tie(atom, end_atoms) = get_atoms(m_mol);
           for (; atom != end_atoms; ++atom) {
             if (m_symmetry[get_index(m_mol, *atom)])
@@ -121,7 +121,7 @@ namespace Helium {
             // still need to sort [1 3] and [1 4]
             std::vector<Closure> closures; // [(bond index, other atom index)]
 
-            atom_bond_iter bond, end_bonds;
+            incident_iter bond, end_bonds;
             tie(bond, end_bonds) = get_bonds(m_mol, atom);
             for (; bond != end_bonds; ++bond)
               // a closure bond is a bond not found while generating the FROM spanning tree.
@@ -224,7 +224,7 @@ namespace Helium {
 
 
             // append unvisited bonds around atom to stack
-            atom_bond_iter bond, end_bonds;
+            incident_iter bond, end_bonds;
             tie(bond, end_bonds) = get_bonds(m_mol, atom);
             for (; bond != end_bonds; ++bond) {
               atom_type other = get_other(m_mol, *bond, atom);

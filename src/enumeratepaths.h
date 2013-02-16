@@ -44,8 +44,8 @@ namespace Helium {
     class EnumeratePaths
     {
         typedef typename molecule_traits<MoleculeType>::atom_type atom_type;
-        typedef typename molecule_traits<MoleculeType>::mol_atom_iter mol_atom_iter;
-        typedef typename molecule_traits<MoleculeType>::atom_atom_iter atom_atom_iter;
+        typedef typename molecule_traits<MoleculeType>::atom_iter atom_iter;
+        typedef typename molecule_traits<MoleculeType>::nbr_iter nbr_iter;
 
       public:
         /**
@@ -65,7 +65,7 @@ namespace Helium {
         std::vector<std::vector<unsigned int> > paths()
         {
           // enumerate the paths starting from each atom
-          mol_atom_iter atom, end_atoms;
+          atom_iter atom, end_atoms;
           tie(atom, end_atoms) = get_atoms(m_mol);
           for (; atom != end_atoms; ++atom) {
             std::vector<unsigned int> path;
@@ -99,7 +99,7 @@ namespace Helium {
           // if the maximum path size is reached the path isn't extended
           if (path.size() < m_size) {
             // create new paths by adding neighbors of atom
-            atom_atom_iter nbr, end_nbrs;
+            nbr_iter nbr, end_nbrs;
             tie(nbr, end_nbrs) = get_nbrs(m_mol, atom);
             for (; nbr != end_nbrs; ++nbr) {
               if (std::find(path.begin(), path.end(), get_index(m_mol, *nbr)) != path.end())

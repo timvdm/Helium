@@ -76,6 +76,49 @@ namespace Helium {
     return 0;
   }
 
+
+  void runInteractive(InMemoryRowMajorFingerprintStorage &storage, double Tmin, int k)
+  {
+    SimilaritySearchIndex<InMemoryRowMajorFingerprintStorage> index(storage, k);
+
+    while (true) {
+      std::string smiles;
+      std::cout << "Query (SMILES): ";
+      std::cin >> smiles;
+
+      if (smiles == "exit")
+        return;
+
+      // compute query fingerprint
+      HeMol query;
+      parse_smiles(smiles, query);
+      Word *queryFingerprint = compute_fingerprint(storage.header(), query);
+
+      // perform search
+      std::vector<std::pair<unsigned int, double> > result;
+      result = index.search(queryFingerprint, Tmin);
+
+      // deallocate fingerprint
+      if (queryFingerprint)
+        delete [] queryFingerprint;
+
+      std::sort(result.begin(), result.end(), compare_first<unsigned int, double>());
+
+      // print results
+      Json::Value data;
+      data["hits"] = Json::Value(Json::arrayValue);
+      for (std::size_t i = 0; i < result.size(); ++i) {
+        data["hits"][Json::ArrayIndex(i)] = Json::Value(Json::objectValue);
+        Json::Value &obj = data["hits"][Json::ArrayIndex(i)];
+        obj["index"] = result[i].first;
+        obj["tanimoto"] = result[i].second;
+      }
+
+      Json::StyledWriter writer;
+      std::cout << writer.write(data);
+    }
+  }
+
   class SimilarityTool : public HeliumTool
   {
     public:
@@ -84,7 +127,8 @@ namespace Helium {
        */
       int run(int argc, char **argv)
       {
-        ParseArgs args(argc, argv, ParseArgs::Args("-Tmin(number)", "-brute", "-brute-mt", "-k(number)"), ParseArgs::Args("query", "fingerprint_file"));
+        ParseArgs args(argc, argv, ParseArgs::Args("-Tmin(number)", "-brute", "-brute-mt", 
+              "-k(number)"), ParseArgs::Args("query", "fingerprint_file"));
         // optional arguments
         const double Tmin = args.IsArg("-Tmin") ? args.GetArgDouble("-Tmin", 0) : 0.7;
         const bool brute = args.IsArg("-brute");
@@ -97,7 +141,18 @@ namespace Helium {
         std::string filename = args.GetArgString("fingerprint_file");
 
         // open fingerprint file
-        InMemoryRowMajorFingerprintStorage storage(filename);
+        InMemoryRowMajorFingerprintStorage storage;
+        try {
+          storage.load(filename);
+        } catch (const std::exception &e) {
+          std::cerr << e.what() << std::endl;
+          return -1;
+        }
+
+        if (smiles == "interactive") {
+          runInteractive(storage, Tmin, k);
+          return 0;
+        }
 
         // compute query fingerprint
         HeMol query;
@@ -111,13 +166,16 @@ namespace Helium {
           result = brute_force_similarity_search_threaded(queryFingerprint, storage, Tmin);
         } else
 #endif
-          if (brute) {
-            result = brute_force_similarity_search(queryFingerprint, storage, Tmin);
-          } else {
-            SimilaritySearchIndex<InMemoryRowMajorFingerprintStorage> index(storage, k);
-            result = index.search(queryFingerprint, Tmin);
-          }
+        if (brute) {
+          result = brute_force_similarity_search(queryFingerprint, storage, Tmin);
+        } else {
+          SimilaritySearchIndex<InMemoryRowMajorFingerprintStorage> index(storage, k);
+          result = index.search(queryFingerprint, Tmin);
+        }
 
+        // deallocate fingerprint
+        if (queryFingerprint)
+          delete [] queryFingerprint;
 
         std::sort(result.begin(), result.end(), compare_first<unsigned int, double>());
 
@@ -134,10 +192,6 @@ namespace Helium {
         Json::StyledWriter writer;
         std::cout << writer.write(data);
 
-        if (!queryFingerprint)
-          return 0;
-
-        delete [] queryFingerprint;
         return 0;
       }
 
@@ -159,11 +213,13 @@ namespace Helium {
         ss << "Perform a similarity search on a fingerprint file. The fingerprint file must store the" << std::endl;
         ss << "fingerprints in row-major order. The query has to be a SMILES string." << std::endl;
         ss << std::endl;
+        ss << "Optionally, the <query> can be replaced with 'interactive' to start an interactive session" << std::endl;
+        ss << std::endl;
         ss << "Options:" << std::endl;
         ss << "    -Tmin <n>     The minimum tanimoto score (default is 0.7)" << std::endl;
         ss << "    -brute        Do brute force search (default is to use index)" << std::endl;
 #ifdef HAVE_CPP11
-        ss << "    -brute        Do brute force search (default is to use index)" << std::endl;
+        ss << "    -brute-mt     Do threaded brute force search (default is to use index)" << std::endl;
 #endif
         ss << "    -k <n>        When using an index (i.e. no -brute), specify the dimension for the kD-grid (default is 3)" << std::endl;
         ss << std::endl;

@@ -39,11 +39,11 @@ namespace Helium {
     template<typename MoleculeType>
     void extended_connectivities_iterate(MoleculeType &mol, std::vector<unsigned long> &ec)
     {
-      typedef typename molecule_traits<MoleculeType>::mol_atom_iter mol_atom_iter;
-      typedef typename molecule_traits<MoleculeType>::atom_atom_iter nbr_iter;
+      typedef typename molecule_traits<MoleculeType>::atom_iter atom_iter;
+      typedef typename molecule_traits<MoleculeType>::nbr_iter nbr_iter;
 
       std::vector<unsigned long> next(ec.size());
-      mol_atom_iter atom, end_atoms;
+      atom_iter atom, end_atoms;
       tie(atom, end_atoms) = get_atoms(mol);
       for (; atom != end_atoms; ++atom) {
         nbr_iter nbr, end_nbrs;
@@ -87,11 +87,11 @@ Doc. 1965, 5: 107-112.
   template<typename MoleculeType>
   std::vector<unsigned long> extended_connectivities(MoleculeType &mol)
   {
-    typedef typename molecule_traits<MoleculeType>::mol_atom_iter mol_atom_iter;
+    typedef typename molecule_traits<MoleculeType>::atom_iter atom_iter;
 
     // initial atom invariants
     std::vector<unsigned long> ec;
-    mol_atom_iter atom, end_atoms;
+    atom_iter atom, end_atoms;
     tie(atom, end_atoms) = get_atoms(mol);
     for (; atom != end_atoms; ++atom)
       ec.push_back(atom_invariant(mol, *atom));

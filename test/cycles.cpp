@@ -1,5 +1,6 @@
 #include "../src/cycles.h"
 #include "../src/smiles.h"
+#include "../src/fileio.h"
 
 #include "test.h"
 
@@ -13,6 +14,32 @@ void test_cyclomatic_number(const std::string &smiles, unsigned int expected)
   COMPARE(expected, cyclomatic_number(mol));
 }
 
+void test_cycle_membership(const std::string &filename)
+{
+  std::cout << "Testing cycle_membership()..." << std::endl;
+  MoleculeFile file(filename);
+
+  HeMol mol;
+  while (file.read_molecule(mol)) {
+    std::vector<bool> cyclic_atoms, cyclic_bonds;
+    cycle_membership(mol, cyclic_atoms, cyclic_bonds);
+
+    FOREACH_ATOM (atom, mol, HeMol) {
+      if (is_cyclic(mol, *atom))
+        COMPARE(true, cyclic_atoms[get_index(mol, *atom)]);
+      else
+        COMPARE(false, cyclic_atoms[get_index(mol, *atom)]);
+    }
+
+    FOREACH_BOND (bond, mol, HeMol) {
+      if (is_cyclic(mol, *bond))
+        COMPARE(true, cyclic_bonds[get_index(mol, *bond)]);
+      else
+        COMPARE(false, cyclic_bonds[get_index(mol, *bond)]);
+    }
+  }
+}
+ 
 void test_relevant_cycles(const std::string &smiles, std::vector<std::pair<unsigned int, unsigned int> > &expected)
 {
   std::cout << "Testing: " << smiles << std::endl;
@@ -36,6 +63,8 @@ int main()
   test_cyclomatic_number("C1CC1", 1);
   test_cyclomatic_number("C1CC1C1CC1", 2);
   test_cyclomatic_number("C1CC1.C1CC1", 2);
+
+  test_cycle_membership(datadir() + "100K.hem");
 
   std::vector<std::pair<unsigned int, unsigned int> > cycles;
 

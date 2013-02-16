@@ -1,35 +1,61 @@
-set(CTEST_SOURCE_DIRECTORY "/home/tim/Cheminformatics/Helium")
-set(CTEST_BINARY_DIRECTORY "/home/tim/Cheminformatics/Helium/build-cdash")
+cmake_minimum_required(VERSION 2.8)
 
-set(CTEST_UPDATE_COMMAND "/usr/bin/git")
-set(CTEST_CVS_UPDATE_OPTIONS "pull")
-#set(CTEST_CVS_CHECKOUT "${CTEST_CVS_COMMAND} clone git://github.com/cryos/avogadro.git \"${CTEST_SOURCE_DIRECTORY}\"")
+set(CTEST_SITE "MolDB.net.timvdm")
+set(CTEST_BUILD_NAME "g++ on Ubuntu linux (Coverage)")
 
-# which ctest command to use for running the dashboard
-set(CTEST_COMMAND "/usr/bin/ctest -D NightlyCoverage")
+set(CTEST_TEST_TIMEOUT 300)
 
-# what cmake command to use for configuring this dashboard
-set(CTEST_CMAKE_COMMAND "/usr/bin/cmake")
+set(CTEST_CMAKE_GENERATOR "Unix Makefiles")
+set(CTEST_NOTES_FILES "${CTEST_SCRIPT_DIRECTORY}/${CTEST_SCRIPT_NAME}")
 
-####################################################################
-# The values in this section are optional you can either
-# have them or leave them commented out
-####################################################################
+set(source_dir "Helium")
+set(build_dir "Helium-build-coverage")
+set(CTEST_DASHBOARD_ROOT "$ENV{HOME}/Cheminformatics/cdash")
+set(CTEST_SOURCE_DIRECTORY "${CTEST_DASHBOARD_ROOT}/${source_dir}")
+set(CTEST_BINARY_DIRECTORY "${CTEST_DASHBOARD_ROOT}/${build_dir}")
 
-# should ctest wipe the binary tree before running
-set(CTEST_START_WITH_EMPTY_BINARY_DIRECTORY TRUE)
+# Use launchers to get better compiler erros/warnings
+set(CTEST_USE_LAUNCHERS 1)
 
-# this is the initial cache to use for the binary tree, be careful to escape
-# any quotes inside of this string if you use it
-set(CTEST_INITIAL_CACHE "CMAKE_CXX_COMPILER:STRING=g++
-ENABLE_COVERAGE:BOOL=True
-BUILDNAME:STRING=g++ on Ubuntu linux (Memory Check)
-SITE:STRING=MolDB.org.timvdm
-CVSCOMMAND:FILEPATH=/usr/bin/git
-MAKECOMMAND:STRING=make -j5
-MEMORYCHECK_COMMAND:FILEPATH=/usr/bin/valgrind
+set(CTEST_BUILD_FLAGS "-j9")
+set(CTEST_COVERAGE_COMMAND "/usr/bin/gcov")
+
+ctest_empty_binary_directory(${CTEST_BINARY_DIRECTORY})
+
+set(common_flags "-fdiagnostics-show-option -Wall -Wextra -Wpointer-arith -Winvalid-pch -Wcast-align -Wdisabled-optimization -Wwrite-strings -fstack-protector-all -D_FORTIFY_SOURCE=2 -Wconversion -Wno-error=sign-conversion -Wno-error=conversion -Werror=return-type")
+
+set(cov_options "-fprofile-arcs -ftest-coverage")
+
+# Write initial cache.
+file(WRITE "${CTEST_BINARY_DIRECTORY}/CMakeCache.txt" "
+CMAKE_CXX_FLAGS:STRING=${common_flags} ${cov_options} -Woverloaded-virtual -Wstrict-null-sentinel -pipe
+CMAKE_C_FLAGS:STRING=${common_flags} ${cov_options} -pipe
+CMAKE_EXE_LINKER_FLAGS:STRING=${cov_options}
+CMAKE_SHARED_LINKER_FLAGS:STRING=${cov_options}
+CMAKE_MODULE_LINKER_FLAGS:STRING=${cov_options}
+CMAKE_BUILD_TYPE:STRING=Debug
+CTEST_USE_LAUNCHERS:BOOL=ON
 ")
 
-# set any extra envionment varibles here
-set(CTEST_ENVIRONMENT)
+set(CTEST_UPDATE_COMMAND "git")
 
+set(CTEST_CUSTOM_COVERAGE_EXCLUDE
+  ${CTEST_CUSTOM_COVERAGE_EXCLUDE} # keep current exclude expressions
+  "/thirdparty/"
+  "/test/"
+)
+
+#ctest_start(Experimental)
+ctest_start(Nightly)
+ctest_update()
+ctest_configure()
+ctest_submit(PARTS Update Configure Notes)
+ctest_read_custom_files("${CTEST_BINARY_DIRECTORY}")
+ctest_build(APPEND)
+ctest_submit(PARTS Build)
+ctest_test(APPEND)
+ctest_submit(PARTS Test)
+
+# Perform coverage on this build, and submit that too
+ctest_coverage(APPEND)
+ctest_submit(PARTS Coverage)

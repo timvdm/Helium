@@ -1,5 +1,8 @@
-set(CTEST_SOURCE_DIRECTORY "/home/tim/Cheminformatics/Helium")
-set(CTEST_BINARY_DIRECTORY "/home/tim/Cheminformatics/Helium/build-cdash")
+set(source_dir "Helium")
+set(build_dir "Helium-build-c++03")
+set(CTEST_DASHBOARD_ROOT "$ENV{HOME}/Cheminformatics/cdash")
+set(CTEST_SOURCE_DIRECTORY "${CTEST_DASHBOARD_ROOT}/${source_dir}")
+set(CTEST_BINARY_DIRECTORY "${CTEST_DASHBOARD_ROOT}/${build_dir}")
 
 set(CTEST_UPDATE_COMMAND "/usr/bin/git")
 set(CTEST_CVS_UPDATE_OPTIONS "pull")

@@ -1,5 +1,8 @@
-set(CTEST_SOURCE_DIRECTORY "/home/tim/Cheminformatics/Helium")
-set(CTEST_BINARY_DIRECTORY "/home/tim/Cheminformatics/Helium/build-cdash")
+set(source_dir "Helium")
+set(build_dir "Helium-build-memory")
+set(CTEST_DASHBOARD_ROOT "$ENV{HOME}/Cheminformatics/cdash")
+set(CTEST_SOURCE_DIRECTORY "${CTEST_DASHBOARD_ROOT}/${source_dir}")
+set(CTEST_BINARY_DIRECTORY "${CTEST_DASHBOARD_ROOT}/${build_dir}")
 
 set(CTEST_UPDATE_COMMAND "/usr/bin/git")
 set(CTEST_CVS_UPDATE_OPTIONS "pull")
@@ -23,7 +26,7 @@ set(CTEST_START_WITH_EMPTY_BINARY_DIRECTORY TRUE)
 # any quotes inside of this string if you use it
 set(CTEST_INITIAL_CACHE "CMAKE_CXX_COMPILER:STRING=g++
 BUILDNAME:STRING=g++ on Ubuntu linux (Memory Check)
-SITE:STRING=MolDB.org.timvdm
+SITE:STRING=MolDB.net.timvdm
 CVSCOMMAND:FILEPATH=/usr/bin/git
 MAKECOMMAND:STRING=make -j5
 MEMORYCHECK_COMMAND:FILEPATH=/usr/bin/valgrind

@@ -128,6 +128,7 @@ install(FILES ${Helium_fileio_HDRS} DESTINATION "${INCLUDE_INSTALL_DIR}/Helium/f
 
 # unit tests
 enable_testing()
+include(CTest)
 set(TEST_PATH ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
 add_subdirectory(test)
 

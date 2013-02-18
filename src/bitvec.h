@@ -57,6 +57,8 @@ namespace Helium {
    */
   inline unsigned int bitvec_num_words_for_bits(unsigned int numBits)
   {
+    if ((numBits % BitsPerWord) == 0)
+      return numBits / BitsPerWord;
     return (numBits + BitsPerWord - numBits % BitsPerWord) / BitsPerWord;
   }
 

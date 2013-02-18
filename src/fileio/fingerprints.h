@@ -321,6 +321,7 @@ query: 00001011 (bit 5, 7 & 8 are set)
       {
         // allocate data
         m_data = new Word[bitvec_num_words_for_bits(numFingerprints) * numBits];
+        bitvec_zero(m_data, bitvec_num_words_for_bits(numFingerprints) * numBits);
       }
 
       /**
@@ -349,7 +350,7 @@ query: 00001011 (bit 5, 7 & 8 are set)
             continue;
 
           // set the correct bit
-          bitvec_set(i * bitvec_num_words_for_bits(m_numFingerprints) * 8 * sizeof(Word) + m_current, m_data);
+          bitvec_set(m_current, m_data + i * bitvec_num_words_for_bits(m_numFingerprints));
         }
         ++m_current;
 
@@ -528,15 +529,15 @@ query: 00001011 (bit 5, 7 & 8 are set)
 
         // ensure this is a row-major order file
         if (data["order"].asString() != "column-major")
-          throw std::runtime_error(make_string(filename, " is not a row-major order fingerprint file"));
+          throw std::runtime_error(make_string(filename, " is not a column-major order fingerprint file"));
 
         // get attributes from header
         m_numBits = data["num_bits"].asUInt();
         m_numFingerprints = data["num_fingerprints"].asUInt();
 
         // allocate memory
-        m_fingerprints = new Word[bitvec_num_words_for_bits(m_numBits) * m_numFingerprints];
-        file.read(m_fingerprints, bitvec_num_words_for_bits(m_numBits) * m_numFingerprints * sizeof(Word));
+        m_fingerprints = new Word[bitvec_num_words_for_bits(m_numFingerprints) * m_numBits];
+        file.read(m_fingerprints, bitvec_num_words_for_bits(m_numFingerprints) * m_numBits * sizeof(Word));
 
         m_init = true;
       }

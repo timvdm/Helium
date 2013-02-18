@@ -320,7 +320,6 @@ query: 00001011 (bit 5, 7 & 8 are set)
           m_numFingerprints(numFingerprints), m_current(0)
       {
         // allocate data
-        std::cout << bitvec_num_words_for_bits(numFingerprints) * numBits << std::endl;
         m_data = new Word[bitvec_num_words_for_bits(numFingerprints) * numBits];
       }
 

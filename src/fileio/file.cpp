@@ -6,22 +6,22 @@ namespace Helium {
 
   bool BinaryInputFile::open(const std::string &filename)
   {
-    // reset error flag
-    m_error = NoError;
     // reset JSON header
     m_json.clear();
 
     // try to open the file
     m_ifs.open(filename.c_str(), std::ios_base::in | std::ios_base::binary);
     if (!m_ifs) {
-      m_error = CouldNotOpen;
+      std::cerr << "...1..." << std::endl;
+      throw std::runtime_error(make_string("Could not open file \"", filename, "\""));
       return false;
     }
 
     // read the magic number
     unsigned int magic;
     if (!m_ifs.read(reinterpret_cast<char*>(&magic), sizeof(unsigned int)) || magic != 0x48650001) {
-      m_error = InvalidMagic;
+      std::cerr << "...2..." << std::endl;
+      throw std::runtime_error(make_string("Invalid magic number in file \"", filename, "\""));
       m_ifs.close();
       return false;
     }
@@ -29,7 +29,8 @@ namespace Helium {
     // read length of JSON header
     unsigned int jsonSize;
     if (!m_ifs.read(reinterpret_cast<char*>(&jsonSize), sizeof(unsigned int))) {
-      m_error = InvalidHeader;
+      std::cerr << "...3..." << std::endl;
+      throw std::runtime_error(make_string("Invalid JSON header in file \"", filename, "\""));
       m_ifs.close();
       return false;
     }
@@ -37,7 +38,8 @@ namespace Helium {
     // read json header
     char *buffer = new char[jsonSize];
     if (!m_ifs.read(buffer, jsonSize)) {
-      m_error = InvalidHeader;
+      std::cerr << "...4..." << std::endl;
+      throw std::runtime_error(make_string("Invalid JSON header in file \"", filename, "\""));
       m_ifs.close();
       return false;
     }

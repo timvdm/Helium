@@ -33,32 +33,11 @@ namespace Helium {
   class BinaryInputFile
   {
     public:
-      enum Error
-      {
-        /**
-         * No error, the file object is valid.
-         */
-        NoError,
-        /**
-         * Could not open the file (e.g. file does not exist).
-         */
-        CouldNotOpen,
-        /**
-         * Magic number does not match (e.g. file is not a Helium binary file
-         * or the file got corrupted).
-         */
-        InvalidMagic,
-        /**
-         * The JSON header could not be read from the file.
-         */
-        InvalidHeader
-      };
-
-      BinaryInputFile() : m_error(NoError)
+      BinaryInputFile()
       {
       }
 
-      BinaryInputFile(const std::string &filename) : m_error(NoError)
+      BinaryInputFile(const std::string &filename)
       {
         open(filename);
       }
@@ -81,19 +60,8 @@ namespace Helium {
        */
       void close()
       {
-        m_error = NoError;
         m_json.clear();
         m_ifs.close();
-      }
-
-      /**
-       * Get the error flag.
-       *
-       * @return The error flag.
-       */
-      Error error() const
-      {
-        return m_error;
       }
 
       /**
@@ -170,7 +138,6 @@ namespace Helium {
       std::ifstream m_ifs; //!< File handle
       std::string m_json; //!< JSON header
       std::ios_base::streampos m_offset; //!< Offset where binary data starts
-      Error m_error; //!< Error flag
   };
 
   /**

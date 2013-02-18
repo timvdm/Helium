@@ -1,6 +1,8 @@
 # define DATADIR for tests that need input files
 add_definitions(-DDATADIR="${CMAKE_SOURCE_DIR}/data/")
 
+find_package(JsonRpc REQUIRED)
+
 ############################################################
 #
 # The main 'helium' tool
@@ -12,8 +14,9 @@ set(helium_tool_SRCS
   header.cpp
   index.cpp
   fold.cpp
-  similarity.cpp
   transpose.cpp
+  similarity.cpp
+  substructure.cpp
 )
 
 add_executable(helium_tool ${helium_tool_SRCS})

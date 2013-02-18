@@ -156,3 +156,15 @@ if(DOXYGEN_FOUND)
                     COMMENT "Generating API documentation with Doxygen" VERBATIM
   )
 endif()
+
+############################################################
+#
+# Scripting Bindings
+#
+############################################################
+
+# Python
+option(ENABLE_PYTHON "Enable python bindings" OFF)
+if (ENABLE_PYTHON)
+  add_subdirectory(bindings/python)
+endif()

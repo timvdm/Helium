@@ -53,7 +53,12 @@ namespace Helium {
 
         // open input file
         InMemoryRowMajorFingerprintStorage inputFile;
-        inputFile.load(inFile);
+        try {
+          inputFile.load(inFile);
+        } catch (const std::exception &e) {
+          std::cerr << e.what() << std::endl;
+          return -1;
+        }
 
         // open output file
         ColumnMajorFingerprintOutputFile outputFile(outFile, inputFile.numBits(), inputFile.numFingerprints());

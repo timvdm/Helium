@@ -320,6 +320,7 @@ query: 00001011 (bit 5, 7 & 8 are set)
           m_numFingerprints(numFingerprints), m_current(0)
       {
         // allocate data
+        std::cout << bitvec_num_words_for_bits(numFingerprints) * numBits << std::endl;
         m_data = new Word[bitvec_num_words_for_bits(numFingerprints) * numBits];
       }
 
@@ -415,10 +416,11 @@ query: 00001011 (bit 5, 7 & 8 are set)
       void load(const std::string &filename)
       {
         TIMER("InMemoryRowMajorFingerprintStorage::load():");
+
         // open the file
         BinaryInputFile file(filename);
         if (!file) {
-          throw std::runtime_error(make_string("Could not open fingerprint file ", filename));
+          throw std::runtime_error(make_string("Could not open fingerprint file \"", filename, "\""));
           return;
         }
 
@@ -465,10 +467,9 @@ query: 00001011 (bit 5, 7 & 8 are set)
   class InMemoryColumnMajorFingerprintStorage
   {
     public:
-      InMemoryColumnMajorFingerprintStorage(const std::string &filename)
+      InMemoryColumnMajorFingerprintStorage() : m_fingerprints(0), m_numBits(0),
+          m_numFingerprints(0), m_init(false)
       {
-        TIMER("Loading InMemoryColumnMajorFingerprintStorage:");
-        load(filename);
       }
 
       ~InMemoryColumnMajorFingerprintStorage()
@@ -493,16 +494,19 @@ query: 00001011 (bit 5, 7 & 8 are set)
 
       Word* bit(unsigned int index) const
       {
+        if (!m_init)
+          return 0;
         return m_fingerprints + bitvec_num_words_for_bits(m_numFingerprints) * index;
       }
 
-    private:
       void load(const std::string &filename)
       {
+        TIMER("InMemoryColumnMajorFingerprintStorage::load():");
+
         // open the file
         BinaryInputFile file(filename);
         if (!file) {
-          throw std::runtime_error(make_string("Could not open fingerprint file ", filename));
+          throw std::runtime_error(make_string("Could not open fingerprint file \"", filename, "\""));
           return;
         }
 
@@ -534,12 +538,16 @@ query: 00001011 (bit 5, 7 & 8 are set)
         // allocate memory
         m_fingerprints = new Word[bitvec_num_words_for_bits(m_numBits) * m_numFingerprints];
         file.read(m_fingerprints, bitvec_num_words_for_bits(m_numBits) * m_numFingerprints * sizeof(Word));
+
+        m_init = true;
       }
 
+    private:
       std::string m_json; //!< JSON header
       Word *m_fingerprints;
       unsigned int m_numBits;
       unsigned int m_numFingerprints;
+      bool m_init;
   };
 
 }

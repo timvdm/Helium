@@ -1,3 +1,29 @@
+/**
+ * Copyright (c) 2013, Tim Vandermeersch
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *     * Redistributions of source code must retain the above copyright
+ *       notice, this list of conditions and the following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright
+ *       notice, this list of conditions and the following disclaimer in the
+ *       documentation and/or other materials provided with the distribution.
+ *     * Neither the name of the <organization> nor the
+ *       names of its contributors may be used to endorse or promote products
+ *       derived from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL <COPYRIGHT HOLDER> BE LIABLE FOR ANY
+ * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 #include "file.h"
 
 #include <cassert>
@@ -11,37 +37,28 @@ namespace Helium {
 
     // try to open the file
     m_ifs.open(filename.c_str(), std::ios_base::in | std::ios_base::binary);
-    if (!m_ifs) {
-      std::cerr << "...1..." << std::endl;
+    if (!m_ifs)
       throw std::runtime_error(make_string("Could not open file \"", filename, "\""));
-      return false;
-    }
 
     // read the magic number
     unsigned int magic;
     if (!m_ifs.read(reinterpret_cast<char*>(&magic), sizeof(unsigned int)) || magic != 0x48650001) {
-      std::cerr << "...2..." << std::endl;
-      throw std::runtime_error(make_string("Invalid magic number in file \"", filename, "\""));
       m_ifs.close();
-      return false;
+      throw std::runtime_error(make_string("Invalid magic number in file \"", filename, "\""));
     }
 
     // read length of JSON header
     unsigned int jsonSize;
     if (!m_ifs.read(reinterpret_cast<char*>(&jsonSize), sizeof(unsigned int))) {
-      std::cerr << "...3..." << std::endl;
-      throw std::runtime_error(make_string("Invalid JSON header in file \"", filename, "\""));
       m_ifs.close();
-      return false;
+      throw std::runtime_error(make_string("Invalid JSON header in file \"", filename, "\""));
     }
 
     // read json header
     char *buffer = new char[jsonSize];
     if (!m_ifs.read(buffer, jsonSize)) {
-      std::cerr << "...4..." << std::endl;
-      throw std::runtime_error(make_string("Invalid JSON header in file \"", filename, "\""));
       m_ifs.close();
-      return false;
+      throw std::runtime_error(make_string("Invalid JSON header in file \"", filename, "\""));
     }
 
     // copy header
@@ -58,15 +75,10 @@ namespace Helium {
 
   bool BinaryOutputFile::open(const std::string &filename)
   {
-    // reset error flag
-    m_error = NoError;
-
     // try to open the file
     m_ofs.open(filename.c_str(), std::ios_base::out | std::ios_base::binary);
-    if (!m_ofs) {
-      m_error = CouldNotOpen;
-      return false;
-    }
+    if (!m_ofs)
+      throw std::runtime_error(make_string("Could not open file \"", filename, "\""));
 
     // write the magic number
     unsigned int magic = 0x48650001;

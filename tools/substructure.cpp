@@ -29,7 +29,7 @@
 #include "../src/similarity.h"
 #include "../src/smiles.h"
 #include "../src/fileio/fingerprints.h"
-#include "../src/fileio.h"
+#include "../src/fileio/molecules.h"
 #include "../src/isomorphism.h"
 
 #include <json/json.h>
@@ -37,37 +37,6 @@
 #include "args.h"
 
 namespace Helium {
-
-  class MoleculePositions
-  {
-    public:
-      MoleculePositions(const std::string &filename)
-      {
-        std::ifstream ifs(filename.c_str(), std::ios_base::in | std::ios_base::binary);
-        // read number of molecules
-        read32(ifs, m_numMolecules);
-
-        // read all molecules and record positions in file
-        HeMol mol;
-        do {
-          m_positions.push_back(ifs.tellg());
-        } while (read_molecule(ifs, mol));
-      }
-
-      unsigned int numMolecules() const
-      {
-        return m_numMolecules;
-      }
-
-      std::size_t position(unsigned int index) const
-      {
-        return m_positions[index];
-      }
-
-    private:
-      unsigned int m_numMolecules;
-      std::vector<std::size_t> m_positions;
-  };
 
   template<typename MoleculeType>
   Word* compute_fingerprint(const std::string &settings, MoleculeType &mol)

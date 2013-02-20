@@ -1,6 +1,6 @@
 #include "../src/cycles.h"
 #include "../src/smiles.h"
-#include "../src/fileio.h"
+#include "../src/fileio/molecules.h"
 
 #include "test.h"
 
@@ -20,7 +20,8 @@ void test_cycle_membership(const std::string &filename)
   MoleculeFile file(filename);
 
   HeMol mol;
-  while (file.read_molecule(mol)) {
+  for (unsigned int i = 0; i < file.numMolecules(); ++i) {
+    file.read_molecule(mol);
     std::vector<bool> cyclic_atoms, cyclic_bonds;
     cycle_membership(mol, cyclic_atoms, cyclic_bonds);
 
@@ -64,7 +65,7 @@ int main()
   test_cyclomatic_number("C1CC1C1CC1", 2);
   test_cyclomatic_number("C1CC1.C1CC1", 2);
 
-  test_cycle_membership(datadir() + "100K.hem");
+  test_cycle_membership(datadir() + "100K.hel");
 
   std::vector<std::pair<unsigned int, unsigned int> > cycles;
 

@@ -1,5 +1,5 @@
 #include "../src/canonical.h"
-#include "../src/fileio.h"
+#include "../src/fileio/molecules.h"
 #include "../src/extendedconnectivities.h"
 #include "../src/components.h"
 #include "../src/smiles.h"
@@ -60,14 +60,15 @@ void shuffle_test(const std::string &filename)
   unsigned int idx, numAtoms = -1;
 
   HeMol mol;
-  while (file.read_molecule(mol)) {
+  for (unsigned int i = 0; i < file.numMolecules(); ++i) {
+    file.read_molecule(mol);
     if (unique_elements(connected_bond_components(mol)) > 1)
       continue;
-    if ((file.current() % 1000) == 0)
-      std::cout << "Testing molecule " << file.current() << "..." << std::endl;
+    if ((i % 1000) == 0)
+      std::cout << "Testing molecule " << i << "..." << std::endl;
     if (!shuffle_test_mol(mol) && num_atoms(mol) < numAtoms) {
       numAtoms = num_atoms(mol);
-      idx = file.current();    
+      idx = i;
     }
   }
   std::cout << "smallest: " << idx << std::endl;
@@ -89,5 +90,5 @@ int main()
   shuffle_test_smiles("COc1cc(C)nc(Cl)n1");
   shuffle_test_smiles("C1CN1");
 
-  shuffle_test(datadir() + "1K.hem");
+  shuffle_test(datadir() + "1K.hel");
 }

@@ -419,21 +419,19 @@ query: 00001011 (bit 5, 7 & 8 are set)
 
         // open the file
         BinaryInputFile file(filename);
-        if (!file) {
+        if (!file)
           throw std::runtime_error(make_string("Could not open fingerprint file \"", filename, "\""));
-          return;
-        }
 
         // parse the JSON header
         m_json = file.header();
         Json::Reader reader;
         Json::Value data;
-        if (!reader.parse(m_json, data)) {
+        if (!reader.parse(m_json, data))
           throw std::runtime_error(reader.getFormattedErrorMessages());
-          return;
-        }
 
         // make sure the required attributes are present
+        if (!data.isMember("filetype") || data["filetype"].asString() != "fingerprints")
+          throw std::runtime_error(make_string("JSON header for file ", filename, " does not contain 'filetype' attribute or is not 'fingerprints'"));
         if (!data.isMember("order"))
           throw std::runtime_error(make_string("JSON header for file ", filename, " does not contain 'order' attribute"));
         if (!data.isMember("num_bits"))
@@ -505,21 +503,19 @@ query: 00001011 (bit 5, 7 & 8 are set)
 
         // open the file
         BinaryInputFile file(filename);
-        if (!file) {
+        if (!file)
           throw std::runtime_error(make_string("Could not open fingerprint file \"", filename, "\""));
-          return;
-        }
 
         // parse the JSON header
         m_json = file.header();
         Json::Reader reader;
         Json::Value data;
-        if (!reader.parse(m_json, data)) {
+        if (!reader.parse(m_json, data))
           throw std::runtime_error(reader.getFormattedErrorMessages());
-          return;
-        }
 
         // make sure the required attributes are present
+        if (!data.isMember("filetype") || data["filetype"].asString() != "fingerprints")
+          throw std::runtime_error(make_string("JSON header for file ", filename, " does not contain 'filetype' attribute or is not 'fingerprints'"));
         if (!data.isMember("order"))
           throw std::runtime_error(make_string("JSON header for file ", filename, " does not contain 'order' attribute"));
         if (!data.isMember("num_bits"))

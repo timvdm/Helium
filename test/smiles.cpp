@@ -1,5 +1,5 @@
 #include "../src/smiles.h"
-#include "../src/fileio.h"
+#include "../src/fileio/molecules.h"
 
 #include "test.h"
 

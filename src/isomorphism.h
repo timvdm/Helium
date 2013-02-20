@@ -156,7 +156,7 @@ namespace Helium {
       return mapping.maps.empty();
     }
 
-    void print_map(const IsomorphismMapping &map)
+    inline void print_map(const IsomorphismMapping &map)
     {
       std::cout << "m_map: ";
       for (std::size_t i = 0; i < map.size(); ++i)

@@ -27,7 +27,7 @@
 #include "tool.h"
 
 #include "../src/molecule.h"
-#include "../src/fileio.h"
+#include "../src/fileio/molecules.h"
 #include "../src/fileio/fingerprints.h"
 #include "../src/fingerprints.h"
 
@@ -103,9 +103,10 @@ namespace Helium {
         std::vector<int> bitCounts;
 
         // process molecules
-        while (file.read_molecule(mol)) {
-          if ((file.current() % 100) == 0)
-            std::cout << file.current() << std::endl;
+        for (unsigned int i = 0; i < file.numMolecules(); ++i) {
+          file.read_molecule(mol);
+          if ((i % 100) == 0)
+            std::cout << i << std::endl;
 
           // compute the fingerprint
           switch (method) {
@@ -135,7 +136,30 @@ namespace Helium {
         unsigned int max_count = *std::max_element(bitCounts.begin(), bitCounts.end());
 
         // create JSON header
-        std::stringstream json;
+        Json::Value data;
+        data["filetype"] = "fingerprints";
+        data["order"] = "row-major";
+        data["num_bits"] = bits;
+        data["num_fingerprints"] = file.numMolecules();
+        data["fingerprint"] = Json::Value(Json::objectValue);
+        std::stringstream ss;
+        ss << "Helium::" << methodString.substr(1) << "_fingerprint (k = " << k << ", bits = " << bits << ")";
+        data["fingerprint"]["name"] = ss.str();
+        ss.str("");
+        ss << "Helium::" << methodString.substr(1) << "_fingerprint";
+        data["fingerprint"]["type"] = ss.str();
+        data["fingerprint"]["k"] = k;
+        data["fingerprint"]["prime"] = prime;
+        data["statistics"] = Json::Value(Json::objectValue);
+        data["statistics"]["average_count"] = average_count;
+        data["statistics"]["min_count"] = min_count;
+        data["statistics"]["max_count"] = max_count;
+
+        // write JSON header
+        Json::StyledWriter writer;
+        indexFile.writeHeader(writer.write(data));
+
+        /*
         json << "{" << std::endl;
         json << "  \"filetype\": \"fingerprints\"," << std::endl;
         json << "  \"order\": \"row-major\"," << std::endl;
@@ -161,6 +185,7 @@ namespace Helium {
 
         // write JSON header
         indexFile.writeHeader(json.str());
+        */
 
         return 0;
       }

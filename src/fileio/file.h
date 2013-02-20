@@ -1,3 +1,29 @@
+/**
+ * Copyright (c) 2013, Tim Vandermeersch
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *     * Redistributions of source code must retain the above copyright
+ *       notice, this list of conditions and the following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright
+ *       notice, this list of conditions and the following disclaimer in the
+ *       documentation and/or other materials provided with the distribution.
+ *     * Neither the name of the <organization> nor the
+ *       names of its contributors may be used to endorse or promote products
+ *       derived from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL <COPYRIGHT HOLDER> BE LIABLE FOR ANY
+ * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 #ifndef HELIUM_FILEIO_FILE_H
 #define HELIUM_FILEIO_FILE_H
 
@@ -95,22 +121,12 @@ namespace Helium {
         return (bool)m_ifs.seekg(pos + m_offset);
       }
 
-      /*
-      bool seekg(std::ios_base::streamoff offset, std::ios_base::seekdir dir)
-      {
-        if (dir == std::ios_base::beg)
-          return m_ifs.seekg(off + m_offset, dir);
-        else
-          return m_ifs.seekg(off, dir);
-      }
-      */
-
       /**
        * Get the JSON header.
        *
        * @return The JSON header.
        */
-      std::string header() const
+      const std::string& header() const
       {
         return m_json;
       }
@@ -134,6 +150,16 @@ namespace Helium {
         return (bool)m_ifs.read(reinterpret_cast<char*>(data), size);
       }
 
+      /**
+       * Get the std::ifstream to manipulate it directly.
+       *
+       * @return The std::ifstream.
+       */
+      std::ifstream& stream()
+      {
+        return m_ifs;
+      }
+
     private:
       std::ifstream m_ifs; //!< File handle
       std::string m_json; //!< JSON header
@@ -149,23 +175,11 @@ namespace Helium {
   class BinaryOutputFile
   {
     public:
-      enum Error
-      {
-        /**
-         * No error, the file object is valid.
-         */
-        NoError,
-        /**
-         * Could not open the file (e.g. file does not exist).
-         */
-        CouldNotOpen
-      };
-
-      BinaryOutputFile() : m_error(NoError)
+      BinaryOutputFile()
       {
       }
 
-      BinaryOutputFile(const std::string &filename) : m_error(NoError)
+      BinaryOutputFile(const std::string &filename)
       {
         open(filename);
       }
@@ -184,18 +198,7 @@ namespace Helium {
        */
       void close()
       {
-        m_error = NoError;
         m_ofs.close();
-      }
-
-      /**
-       * Get the error flag.
-       *
-       * @return The error flag.
-       */
-      Error error() const
-      {
-        return m_error;
       }
 
       /**
@@ -248,7 +251,6 @@ namespace Helium {
         return (bool)m_ofs.write(reinterpret_cast<const char*>(data), size);
       }
 
-
       /**
        * Write the JSON header to the file.
        *
@@ -258,10 +260,17 @@ namespace Helium {
        */
       bool writeHeader(const std::string &header);
 
+      /**
+       * Get the std::ofstream to manipulate it directly.
+       */
+      std::ofstream& stream()
+      {
+        return m_ofs;
+      }
+
     private:
       std::ofstream m_ofs; //!< File handle
       std::ios_base::streampos m_offset; //!< Offset where binary data starts
-      Error m_error; //!< Error flag
   };
 
 }

@@ -1,4 +1,4 @@
-#include "../src/fileio.h"
+#include "../src/fileio/molecules.h"
 #include "../src/fileio/file.h"
 
 #include "test.h"

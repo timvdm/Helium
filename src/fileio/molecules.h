@@ -176,6 +176,11 @@ namespace Helium {
         return true;
       }
 
+      std::ifstream& stream()
+      {
+        return m_file.stream();
+      }
+
 
     private:
       BinaryInputFile m_file;

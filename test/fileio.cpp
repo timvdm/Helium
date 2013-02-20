@@ -34,7 +34,24 @@ void test_binary_file()
 
 }
 
+void test_molecule_file()
+{
+  MoleculeFile molFile1(datadir() + "10K.hel");
+  MoleculeFile molFile2(datadir() + "10K.hel");
+
+  HeMol mol1, mol2;
+
+  for (unsigned int i = 0; i < molFile1.numMolecules(); ++i) {
+    COMPARE(molFile1.stream().tellg(), molFile2.stream().tellg());
+
+    molFile1.read_molecule(mol1);
+    molFile2.read_molecule(i, mol2);
+  }
+
+}
+
 int main()
 {
   test_binary_file();
+  test_molecule_file();
 }

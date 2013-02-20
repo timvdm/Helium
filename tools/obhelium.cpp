@@ -129,9 +129,7 @@ int main(int argc, char**argv)
     return -1;
   }
 
-  // write placeholder for the number of molecules
   unsigned int numMolecules = 0;
-  outputFile.write(&numMolecules, sizeof(unsigned int));
 
   // open the input file using OpenBabel
   OpenBabel::OBMol mol;
@@ -143,13 +141,13 @@ int main(int argc, char**argv)
   while (conv.Read(&mol)) {
     ++numMolecules;
     unknown_progress("Converting molecules", numMolecules);
-    positions.push_back(outputFile.tell());
+    positions.push_back(outputFile.stream().tellp());
     write_molecule(outputFile.stream(), &mol);
   }
   std::cout << std::endl;
 
   // save the stream position where the molecule positions are stored
-  Json::UInt64 positionsPos = outputFile.tell();
+  Json::UInt64 positionsPos = outputFile.stream().tellp();
 
   // write the molecule positions to the file
   outputFile.write(&positions[0], positions.size() * sizeof(std::size_t));

@@ -109,10 +109,10 @@ namespace Helium {
        */
       int run(int argc, char **argv)
       {
-        ParseArgs args(argc, argv, ParseArgs::Args("-brute"), 
+        ParseArgs args(argc, argv, ParseArgs::Args("-styled"),
             ParseArgs::Args("query", "molecule_file", "fingerprint_file"));
         // optional arguments
-        const bool brute = args.IsArg("-brute");
+        const bool styled = args.IsArg("-styled");
         // required arguments
         std::string smiles = args.GetArgString("query");
         std::string moleculeFilename = args.GetArgString("molecule_file");
@@ -137,15 +137,19 @@ namespace Helium {
 
         screen(storage, queryFingerprint, candidates);
 
-        std::ifstream ifs(moleculeFilename.c_str(), std::ios_base::binary | std::ios_base::in);
-        unsigned int numMolecules;
-        read32(ifs, numMolecules);
+        MoleculeFile moleculeFile;
+        try {
+          moleculeFile.load(moleculeFilename);
+        } catch (const std::exception &e) {
+          std::cerr << e.what() << std::endl;
+          return -1;
+        }
 
         HeMol mol;
         std::vector<Index> result;
-        for (Index i = 0; i < numMolecules; ++i) {
-          read_molecule(ifs, mol);
+        for (unsigned int i = 0; i < moleculeFile.numMolecules(); ++i) {
           if (bitvec_get(i, candidates)) {
+            moleculeFile.read_molecule(i, mol);
             if (isomorphism_search<DefaultAtomMatcher, DefaultBondMatcher>(mol, query))
               result.push_back(i);
           }
@@ -163,8 +167,13 @@ namespace Helium {
           obj["index"] = result[i];
         }
 
-        Json::StyledWriter writer;
-        std::cout << writer.write(data);
+        if (styled) {
+          Json::StyledWriter writer;
+          std::cout << writer.write(data);
+        } else {
+          Json::FastWriter writer;
+          std::cout << writer.write(data);
+        }
 
         // deallocate fingerprint
         if (queryFingerprint)
@@ -175,7 +184,7 @@ namespace Helium {
       }
 
   };
-  
+
   class SubstructureToolFactory : public HeliumToolFactory
   {
     public:
@@ -195,7 +204,7 @@ namespace Helium {
         ss << "Optionally, the <query> can be replaced with 'interactive' to start an interactive session" << std::endl;
         ss << std::endl;
         ss << "Options:" << std::endl;
-        ss << "    -brute        Do brute force search (default is to use index)" << std::endl;
+        ss << "    -styled       Output nicely formatted JSON (default is fast non-human friendly JSON)" << std::endl;
         ss << std::endl;
         return ss.str();
       }

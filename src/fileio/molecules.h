@@ -33,6 +33,8 @@
 
 #include <json/json.h>
 
+#include <boost/iostreams/device/mapped_file.hpp>
+
 namespace Helium {
 
   template<typename MoleculeType>
@@ -95,6 +97,63 @@ namespace Helium {
     }
 
     return (bool)is;
+  }
+
+  template<typename MoleculeType>
+  bool read_molecule(const char *data, MoleculeType &mol)
+  {
+    mol.clear();
+
+    // read number of atoms and bonds
+    unsigned short numAtoms = *reinterpret_cast<const unsigned short*>(data);
+    unsigned short numBonds = *reinterpret_cast<const unsigned short*>(data + sizeof(unsigned short));
+
+    unsigned char element, cyclic, aromatic, mass, hydrogens;
+    signed char charge;
+    for (int i = 0; i < numAtoms; ++i) {
+      unsigned int offset = 2 * sizeof(unsigned short) + 6 * i;
+      // read the element
+      element = *reinterpret_cast<const unsigned char*>(data + offset);
+      cyclic = *reinterpret_cast<const unsigned char*>(data + offset + 1);
+      aromatic = *reinterpret_cast<const unsigned char*>(data + offset + 2);
+      mass = *reinterpret_cast<const unsigned char*>(data + offset + 3);
+      hydrogens = *reinterpret_cast<const unsigned char*>(data + offset + 4);
+      charge = *reinterpret_cast<const signed char*>(data + offset + 5);
+
+      // create the atom
+      HeAtom atom = mol.addAtom();
+      // set the atom properties
+      atom.setAromatic(aromatic);
+      atom.setCyclic(cyclic);
+      atom.setElement(element);
+      atom.setMass(mass);
+      atom.setHydrogens(hydrogens);
+      atom.setCharge(charge);
+    }
+
+    unsigned short source, target;
+    unsigned char props;
+    for (int i = 0; i < numBonds; ++i) {
+      unsigned int offset = 2 * sizeof(unsigned short) + 6 * numAtoms + 5 * i;
+      // source and target indices
+      source = *reinterpret_cast<const unsigned short*>(data + offset);
+      target = *reinterpret_cast<const unsigned short*>(data + offset + sizeof(unsigned short));
+      // read remaining properties: cyclic, aromatic & bond order
+      props = *reinterpret_cast<const unsigned char*>(data + offset + 2 * sizeof(unsigned short));
+
+      // get the atoms
+      HeAtom s = mol.atom(source);
+      HeAtom t = mol.atom(target);
+
+      // create the bond
+      HeBond bond = mol.addBond(s, t);
+      // set the bond properties
+      bond.setAromatic(props & 128);
+      bond.setCyclic(props & 64);
+      bond.setOrder(props & 63);
+    }
+
+    return true;
   }
 
   class MoleculeFile
@@ -186,6 +245,77 @@ namespace Helium {
       BinaryInputFile m_file;
       std::vector<std::size_t> m_positions;
       unsigned int m_numMolecules;
+  };
+
+  class MemoryMappedMoleculeFile
+  {
+    public:
+      MemoryMappedMoleculeFile() : m_numMolecules(0)
+      {
+      }
+
+      MemoryMappedMoleculeFile(const std::string &filename)
+      {
+        load(filename);
+      }
+
+      void load(const std::string &filename)
+      {
+        TIMER("MemoryMappedMoleculeFile::load():");
+
+        // use a temporary BinaryInputFile to easily read the header
+        BinaryInputFile file(filename);
+
+        // read the josn header
+        Json::Reader reader;
+        Json::Value data;
+        if (!reader.parse(file.header(), data))
+          throw std::runtime_error(reader.getFormattedErrorMessages());
+
+        // make sure the required attributes are present
+        if (!data.isMember("filetype") || data["filetype"].asString() != "molecules")
+          throw std::runtime_error(make_string("JSON header for file ", filename, " does not contain 'filetype' attribute or is not 'molecules'"));
+        if (!data.isMember("num_molecules"))
+          throw std::runtime_error(make_string("JSON header for file ", filename, " does not contain 'num_molecules' attribute"));
+        if (!data.isMember("molecule_indexes"))
+          throw std::runtime_error(make_string("JSON header for file ", filename, " does not contain 'molecule_indexes' attribute"));
+
+        // extract needed attributes
+        m_numMolecules = data["num_molecules"].asUInt();
+        Json::UInt64 positionsPos = data["molecule_indexes"].asUInt64();
+
+        // open the memory mapped file
+        m_mappedFile.open(filename);
+        assert(m_mappedFile.is_open());
+        assert(m_mappedFile.data());
+
+        // read the molecule indexes
+        m_positions.resize(m_numMolecules);
+        for (unsigned int i = 0; i < m_positions.size(); ++i)
+          m_positions[i] = *reinterpret_cast<const std::size_t*>(m_mappedFile.data() + positionsPos + i * sizeof(std::size_t));
+      }
+
+      unsigned int numMolecules() const
+      {
+        return m_numMolecules;
+      }
+
+      /**
+       * Read the molecule with the specified index from the file.
+       *
+       * @return True if successfull.
+       */
+      template<typename MoleculeType>
+      bool read_molecule(unsigned int index, MoleculeType &mol)
+      {
+        Helium::read_molecule(m_mappedFile.data() + m_positions[index], mol);
+        return true;
+      }
+
+    private:
+      boost::iostreams::mapped_file_source m_mappedFile;
+      std::vector<std::size_t> m_positions; //!< The positions of the molecules in the file.
+      unsigned int m_numMolecules; //!< The number of molecules in the file.
   };
 
   template<typename MoleculeType>

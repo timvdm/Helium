@@ -137,7 +137,8 @@ namespace Helium {
 
         screen(storage, queryFingerprint, candidates);
 
-        MoleculeFile moleculeFile;
+        //MoleculeFile moleculeFile;
+        MemoryMappedMoleculeFile moleculeFile;
         try {
           moleculeFile.load(moleculeFilename);
         } catch (const std::exception &e) {

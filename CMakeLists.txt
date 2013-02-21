@@ -15,7 +15,7 @@ include_directories(${CMAKE_SOURCE_DIR}/src/thirdparty)
 include_directories(${CMAKE_SOURCE_DIR}/src/thirdparty/jsoncpp)
 
 # Find and setup boost (required)
-find_package(Boost 1.48 COMPONENTS timer system REQUIRED)
+find_package(Boost 1.48 COMPONENTS timer system iostreams REQUIRED)
 include_directories(${BOOST_INCLUDE_DIR})
 
 # Find and setup Eigen3 (optional)

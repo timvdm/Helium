@@ -26,9 +26,9 @@
  */
 #include "tool.h"
 
-#include "../src/similarity.h"
-#include "../src/smiles.h"
-#include "../src/fileio/fingerprints.h"
+#include <Helium/fingerprints/similarity.h>
+#include <Helium/smiles.h>
+#include <Helium/fileio/fingerprints.h>
 
 #include <json/json.h>
 

@@ -27,7 +27,7 @@
 #ifndef HELIUM_FILEIO_FILE_H
 #define HELIUM_FILEIO_FILE_H
 
-#include "../util.h"
+#include <Helium/util.h>
 
 #include <fstream>
 

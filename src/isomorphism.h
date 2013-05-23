@@ -27,7 +27,7 @@
 #ifndef HELIUM_ISOMORPHISM_H
 #define HELIUM_ISOMORPHISM_H
 
-#include "molecule.h"
+#include <Helium/molecule.h>
 
 #include <vector>
 #include <cassert>

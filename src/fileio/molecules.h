@@ -27,9 +27,9 @@
 #ifndef HELIUM_FILEIO_MOLECULES_H
 #define HELIUM_FILEIO_MOLECULES_H
 
-#include "../hemol.h"
-#include "../util.h"
-#include "file.h"
+#include <Helium/hemol.h>
+#include <Helium/util.h>
+#include <Helium/fileio/file.h>
 
 #include <json/json.h>
 

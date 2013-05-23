@@ -1,11 +1,11 @@
 #ifndef HELIUM_ENUMERATESUBGRAPHS_H
 #define HELIUM_ENUMERATESUBGRAPHS_H
 
-#include "molecule.h"
-#include "components.h"
-#include "substructure.h"
-#include "tie.h"
-#include "util.h"
+#include <Helium/molecule.h>
+#include <Helium/components.h>
+#include <Helium/substructure.h>
+#include <Helium/tie.h>
+#include <Helium/util.h>
 //#include "timeout.h"
 
 #include <set>

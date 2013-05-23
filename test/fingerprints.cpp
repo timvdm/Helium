@@ -1,4 +1,4 @@
-#include "../src/fingerprints.h"
+#include "../src/fingerprints/fingerprints.h"
 #include "../src/smiles.h"
 
 #include "test.h"

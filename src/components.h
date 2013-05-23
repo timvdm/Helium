@@ -27,9 +27,9 @@
 #ifndef HELIUM_COMPONENTS_H
 #define HELIUM_COMPONENTS_H
 
-#include "molecule.h"
-#include "tie.h"
-#include "util.h"
+#include <Helium/molecule.h>
+#include <Helium/tie.h>
+#include <Helium/util.h>
 
 #include <vector>
 

@@ -19,7 +19,7 @@ set(tests
 
 foreach(test ${tests})
   add_executable(test_${test} ${test}.cpp)
-  target_link_libraries(test_${test}  ${Helium_LIBRARIES} ${OPENBABEL2_LIBRARIES})
+  target_link_libraries(test_${test} ${Helium_LIBRARIES} ${OPENBABEL2_LIBRARIES})
   add_test(${test}_Test ${TEST_PATH}/test_${test})
   set_tests_properties(${test}_Test PROPERTIES
     FAIL_REGULAR_EXPRESSION "FAIL")

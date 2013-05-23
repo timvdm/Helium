@@ -27,8 +27,8 @@
 #ifndef HELIUM_FILEIO_FINGERPRINTS_H
 #define HELIUM_FILEIO_FINGERPRINTS_H
 
-#include "../bitvec.h"
-#include "file.h"
+#include <Helium/bitvec.h>
+#include <Helium/fileio/file.h>
 
 #include <json/json.h>
 

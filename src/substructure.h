@@ -5,8 +5,8 @@
 #include <algorithm>
 #include <cassert>
 
-#include "tie.h"
-#include "hemol.h"
+#include <Helium/tie.h>
+#include <Helium/hemol.h>
 
 namespace Helium {
 

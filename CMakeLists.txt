@@ -43,7 +43,7 @@ endif()
 ############################################################
 
 # compiler options
-set(CMAKE_CXX_FLAGS "-g -pedantic -Wall -Wno-sign-compare ${CMAKE_CXX_FLAGS}")
+set(CMAKE_CXX_FLAGS "-g -pedantic -Wall -Wno-long-long -Wno-sign-compare ${CMAKE_CXX_FLAGS}")
 
 # C++11 (optional) [only seems to work with clang on mac for now]
 option(ENABLE_CPP11 "Enable C++11 features" OFF)
@@ -81,56 +81,13 @@ endif()
 #
 ############################################################
 
-set(Helium_HDRS
-  src/bitvec.h
-  src/canonical.h
-  src/components.h
-  src/enumeratepaths.h
-  src/enumeratesubgraphs.h
-  src/extendedconnectivities.h
-  src/fileio.h
-  src/fingerprints.h
-  src/invariants.h
-  src/molecule.h
-  src/substructure.h
-  src/tie.h
-  src/timeout.h
-  src/util.h
-  src/hemol.h
-)
-
-set(Helium_util_HDRS
-  src/util/fileio.h
-  src/util/functor.h
-  src/util/string.h
-  src/util/typetraits.h
-  src/util/vector.h
-)
-
-set(Helium_fileio_HDRS
-  src/fileio/fingerprints.h
-)
-
-set(Helium_SRCS
-  src/hemol.cpp
-  src/fileio/file.cpp
-  src/thirdparty/jsoncpp/jsoncpp.cpp
-)
-
-# Helium library
-add_library(helium SHARED ${Helium_SRCS})
-target_link_libraries(helium ${Boost_LIBRARIES} ${OPENCL_LIBRARIES})
+include_directories(${CMAKE_BINARY_DIR}/include)
+add_subdirectory(src)
 
 set(Helium_LIBRARIES
   helium
   pthread
 )
-
-# install target for header files
-set(INCLUDE_INSTALL_DIR  "include" CACHE STRING "Install dir for include files")
-install(FILES ${Helium_HDRS} DESTINATION "${INCLUDE_INSTALL_DIR}/Helium")
-install(FILES ${Helium_util_HDRS} DESTINATION "${INCLUDE_INSTALL_DIR}/Helium/util")
-install(FILES ${Helium_fileio_HDRS} DESTINATION "${INCLUDE_INSTALL_DIR}/Helium/fileio")
 
 ############################################################
 #

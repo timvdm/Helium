@@ -27,9 +27,9 @@
 #ifndef HELIUM_CANONICAL_H
 #define HELIUM_CANONICAL_H
 
-#include "substructure.h"
-#include "invariants.h"
-#include "util.h"
+#include <Helium/substructure.h>
+#include <Helium/invariants.h>
+#include <Helium/util.h>
 
 #define DEBUG_CANON 0
 

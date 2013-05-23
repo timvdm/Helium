@@ -24,8 +24,8 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-#include "../src/molecule.h"
-#include "../src/fileio/file.h"
+#include <Helium/molecule.h>
+#include <Helium/fileio/file.h>
 
 #include "args.h"
 #include "progress.h"

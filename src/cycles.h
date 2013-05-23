@@ -27,10 +27,10 @@
 #ifndef HELIUM_CYCLES_H
 #define HELIUM_CYCLES_H
 
-#include "components.h"
-#include "isomorphism.h"
-#include "smiles.h"
-#include "dfs.h"
+#include <Helium/components.h>
+#include <Helium/isomorphism.h>
+#include <Helium/smiles.h>
+#include <Helium/dfs.h>
 
 namespace Helium {
 

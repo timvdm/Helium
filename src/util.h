@@ -36,11 +36,11 @@
 
 #include <iostream>
 
-#include "util/typetraits.h"
-#include "util/fileio.h"
-#include "util/string.h"
-#include "util/vector.h"
-#include "util/functor.h"
+#include <Helium/util/typetraits.h>
+#include <Helium/util/fileio.h>
+#include <Helium/util/string.h>
+#include <Helium/util/vector.h>
+#include <Helium/util/functor.h>
 
 #define UNREACHABLE_RETURN_REF(type) \
   assert(0); \

@@ -27,7 +27,7 @@
 #ifndef HELIUM_SMILES_H
 #define HELIUM_SMILES_H
 
-#include "hemol.h"
+#include <Helium/hemol.h>
 
 #include <smiley.h>
 

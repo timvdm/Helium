@@ -3,7 +3,7 @@
 
 #include <iostream>
 
-#include "molecule.h"
+#include <Helium/molecule.h>
 
 namespace Helium {
 

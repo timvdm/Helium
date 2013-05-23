@@ -1,9 +1,9 @@
 #ifndef HELIUM_HEMOL_H
 #define HELIUM_HEMOL_H
 
-#include "molecule.h"
-#include "tie.h"
-#include "util/vector.h"
+#include <Helium/molecule.h>
+#include <Helium/tie.h>
+#include <Helium/util/vector.h>
 
 #include <vector>
 #include <istream>

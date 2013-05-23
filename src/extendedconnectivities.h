@@ -27,7 +27,7 @@
 #ifndef HELIUM_EXTENDEDCONNECTIVITIES_H
 #define HELIUM_EXTENDEDCONNECTIVITIES_H
 
-#include "invariants.h"
+#include <Helium/invariants.h>
 
 namespace Helium {
 

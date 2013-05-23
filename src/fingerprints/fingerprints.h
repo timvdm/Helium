@@ -27,12 +27,12 @@
 #ifndef HELIUM_FINGERPRINTS_H
 #define HELIUM_FINGERPRINTS_H
 
-#include "bitvec.h"
-#include "enumeratepaths.h"
-#include "enumeratesubgraphs.h"
-#include "substructure.h"
-#include "extendedconnectivities.h"
-#include "canonical.h"
+#include <Helium/bitvec.h>
+#include <Helium/enumeratepaths.h>
+#include <Helium/enumeratesubgraphs.h>
+#include <Helium/substructure.h>
+#include <Helium/extendedconnectivities.h>
+#include <Helium/canonical.h>
 
 #include <stdexcept>
 

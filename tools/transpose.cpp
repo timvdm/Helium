@@ -26,8 +26,8 @@
  */
 #include "tool.h"
 
-#include "../src/fileio/fingerprints.h"
-#include "../src/fingerprints.h"
+#include <Helium/fileio/fingerprints.h>
+#include <Helium/fingerprints/fingerprints.h>
 
 #include "args.h"
 

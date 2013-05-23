@@ -1,8 +1,8 @@
-#include "../src/canonical.h"
-#include "../src/fileio/molecules.h"
-#include "../src/extendedconnectivities.h"
-#include "../src/components.h"
-#include "../src/smiles.h"
+#include <Helium/canonical.h>
+#include <Helium/fileio/molecules.h>
+#include <Helium/extendedconnectivities.h>
+#include <Helium/components.h>
+#include <Helium/smiles.h>
 
 
 #include "test.h"

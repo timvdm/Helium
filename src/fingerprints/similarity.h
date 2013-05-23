@@ -27,7 +27,7 @@
 #ifndef HELIUM_SIMILARITY_H
 #define HELIUM_SIMILARITY_H
 
-#include "fingerprints.h"
+#include <Helium/fingerprints/fingerprints.h>
 
 #include <numeric>
 

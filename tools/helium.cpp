@@ -1,4 +1,4 @@
-#include "../src/util.h"
+#include <Helium/util.h>
 #include "tool.h"
 
 using namespace Helium;

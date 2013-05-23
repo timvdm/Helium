@@ -26,11 +26,11 @@
  */
 #include "tool.h"
 
-#include "../src/similarity.h"
-#include "../src/smiles.h"
-#include "../src/fileio/fingerprints.h"
-#include "../src/fileio/molecules.h"
-#include "../src/isomorphism.h"
+#include <Helium/fingerprints/similarity.h>
+#include <Helium/smiles.h>
+#include <Helium/fileio/fingerprints.h>
+#include <Helium/fileio/molecules.h>
+#include <Helium/isomorphism.h>
 
 #include <json/json.h>
 

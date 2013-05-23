@@ -26,7 +26,7 @@
  */
 #include "tool.h"
 
-#include "../src/fileio/file.h"
+#include <Helium/fileio/file.h>
 
 #include "args.h"
 

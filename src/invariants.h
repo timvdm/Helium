@@ -1,8 +1,8 @@
 #ifndef HELIUM_INVARIANTS_H
 #define HELIUM_INVARIANTS_H
 
-#include "tie.h"
-#include "molecule.h"
+#include <Helium/tie.h>
+#include <Helium/molecule.h>
 
 namespace Helium {
 

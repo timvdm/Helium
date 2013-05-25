@@ -30,7 +30,7 @@
 #include <Helium/smiles.h>
 #include <Helium/fileio/fingerprints.h>
 #include <Helium/fileio/molecules.h>
-#include <Helium/isomorphism.h>
+#include <Helium/algorithms/isomorphism.h>
 
 #include <json/json.h>
 

@@ -1,5 +1,5 @@
-#include "../src/enumeratepaths.h"
-#include "../src/smiles.h"
+#include <Helium/algorithms/enumeratepaths.h>
+#include <Helium/smiles.h>
 
 #include "test.h"
 

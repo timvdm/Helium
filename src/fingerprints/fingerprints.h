@@ -28,11 +28,11 @@
 #define HELIUM_FINGERPRINTS_H
 
 #include <Helium/bitvec.h>
-#include <Helium/enumeratepaths.h>
-#include <Helium/enumeratesubgraphs.h>
+#include <Helium/algorithms/enumeratepaths.h>
+#include <Helium/algorithms/enumeratesubgraphs.h>
 #include <Helium/substructure.h>
-#include <Helium/extendedconnectivities.h>
-#include <Helium/canonical.h>
+#include <Helium/algorithms/extendedconnectivities.h>
+#include <Helium/algorithms/canonical.h>
 
 #include <stdexcept>
 

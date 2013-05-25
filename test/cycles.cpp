@@ -1,6 +1,6 @@
-#include "../src/cycles.h"
-#include "../src/smiles.h"
-#include "../src/fileio/molecules.h"
+#include <Helium/algorithms/cycles.h>
+#include <Helium/smiles.h>
+#include <Helium/fileio/molecules.h>
 
 #include "test.h"
 

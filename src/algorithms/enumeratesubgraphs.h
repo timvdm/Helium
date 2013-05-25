@@ -2,7 +2,7 @@
 #define HELIUM_ENUMERATESUBGRAPHS_H
 
 #include <Helium/molecule.h>
-#include <Helium/components.h>
+#include <Helium/algorithms/components.h>
 #include <Helium/substructure.h>
 #include <Helium/tie.h>
 #include <Helium/util.h>

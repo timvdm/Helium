@@ -1,5 +1,5 @@
-#include "../src/components.h"
-#include "../src/smiles.h"
+#include <Helium/algorithms/components.h>
+#include <Helium/smiles.h>
 
 #include "test.h"
 

@@ -1,5 +1,5 @@
-#include "../src/enumeratesubgraphs.h"
-#include "../src/smiles.h"
+#include <Helium/algorithms/enumeratesubgraphs.h>
+#include <Helium/smiles.h>
 
 #include "test.h"
 

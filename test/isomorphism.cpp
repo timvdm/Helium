@@ -1,5 +1,5 @@
-#include "../src/isomorphism.h"
-#include "../src/smiles.h"
+#include <Helium/algorithms/isomorphism.h>
+#include <Helium/smiles.h>
 
 #include "test.h"
 

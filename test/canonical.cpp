@@ -1,7 +1,7 @@
-#include <Helium/canonical.h>
+#include <Helium/algorithms/canonical.h>
 #include <Helium/fileio/molecules.h>
-#include <Helium/extendedconnectivities.h>
-#include <Helium/components.h>
+#include <Helium/algorithms/extendedconnectivities.h>
+#include <Helium/algorithms/components.h>
 #include <Helium/smiles.h>
 
 

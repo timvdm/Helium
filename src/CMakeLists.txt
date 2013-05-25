@@ -6,12 +6,6 @@
 
 set(Helium_HDRS
   bitvec.h
-  canonical.h
-  components.h
-  enumeratepaths.h
-  enumeratesubgraphs.h
-  extendedconnectivities.h
-  invariants.h
   molecule.h
   substructure.h
   tie.h
@@ -19,8 +13,16 @@ set(Helium_HDRS
   util.h
   hemol.h
   smiles.h
-  isomorphism.h
-  dfs.h
+  # algorithms
+  algorithms/canonical.h
+  algorithms/components.h
+  algorithms/cycles.h
+  algorithms/dfs.h
+  algorithms/enumeratepaths.h
+  algorithms/enumeratesubgraphs.h
+  algorithms/extendedconnectivities.h
+  algorithms/invariants.h
+  algorithms/isomorphism.h
   # util
   util/fileio.h
   util/functor.h
@@ -42,6 +44,7 @@ make_directory("${CMAKE_BINARY_DIR}/include/Helium")
 make_directory("${CMAKE_BINARY_DIR}/include/Helium/util")
 make_directory("${CMAKE_BINARY_DIR}/include/Helium/fileio")
 make_directory("${CMAKE_BINARY_DIR}/include/Helium/fingerprints")
+make_directory("${CMAKE_BINARY_DIR}/include/Helium/algorithms")
 if(UNIX)
   set(header_cmd "create_symlink")
 else()

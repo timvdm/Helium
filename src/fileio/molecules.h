@@ -321,7 +321,7 @@ namespace Helium {
   template<typename MoleculeType>
   void write_sdf(std::ostream &os, MoleculeType &mol)
   {
-    std::streamsize width = os.width();
+    //std::streamsize width = os.width();
     os << std::endl;
     os << " Helium 0.0.1" << std::endl;
     os << std::endl;

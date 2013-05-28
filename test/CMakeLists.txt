@@ -15,6 +15,7 @@ set(tests
   isomorphism
   cycles
   smiles
+  bitvec
   )
 
 foreach(test ${tests})

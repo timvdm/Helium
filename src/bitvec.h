@@ -27,8 +27,12 @@
 #ifndef HELIUM_BITVEC_H
 #define HELIUM_BITVEC_H
 
+#include <Helium/contract.h>
+
 #include <iostream>
 #include <fstream>
+#include <sstream>
+#include <cassert>
 #include <cmath>
 
 namespace Helium {
@@ -39,17 +43,19 @@ namespace Helium {
    */
 
   /**
-   * Type used for a bit vector word.
+   * @brief Type used for a bit vector word.
    */
   typedef unsigned long Word;
 
   /**
-   * The number of bits per bit vector word.
+   * @brief The number of bits per bit vector word.
+   *
+   * Since the Word type is unsigned long, on a 64-bit system this is usually 64 bits.
    */
   const int BitsPerWord = sizeof(Word) * 8;
 
   /**
-   * Get the number of words needed to store @p numBits words.
+   * @brief Get the number of words needed to store @p numBits words.
    *
    * @param numBits The number of bits.
    *
@@ -63,19 +69,28 @@ namespace Helium {
   }
 
   /**
-   * Set all bits to 0.
+   * @brief Set all bits to 0.
+   *
+   * @pre The bitvec pointer must be valid.
+   *
+   * @post All the bits in the bit vector will be set to 0.
    *
    * @param bitvec The bit vector to zero.
    * @param numWords The number of words for @p bitvec.
    */
   inline void bitvec_zero(Word *bitvec, int numWords)
   {
+    PRE(bitvec);
     for (int i = 0; i < numWords; ++i)
       bitvec[i] = 0;
   }
 
   /**
-   * Copy a bit vector. The copied vector's memory should be freed using delete [].
+   * @brief Copy a bit vector.
+   *
+   * The copied vector's memory should be freed using delete [].
+   *
+   * @pre The bitvec pointer must be valid.
    *
    * @param bitvec The bit vector to copy.
    * @param numWords The number of words for @p bitvec.
@@ -84,22 +99,28 @@ namespace Helium {
    */
   inline Word* bitvec_copy(const Word *bitvec, int numWords)
   {
+    PRE(bitvec);
     Word *result = new Word[numWords];
     std::copy(bitvec, bitvec + numWords, result);
     return result;
   }
 
   /**
-   * Get the bit value for the specified bit index.
+   * @brief Get the bit value for the specified bit index.
+   *
+   * This function does not check if the index is within the valid range.
+   *
+   * @pre The bitvec pointer must be valid.
    *
    * @param index The bit's index. The index should be less than the number of
-   * bits in the @p bitvec.
+   *        bits in the @p bitvec.
    * @param bitvec The bit vector.
    *
-   * @return The valuefor the bit at the specified @p index.
+   * @return The value for the bit at the specified @p index.
    */
   inline bool bitvec_get(int index, const Word *bitvec)
   {
+    PRE(bitvec);
     int word = index / (sizeof(Word) * 8);
     int offset = index % (sizeof(Word) * 8);
     Word bit = static_cast<Word>(1) << offset;
@@ -107,14 +128,19 @@ namespace Helium {
   }
 
   /**
-   * Set the bit at the specified bit index (to 1).
+   * @brief Set the bit at the specified bit index (to 1).
+   *
+   * This function does not check if the index is within the valid range.
+   *
+   * @pre The bitvec pointer must be valid.
    *
    * @param index The bit's index. The index should be less than the number of
-   * bits in the @p bitvec.
+   *        bits in the @p bitvec.
    * @param bitvec The bit vector.
    */
   inline void bitvec_set(int index, Word *bitvec)
   {
+    PRE(bitvec);
     int word = index / (sizeof(Word) * 8);
     int offset = index % (sizeof(Word) * 8);
     Word bit = static_cast<Word>(1) << offset;
@@ -122,14 +148,17 @@ namespace Helium {
   }
 
   /**
-   * Reset the bit at the specified bit index (to 0).
+   * @brief Reset the bit at the specified bit index (to 0).
+   *
+   * @pre The bitvec pointer must be valid.
    *
    * @param index The bit's index. The index should be less than the number of
-   * bits in the @p bitvec.
+   *        bits in the @p bitvec.
    * @param bitvec The bit vector.
    */
   inline void bitvec_reset(int index, Word *bitvec)
   {
+    PRE(bitvec);
     int word = index / (sizeof(Word) * 8);
     int offset = index % (sizeof(Word) * 8);
     Word bit = static_cast<Word>(1) << offset;
@@ -137,9 +166,13 @@ namespace Helium {
   }
 
   /**
+   * @brief Check if @p bitvec1 is a subset of @p bitvec2.
+   *
    * Check if @p bitvec1 is a subset of @p bitvec2 (i.e. all bits set in
    * @p bitvec1 are also set in @p bitvec2). Both bitvectors should have the
    * same number of bits.
+   *
+   * @pre Both bitvec1 and bitvec2 pointers must be valid.
    *
    * @param bitvec1 The subset bit vector.
    * @param bitvec2 The superset bit vector.
@@ -149,6 +182,8 @@ namespace Helium {
    */
   inline bool bitvec_is_subset_superset(const Word *bitvec1, const Word *bitvec2, int numWords)
   {
+    PRE(bitvec1);
+    PRE(bitvec2);
     for (int i = 0; i < numWords; ++i)
       if (bitvec1[i] & ~bitvec2[i])
         return false;
@@ -156,6 +191,8 @@ namespace Helium {
   }
 
   /**
+   * @brief Get the population count for a single word.
+   *
    * Get the bit count (i.e. number of bits set to 1 or the population count)
    * for a single bit vector word. When compiling with g++, the builtin function
    * wrapper for the POPCNT instruction is used.
@@ -181,9 +218,13 @@ namespace Helium {
   }
 
   /**
+   * @brief Get the population count for a bit vector.
+   *
    * Get the bit count (i.e. number of bits set to 1 or the population count)
    * for a single bit vector word. When compiling with g++, the builtin function
    * wrapper for the POPCNT instruction is used.
+   *
+   * @pre The bitvec pointer must be valid.
    *
    * @param bitvec The bit vector.
    * @param numWords The number of words for @p bitvec.
@@ -192,6 +233,7 @@ namespace Helium {
    */
   inline int bitvec_count(const Word *bitvec, int numWords)
   {
+    PRE(bitvec);
 #ifdef HAVE_POPCNT
     // use popcount
     int count = 0;
@@ -214,8 +256,12 @@ namespace Helium {
 
 
   /**
+   * @brief Get the population count for a partial bitvec.
+   *
    * Get the bit count (i.e. number of bits set to 1 or the population count)
    * for a range of a bit vector.
+   *
+   * @pre The bitvec pointer must be valid.
    *
    * @param bitvec The bit vector.
    * @param begin The first bit index.
@@ -225,6 +271,7 @@ namespace Helium {
    */
   inline int bitvec_count(const Word *bitvec, int begin, int end)
   {
+    PRE(bitvec);
     const int bits_per_word = 8 * sizeof(Word);
     const int lft = begin / bits_per_word;
     const int rgt = end / bits_per_word;
@@ -243,8 +290,24 @@ namespace Helium {
   }
 
 
+  /**
+   * @brief Get the population count for the union of two bit vectors.
+   *
+   * Get the bit count (i.e. number of bits set to 1 or the population count)
+   * for a range of a bit vector.
+   *
+   * @pre Both bitvec1 and bitvec2 pointers must be valid.
+   *
+   * @param bitvec The bit vector.
+   * @param begin The first bit index.
+   * @param end The one-past-the-end bit index.
+   *
+   * @return The bit count for the range [begin,end).
+   */
   inline int bitvec_union_count(const Word *bitvec1, const Word *bitvec2, int numWords)
   {
+    PRE(bitvec1);
+    PRE(bitvec2);
     int count = 0;
 
     for (int i = 0; i < numWords; ++i) {
@@ -262,6 +325,8 @@ namespace Helium {
   }
 
   /**
+   * @brief Compute the Tanimoto coefficient.
+   *
    * Compute the Tanimoto coefficient of difference between two bit vectors.
    * This function is slower than the Tanimoto function below since both the
    * union and intersection bit counts have to be computed.
@@ -269,6 +334,8 @@ namespace Helium {
    * \f[
    *   T_{\mathrm{sim}} = \frac{| A \wedge B |}{| A \vee B |}
    * \f]
+   *
+   * @pre Both bitvec1 and bitvec2 pointers must be valid.
    *
    * @param bitvec1 The first bit vector (\f$A\f$).
    * @param bitvec2 The first bit vector (\f$B\f$).
@@ -278,6 +345,8 @@ namespace Helium {
    */
   inline double bitvec_tanimoto(const Word *bitvec1, const Word *bitvec2, int numWords)
   {
+    PRE(bitvec1);
+    PRE(bitvec2);
     int andCount = 0;
     int orCount = 0;
 
@@ -285,8 +354,6 @@ namespace Helium {
       Word andbv = bitvec1[i] & bitvec2[i];
       Word orbv = bitvec1[i] | bitvec2[i];
 #ifdef HAVE_POPCNT
-      //andCount += __builtin_popcountl(andfp);
-      //orCount += __builtin_popcountl(orfp);
       andCount += __builtin_popcountll(andbv);
       orCount += __builtin_popcountll(orbv);
 #else
@@ -303,6 +370,8 @@ namespace Helium {
   }
 
   /**
+   * @brief Compute the Tanimoto coefficient.
+   *
    * Compute the Tanimoto coefficient of difference between two bit vectors.
    * When the bit counts of both bit vectors are known, the inclusion-exclusion
    * principle can be used to compute the Tanimoto coefficient faster.
@@ -310,6 +379,8 @@ namespace Helium {
    * \f[
    *   T_{\mathrm{sim}} = \frac{| A \wedge B |}{|A| + |B| - | A \vee B |}
    * \f]
+   *
+   * @pre Both bitvec1 and bitvec2 pointers must be valid.
    *
    * @param bitvec1 The first bit vector (\f$A\f$).
    * @param bitvec2 The first bit vector (\f$B\f$).
@@ -321,16 +392,20 @@ namespace Helium {
    */
   inline double bitvec_tanimoto(const Word *bitvec1, const Word *bitvec2, int bitCount1, int bitCount2, int numWords)
   {
+    PRE(bitvec1);
+    PRE(bitvec2);
     int andCount = bitvec_union_count(bitvec1, bitvec2, numWords);
     return static_cast<double>(andCount) / (bitCount1 + bitCount2 - andCount);
   }
 
   /**
-   * Compute the Cosine coefficient of difference between two bit vectors.
+   * @brief Compute the Cosine coefficient of difference between two bit vectors.
    *
    * \f[
    *   C_{\mathrm{sim}} = \frac{| A \wedge B |}{\sqrt{|A| |B|}}
    * \f]
+   *
+   * @pre Both bitvec1 and bitvec2 pointers must be valid.
    *
    * @param bitvec1 The first bit vector (\f$A\f$).
    * @param bitvec2 The first bit vector (\f$B\f$).
@@ -342,16 +417,20 @@ namespace Helium {
    */
   inline double bitvec_cosine(const Word *bitvec1, const Word *bitvec2, int bitCount1, int bitCount2, int numWords)
   {
+    PRE(bitvec1);
+    PRE(bitvec2);
     int andCount = bitvec_union_count(bitvec1, bitvec2, numWords);
     return static_cast<double>(andCount) / std::sqrt(bitCount1 * bitCount2);
   }
 
   /**
-   * Compute the Cosine coefficient of difference between two bit vectors.
+   * @brief Compute the Cosine coefficient of difference between two bit vectors.
    *
    * \f[
    *   C_{\mathrm{sim}} = \frac{| A \wedge B |}{\sqrt{|A| |B|}}
    * \f]
+   *
+   * @pre Both bitvec1 and bitvec2 pointers must be valid.
    *
    * @param bitvec1 The first bit vector (\f$A\f$).
    * @param bitvec2 The first bit vector (\f$B\f$).
@@ -361,16 +440,20 @@ namespace Helium {
    */
   inline double bitvec_cosine(const Word *bitvec1, const Word *bitvec2, int numWords)
   {
+    PRE(bitvec1);
+    PRE(bitvec2);
     int andCount = bitvec_union_count(bitvec1, bitvec2, numWords);
     return static_cast<double>(andCount) / std::sqrt(bitvec_count(bitvec1, numWords) * bitvec_count(bitvec2, numWords));
   }
 
   /**
-   * Compute the Hamming coefficient of difference between two bit vectors.
+   * @brief Compute the Hamming coefficient of difference between two bit vectors.
    *
    * \f[
    *   H_{\mathrm{sim}} = |A| + |B| - 2 | A \wedge B |
    * \f]
+   *
+   * @pre Both bitvec1 and bitvec2 pointers must be valid.
    *
    * @param bitvec1 The first bit vector (\f$A\f$).
    * @param bitvec2 The first bit vector (\f$B\f$).
@@ -382,16 +465,20 @@ namespace Helium {
    */
   inline double bitvec_hamming(const Word *bitvec1, const Word *bitvec2, int bitCount1, int bitCount2, int numWords)
   {
+    PRE(bitvec1);
+    PRE(bitvec2);
     int andCount = bitvec_union_count(bitvec1, bitvec2, numWords);
     return bitCount1 + bitCount2 - 2 * andCount;
   }
 
   /**
-   * Compute the Hamming coefficient of difference between two bit vectors.
+   * @brief Compute the Hamming coefficient of difference between two bit vectors.
    *
    * \f[
    *   H_{\mathrm{sim}} = |A| + |B| - 2 | A \wedge B |
    * \f]
+   *
+   * @pre Both bitvec1 and bitvec2 pointers must be valid.
    *
    * @param bitvec1 The first bit vector (\f$A\f$).
    * @param bitvec2 The first bit vector (\f$B\f$).
@@ -401,16 +488,20 @@ namespace Helium {
    */
   inline double bitvec_hamming(const Word *bitvec1, const Word *bitvec2, int numWords)
   {
+    PRE(bitvec1);
+    PRE(bitvec2);
     int andCount = bitvec_union_count(bitvec1, bitvec2, numWords);
     return bitvec_count(bitvec1, numWords) + bitvec_count(bitvec2, numWords) - 2 * andCount;
   }
 
   /**
-   * Compute the Russell-Rao coefficient of difference between two bit vectors.
+   * @brief Compute the Russell-Rao coefficient of difference between two bit vectors.
    *
    * \f[
    *   R_{\mathrm{sim}} = \frac{| A \wedge B |}{m}
    * \f]
+   *
+   * @pre Both bitvec1 and bitvec2 pointers must be valid.
    *
    * @param bitvec1 The first bit vector (\f$A\f$).
    * @param bitvec2 The first bit vector (\f$B\f$).
@@ -420,16 +511,20 @@ namespace Helium {
    */
   inline double bitvec_russell_rao(const Word *bitvec1, const Word *bitvec2, int numWords)
   {
+    PRE(bitvec1);
+    PRE(bitvec2);
     int andCount = bitvec_union_count(bitvec1, bitvec2, numWords);
     return static_cast<double>(andCount) / (numWords * 8 * sizeof(Word));
   }
 
   /**
-   * Compute the Forbes coefficient of difference between two bit vectors.
+   * @brief Compute the Forbes coefficient of difference between two bit vectors.
    *
    * \f[
    *   F_{\mathrm{sim}} = \frac{| A \wedge B | m}{|A| |B|}
    * \f]
+   *
+   * @pre Both bitvec1 and bitvec2 pointers must be valid.
    *
    * @param bitvec1 The first bit vector (\f$A\f$).
    * @param bitvec2 The first bit vector (\f$B\f$).
@@ -441,16 +536,20 @@ namespace Helium {
    */
   inline double bitvec_forbes(const Word *bitvec1, const Word *bitvec2, int bitCount1, int bitCount2, int numWords)
   {
+    PRE(bitvec1);
+    PRE(bitvec2);
     int andCount = bitvec_union_count(bitvec1, bitvec2, numWords);
     return static_cast<double>(andCount * numWords * 8 * sizeof(Word)) / (bitCount1 * bitCount2);
   }
 
   /**
-   * Compute the Forbes coefficient of difference between two bit vectors.
+   * @brief Compute the Forbes coefficient of difference between two bit vectors.
    *
    * \f[
    *   F_{\mathrm{sim}} = \frac{| A \wedge B | m}{|A| |B|}
    * \f]
+   *
+   * @pre Both bitvec1 and bitvec2 pointers must be valid.
    *
    * @param bitvec1 The first bit vector (\f$A\f$).
    * @param bitvec2 The first bit vector (\f$B\f$).
@@ -460,12 +559,16 @@ namespace Helium {
    */
   inline double bitvec_forbes(const Word *bitvec1, const Word *bitvec2, int numWords)
   {
+    PRE(bitvec1);
+    PRE(bitvec2);
     int andCount = bitvec_union_count(bitvec1, bitvec2, numWords);
     return static_cast<double>(andCount * numWords * 8 * sizeof(Word)) / (bitvec_count(bitvec1, numWords) * bitvec_count(bitvec2, numWords));
   }
 
   /**
-   * Print a single bit vector word to std::cout.
+   * @brief Print a single bit vector word to std::cout.
+   *
+   * @post The word's bits will be printed to stdout.
    *
    * @param word The bit vector word to print.
    */
@@ -485,7 +588,9 @@ namespace Helium {
   }
 
   /**
-   * Print a bit vector to std::cout.
+   * @brief Print a bit vector to std::cout.
+   *
+   * @post The bit vector's bits will be printed to stdout.
    *
    * @param bitvec The bit vector to print.
    * @param numWords The number of words for @p bitvec.
@@ -493,6 +598,7 @@ namespace Helium {
    */
   inline void bitvec_print(const Word *bitvec, int numWords, bool spaces = true)
   {
+    PRE(bitvec);
     for (int i = 0; i < numWords; ++i) {
       Word bit = 1;
       for (int j = 0; j < BitsPerWord; ++j) {
@@ -511,8 +617,11 @@ namespace Helium {
   }
 
   /**
-   * Write a bit vector's size to a STL file output stream. The size is written
-   * as an unsigned long value.
+   * @brief Write a bit vector's size to a STL file output stream.
+   *
+   * The size is written as an unsigned long value.
+   *
+   * @post The specified size will be written to output stream.
    *
    * @param ofs The STL file output stream.
    * @param size The value to write to the stream.
@@ -524,7 +633,7 @@ namespace Helium {
   }
 
   /**
-   * Read a bit vector's size from a STL file input stream.
+   * @brief Read a bit vector's size from a STL file input stream.
    *
    * @param ifs The STL file input stream.
    *
@@ -539,7 +648,9 @@ namespace Helium {
   }
 
   /**
-   * Write a bit vector to a STL file output stream.
+   * @brief Write a bit vector to a STL file output stream.
+   *
+   * @post The bit vector will be written to the output stream.
    *
    * @param ofs The STL file output stream.
    * @param bitvec The bit vector to write.
@@ -547,11 +658,12 @@ namespace Helium {
    */
   inline void bitvec_write(std::ofstream &ofs, const Word *bitvec, int numWords)
   {
+    PRE(bitvec);
     ofs.write(reinterpret_cast<const char*>(bitvec), sizeof(Word) * numWords);
   }
 
   /**
-   * Read a bit vector from a STL file input stream.
+   * @brief Read a bit vector from a STL file input stream.
    *
    * @param ifs The STL file input stream.
    * @param bitvec The bit vector to store the read data in.
@@ -559,7 +671,164 @@ namespace Helium {
    */
   inline void bitvec_read(std::ifstream &ifs, Word *bitvec, int numWords)
   {
+    PRE(bitvec);
     ifs.read(reinterpret_cast<char*>(bitvec), sizeof(Word) * numWords);
+  }
+
+  namespace impl {
+
+    inline int hex_to_dec(char digit)
+    {
+      switch (digit) {
+        case '0':
+          return 0;
+        case '1':
+          return 1;
+        case '2':
+          return 2;
+        case '3':
+          return 3;
+        case '4':
+          return 4;
+        case '5':
+          return 5;
+        case '6':
+          return 6;
+        case '7':
+          return 7;
+        case '8':
+          return 8;
+        case '9':
+          return 9;
+        case 'a':
+        case 'A':
+          return 10;
+        case 'b':
+        case 'B':
+          return 11;
+        case 'c':
+        case 'C':
+          return 12;
+        case 'd':
+        case 'D':
+          return 13;
+        case 'e':
+        case 'E':
+          return 14;
+        case 'f':
+        case 'F':
+          return 15;
+      }
+
+      assert(0);
+      return 0;
+    }
+
+    inline char dec_to_hex(int value)
+    {
+      assert(value >= 0 && value < 16);
+
+      switch (value) {
+        case 0:
+          return '0';
+        case 1:
+          return '1';
+        case 2:
+          return '2';
+        case 3:
+          return '3';
+        case 4:
+          return '4';
+        case 5:
+          return '5';
+        case 6:
+          return '6';
+        case 7:
+          return '7';
+        case 8:
+          return '8';
+        case 9:
+          return '9';
+        case 10:
+          return 'a';
+        case 11:
+          return 'b';
+        case 12:
+          return 'c';
+        case 13:
+          return 'd';
+        case 14:
+          return 'e';
+        case 15:
+          return 'f';
+      }
+
+      assert(0);
+      return '0';
+    }
+
+  }
+
+  /**
+   * @brief Convert a hexadecimal string to a bit vector.
+   *
+   * Both upper case and lower case letters can be used for the hexadecimal
+   * bit vector.
+   *
+   * @pre There must be an even number of characters in the @p hex string
+   *      (i.e. half-byte or nibbles are not allowed). There may not be more
+   *      bytes in the hexadecimal string than the size of the bitvec. The
+   *      @p bitvec pointer must be valid.
+   * @code
+   * PRE(hex.size() / 16 <= numWords);
+   * @endcode
+   *
+   * @post @p bitvec will contain the bits specified by the hexadecimal string.
+   *
+   * @param hex The hexadecimal bit vector.
+   * @param bitvec The bit vector to store the result.
+   * @param numWords The number of words for @p bitvec.
+   */
+  inline void hex_to_bitvec(const std::string &hex, Word *bitvec, int numWords)
+  {
+    PRE(bitvec);
+    PRE((hex.size() % 2) == 0);
+    PRE(hex.size() / 16 <= numWords);
+
+    bitvec_zero(bitvec, numWords);
+
+    unsigned char *fp = reinterpret_cast<unsigned char*>(bitvec);
+
+    for (std::size_t i = 0; i < hex.size() / 2; ++i) {
+      fp[i] = impl::hex_to_dec(hex[2 * i]) << 4;
+      fp[i] += impl::hex_to_dec(hex[2 * i + 1]);
+    }
+  }
+
+  /**
+   * @brief Convert a bit vector to a hexadecimal string.
+   *
+   * Both upper case and lower case letters can be used for the hexadecimal
+   * bit vector.
+   *
+   * @pre The @p bitvec pointer must be valid.
+   *
+   * @param bitvec The bit vector to store the result.
+   * @param numWords The number of words for @p bitvec.
+   *
+   * @return The hexadecimal string containing the bits specified by the bit vector.
+   */
+  inline std::string bitvec_to_hex(const Word *bitvec, int numWords)
+  {
+    PRE(bitvec);
+    std::size_t bytes = numWords * sizeof(Word);
+    const unsigned char *fp = reinterpret_cast<const unsigned char*>(bitvec);
+
+    std::stringstream ss;
+    for (std::size_t i = 0; i < bytes; ++i)
+      ss << impl::dec_to_hex((fp[i] & 240) >> 4) << impl::dec_to_hex(fp[i] & 15);
+
+    return ss.str();
   }
 
 }

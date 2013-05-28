@@ -1,4 +1,4 @@
-#include "../src/util.h"
+#include <Helium/util.h>
 
 #include "test.h"
 

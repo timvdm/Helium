@@ -170,18 +170,20 @@ namespace Helium {
         //
         // check for incompatible arguments
         //
+#ifdef HAVE_CPP11
         if (brute && brute_mt) {
           std::cerr << "Options -brute and -brute-mt can not be used simultaneously, -brute will be ignored." << std::endl;
           brute = false;
         }
-        if (brute && args.IsArg("-k"))
-          std::cerr << "Option -k <n> has no effect when using option -brute, -k will be ignored." << std::endl;
         if (brute_mt && args.IsArg("-k"))
           std::cerr << "Option -k <n> has no effect when using option -brute-mt, -k will be ignored." << std::endl;
         if (brute && mt)
           std::cerr << "Option -mt has no effect when using option -brute, -mt will be ignored." << std::endl;
         if (brute_mt && mt)
           std::cerr << "Option -mt has no effect when using option -brute-mt, -mt will be ignored." << std::endl;
+#endif
+        if (brute && args.IsArg("-k"))
+          std::cerr << "Option -k <n> has no effect when using option -brute, -k will be ignored." << std::endl;
 
 
         //

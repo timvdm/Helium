@@ -300,6 +300,7 @@ namespace Helium {
             return get_atom(m_mol, i);
         }
         assert(0);
+        return atom_type();
       }
 
       bond_type bond(Index index) const
@@ -312,6 +313,7 @@ namespace Helium {
             return get_bond(m_mol, i);
         }
         assert(0);
+        return bond_type();
       }
 
       static Index null_index()

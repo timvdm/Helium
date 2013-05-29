@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2013, Tim Vandermeersch
  * All rights reserved.
  *
@@ -48,6 +48,11 @@ namespace Helium {
    * @param storage The fingerprints to search.
    * @param Tmin The minimum tanimoto score, must be in the range [0,1].
    * @param k When non-zero, this limits the number of requested results.
+   *
+   * @return The lists of hits as std::pair objects. The first element is the
+   *         index of the fingerprint in the storage and the second element in
+   *         the pair is the tanimoto between the query and the queried
+   *         fingerprint.
    */
   template<typename RowMajorFingerprintStorageType>
   std::vector<std::pair<unsigned int, double> > brute_force_similarity_search(const Word *query,
@@ -114,9 +119,25 @@ namespace Helium {
    * all fingerprints in the fingerprint sotrage. If the tanimoto is above the
    * specified threshold, it is added to the list of results.
    *
+   * Each thread searches a portion of the fingerprints in the storage and the
+   * found hits are later combined. The number of threads is determined by the
+   * result of the std::thread::hardware_concurrency() function. Although this
+   * function is faster than the single threaded brute force search (assuming
+   * the number of fingerprints in the storage is large enough), the
+   * SimularitySearchIndex class is still faster even using a single thread due
+   * to a superior indexing algorithm that avoids having to search all
+   * fingerprints in the storage.
+   *
+   * @note This function is only available when C++11 support is enabled.
+   *
    * @param query The query fingerprint.
    * @param storage The fingerprints to search.
    * @param Tmin The minimum tanimoto score, must be in the range [0,1].
+   *
+   * @return The lists of hits as std::pair objects. The first element is the
+   *         index of the fingerprint in the storage and the second element in
+   *         the pair is the tanimoto between the query and the queried
+   *         fingerprint.
    */
   template<typename RowMajorFingerprintStorageType>
   std::vector<std::pair<unsigned int, double> > brute_force_similarity_search_threaded(const Word *query,
@@ -124,23 +145,31 @@ namespace Helium {
   {
     TIMER("brute_force_fimilarity_search_threaded():");
 
+    unsigned numThreads = std::thread::hardware_concurrency();
+    // c++ implementations may return 0
+    if (!numThreads)
+      numThreads = 2;
+
     unsigned int numFingerprints = storage.numFingerprints();
-    unsigned int taskSize = numFingerprints / 4;
+    unsigned int taskSize = numFingerprints / numThreads;
 
-    auto future1 = std::async(impl::BruteForceSimilaritySearch<RowMajorFingerprintStorageType>(query, storage, 0, taskSize, Tmin));
-    auto future2 = std::async(impl::BruteForceSimilaritySearch<RowMajorFingerprintStorageType>(query, storage, taskSize, 2 * taskSize, Tmin));
-    auto future3 = std::async(impl::BruteForceSimilaritySearch<RowMajorFingerprintStorageType>(query, storage, 2 * taskSize, 3 * taskSize, Tmin));
-    auto future4 = std::async(impl::BruteForceSimilaritySearch<RowMajorFingerprintStorageType>(query, storage, 3 * taskSize, numFingerprints, Tmin));
+    typedef std::vector<std::pair<unsigned int, double> > SimilaritySearchResult;
 
-    std::vector<std::pair<unsigned int, double> > tmp;
-    std::vector<std::pair<unsigned int, double> > result(future1.get());
+    //
+    // launch threads
+    //
+    std::vector<std::future<SimilaritySearchResult> > futures;
+    for (unsigned i = 0; i < numThreads; ++i) {
+      unsigned int begin = i * taskSize;
+      unsigned int end = std::min(numFingerprints, (i + 1) * taskSize);
+      futures.push_back(std::async(impl::BruteForceSimilaritySearch<RowMajorFingerprintStorageType>(query, storage, begin, end, Tmin)));
+    }
 
-    tmp = future2.get();
-    std::copy(tmp.begin(), tmp.end(), std::back_inserter(result));
-    tmp = future3.get();
-    std::copy(tmp.begin(), tmp.end(), std::back_inserter(result));
-    tmp = future4.get();
-    std::copy(tmp.begin(), tmp.end(), std::back_inserter(result));
+    SimilaritySearchResult result;
+    for (unsigned i = 0; i < numThreads; ++i) {
+      SimilaritySearchResult tmp = futures[i].get();
+      std::copy(tmp.begin(), tmp.end(), std::back_inserter(result));
+    }
 
     return result;
   }
@@ -315,18 +344,29 @@ namespace Helium {
       }
 
     public:
+      /**
+       * @brief Constructor.
+       *
+       * @pre The @p k parameter must be greater than 1.
+       *
+       * @param storage The fingerprint storage to index.
+       * @param k The number of parts to divide the fingerprints in (optimal values range from 1 to 4.
+       */
       SimilaritySearchIndex(const FingerprintStorageType &storage, int k)
           : m_storage(storage), m_k(k), m_numBits(storage.numBits())
       {
+        PRE(k > 0);
         TIMER("Loading SimilaritySearchIndex:");
 
         m_tree = new TreeNode(m_numBits / m_k + 1);
 
         for (unsigned int i = 0; i < m_storage.numFingerprints(); ++i)
           findLeaf(m_storage.fingerprint(i)).push_back(i);
-
       }
 
+      /**
+       * @brief Destructor.
+       */
       ~SimilaritySearchIndex()
       {
         clearDFS(m_tree, 0);

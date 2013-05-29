@@ -159,33 +159,6 @@ namespace Helium {
         Json::StyledWriter writer;
         indexFile.writeHeader(writer.write(data));
 
-        /*
-        json << "{" << std::endl;
-        json << "  \"filetype\": \"fingerprints\"," << std::endl;
-        json << "  \"order\": \"row-major\"," << std::endl;
-        json << "  \"num_bits\": " << bits << "," << std::endl;
-        json << "  \"num_fingerprints\": " << file.numMolecules() << "," << std::endl;
-        json << "  \"fingerprint\": {" << std::endl;
-        json << "    \"name\": \"Helium::" << methodString.substr(1) << "_fingerprint (k = " << k << ", bits = " << bits << ")\"," << std::endl;
-        json << "    \"type\": \"Helium::" << methodString.substr(1) << "_fingerprint\"," << std::endl;
-        json << "    \"k\": " << k << "," << std::endl;
-        json << "    \"prime\": " << prime << std::endl;
-        json << "  }," << std::endl;
-        json << "  \"statistics\": {" << std::endl;
-        json << "    \"average_count\": " << average_count << "," << std::endl;
-        json << "    \"min_count\": " << min_count << "," << std::endl;
-        json << "    \"max_count\": " << max_count << std::endl;
-        json << "  }" << std::endl;
-        json << "}" << std::endl;
-
-        std::cerr << "JSON header:" << std::endl;
-        std::cerr << "--------------------------------------------------" << std::endl;
-        std::cerr << json.str();
-        std::cerr << "--------------------------------------------------" << std::endl;
-
-        // write JSON header
-        indexFile.writeHeader(json.str());
-        */
 
         return 0;
       }

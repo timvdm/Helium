@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2013, Tim Vandermeersch
  * All rights reserved.
  *
@@ -27,8 +27,13 @@
 #include "tool.h"
 
 #include <Helium/fingerprints/similarity.h>
-#include <Helium/smiles.h>
 #include <Helium/fileio/fingerprints.h>
+#include <Helium/fileio/fps.h>
+#include <Helium/smiles.h>
+
+#ifdef HAVE_CPP11
+#include <Helium/concurrent.h>
+#endif
 
 #include <json/json.h>
 
@@ -36,8 +41,7 @@
 
 namespace Helium {
 
-  template<typename MoleculeType>
-  Word* compute_fingerprint(const std::string &settings, MoleculeType &mol)
+  Word* compute_fingerprint(const std::string &settings, const std::string &smiles)
   {
     Json::Reader reader;
     Json::Value data;
@@ -46,6 +50,9 @@ namespace Helium {
       std::cerr << reader.getFormattedErrorMessages() << std::endl;
       return 0;
     }
+
+    HeMol mol;
+    parse_smiles(smiles, mol);
 
     int bits = data["num_bits"].asInt();
     int words = bitvec_num_words_for_bits(bits);
@@ -77,47 +84,60 @@ namespace Helium {
   }
 
 
-  void runInteractive(InMemoryRowMajorFingerprintStorage &storage, double Tmin, int k)
+  bool is_fps_file(const std::string &filename)
   {
-    SimilaritySearchIndex<InMemoryRowMajorFingerprintStorage> index(storage, k);
-
-    while (true) {
-      std::string smiles;
-      std::cout << "Query (SMILES): ";
-      std::cin >> smiles;
-
-      if (smiles == "exit")
-        return;
-
-      // compute query fingerprint
-      HeMol query;
-      parse_smiles(smiles, query);
-      Word *queryFingerprint = compute_fingerprint(storage.header(), query);
-
-      // perform search
-      std::vector<std::pair<unsigned int, double> > result;
-      result = index.search(queryFingerprint, Tmin);
-
-      // deallocate fingerprint
-      if (queryFingerprint)
-        delete [] queryFingerprint;
-
-      std::sort(result.begin(), result.end(), compare_first<unsigned int, double>());
-
-      // print results
-      Json::Value data;
-      data["hits"] = Json::Value(Json::arrayValue);
-      for (std::size_t i = 0; i < result.size(); ++i) {
-        data["hits"][Json::ArrayIndex(i)] = Json::Value(Json::objectValue);
-        Json::Value &obj = data["hits"][Json::ArrayIndex(i)];
-        obj["index"] = result[i].first;
-        obj["tanimoto"] = result[i].second;
-      }
-
-      Json::StyledWriter writer;
-      std::cout << writer.write(data);
-    }
+    std::ifstream ifs(filename.c_str());
+    if (!ifs)
+      return false;
+    std::string line;
+    std::getline(ifs, line);
+    return line == "#FPS1";
   }
+
+  bool load_queries(const std::string &query, const std::string &storage_header, std::vector<Word*> &queries)
+  {
+    if (is_fps_file(query)) {
+      // load fps file
+      FpsFile fpsFile;
+      fpsFile.load(query);
+
+      // copy fingerprints
+      int numWords = bitvec_num_words_for_bits(fpsFile.numBits());
+      for (unsigned int i = 0; i < fpsFile.numFingerprints(); ++i)
+        queries.push_back(bitvec_copy(fpsFile.fingerprint(i), numWords));
+    } else {
+      // query is SMILES
+      Word *fingerprint = compute_fingerprint(storage_header, query);
+      if (!fingerprint)
+        return false;
+      queries.push_back(fingerprint);
+    }
+
+    return queries.size();
+  }
+
+  void free_queries(std::vector<Word*> &queries)
+  {
+    for (std::size_t i = 0; i < queries.size(); ++i)
+      delete [] queries[i];
+  }
+
+  template<typename FingerprintStorageType>
+  struct RunSimilaritySearch
+  {
+    RunSimilaritySearch(const SimilaritySearchIndex<FingerprintStorageType> &index_, double Tmin_)
+      : index(index_), Tmin(Tmin_)
+    {
+    }
+
+    void operator()(const Word *query, std::vector<std::pair<unsigned int, double> > &result) const
+    {
+      result = index.search(query, Tmin);
+    }
+
+    const SimilaritySearchIndex<FingerprintStorageType> &index;
+    const double Tmin;
+  };
 
   class SimilarityTool : public HeliumTool
   {
@@ -127,20 +147,46 @@ namespace Helium {
        */
       int run(int argc, char **argv)
       {
-        ParseArgs args(argc, argv, ParseArgs::Args("-Tmin(number)", "-brute", "-brute-mt", 
+        //
+        // Argument handling
+        //
+        ParseArgs args(argc, argv, ParseArgs::Args("-Tmin(number)", "-brute",
+#ifdef HAVE_CPP11
+              "-brute-mt", "-mt",
+#endif
               "-k(number)"), ParseArgs::Args("query", "fingerprint_file"));
         // optional arguments
-        const double Tmin = args.IsArg("-Tmin") ? args.GetArgDouble("-Tmin", 0) : 0.7;
-        const bool brute = args.IsArg("-brute");
+        const double Tmin = args.IsArg("-Tmin") ? args.GetArgDouble("-Tmin", 0) - 10e-5 : 0.7 - 10e-5;
+        bool brute = args.IsArg("-brute");
 #ifdef HAVE_CPP11
         const bool brute_mt = args.IsArg("-brute-mt");
+        const bool mt = args.IsArg("-mt");
 #endif
         const int k = args.IsArg("-k") ? args.GetArgInt("-k", 0) : 3;
         // required arguments
-        std::string smiles = args.GetArgString("query");
+        std::string query = args.GetArgString("query");
         std::string filename = args.GetArgString("fingerprint_file");
 
+        //
+        // check for incompatible arguments
+        //
+        if (brute && brute_mt) {
+          std::cerr << "Options -brute and -brute-mt can not be used simultaneously, -brute will be ignored." << std::endl;
+          brute = false;
+        }
+        if (brute && args.IsArg("-k"))
+          std::cerr << "Option -k <n> has no effect when using option -brute, -k will be ignored." << std::endl;
+        if (brute_mt && args.IsArg("-k"))
+          std::cerr << "Option -k <n> has no effect when using option -brute-mt, -k will be ignored." << std::endl;
+        if (brute && mt)
+          std::cerr << "Option -mt has no effect when using option -brute, -mt will be ignored." << std::endl;
+        if (brute_mt && mt)
+          std::cerr << "Option -mt has no effect when using option -brute-mt, -mt will be ignored." << std::endl;
+
+
+        //
         // open fingerprint file
+        //
         InMemoryRowMajorFingerprintStorage storage;
         try {
           storage.load(filename);
@@ -149,44 +195,72 @@ namespace Helium {
           return -1;
         }
 
-        if (smiles == "interactive") {
-          runInteractive(storage, Tmin, k);
-          return 0;
+        //
+        // load queries
+        //
+        std::vector<Word*> queries;
+        if (!load_queries(query, storage.header(), queries)) {
+          std::cerr << "Could not load queries" << std::endl;
+          return -1;
         }
 
-        // compute query fingerprint
-        HeMol query;
-        parse_smiles(smiles, query);
-        Word *queryFingerprint = compute_fingerprint(storage.header(), query);
-
+        //
         // perform search
-        std::vector<std::pair<unsigned int, double> > result;
+        //
+        std::vector<std::vector<std::pair<unsigned int, double> > > result(queries.size());
 #ifdef HAVE_CPP11
         if (brute_mt) {
-          result = brute_force_similarity_search_threaded(queryFingerprint, storage, Tmin);
+          for (std::size_t i = 0; i < queries.size(); ++i)
+            result[i] = brute_force_similarity_search_threaded(queries[i], storage, Tmin);
         } else
 #endif
         if (brute) {
-          result = brute_force_similarity_search(queryFingerprint, storage, Tmin);
+          for (std::size_t i = 0; i < queries.size(); ++i)
+            result[i] = brute_force_similarity_search(queries[i], storage, Tmin);
         } else {
           SimilaritySearchIndex<InMemoryRowMajorFingerprintStorage> index(storage, k);
-          result = index.search(queryFingerprint, Tmin);
+#ifdef HAVE_CPP11
+          if (mt) {
+            // run searches in concurrently using multiple threads
+            typedef RunSimilaritySearch<InMemoryRowMajorFingerprintStorage> CallableType;
+            typedef Word* TaskType;
+            typedef std::vector<std::pair<unsigned int, double> > ResultType;
+
+            Concurrent<const CallableType&, TaskType, ResultType> concurrent;
+            concurrent.run(CallableType(index, Tmin), queries, result);
+          } else {
+            // run all searches sequentially using a single thread
+            for (std::size_t i = 0; i < queries.size(); ++i)
+              result[i] = index.search(queries[i], Tmin);
+          }
+#else
+          // run all searches sequentially using a single thread
+          for (std::size_t i = 0; i < queries.size(); ++i)
+            result[i] = index.search(queries[i], Tmin);
+#endif
         }
 
         // deallocate fingerprint
-        if (queryFingerprint)
-          delete [] queryFingerprint;
+        free_queries(queries);
 
-        std::sort(result.begin(), result.end(), compare_first<unsigned int, double>());
+        // sort the results
+        for (std::size_t i = 0; i < queries.size(); ++i)
+          std::sort(result[i].begin(), result[i].end(), compare_first<unsigned int, double>());
 
+
+        //
         // print results
+        //
         Json::Value data;
         data["hits"] = Json::Value(Json::arrayValue);
         for (std::size_t i = 0; i < result.size(); ++i) {
-          data["hits"][Json::ArrayIndex(i)] = Json::Value(Json::objectValue);
-          Json::Value &obj = data["hits"][Json::ArrayIndex(i)];
-          obj["index"] = result[i].first;
-          obj["tanimoto"] = result[i].second;
+          data["hits"][Json::ArrayIndex(i)] = Json::Value(Json::arrayValue);
+          for (std::size_t j = 0; j < result[i].size(); ++j) {
+            data["hits"][Json::ArrayIndex(i)][Json::ArrayIndex(j)] = Json::Value(Json::objectValue);
+            Json::Value &obj = data["hits"][Json::ArrayIndex(i)][Json::ArrayIndex(j)];
+            obj["index"] = result[i][j].first;
+            obj["tanimoto"] = result[i][j].second;
+          }
         }
 
         Json::StyledWriter writer;
@@ -196,7 +270,7 @@ namespace Helium {
       }
 
   };
-  
+
   class SimilarityToolFactory : public HeliumToolFactory
   {
     public:
@@ -220,6 +294,7 @@ namespace Helium {
         ss << "    -brute        Do brute force search (default is to use index)" << std::endl;
 #ifdef HAVE_CPP11
         ss << "    -brute-mt     Do threaded brute force search (default is to use index)" << std::endl;
+        ss << "    -mt           Do threaded index search (default is not to use threads)" << std::endl;
 #endif
         ss << "    -k <n>        When using an index (i.e. no -brute), specify the dimension for the kD-grid (default is 3)" << std::endl;
         ss << std::endl;

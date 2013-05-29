@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2013, Tim Vandermeersch
  * All rights reserved.
  *
@@ -298,11 +298,11 @@ namespace Helium {
    *
    * @pre Both bitvec1 and bitvec2 pointers must be valid.
    *
-   * @param bitvec The bit vector.
-   * @param begin The first bit index.
-   * @param end The one-past-the-end bit index.
+   * @param bitvec1 The first bit vector.
+   * @param bitvec2 The first bit vector.
+   * @param numWords The number of words in the bit vectors.
    *
-   * @return The bit count for the range [begin,end).
+   * @return The population count for the union of @p bitvec1 and @p bitvec2.
    */
   inline int bitvec_union_count(const Word *bitvec1, const Word *bitvec2, int numWords)
   {

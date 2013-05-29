@@ -12,6 +12,8 @@
 
 namespace Helium {
 
+  //@cond dev
+
   namespace impl {
 
     template<typename HeAtomType, typename HeBondType>
@@ -450,8 +452,6 @@ namespace Helium {
   typedef impl::HeAtom<HeMol> HeAtom;
   typedef impl::HeBond<HeMol> HeBond;
 
-  //@cond dev
-
   //////////////////////////////////////////////////////////////////////////////
   //
   // Molecule
@@ -613,8 +613,6 @@ namespace Helium {
     return mol.null_bond();
   }
 
-  //@endcond
-
   /**
    * @brief STL output stream operator for HeMol.
    */
@@ -646,6 +644,8 @@ namespace Helium {
     os << "HeBond(" << bond.index() << ")";
     return os;
   }
+
+  //@endcond
 
 }
 

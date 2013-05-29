@@ -3,6 +3,8 @@
 
 namespace Helium {
 
+  //@cond dev
+
   struct NullType {};
   typedef NullType EmptyType;
 
@@ -132,6 +134,8 @@ namespace Helium {
    */
   template<int Expr, typename IfTrueType, typename IfFalseType>
   struct Select { typedef typename SelectHelper<IfTrueType, IfFalseType, Expr>::result result; };
+
+  //@endcond
 
 }
 

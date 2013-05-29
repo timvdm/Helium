@@ -5,6 +5,8 @@
 
 namespace Helium {
 
+  //@cond dev
+
   template<typename T1, typename T2, template<typename> class Compare = std::less>
   struct compare_first
   {
@@ -105,6 +107,8 @@ namespace Helium {
     Property<T> property;
     Compare<typename Property<T>::property_type> compare;
   };
+
+  //@endcond
 
 }
 

@@ -9,6 +9,8 @@
 
 namespace std {
 
+  //@cond dev
+
   template<typename T>
   std::ostream& operator<<(std::ostream &os, const std::vector<T> &v)
   {
@@ -99,6 +101,8 @@ namespace Helium {
     assert(pos != v.end());
     return pos - v.begin();
   }
+
+  //@endcond
 
 }
 

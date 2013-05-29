@@ -6,6 +6,8 @@
 
 namespace Helium {
 
+  //@cond dev
+
   template<typename T>
   void write64(std::ostream &os, T value)
   {
@@ -62,6 +64,8 @@ namespace Helium {
     StaticAssert<sizeof(T) == sizeof(char)>();
     is.read(reinterpret_cast<char*>(&value), sizeof(unsigned char));
   }
+
+  //@endcond
 
 }
 

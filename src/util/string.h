@@ -7,6 +7,8 @@
 
 namespace Helium {
 
+  //@cond dev
+
   /**
    * Strings
    */
@@ -169,6 +171,8 @@ namespace Helium {
 
     return tokens;
   }
+
+  //@endcond
 
 }
 

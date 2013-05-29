@@ -6,6 +6,8 @@
 
 set(Helium_HDRS
   bitvec.h
+  contract.h
+  concurrent.h
   molecule.h
   substructure.h
   tie.h
@@ -32,6 +34,7 @@ set(Helium_HDRS
   # fileio
   fileio/file.h
   fileio/fingerprints.h
+  fileio/fps.h
   fileio/molecules.h
   # fingerprints
   fingerprints/fingerprints.h

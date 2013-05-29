@@ -54,6 +54,7 @@ endif()
 
 set(tools
   #  opencl
+  fps2hel
 )
 
 foreach(tool ${tools})

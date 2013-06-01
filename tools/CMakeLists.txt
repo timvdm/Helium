@@ -16,6 +16,7 @@ set(helium_tool_SRCS
   fold.cpp
   transpose.cpp
   similarity.cpp
+  sort.cpp
   substructure.cpp
 )
 

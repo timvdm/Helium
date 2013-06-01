@@ -373,6 +373,12 @@ namespace Helium {
         //delete m_tree;
       }
 
+#ifdef HAVE_CPP11
+      // do not allow SimilaritySearchIndex to be copied
+      SimilaritySearchIndex(const SimilaritySearchIndex<FingerprintStorageType> &other) = delete;
+      SimilaritySearchIndex<FingerprintStorageType>& operator=(const SimilaritySearchIndex<FingerprintStorageType> &other) = delete;
+#endif
+
       std::vector<std::pair<unsigned int, double> > search(const Word *fingerprint, double threshold, unsigned int maxResults = 0) const
       {
         TIMER("SimilaritySearchIndex::search():");
@@ -396,6 +402,12 @@ namespace Helium {
       }
 
     private:
+#ifndef HAVE_CPP11
+      // do not allow SimilaritySearchIndex to be copied
+      SimilaritySearchIndex(const SimilaritySearchIndex<FingerprintStorageType> &other);
+      SimilaritySearchIndex<FingerprintStorageType>& operator=(const SimilaritySearchIndex<FingerprintStorageType> &other);
+#endif
+
       const FingerprintStorageType &m_storage; //!< Fingerprint storage
       TreeNode *m_tree; //!< Tree root node
       int m_k; //!< Dimentionality of the kD-grid

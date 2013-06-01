@@ -122,6 +122,7 @@ namespace Helium {
       delete [] queries[i];
   }
 
+  // functor used by Concurrent
   template<typename FingerprintStorageType>
   struct RunSimilaritySearch
   {
@@ -138,6 +139,16 @@ namespace Helium {
     const SimilaritySearchIndex<FingerprintStorageType> &index;
     const double Tmin;
   };
+
+  // alternative method for making similarity search threaded
+  template<typename FingerprintStorageType>
+  void run_similarity_search(const SimilaritySearchIndex<FingerprintStorageType> &index, double Tmin,
+      const std::vector<Word*> &queries, std::vector<std::vector<std::pair<unsigned int, double> > > &result,
+      unsigned int begin, unsigned int end)
+  {
+    for (unsigned int i = begin; i < end; ++i)
+      result[i] = index.search(queries[i], Tmin);
+  }
 
   class SimilarityTool : public HeliumTool
   {
@@ -223,6 +234,28 @@ namespace Helium {
           SimilaritySearchIndex<InMemoryRowMajorFingerprintStorage> index(storage, k);
 #ifdef HAVE_CPP11
           if (mt) {
+            /*
+            // run searches in concurrently using multiple threads
+            unsigned numThreads = std::thread::hardware_concurrency();
+            // c++ implementations may return 0
+            if (!numThreads)
+              numThreads = 2;
+
+            unsigned int taskSize = queries.size() / numThreads;
+
+            std::vector<std::thread> threads;
+            for (int i = 0; i < numThreads; ++i) {
+              unsigned int begin = i * taskSize;
+              unsigned int end = std::min(static_cast<unsigned int>(queries.size()), (i + 1) * taskSize);
+              std::cout << "(" << begin << ", " << end << ")" << std::endl;
+              threads.push_back(std::thread(run_similarity_search<InMemoryRowMajorFingerprintStorage>,
+                    std::ref(index), Tmin, std::ref(queries), std::ref(result), begin, end));
+            }
+
+            for (auto &thread : threads)
+              thread.join();
+            */
+
             // run searches in concurrently using multiple threads
             typedef RunSimilaritySearch<InMemoryRowMajorFingerprintStorage> CallableType;
             typedef Word* TaskType;

@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2013, Tim Vandermeersch
  * All rights reserved.
  *

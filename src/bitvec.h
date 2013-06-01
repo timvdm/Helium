@@ -38,6 +38,11 @@
 namespace Helium {
 
   /**
+   * @defgroup bitvec_group Bit Vector Functions
+   * @{
+   */
+
+  /**
    * @file bitvec.h
    * @brief Functions for working with bit vectors.
    */
@@ -830,6 +835,8 @@ namespace Helium {
 
     return ss.str();
   }
+
+  //@}
 
 }
 

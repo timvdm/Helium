@@ -1,3 +1,29 @@
+/*
+ * Copyright (c) 2013, Tim Vandermeersch
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *     * Redistributions of source code must retain the above copyright
+ *       notice, this list of conditions and the following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright
+ *       notice, this list of conditions and the following disclaimer in the
+ *       documentation and/or other materials provided with the distribution.
+ *     * Neither the name of the <organization> nor the
+ *       names of its contributors may be used to endorse or promote products
+ *       derived from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL <COPYRIGHT HOLDER> BE LIABLE FOR ANY
+ * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 #ifndef HELIUM_SUBSTRUCTURE_H
 #define HELIUM_SUBSTRUCTURE_H
 
@@ -222,6 +248,8 @@ namespace Helium {
   class Substructure
   {
     public:
+      // @cond dev
+
       typedef MoleculeType molecule_type;
 
       typedef typename molecule_traits<molecule_type>::atom_type atom_type;
@@ -231,11 +259,11 @@ namespace Helium {
       typedef impl::substructure_bond_iterator<Substructure> bond_iter;
       typedef impl::substructure_incident_iterator<Substructure> incident_iter;
       typedef impl::substructure_nbr_iterator<Substructure> nbr_iter;
-      
+
       typedef impl::substructure_atom_iterator<Substructure> const_atom_iter;
       typedef impl::substructure_bond_iterator<Substructure> const_bond_iter;
 
-      Substructure(molecule_type &mol, const std::vector<bool> &atoms,                      
+      Substructure(molecule_type &mol, const std::vector<bool> &atoms,
           const std::vector<bool> &bonds) : m_mol(mol),
           m_atoms(atoms), m_bonds(bonds)
       {
@@ -243,7 +271,7 @@ namespace Helium {
         assert(bonds.size() == num_bonds(mol));
         m_numAtoms = std::count(atoms.begin(), atoms.end(), true);
         m_numBonds = std::count(bonds.begin(), bonds.end(), true);
-        
+
         typename molecule_traits<molecule_type>::atom_iter atom, end_atoms;
         tie(atom, end_atoms) = get_atoms(mol);
         Index index = 0;
@@ -252,7 +280,7 @@ namespace Helium {
             m_atomIndices.push_back(index++);
           else
             m_atomIndices.push_back(-1);
-        
+
         typename molecule_traits<molecule_type>::bond_iter bond, end_bonds;
         tie(bond, end_bonds) = get_bonds(mol);
         index = 0;
@@ -320,7 +348,7 @@ namespace Helium {
       {
         return -1;
       }
-      
+
       static atom_type null_atom()
       {
         return molecule_traits<molecule_type>::null_atom();
@@ -364,6 +392,8 @@ namespace Helium {
       std::vector<bool> m_bonds;
       std::vector<Index> m_atomIndices;
       std::vector<Index> m_bondIndices;
+
+      //@endcond
   };
 
   //@cond dev
@@ -527,10 +557,10 @@ namespace Helium {
   {
     return get_target(mol.mol(), bond);
   }
-  
+
   template<typename SubstructureType>
-  typename molecule_traits<SubstructureType>::atom_type get_other(const SubstructureType &mol, 
-                                                     typename molecule_traits<SubstructureType>::bond_type bond, 
+  typename molecule_traits<SubstructureType>::atom_type get_other(const SubstructureType &mol,
+                                                     typename molecule_traits<SubstructureType>::bond_type bond,
                                                      typename molecule_traits<SubstructureType>::atom_type atom)
   {
     return get_other(mol.mol(), bond, atom);

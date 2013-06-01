@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2013, Tim Vandermeersch
  * All rights reserved.
  *
@@ -27,7 +27,7 @@
 #ifndef HELIUM_XXX_H
 #define HELIUM_XXX_H
 
-#include "molecule.h"
+#include <Helium/molecule.h>
 
 namespace Helium {
  

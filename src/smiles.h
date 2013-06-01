@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2013, Tim Vandermeersch
  * All rights reserved.
  *
@@ -70,6 +70,15 @@ namespace Helium {
 
   }
 
+  /**
+   * @brief Parse a SMILES string.
+   *
+   * @tparam MoleculeType The type of the molecule, this must be a model of the
+   *         Molecule concept.
+   *
+   * @param smiles The SMILES string.
+   * @param mol The molecule.
+   */
   template<typename MoleculeType>
   void parse_smiles(const std::string &smiles, MoleculeType &mol)
   {

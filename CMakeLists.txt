@@ -15,8 +15,8 @@ include_directories(${CMAKE_SOURCE_DIR}/src/thirdparty)
 include_directories(${CMAKE_SOURCE_DIR}/src/thirdparty/jsoncpp)
 
 # Find and setup boost (required)
-find_package(Boost 1.48 COMPONENTS timer system iostreams REQUIRED)
-include_directories(${BOOST_INCLUDE_DIR})
+find_package(Boost 1.48 COMPONENTS chrono timer system iostreams REQUIRED)
+include_directories(${Boost_INCLUDE_DIR})
 
 # Find and setup Eigen3 (optional)
 find_package(Eigen3)
@@ -32,7 +32,7 @@ if (ENABLE_OPENCL)
   if (OPENCL_FOUND)
     message(STATUS "OpenCL found: enabling OpenCL features...")
     add_definitions(-DHAVE_OPENCL)
-    include_directories(${OPENCL_INCLUDE_DIR})
+    include_directories(${OPENCL_INCLUDE_DIRS})
   endif()
 endif()
 
@@ -43,7 +43,10 @@ endif()
 ############################################################
 
 # compiler options
-set(CMAKE_CXX_FLAGS "-g -pedantic -Wall -Wno-long-long -Wno-sign-compare ${CMAKE_CXX_FLAGS}")
+if (MSVC)
+else()
+  set(CMAKE_CXX_FLAGS "-g -pedantic -Wall -Wno-long-long -Wno-sign-compare ${CMAKE_CXX_FLAGS}")
+endif()
 
 # C++11 (optional) [only seems to work with clang on mac for now]
 option(ENABLE_CPP11 "Enable C++11 features" OFF)

@@ -250,7 +250,7 @@ namespace Helium {
     for (int i = 0; i < numWords; ++i) {
       Word bit = 1;
       for (int j = 0; j < BitsPerWord; ++j) {
-        if (bit & word)
+        if (bit & bitvec[i])
           ++count;
         bit <<= 1;
       }
@@ -425,7 +425,7 @@ namespace Helium {
     PRE(bitvec1);
     PRE(bitvec2);
     int andCount = bitvec_union_count(bitvec1, bitvec2, numWords);
-    return static_cast<double>(andCount) / std::sqrt(bitCount1 * bitCount2);
+    return static_cast<double>(andCount) / std::sqrt(static_cast<double>(bitCount1 * bitCount2));
   }
 
   /**
@@ -448,7 +448,7 @@ namespace Helium {
     PRE(bitvec1);
     PRE(bitvec2);
     int andCount = bitvec_union_count(bitvec1, bitvec2, numWords);
-    return static_cast<double>(andCount) / std::sqrt(bitvec_count(bitvec1, numWords) * bitvec_count(bitvec2, numWords));
+    return static_cast<double>(andCount) / std::sqrt(static_cast<double>(bitvec_count(bitvec1, numWords) * bitvec_count(bitvec2, numWords)));
   }
 
   /**

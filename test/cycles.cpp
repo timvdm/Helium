@@ -26,7 +26,7 @@ void test_cycle_membership(const std::string &filename)
     cycle_membership(mol, cyclic_atoms, cyclic_bonds);
 
     HeMol::atom_iter atom, end_atom;
-    tie(atom, end_atom) = get_atoms(mol);
+    TIE(atom, end_atom) = get_atoms(mol);
     for (; atom != end_atom; ++atom) {
       if (is_cyclic(mol, *atom))
         COMPARE(true, cyclic_atoms[get_index(mol, *atom)]);
@@ -35,7 +35,7 @@ void test_cycle_membership(const std::string &filename)
     }
 
     HeMol::bond_iter bond, end_bond;
-    tie(bond, end_bond) = get_bonds(mol);
+    TIE(bond, end_bond) = get_bonds(mol);
     for (; bond != end_bond; ++bond) {
       if (is_cyclic(mol, *bond))
         COMPARE(true, cyclic_bonds[get_index(mol, *bond)]);

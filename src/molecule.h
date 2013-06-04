@@ -31,22 +31,22 @@
 
 #define FOREACH_ATOM(atom, mol, molecule_type) \
   typename molecule_traits<molecule_type>::atom_iter atom, end_##atom##__; \
-  tie(atom, end_##atom##__) = get_atoms(mol); \
+  TIE(atom, end_##atom##__) = get_atoms(mol); \
   for (; atom != end_##atom##__; ++atom)
 
 #define FOREACH_BOND(bond, mol, molecule_type) \
   typename molecule_traits<molecule_type>::bond_iter bond, end_##bond##__; \
-  tie(bond, end_##bond##__) = get_bonds(mol); \
+  TIE(bond, end_##bond##__) = get_bonds(mol); \
   for (; bond != end_##bond##__; ++bond)
 
 #define FOREACH_NBR(nbr, atom, mol, molecule_type) \
   typename molecule_traits<molecule_type>::nbr_iter nbr, end_##nbr##__; \
-  tie(nbr, end_##nbr##__) = get_nbrs(mol, atom); \
+  TIE(nbr, end_##nbr##__) = get_nbrs(mol, atom); \
   for (; nbr != end_##nbr##__; ++nbr)
 
 #define FOREACH_INCIDENT(bond, atom, mol, molecule_type) \
   typename molecule_traits<molecule_type>::incident_iter bond, end_##bond##__; \
-  Helium::tie(bond, end_##bond##__) = get_bonds(mol, atom); \
+  TIE(bond, end_##bond##__) = get_bonds(mol, atom); \
   for (; bond != end_##bond##__; ++bond)
 
 

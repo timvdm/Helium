@@ -51,7 +51,7 @@ namespace Helium {
     visitedAtoms[get_index(mol, atom)] = true;
 
     incident_iter bond, end_bonds;
-    tie(bond, end_bonds) = get_bonds(mol, atom);
+    TIE(bond, end_bonds) = get_bonds(mol, atom);
     for (; bond != end_bonds; ++bond) {
       if (visitedBonds[get_index(mol, *bond)])
         continue;
@@ -76,7 +76,7 @@ namespace Helium {
     std::vector<bool> visitedBonds(num_bonds(mol));
 
     atom_iter atom, end_atoms;
-    tie(atom, end_atoms) = get_atoms(mol);
+    TIE(atom, end_atoms) = get_atoms(mol);
     for (; atom != end_atoms; ++atom) {
       if (visitedAtoms[get_index(mol, *atom)])
         continue;
@@ -275,7 +275,7 @@ namespace Helium {
 
         // set up the initial set of subgraphs
         atom_iter atom, end_atoms;
-        tie(atom, end_atoms) = get_atoms(mol);
+        TIE(atom, end_atoms) = get_atoms(mol);
         for (; atom != end_atoms; ++atom) {
           // make an initial subgraph with the atom and no bonds
           std::vector<bool> atoms(num_atoms(mol));
@@ -292,7 +292,7 @@ namespace Helium {
 
           // for each bond in the molecule
           bond_iter bond, end_bonds;
-          tie(bond, end_bonds) = get_bonds(mol);
+          TIE(bond, end_bonds) = get_bonds(mol);
           for (; bond != end_bonds; ++bond) {
             // skip the bond if it is already in the subgraph
             if (subgraph.bonds[get_index(mol, *bond)])
@@ -389,7 +389,7 @@ namespace Helium {
           continue;
 
         incident_iter bond, end_bonds;
-        Helium::tie(bond, end_bonds) = get_bonds(mol, get_atom(mol, i));
+        TIE(bond, end_bonds) = get_bonds(mol, get_atom(mol, i));
         for (; bond != end_bonds; ++bond) {
           if (visited[get_index(mol, *bond)])
             continue;
@@ -492,7 +492,7 @@ namespace Helium {
     // seeds[i] starts with bond i and bonds 0-i will not be used to extend the seed
     // for each seed, we also keep track of all possible ways to extend it
     bond_iter bond, end_bonds;
-    tie(bond, end_bonds) = get_bonds(mol);
+    TIE(bond, end_bonds) = get_bonds(mol);
     for (; bond != end_bonds; ++bond) {
       visited[get_index(mol, *bond)] = true;
 

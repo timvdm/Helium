@@ -66,7 +66,7 @@ namespace Helium {
         {
           // enumerate the paths starting from each atom
           atom_iter atom, end_atoms;
-          tie(atom, end_atoms) = get_atoms(m_mol);
+          TIE(atom, end_atoms) = get_atoms(m_mol);
           for (; atom != end_atoms; ++atom) {
             std::vector<unsigned int> path;
             enumerate(*atom, path);
@@ -100,7 +100,7 @@ namespace Helium {
           if (path.size() < m_size) {
             // create new paths by adding neighbors of atom
             nbr_iter nbr, end_nbrs;
-            tie(nbr, end_nbrs) = get_nbrs(m_mol, atom);
+            TIE(nbr, end_nbrs) = get_nbrs(m_mol, atom);
             for (; nbr != end_nbrs; ++nbr) {
               if (std::find(path.begin(), path.end(), get_index(m_mol, *nbr)) != path.end())
                 continue;

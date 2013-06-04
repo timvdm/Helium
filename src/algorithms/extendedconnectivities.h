@@ -44,10 +44,10 @@ namespace Helium {
 
       std::vector<unsigned long> next(ec.size());
       atom_iter atom, end_atoms;
-      tie(atom, end_atoms) = get_atoms(mol);
+      TIE(atom, end_atoms) = get_atoms(mol);
       for (; atom != end_atoms; ++atom) {
         nbr_iter nbr, end_nbrs;
-        tie(nbr, end_nbrs) = get_nbrs(mol, *atom);
+        TIE(nbr, end_nbrs) = get_nbrs(mol, *atom);
         for (; nbr != end_nbrs; ++nbr)
           next[get_index(mol, *atom)] += ec[get_index(mol, *nbr)];
       }
@@ -92,7 +92,7 @@ Doc. 1965, 5: 107-112.
     // initial atom invariants
     std::vector<unsigned long> ec;
     atom_iter atom, end_atoms;
-    tie(atom, end_atoms) = get_atoms(mol);
+    TIE(atom, end_atoms) = get_atoms(mol);
     for (; atom != end_atoms; ++atom)
       ec.push_back(atom_invariant(mol, *atom));
 

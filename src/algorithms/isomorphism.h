@@ -186,7 +186,7 @@ namespace Helium {
         void dfsBonds(query_atom_type atom, std::vector<bool> &visited)
         {
           query_incident_iter bond, end_bonds;
-          Helium::tie(bond, end_bonds) = get_bonds(m_query, atom);
+          TIE(bond, end_bonds) = get_bonds(m_query, atom);
           for (; bond != end_bonds; ++bond) {
             if (visited[get_index(m_query, *bond)])
               continue;
@@ -235,7 +235,7 @@ namespace Helium {
             std::cout << "mapping bond: " << get_index(m_query, querySource) << "-" << get_index(m_query, queryTarget) << std::endl;
 
           incident_iter bond, end_bonds;
-          Helium::tie(bond, end_bonds) = get_bonds(m_mol, atom);
+          TIE(bond, end_bonds) = get_bonds(m_mol, atom);
           for (; bond != end_bonds; ++bond) {
             if (!m_bondMatcher(m_query, queryBond, m_mol, *bond))
               continue;
@@ -306,7 +306,7 @@ namespace Helium {
             query_atom_type queryAtom = get_atom(m_query, 0);
 
             atom_iter atom, end_atoms;
-            Helium::tie(atom, end_atoms) = get_atoms(m_mol);
+            TIE(atom, end_atoms) = get_atoms(m_mol);
             for (; atom != end_atoms; ++atom) {
               if (!m_atomMatcher(m_query, queryAtom, m_mol, *atom))
                 continue;
@@ -332,7 +332,7 @@ namespace Helium {
             // try to match each atom in the molecule against the first atom
             // epxression in the SMARTS
             atom_iter atom, end_atoms;
-            Helium::tie(atom, end_atoms) = get_atoms(m_mol);
+            TIE(atom, end_atoms) = get_atoms(m_mol);
             for (; atom != end_atoms; ++atom) {
               if (!m_atomMatcher(m_query, queryAtom, m_mol, *atom))
                 continue;

@@ -648,13 +648,13 @@ namespace Helium {
     os << "Molecule:" << std::endl;
     os << "    Atoms:\tindex\telement" << std::endl;
     molecule_traits<HeMol>::atom_iter atom, end_atoms;
-    tie(atom, end_atoms) = mol.atoms();
+    TIE(atom, end_atoms) = mol.atoms();
     for (; atom != end_atoms; ++atom)
       os << "          \t" << (*atom).index() << "\t" << (*atom).element() << std::endl;
 
     os << "    Bonds:\tsource\ttarget\torder" << std::endl;
     molecule_traits<HeMol>::bond_iter bond, end_bonds;
-    tie(bond, end_bonds) = mol.bonds();
+    TIE(bond, end_bonds) = mol.bonds();
     for (; bond != end_bonds; ++bond)
       os << "          \t" << (*bond).source().index() << "\t" << (*bond).target().index() << "\t" << (*bond).order() << std::endl;
     return os;

@@ -35,6 +35,9 @@
 #include <future>
 #endif
 
+#undef TIMER
+#define TIMER(msg)
+
 namespace Helium {
 
   /**
@@ -151,7 +154,7 @@ namespace Helium {
       numThreads = 2;
 
     unsigned int numFingerprints = storage.numFingerprints();
-    unsigned int taskSize = numFingerprints / numThreads;
+    unsigned int taskSize = numFingerprints / numThreads + 1;
 
     typedef std::vector<std::pair<unsigned int, double> > SimilaritySearchResult;
 

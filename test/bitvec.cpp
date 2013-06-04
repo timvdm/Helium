@@ -7,6 +7,9 @@ using namespace Helium;
 
 int main()
 {
+  COMPARE(8, sizeof(Word));
+
+
   Word bitvec;
 
   hex_to_bitvec("0000000000000000", &bitvec, 1);

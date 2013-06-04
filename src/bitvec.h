@@ -27,6 +27,7 @@
 #ifndef HELIUM_BITVEC_H
 #define HELIUM_BITVEC_H
 
+#include <Helium/config.h>
 #include <Helium/contract.h>
 
 #include <iostream>
@@ -34,6 +35,7 @@
 #include <sstream>
 #include <cassert>
 #include <cmath>
+#include <cstdint>
 
 namespace Helium {
 
@@ -50,7 +52,7 @@ namespace Helium {
   /**
    * @brief Type used for a bit vector word.
    */
-  typedef unsigned long Word;
+  typedef uint64_t Word;
 
   /**
    * @brief The number of bits per bit vector word.

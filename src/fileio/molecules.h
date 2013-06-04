@@ -195,7 +195,7 @@ namespace Helium {
         // read the molecule indexes
         m_positions.resize(m_numMolecules);
         m_file.stream().seekg(positionsPos);
-        m_file.read(&m_positions[0], m_positions.size() * sizeof(std::size_t));
+        m_file.read(&m_positions[0], m_positions.size() * sizeof(uint64_t));
 
         // reset stream position to read first molecule
         m_file.seek(0);
@@ -243,7 +243,7 @@ namespace Helium {
 
     private:
       BinaryInputFile m_file;
-      std::vector<std::size_t> m_positions;
+      std::vector<uint64_t> m_positions;
       unsigned int m_numMolecules;
   };
 
@@ -292,7 +292,7 @@ namespace Helium {
         // read the molecule indexes
         m_positions.resize(m_numMolecules);
         for (unsigned int i = 0; i < m_positions.size(); ++i)
-          m_positions[i] = *reinterpret_cast<const std::size_t*>(m_mappedFile.data() + positionsPos + i * sizeof(std::size_t));
+          m_positions[i] = *reinterpret_cast<const uint64_t*>(m_mappedFile.data() + positionsPos + i * sizeof(uint64_t));
       }
 
       unsigned int numMolecules() const
@@ -314,7 +314,7 @@ namespace Helium {
 
     private:
       boost::iostreams::mapped_file_source m_mappedFile;
-      std::vector<std::size_t> m_positions; //!< The positions of the molecules in the file.
+      std::vector<uint64_t> m_positions; //!< The positions of the molecules in the file.
       unsigned int m_numMolecules; //!< The number of molecules in the file.
   };
 

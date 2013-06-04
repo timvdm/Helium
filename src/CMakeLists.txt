@@ -66,7 +66,7 @@ set(Helium_SRCS
 )
 
 # Helium library
-add_library(helium SHARED ${Helium_SRCS})
+add_library(helium STATIC ${Helium_SRCS})
 target_link_libraries(helium ${Boost_LIBRARIES} ${OPENCL_LIBRARIES})
 
 

@@ -181,6 +181,8 @@ namespace Helium {
         //
         // check for incompatible arguments
         //
+        if (brute && args.IsArg("-k"))
+          std::cerr << "Option -k <n> has no effect when using option -brute, -k will be ignored." << std::endl;
 #ifdef HAVE_CPP11
         if (brute && brute_mt) {
           std::cerr << "Options -brute and -brute-mt can not be used simultaneously, -brute will be ignored." << std::endl;
@@ -193,8 +195,6 @@ namespace Helium {
         if (brute_mt && mt)
           std::cerr << "Option -mt has no effect when using option -brute-mt, -mt will be ignored." << std::endl;
 #endif
-        if (brute && args.IsArg("-k"))
-          std::cerr << "Option -k <n> has no effect when using option -brute, -k will be ignored." << std::endl;
 
 
         //
@@ -282,7 +282,6 @@ namespace Helium {
         for (std::size_t i = 0; i < queries.size(); ++i)
           std::sort(result[i].begin(), result[i].end(), compare_first<unsigned int, double>());
 
-
         //
         // print results
         //
@@ -321,8 +320,6 @@ namespace Helium {
         ss << std::endl;
         ss << "Perform a similarity search on a fingerprint file. The fingerprint file must store the" << std::endl;
         ss << "fingerprints in row-major order. The query has to be a SMILES string." << std::endl;
-        ss << std::endl;
-        ss << "Optionally, the <query> can be replaced with 'interactive' to start an interactive session" << std::endl;
         ss << std::endl;
         ss << "Options:" << std::endl;
         ss << "    -Tmin <n>     The minimum tanimoto score (default is 0.7)" << std::endl;

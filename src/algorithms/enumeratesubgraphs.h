@@ -388,7 +388,7 @@ namespace Helium {
           continue;
 
         incident_iter bond, end_bonds;
-        tie(bond, end_bonds) = get_bonds(mol, get_atom(mol, i));
+        Helium::tie(bond, end_bonds) = get_bonds(mol, get_atom(mol, i));
         for (; bond != end_bonds; ++bond) {
           if (visited[get_index(mol, *bond)])
             continue;

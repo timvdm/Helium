@@ -25,14 +25,18 @@ void test_cycle_membership(const std::string &filename)
     std::vector<bool> cyclic_atoms, cyclic_bonds;
     cycle_membership(mol, cyclic_atoms, cyclic_bonds);
 
-    FOREACH_ATOM (atom, mol, HeMol) {
+    HeMol::atom_iter atom, end_atom;
+    tie(atom, end_atom) = get_atoms(mol);
+    for (; atom != end_atom; ++atom) {
       if (is_cyclic(mol, *atom))
         COMPARE(true, cyclic_atoms[get_index(mol, *atom)]);
       else
         COMPARE(false, cyclic_atoms[get_index(mol, *atom)]);
     }
 
-    FOREACH_BOND (bond, mol, HeMol) {
+    HeMol::bond_iter bond, end_bond;
+    tie(bond, end_bond) = get_bonds(mol);
+    for (; bond != end_bond; ++bond) {
       if (is_cyclic(mol, *bond))
         COMPARE(true, cyclic_bonds[get_index(mol, *bond)]);
       else

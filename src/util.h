@@ -36,6 +36,7 @@
 
 #include <iostream>
 
+#include <Helium/config.h>
 #include <Helium/util/typetraits.h>
 #include <Helium/util/fileio.h>
 #include <Helium/util/string.h>

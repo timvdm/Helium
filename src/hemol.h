@@ -27,6 +27,7 @@
 #ifndef HELIUM_HEMOL_H
 #define HELIUM_HEMOL_H
 
+#include <Helium/config.h>
 #include <Helium/molecule.h>
 #include <Helium/tie.h>
 #include <Helium/util/vector.h>

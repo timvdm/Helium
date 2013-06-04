@@ -30,6 +30,7 @@
 #include <Helium/util.h>
 
 #include <fstream>
+#include <stdexcept>
 
 namespace Helium {
 

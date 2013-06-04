@@ -35,7 +35,10 @@
 #include <sstream>
 #include <cassert>
 #include <cmath>
+
+#ifdef _MSC_VER
 #include <cstdint>
+#endif
 
 namespace Helium {
 

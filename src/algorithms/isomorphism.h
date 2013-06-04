@@ -28,6 +28,7 @@
 #define HELIUM_ISOMORPHISM_H
 
 #include <Helium/molecule.h>
+#include <Helium/tie.h>
 
 #include <vector>
 #include <cassert>

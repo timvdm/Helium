@@ -1,6 +1,3 @@
-# define DATADIR for tests that need input files
-add_definitions(-DDATADIR="${CMAKE_SOURCE_DIR}/data/")
-
 set(tests
   molecule
   fileio

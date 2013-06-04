@@ -14,6 +14,8 @@
 
 #define HEAPI HE_EXPORT
 
+#define HEDATADIR "@HEDATADIR@"
+
 #cmakedefine HAVE_CPP11
 #cmakedefine HAVE_OPENCL
 

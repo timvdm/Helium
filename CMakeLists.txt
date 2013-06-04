@@ -4,6 +4,9 @@ project(Helium)
 # set the module path
 set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake)
 
+# define HEDATADIR for tests that need input files
+set(HEDATADIR "${CMAKE_SOURCE_DIR}/data/")
+
 ############################################################
 #
 # Find dependencies

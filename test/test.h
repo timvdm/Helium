@@ -34,11 +34,11 @@ const char* __test_expr__(const char *expr) { return expr; }
   __test_compare__(a, b, P_EXPR( a == b ), __FILE__, __LINE__, FUNCTION_SIGNATURE)
 
 
-#ifndef DATADIR
-#define DATADIR "./"
+#ifndef HEDATADIR
+#define HEDATADIR "./"
 #endif
 
 std::string datadir()
 {
-  return DATADIR + std::string("/");
+  return HEDATADIR + std::string("/");
 }

@@ -21,7 +21,7 @@ using namespace Helium;
 
 std::string get_filename(const std::string &filename)
 {
-  return DATADIR + std::string("/") + filename;
+  return HEDATADIR + std::string("/") + filename;
 }
 
 using namespace boost::gregorian;

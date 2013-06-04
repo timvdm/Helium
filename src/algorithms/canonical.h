@@ -78,7 +78,7 @@ namespace Helium {
         {
           // select atom(s) with lowest symmetry class
           atom_iter atom, end_atoms;
-          tie(atom, end_atoms) = get_atoms(m_mol);
+          TIE(atom, end_atoms) = get_atoms(m_mol);
           for (; atom != end_atoms; ++atom) {
             if (m_symmetry[get_index(m_mol, *atom)])
               continue;
@@ -122,7 +122,7 @@ namespace Helium {
             std::vector<Closure> closures; // [(bond index, other atom index)]
 
             incident_iter bond, end_bonds;
-            tie(bond, end_bonds) = get_bonds(m_mol, atom);
+            TIE(bond, end_bonds) = get_bonds(m_mol, atom);
             for (; bond != end_bonds; ++bond)
               // a closure bond is a bond not found while generating the FROM spanning tree.
               if (!m_visited[get_index(m_mol, *bond)]) {
@@ -189,7 +189,7 @@ namespace Helium {
           // pop next atom from stack
           atom_type atom;
           bond_type fromBond;
-          tie(fromBond, atom) = stack.back();
+          TIE(fromBond, atom) = stack.back();
           stack.pop_back();
 
 
@@ -225,7 +225,7 @@ namespace Helium {
 
             // append unvisited bonds around atom to stack
             incident_iter bond, end_bonds;
-            tie(bond, end_bonds) = get_bonds(m_mol, atom);
+            TIE(bond, end_bonds) = get_bonds(m_mol, atom);
             for (; bond != end_bonds; ++bond) {
               atom_type other = get_other(m_mol, *bond, atom);
               if (m_visited[get_index(m_mol, *bond)])

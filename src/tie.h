@@ -90,6 +90,12 @@ namespace Helium {
     return impl::tie_impl<T1, T2>(first, second);
   }
 
+  template<typename T1, typename T2>
+  impl::tie_impl<T1, T2> TIE(T1 &first, T2 &second)
+  {
+    return impl::tie_impl<T1, T2>(first, second);
+  }
+
 }
 
 #endif

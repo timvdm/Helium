@@ -46,7 +46,7 @@
 
 #define FOREACH_INCIDENT(bond, atom, mol, molecule_type) \
   typename molecule_traits<molecule_type>::incident_iter bond, end_##bond##__; \
-  tie(bond, end_##bond##__) = get_bonds(mol, atom); \
+  Helium::tie(bond, end_##bond##__) = get_bonds(mol, atom); \
   for (; bond != end_##bond##__; ++bond)
 
 

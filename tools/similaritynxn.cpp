@@ -26,6 +26,10 @@
  */
 #include "tool.h"
 
+#include <numeric>
+#include <algorithm>
+#include <functional>
+
 #include <Helium/fingerprints/similarity.h>
 #include <Helium/fileio/fingerprints.h>
 #include <Helium/fileio/fps.h>
@@ -222,7 +226,7 @@ namespace Helium {
           for (std::size_t i = 0; i < storage.numFingerprints(); ++i) {
             tmp = brute_force_similarity_search(storage.fingerprint(i), storage, Tmin);
             std::sort(tmp.begin(), tmp.end(), compare_second<unsigned int, double, std::greater>());
-            tmp.resize(std::min(N, static_cast<int>(tmp.size())));
+            tmp.resize(std::min<int>(N, static_cast<int>(tmp.size())));
             result[i] = tmp;
           }
         } else
@@ -436,7 +440,7 @@ namespace Helium {
           for (std::size_t i = 0; i < storage.numFingerprints(); ++i) {
             tmp = index.search(storage.fingerprint(i), Tmin);
             std::sort(tmp.begin(), tmp.end(), compare_second<unsigned int, double, std::greater>());
-            tmp.resize(std::min(N, static_cast<int>(tmp.size())));
+            tmp.resize(std::min<int>(N, static_cast<int>(tmp.size())));
             result[i] = tmp;
           }
 #endif

@@ -633,7 +633,7 @@ namespace Helium {
                                                                                 molecule_traits<HeMol>::atom_type target)
   {
     molecule_traits<HeMol>::incident_iter bond, end_bonds;
-    tie(bond, end_bonds) = get_bonds(mol, source);
+    TIE(bond, end_bonds) = get_bonds(mol, source);
     for (; bond != end_bonds; ++bond)
       if (get_other(mol, *bond, source) == target)
         return *bond;

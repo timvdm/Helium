@@ -33,7 +33,6 @@ if (ENABLE_OPENCL)
   if (OPENCL_FOUND)
     message(STATUS "OpenCL found: enabling OpenCL features...")
     include_directories(${OPENCL_INCLUDE_DIR})
-    add_definitions(-DHAVE_OPENCL)
     set(HAVE_OPENCL 1) # used by configure_file()
   endif()
 endif()
@@ -97,6 +96,7 @@ add_subdirectory(src)
 
 set(Helium_LIBRARIES
   helium
+  ${Boost_LIBRARIES}
 )
 
 if (UNIX)

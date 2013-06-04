@@ -9,6 +9,7 @@
 //#include "timeout.h"
 
 #include <set>
+#include <iterator>
 
 //#include <boost/functional/hash.hpp>
 

@@ -47,7 +47,7 @@
   assert(0); \
   return *(new type);
 
-#define ENABLE_TIMERS
+//#define ENABLE_TIMERS
 #ifdef ENABLE_TIMERS
   #include <boost/timer/timer.hpp>
   #define TIMER(message) \

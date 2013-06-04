@@ -27,6 +27,7 @@
 #ifndef HELIUM_BITVEC_H
 #define HELIUM_BITVEC_H
 
+#include <Helium/config.h>
 #include <Helium/contract.h>
 
 #include <iostream>
@@ -66,7 +67,7 @@ namespace Helium {
    *
    * @return The number of words needed to store @p numBits bits.
    */
-  inline unsigned int bitvec_num_words_for_bits(unsigned int numBits)
+  HEAPI inline unsigned int bitvec_num_words_for_bits(unsigned int numBits)
   {
     if ((numBits % BitsPerWord) == 0)
       return numBits / BitsPerWord;
@@ -83,7 +84,7 @@ namespace Helium {
    * @param bitvec The bit vector to zero.
    * @param numWords The number of words for @p bitvec.
    */
-  inline void bitvec_zero(Word *bitvec, int numWords)
+  HEAPI inline void bitvec_zero(Word *bitvec, int numWords)
   {
     PRE(bitvec);
     for (int i = 0; i < numWords; ++i)
@@ -102,7 +103,7 @@ namespace Helium {
    *
    * @return A pointer to the copied bit vector.
    */
-  inline Word* bitvec_copy(const Word *bitvec, int numWords)
+  HEAPI inline Word* bitvec_copy(const Word *bitvec, int numWords)
   {
     PRE(bitvec);
     Word *result = new Word[numWords];
@@ -123,7 +124,7 @@ namespace Helium {
    *
    * @return The value for the bit at the specified @p index.
    */
-  inline bool bitvec_get(int index, const Word *bitvec)
+  HEAPI inline bool bitvec_get(int index, const Word *bitvec)
   {
     PRE(bitvec);
     int word = index / (sizeof(Word) * 8);
@@ -143,7 +144,7 @@ namespace Helium {
    *        bits in the @p bitvec.
    * @param bitvec The bit vector.
    */
-  inline void bitvec_set(int index, Word *bitvec)
+  HEAPI inline void bitvec_set(int index, Word *bitvec)
   {
     PRE(bitvec);
     int word = index / (sizeof(Word) * 8);
@@ -161,7 +162,7 @@ namespace Helium {
    *        bits in the @p bitvec.
    * @param bitvec The bit vector.
    */
-  inline void bitvec_reset(int index, Word *bitvec)
+  HEAPI inline void bitvec_reset(int index, Word *bitvec)
   {
     PRE(bitvec);
     int word = index / (sizeof(Word) * 8);
@@ -185,7 +186,7 @@ namespace Helium {
    *
    * @return True if @p bitvec1 is a subset of @p bitvec2.
    */
-  inline bool bitvec_is_subset_superset(const Word *bitvec1, const Word *bitvec2, int numWords)
+  HEAPI inline bool bitvec_is_subset_superset(const Word *bitvec1, const Word *bitvec2, int numWords)
   {
     PRE(bitvec1);
     PRE(bitvec2);
@@ -206,7 +207,7 @@ namespace Helium {
    *
    * @return The bit count.
    */
-  inline int bitvec_count(Word word)
+  HEAPI inline int bitvec_count(Word word)
   {
 #ifdef HAVE_POPCNT
     return __builtin_popcountl(word);
@@ -236,7 +237,7 @@ namespace Helium {
    *
    * @return The bit count.
    */
-  inline int bitvec_count(const Word *bitvec, int numWords)
+  HEAPI inline int bitvec_count(const Word *bitvec, int numWords)
   {
     PRE(bitvec);
 #ifdef HAVE_POPCNT
@@ -274,7 +275,7 @@ namespace Helium {
    *
    * @return The bit count for the range [begin,end).
    */
-  inline int bitvec_count(const Word *bitvec, int begin, int end)
+  HEAPI inline int bitvec_count(const Word *bitvec, int begin, int end)
   {
     PRE(bitvec);
     const int bits_per_word = 8 * sizeof(Word);
@@ -309,7 +310,7 @@ namespace Helium {
    *
    * @return The population count for the union of @p bitvec1 and @p bitvec2.
    */
-  inline int bitvec_union_count(const Word *bitvec1, const Word *bitvec2, int numWords)
+  HEAPI inline int bitvec_union_count(const Word *bitvec1, const Word *bitvec2, int numWords)
   {
     PRE(bitvec1);
     PRE(bitvec2);
@@ -348,7 +349,7 @@ namespace Helium {
    *
    * @return The Tanimoto coefficient of difference.
    */
-  inline double bitvec_tanimoto(const Word *bitvec1, const Word *bitvec2, int numWords)
+  HEAPI inline double bitvec_tanimoto(const Word *bitvec1, const Word *bitvec2, int numWords)
   {
     PRE(bitvec1);
     PRE(bitvec2);
@@ -395,7 +396,7 @@ namespace Helium {
    *
    * @return The Tanimoto coefficient of difference.
    */
-  inline double bitvec_tanimoto(const Word *bitvec1, const Word *bitvec2, int bitCount1, int bitCount2, int numWords)
+  HEAPI inline double bitvec_tanimoto(const Word *bitvec1, const Word *bitvec2, int bitCount1, int bitCount2, int numWords)
   {
     PRE(bitvec1);
     PRE(bitvec2);
@@ -420,7 +421,7 @@ namespace Helium {
    *
    * @return The Cosine coefficient of difference.
    */
-  inline double bitvec_cosine(const Word *bitvec1, const Word *bitvec2, int bitCount1, int bitCount2, int numWords)
+  HEAPI inline double bitvec_cosine(const Word *bitvec1, const Word *bitvec2, int bitCount1, int bitCount2, int numWords)
   {
     PRE(bitvec1);
     PRE(bitvec2);
@@ -443,7 +444,7 @@ namespace Helium {
    *
    * @return The Cosine coefficient of difference.
    */
-  inline double bitvec_cosine(const Word *bitvec1, const Word *bitvec2, int numWords)
+  HEAPI inline double bitvec_cosine(const Word *bitvec1, const Word *bitvec2, int numWords)
   {
     PRE(bitvec1);
     PRE(bitvec2);
@@ -468,7 +469,7 @@ namespace Helium {
    *
    * @return The Hamming coefficient of difference.
    */
-  inline double bitvec_hamming(const Word *bitvec1, const Word *bitvec2, int bitCount1, int bitCount2, int numWords)
+  HEAPI inline double bitvec_hamming(const Word *bitvec1, const Word *bitvec2, int bitCount1, int bitCount2, int numWords)
   {
     PRE(bitvec1);
     PRE(bitvec2);
@@ -491,7 +492,7 @@ namespace Helium {
    *
    * @return The Hamming coefficient of difference.
    */
-  inline double bitvec_hamming(const Word *bitvec1, const Word *bitvec2, int numWords)
+  HEAPI inline double bitvec_hamming(const Word *bitvec1, const Word *bitvec2, int numWords)
   {
     PRE(bitvec1);
     PRE(bitvec2);
@@ -514,7 +515,7 @@ namespace Helium {
    *
    * @return The Russell-Rao coefficient of difference.
    */
-  inline double bitvec_russell_rao(const Word *bitvec1, const Word *bitvec2, int numWords)
+  HEAPI inline double bitvec_russell_rao(const Word *bitvec1, const Word *bitvec2, int numWords)
   {
     PRE(bitvec1);
     PRE(bitvec2);
@@ -539,7 +540,7 @@ namespace Helium {
    *
    * @return The Forbes coefficient of difference.
    */
-  inline double bitvec_forbes(const Word *bitvec1, const Word *bitvec2, int bitCount1, int bitCount2, int numWords)
+  HEAPI inline double bitvec_forbes(const Word *bitvec1, const Word *bitvec2, int bitCount1, int bitCount2, int numWords)
   {
     PRE(bitvec1);
     PRE(bitvec2);
@@ -562,7 +563,7 @@ namespace Helium {
    *
    * @return The Forbes coefficient of difference.
    */
-  inline double bitvec_forbes(const Word *bitvec1, const Word *bitvec2, int numWords)
+  HEAPI inline double bitvec_forbes(const Word *bitvec1, const Word *bitvec2, int numWords)
   {
     PRE(bitvec1);
     PRE(bitvec2);
@@ -577,7 +578,7 @@ namespace Helium {
    *
    * @param word The bit vector word to print.
    */
-  inline void bitvec_print(Word word)
+  HEAPI inline void bitvec_print(Word word)
   {
     Word bit = 1;
     for (int j = 0; j < BitsPerWord; ++j) {
@@ -601,7 +602,7 @@ namespace Helium {
    * @param numWords The number of words for @p bitvec.
    * @param spaces If true, a space will be inserted between bit vector words.
    */
-  inline void bitvec_print(const Word *bitvec, int numWords, bool spaces = true)
+  HEAPI inline void bitvec_print(const Word *bitvec, int numWords, bool spaces = true)
   {
     PRE(bitvec);
     for (int i = 0; i < numWords; ++i) {
@@ -631,7 +632,7 @@ namespace Helium {
    * @param ofs The STL file output stream.
    * @param size The value to write to the stream.
    */
-  inline void bitvec_write_size(std::ofstream &ofs, unsigned long size)
+  HEAPI inline void bitvec_write_size(std::ofstream &ofs, unsigned long size)
   {
     ofs.seekp(0);
     ofs.write(reinterpret_cast<const char*>(&size), sizeof(unsigned long));
@@ -644,7 +645,7 @@ namespace Helium {
    *
    * @return The value read from the STL file input stream.
    */
-  inline unsigned long bitvec_read_size(std::ifstream &ifs)
+  HEAPI inline unsigned long bitvec_read_size(std::ifstream &ifs)
   {
     unsigned long size;
     ifs.seekg(0);
@@ -661,7 +662,7 @@ namespace Helium {
    * @param bitvec The bit vector to write.
    * @param numWords The number of words for @p bitvec.
    */
-  inline void bitvec_write(std::ofstream &ofs, const Word *bitvec, int numWords)
+  HEAPI inline void bitvec_write(std::ofstream &ofs, const Word *bitvec, int numWords)
   {
     PRE(bitvec);
     ofs.write(reinterpret_cast<const char*>(bitvec), sizeof(Word) * numWords);
@@ -674,7 +675,7 @@ namespace Helium {
    * @param bitvec The bit vector to store the read data in.
    * @param numWords The number of words for @p bitvec.
    */
-  inline void bitvec_read(std::ifstream &ifs, Word *bitvec, int numWords)
+  HEAPI inline void bitvec_read(std::ifstream &ifs, Word *bitvec, int numWords)
   {
     PRE(bitvec);
     ifs.read(reinterpret_cast<char*>(bitvec), sizeof(Word) * numWords);
@@ -794,7 +795,7 @@ namespace Helium {
    * @param bitvec The bit vector to store the result.
    * @param numWords The number of words for @p bitvec.
    */
-  inline void hex_to_bitvec(const std::string &hex, Word *bitvec, int numWords)
+  HEAPI inline void hex_to_bitvec(const std::string &hex, Word *bitvec, int numWords)
   {
     PRE(bitvec);
     PRE((hex.size() % 2) == 0);
@@ -823,7 +824,7 @@ namespace Helium {
    *
    * @return The hexadecimal string containing the bits specified by the bit vector.
    */
-  inline std::string bitvec_to_hex(const Word *bitvec, int numWords)
+  HEAPI inline std::string bitvec_to_hex(const Word *bitvec, int numWords)
   {
     PRE(bitvec);
     std::size_t bytes = numWords * sizeof(Word);

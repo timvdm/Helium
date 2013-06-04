@@ -27,12 +27,14 @@ endif()
 
 # Find OpenCL (optional)
 option(ENABLE_OPENCL "Enable OpenCL support" OFF)
+set(HAVE_OPENCL 0) # used by configure_file()
 if (ENABLE_OPENCL)
   find_package(OpenCL)
   if (OPENCL_FOUND)
     message(STATUS "OpenCL found: enabling OpenCL features...")
-    add_definitions(-DHAVE_OPENCL)
     include_directories(${OPENCL_INCLUDE_DIR})
+    add_definitions(-DHAVE_OPENCL)
+    set(HAVE_OPENCL 1) # used by configure_file()
   endif()
 endif()
 
@@ -54,6 +56,9 @@ if (ENABLE_CPP11)
     set(CMAKE_CXX_FLAGS "-std=c++11 -stdlib=libc++ ${CMAKE_CXX_FLAGS}")
   endif()
   add_definitions(-DHAVE_CPP11)
+  set(HAVE_CPP11 1) # used by configure_file()
+else()
+  set(HAVE_CPP11 0) # used by configure_file()
 endif()
 
 if (ENABLE_COVERAGE)
@@ -80,6 +85,9 @@ endif()
 # The Helium library
 #
 ############################################################
+
+configure_file(${CMAKE_SOURCE_DIR}/src/config.h.cmake
+  ${CMAKE_BINARY_DIR}/include/Helium/config.h)
 
 include_directories(${CMAKE_BINARY_DIR}/include)
 add_subdirectory(src)

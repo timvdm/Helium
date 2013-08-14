@@ -327,9 +327,11 @@ namespace Helium {
 #ifdef HAVE_POPCNT
       count += __builtin_popcountl(andfp);
 #else
-      for (; andfp; andfp = andfp << 1)
-        if (andfp < 0)
+      Word bit = 1;
+      for (int i=0; i<BitsPerWord; i++)
+        if (bit & andfp)
           ++count;
+        bit <<= 1;
 #endif
     }
 

@@ -151,3 +151,9 @@ option(ENABLE_PYTHON "Enable python bindings" OFF)
 if (ENABLE_PYTHON)
   add_subdirectory(bindings/python)
 endif()
+
+# Build service
+option(ENABLE_SERVICE "Enable the RESTful service" OFF)
+if (ENABLE_SERVICE)
+  add_subdirectory(service)
+endif()

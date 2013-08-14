@@ -38,6 +38,8 @@
 
 #ifdef _MSC_VER
 #include <cstdint>
+#else
+#include <stdint.h>
 #endif
 
 namespace Helium {

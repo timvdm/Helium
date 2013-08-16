@@ -233,7 +233,7 @@ string RESTfulService::similaritySearch(const string &query, bool pretty)
       content = writer.write(data);
     }
 
-  delete fingerPrint;
+  delete[] fingerPrint;
 
   return content;
 }

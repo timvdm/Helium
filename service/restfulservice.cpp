@@ -216,22 +216,23 @@ string RESTfulService::similaritySearch(const string &query, bool pretty)
     = m_similarityIndex->search(fingerPrint, TMIN);
 
   Json::Value data;
-    for (std::size_t j = 0; j < result.size(); ++j) {
-      data["hits"][Json::ArrayIndex(j)] = Json::Value(Json::objectValue);
-      Json::Value &obj = data["hits"][Json::ArrayIndex(j)];
-      obj["index"] = result[j].first;
-      obj["tanimoto"] = result[j].second;
-    }
+  data["hits"] = Json::Value(Json::arrayValue);
+  for (std::size_t j = 0; j < result.size(); ++j) {
+    data["hits"][Json::ArrayIndex(j)] = Json::Value(Json::objectValue);
+    Json::Value &obj = data["hits"][Json::ArrayIndex(j)];
+    obj["index"] = result[j].first;
+    obj["tanimoto"] = result[j].second;
+  }
 
-    string content;
+  string content;
 
-    if (pretty) {
-      Json::StyledWriter writer;
-      content = writer.write(data);
-    } else {
-      Json::FastWriter writer;
-      content = writer.write(data);
-    }
+  if (pretty) {
+    Json::StyledWriter writer;
+    content = writer.write(data);
+  } else {
+    Json::FastWriter writer;
+    content = writer.write(data);
+  }
 
   delete[] fingerPrint;
 

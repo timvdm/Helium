@@ -9,7 +9,12 @@ int main()
 {
   HeMol mol;
 
-  parse_smiles("c1ccccc1", mol);
+  try {
+    parse_smiles("c1ccccc1", mol);
+  }
+  catch(Smiley::Exception &e) {
+    std::cerr << e.what();
+  }
   COMPARE(6, mol.numAtoms());
   COMPARE(6, mol.numBonds());
 }

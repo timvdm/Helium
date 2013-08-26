@@ -31,6 +31,9 @@
 
 #include <smiley.h>
 
+#include <sstream>
+
+
 namespace Helium {
 
   namespace impl {
@@ -89,17 +92,23 @@ namespace Helium {
     try {
       parser.parse(smiles);
     } catch (Smiley::Exception &e) {
+      std::ostringstream errorStream;
       if (e.type() == Smiley::Exception::SyntaxError)
-        std::cerr << "Syntax";
+        errorStream << "Syntax";
       else
-        std::cerr << "Semantics";
-      std::cerr << "Error: " << e.what() << "." << std::endl;
-      std::cerr << smiles << std::endl;
+        errorStream << "Semantics";
+      errorStream << "Error: " << e.what() << "." << std::endl;
+      errorStream << smiles << std::endl;
       for (std::size_t i = 0; i < e.pos(); ++i)
-        std::cerr << " ";
+        errorStream << " ";
       for (std::size_t i = 0; i < e.length(); ++i)
-        std::cerr << "^";
-      std::cerr << std::endl;
+        errorStream << "^";
+      errorStream << std::endl;
+
+      // Throw new exception with added details ...
+      throw Smiley::Exception(e.type(), e.errorCode(),
+          errorStream.str(), e.pos(), e.length());
+
     }
   }
 

@@ -13,8 +13,12 @@ void test_canonicalize(const std::string &smiles)
 {
   std::cout << "Testing: " << smiles << std::endl;
   HeMol mol;
-  parse_smiles(smiles, mol);
-
+  try {
+    parse_smiles(smiles, mol);
+  }
+  catch (Smiley::Exception &e) {
+    std::cerr << e.what();
+  }
   std::vector<unsigned long> symmetry = extended_connectivities(mol);
   std::cout << "symmetry: " << symmetry << std::endl;
   canonicalize(mol, symmetry);

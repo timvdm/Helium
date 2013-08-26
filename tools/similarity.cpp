@@ -52,7 +52,12 @@ namespace Helium {
     }
 
     HeMol mol;
-    parse_smiles(smiles, mol);
+    try {
+      parse_smiles(smiles, mol);
+    }
+    catch (Smiley::Exception &e) {
+      std::cerr << e.what();
+    }
 
     int bits = data["num_bits"].asInt();
     int words = bitvec_num_words_for_bits(bits);

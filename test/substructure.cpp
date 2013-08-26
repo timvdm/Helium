@@ -8,7 +8,14 @@ using namespace Helium;
 int main()
 {
   HeMol mol;
-  parse_smiles("CNOSP", mol);
+
+  try {
+    parse_smiles("CNOSP", mol);
+  }
+  catch (Smiley::Exception &e) {
+    std::cerr << e.what();
+  }
+
 
   std::vector<bool> atoms(5), bonds(4);
   atoms[1] = true;

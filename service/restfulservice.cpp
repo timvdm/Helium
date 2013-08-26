@@ -117,46 +117,53 @@ int RESTfulService::handleRequest(struct mg_connection *conn)
     pretty = string(buf, length) == "true";
   }
 
-  // Substructure
-  if (uri.find(SUBSTRUCTURE, PREFIX.length()) == PREFIX.length()) {
+  try {
+    // Substructure
+    if (uri.find(SUBSTRUCTURE, PREFIX.length()) == PREFIX.length()) {
 
-    // Are the necessary files loaded
-    if (m_subStructureStorage.numFingerprints() == 0
-        || m_moleculeFile.numMolecules() == 0) {
-      string response = createResponse("503 Bad  Service Unavailable", "text/plain",
-           "Service unavailable while indexes are loading");
+      // Are the necessary files loaded
+      if (m_subStructureStorage.numFingerprints() == 0
+          || m_moleculeFile.numMolecules() == 0) {
+        string response = createResponse("503 Bad  Service Unavailable", "text/plain",
+             "Service unavailable while indexes are loading");
+        mg_write(conn, response.c_str(), response.length());
+        return 1;
+      }
+
+      string result = subStructureSearch(query, pretty);
+      string response = createResponse("200 OK", "application/json", result);
       mg_write(conn, response.c_str(), response.length());
       return 1;
     }
+    // Similarity
+    else if (uri.find(SIMILARITY, PREFIX.length()) == PREFIX.length()) {
 
-    string result = subStructureSearch(query, pretty);
-    string response = createResponse("200 OK", "application/json", result);
-    mg_write(conn, response.c_str(), response.length());
-    return 1;
-  }
-  // Similarity
-  else if (uri.find(SIMILARITY, PREFIX.length()) == PREFIX.length()) {
+      // Is the index loaded?
+      if (m_similarityIndex == NULL) {
+        string response = createResponse("503 Bad  Service Unavailable", "text/plain",
+             "Service unavailable while indexes are loading");
+        mg_write(conn, response.c_str(), response.length());
+        return 1;
+      }
 
-    // Is the index loaded?
-    if (m_similarityIndex == NULL) {
-      string response = createResponse("503 Bad  Service Unavailable", "text/plain",
-           "Service unavailable while indexes are loading");
+      string result = similaritySearch(query, pretty);
+      string response = createResponse("200 OK", "application/json", result);
       mg_write(conn, response.c_str(), response.length());
       return 1;
     }
-
-    string result = similaritySearch(query, pretty);
-    string response = createResponse("200 OK", "application/json", result);
+    else {
+      string response = createResponse("404 Not Found", "text/plain",
+            "Supported searches are \"similarity\" and \"substructure\"");
+      mg_write(conn, response.c_str(), response.length());
+      return 1;
+    }
+  }
+  catch (Smiley::Exception &e) {
+    string response = createResponse("400 Bad Request", "text/plain",
+        e.what());
     mg_write(conn, response.c_str(), response.length());
     return 1;
   }
-  else {
-    string response = createResponse("404 Not Found", "text/plain",
-          "Supported searches are \"similarity\" and \"substructure\"");
-    mg_write(conn, response.c_str(), response.length());
-    return 1;
-  }
-
 }
 
 Word* RESTfulService::computeFingerprint(const std::string &settings,

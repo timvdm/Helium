@@ -236,15 +236,18 @@ string RESTfulService::similaritySearch(const string &query, bool pretty,
   Word *fingerPrint = computeFingerprint(m_similarityStorage.header(), query);
 
   vector<pair<unsigned int, double> > result
-    = m_similarityIndex->search(fingerPrint, TMIN, limit);
+    = m_similarityIndex->search(fingerPrint, TMIN);
 
   std::sort(result.begin(), result.end(),
             compare_second<unsigned int, double, std::greater>());
 
 
+  if (result.size() < limit)
+    limit = result.size();
+
   Json::Value data;
   data["hits"] = Json::Value(Json::arrayValue);
-  for (std::size_t j = 0; j < result.size(); ++j) {
+  for (std::size_t j = 0; j < limit; ++j) {
     data["hits"][Json::ArrayIndex(j)] = Json::Value(Json::objectValue);
     Json::Value &obj = data["hits"][Json::ArrayIndex(j)];
     obj["index"] = result[j].first;

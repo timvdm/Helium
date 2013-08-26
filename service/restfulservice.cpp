@@ -215,6 +215,10 @@ string RESTfulService::similaritySearch(const string &query, bool pretty)
   vector<pair<unsigned int, double> > result
     = m_similarityIndex->search(fingerPrint, TMIN);
 
+  std::sort(result.begin(), result.end(),
+            compare_first<unsigned int, double>());
+
+
   Json::Value data;
   data["hits"] = Json::Value(Json::arrayValue);
   for (std::size_t j = 0; j < result.size(); ++j) {

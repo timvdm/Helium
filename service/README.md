@@ -3,7 +3,7 @@
 The service is a single executable heliumservice, it takes the following command line options:
 
 - --port The port the service should listen on ( default is 8080 )
-- --sinindex The similarity fingerprint index filepath
+- --simindex The similarity fingerprint index filepath
 - --subindex The substructure fingerprint index filepath
 - --mol The molecule filepath
 

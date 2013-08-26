@@ -37,8 +37,10 @@ private:
   Word* computeFingerprint(const std::string &settings,
       HeMol &query);
 
-  std::string similaritySearch(const std::string &query, bool pretty);
-  std::string subStructureSearch(const std::string &query, bool pretty);
+  std::string similaritySearch(const std::string &query, bool pretty,
+      unsigned int limit);
+  std::string subStructureSearch(const std::string &query, bool pretty,
+      unsigned int limit);
   void screen(Word *fingerprint, Word *result);
 };
 

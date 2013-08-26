@@ -117,6 +117,20 @@ int RESTfulService::handleRequest(struct mg_connection *conn)
     pretty = string(buf, length) == "true";
   }
 
+  // Get the limit var
+  length = mg_get_var(request_info->query_string, queryString.length(),
+      "limit", buf, 1024);
+
+  unsigned int limit = 100;
+  if (length > 0) {
+    try {
+      limit = boost::lexical_cast<unsigned int>(string(buf, length));
+    }
+    catch(boost::bad_lexical_cast const&) {
+      // Use the default
+    }
+  }
+
   try {
     // Substructure
     if (uri.find(SUBSTRUCTURE, PREFIX.length()) == PREFIX.length()) {
@@ -130,7 +144,7 @@ int RESTfulService::handleRequest(struct mg_connection *conn)
         return 1;
       }
 
-      string result = subStructureSearch(query, pretty);
+      string result = subStructureSearch(query, pretty, limit);
       string response = createResponse("200 OK", "application/json", result);
       mg_write(conn, response.c_str(), response.length());
       return 1;
@@ -146,7 +160,7 @@ int RESTfulService::handleRequest(struct mg_connection *conn)
         return 1;
       }
 
-      string result = similaritySearch(query, pretty);
+      string result = similaritySearch(query, pretty, limit);
       string response = createResponse("200 OK", "application/json", result);
       mg_write(conn, response.c_str(), response.length());
       return 1;
@@ -158,12 +172,13 @@ int RESTfulService::handleRequest(struct mg_connection *conn)
       return 1;
     }
   }
-  catch (Smiley::Exception &e) {
+  catch (Smiley::Exception &exception) {
     string response = createResponse("400 Bad Request", "text/plain",
-        e.what());
+      exception.what());
     mg_write(conn, response.c_str(), response.length());
     return 1;
   }
+
 }
 
 Word* RESTfulService::computeFingerprint(const std::string &settings,
@@ -215,12 +230,13 @@ Word* RESTfulService::computeFingerprint(const std::string &settings,
   return 0;
 }
 
-string RESTfulService::similaritySearch(const string &query, bool pretty)
+string RESTfulService::similaritySearch(const string &query, bool pretty,
+    unsigned int limit)
 {
   Word *fingerPrint = computeFingerprint(m_similarityStorage.header(), query);
 
   vector<pair<unsigned int, double> > result
-    = m_similarityIndex->search(fingerPrint, TMIN);
+    = m_similarityIndex->search(fingerPrint, TMIN, limit);
 
   std::sort(result.begin(), result.end(),
             compare_first<unsigned int, double>());
@@ -272,7 +288,8 @@ void RESTfulService::screen(Word *fingerprint, Word *result)
   }
 }
 
-string RESTfulService::subStructureSearch(const string &smiles, bool pretty)
+string RESTfulService::subStructureSearch(const string &smiles, bool pretty,
+    unsigned int limit)
 {
   HeMol query;
   parse_smiles(smiles, query);
@@ -297,6 +314,9 @@ string RESTfulService::subStructureSearch(const string &smiles, bool pretty)
       if (isomorphism_search<DefaultAtomMatcher, DefaultBondMatcher>(mol, query))
         result.push_back(i);
     }
+
+    if (result.size() == limit)
+      break;
   }
 
   // print results

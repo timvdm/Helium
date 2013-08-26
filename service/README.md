@@ -21,13 +21,14 @@ The service is accessed using HTTP GET request, for example using the command li
     
 Where:
 
-- query_string - Is the SMILES string being searched for.
-- pretty - Is an optional parameter ( defaults to false ). If set to true the JSON returned will be formatted.
+- query_string - The SMILES string being searched for.
+- pretty - An optional parameter ( defaults to false ). If set to true the JSON returned will be formatted.
+- limit - An optional parameter to limit the search results returned. The default limit is 100.
 
  
 ### Similarity search example:
 
-    curl 'localhost:8089/helium/similarity?q=c1ccccc1Cl&pretty=true'
+    curl 'localhost:8089/helium/similarity?q=c1ccccc1Cl&pretty=true&limit=10'
 
 Will return the following JSON:
 

@@ -239,7 +239,7 @@ string RESTfulService::similaritySearch(const string &query, bool pretty,
     = m_similarityIndex->search(fingerPrint, TMIN, limit);
 
   std::sort(result.begin(), result.end(),
-            compare_first<unsigned int, double>());
+            compare_second<unsigned int, double, std::greater>());
 
 
   Json::Value data;

@@ -184,7 +184,7 @@ namespace Helium {
    * @return The number of atoms.
    */
   template<typename MoleculeType>
-  Size num_atoms(const MoleculeType *mol);
+  Size num_atoms(const MoleculeType &mol);
 
   /**
    * @brief Get an iterator pair to iterator over the atoms inside a molecule.
@@ -195,7 +195,7 @@ namespace Helium {
    */
   template<typename MoleculeType>
   std::pair<typename molecule_traits<MoleculeType>::atom_iter, typename molecule_traits<MoleculeType>::atom_iter>
-  get_atoms(MoleculeType *mol);
+  get_atoms(const MoleculeType &mol);
 
   /**
    * @brief Get the atom with the specified index.
@@ -209,7 +209,7 @@ namespace Helium {
    * @return The atom with the specified @p index.
    */
   template<typename MoleculeType>
-  typename molecule_traits<MoleculeType>::atom_type get_atom(const MoleculeType *mol, Index index);
+  typename molecule_traits<MoleculeType>::atom_type get_atom(const MoleculeType &mol, Index index);
 
   /////////////////////////////
   //
@@ -225,7 +225,7 @@ namespace Helium {
    * @return The number of bonds.
    */
   template<typename MoleculeType>
-  Size num_bonds(const MoleculeType *mol);
+  Size num_bonds(const MoleculeType &mol);
 
   /**
    * @brief Get an iterator pair to iterator over the bonds inside a molecule.
@@ -236,7 +236,7 @@ namespace Helium {
    */
   template<typename MoleculeType>
   std::pair<typename molecule_traits<MoleculeType>::bond_iter, typename molecule_traits<MoleculeType>::bond_iter>
-  get_bonds(MoleculeType *mol);
+  get_bonds(const MoleculeType &mol);
 
   /**
    * @brief Get the bond with the specified index.
@@ -250,7 +250,7 @@ namespace Helium {
    * @return The bond with the specified @p index.
    */
   template<typename MoleculeType>
-  typename molecule_traits<MoleculeType>::bond_type get_bond(const MoleculeType *mol, Index index);
+  typename molecule_traits<MoleculeType>::bond_type get_bond(const MoleculeType &mol, Index index);
 
   /**
    * @brief Get the bond between the specified source and target atoms.
@@ -266,7 +266,7 @@ namespace Helium {
    *         molecule_traits<MoleculeType>::null_bond() if there is no such bond.
    */
   template<typename MoleculeType>
-  typename molecule_traits<MoleculeType>::bond_type get_bond(const MoleculeType *mol, typename molecule_traits<MoleculeType>::atom_type source,
+  typename molecule_traits<MoleculeType>::bond_type get_bond(const MoleculeType &mol, typename molecule_traits<MoleculeType>::atom_type source,
                                                                                       typename molecule_traits<MoleculeType>::atom_type target);
 
   //////////////////////////////////////////////////////////////////////////////
@@ -286,7 +286,7 @@ namespace Helium {
    * @return The atom index.
    */
   template<typename MoleculeType>
-  Index get_index(const MoleculeType *mol, typename molecule_traits<MoleculeType>::atom_type atom);
+  Index get_index(const MoleculeType &mol, typename molecule_traits<MoleculeType>::atom_type atom);
 
   /**
    * @brief Get the iterator pair to iterate over an atom's incident bonds.
@@ -300,7 +300,7 @@ namespace Helium {
    */
   template<typename MoleculeType>
   std::pair<typename molecule_traits<MoleculeType>::incident_iter, typename molecule_traits<MoleculeType>::incident_iter>
-  get_bonds(const MoleculeType *mol, typename molecule_traits<MoleculeType>::atom_type atom);
+  get_bonds(const MoleculeType &mol, typename molecule_traits<MoleculeType>::atom_type atom);
 
   /**
    * @brief Get the iterator pair to iterate over an atom's neighboring atoms.
@@ -314,7 +314,7 @@ namespace Helium {
    */
   template<typename MoleculeType>
   std::pair<typename molecule_traits<MoleculeType>::nbr_iter, typename molecule_traits<MoleculeType>::nbr_iter>
-  get_nbrs(const MoleculeType *mol, typename molecule_traits<MoleculeType>::atom_type atom);
+  get_nbrs(const MoleculeType &mol, typename molecule_traits<MoleculeType>::atom_type atom);
 
   /**
    * @brief Get the atom's aromaticity.
@@ -327,7 +327,7 @@ namespace Helium {
    * @return True if the atom is aromatic, false otherwise.
    */
   template<typename MoleculeType>
-  bool is_aromatic(const MoleculeType *mol, typename molecule_traits<MoleculeType>::atom_type atom);
+  bool is_aromatic(const MoleculeType &mol, typename molecule_traits<MoleculeType>::atom_type atom);
 
   /**
    * @brief Get the atom's cyclic flag.
@@ -340,7 +340,7 @@ namespace Helium {
    * @return True if the atom is cyclic, false otherwise.
    */
   template<typename MoleculeType>
-  bool is_cyclic(const MoleculeType *mol, typename molecule_traits<MoleculeType>::atom_type atom);
+  bool is_cyclic(const MoleculeType &mol, typename molecule_traits<MoleculeType>::atom_type atom);
 
   /**
    * @brief Get the atom's chemical element number.
@@ -353,7 +353,7 @@ namespace Helium {
    * @return The atom's chemical element number.
    */
   template<typename MoleculeType>
-  int get_element(const MoleculeType *mol, typename molecule_traits<MoleculeType>::atom_type atom);
+  int get_element(const MoleculeType &mol, typename molecule_traits<MoleculeType>::atom_type atom);
 
   /**
    * @brief Get the atom's mass number.
@@ -366,7 +366,7 @@ namespace Helium {
    * @return The atom's mass number.
    */
   template<typename MoleculeType>
-  int get_mass(const MoleculeType *mol, typename molecule_traits<MoleculeType>::atom_type atom);
+  int get_mass(const MoleculeType &mol, typename molecule_traits<MoleculeType>::atom_type atom);
 
   /**
    * @brief Get the atom's degree.
@@ -381,7 +381,7 @@ namespace Helium {
    * @return The atom's degree.
    */
   template<typename MoleculeType>
-  int get_degree(const MoleculeType *mol, typename molecule_traits<MoleculeType>::atom_type atom);
+  int get_degree(const MoleculeType &mol, typename molecule_traits<MoleculeType>::atom_type atom);
 
   /**
    * @brief Get the atom's number of connected hydrogens.
@@ -394,7 +394,7 @@ namespace Helium {
    * @return The atom's number of connected hydrogens.
    */
   template<typename MoleculeType>
-  int num_hydrogens(const MoleculeType *mol, typename molecule_traits<MoleculeType>::atom_type atom);
+  int num_hydrogens(const MoleculeType &mol, typename molecule_traits<MoleculeType>::atom_type atom);
 
   /**
    * @brief Get the atom's charge.
@@ -407,7 +407,7 @@ namespace Helium {
    * @return The atom's charge.
    */
   template<typename MoleculeType>
-  int get_charge(const MoleculeType *mol, typename molecule_traits<MoleculeType>::atom_type atom);
+  int get_charge(const MoleculeType &mol, typename molecule_traits<MoleculeType>::atom_type atom);
 
   //////////////////////////////////////////////////////////////////////////////
   //
@@ -426,7 +426,7 @@ namespace Helium {
    * @return The bond index.
    */
   template<typename MoleculeType>
-  Index get_index(const MoleculeType *mol, typename molecule_traits<MoleculeType>::bond_type bond);
+  Index get_index(const MoleculeType &mol, typename molecule_traits<MoleculeType>::bond_type bond);
 
   /**
    * @brief Get the bond's source atom.
@@ -439,7 +439,7 @@ namespace Helium {
    * @return The bond's source atom.
    */
   template<typename MoleculeType>
-  typename molecule_traits<MoleculeType>::atom_type get_source(const MoleculeType *mol, typename molecule_traits<MoleculeType>::bond_type bond);
+  typename molecule_traits<MoleculeType>::atom_type get_source(const MoleculeType &mol, typename molecule_traits<MoleculeType>::bond_type bond);
 
   /**
    * @brief Get the bond's target atom.
@@ -452,7 +452,7 @@ namespace Helium {
    * @return The bond's target atom.
    */
   template<typename MoleculeType>
-  typename molecule_traits<MoleculeType>::atom_type get_target(const MoleculeType *mol, typename molecule_traits<MoleculeType>::bond_type bond);
+  typename molecule_traits<MoleculeType>::atom_type get_target(const MoleculeType &mol, typename molecule_traits<MoleculeType>::bond_type bond);
 
   /**
    * @brief Get the bond's other atom.
@@ -468,7 +468,7 @@ namespace Helium {
    * @return The bond's other atom (i.e. The bond atom that is not equal to @p atom).
    */
   template<typename MoleculeType>
-  typename molecule_traits<MoleculeType>::atom_type get_other(const MoleculeType *mol, typename molecule_traits<MoleculeType>::bond_type bond,
+  typename molecule_traits<MoleculeType>::atom_type get_other(const MoleculeType &mol, typename molecule_traits<MoleculeType>::bond_type bond,
                                                                                        typename molecule_traits<MoleculeType>::atom_type atom);
 
   /**
@@ -482,7 +482,7 @@ namespace Helium {
    * @return True if the bond is aromatic, false otherwise.
    */
   template<typename MoleculeType>
-  bool is_aromatic(const MoleculeType *mol, typename molecule_traits<MoleculeType>::bond_type bond);
+  bool is_aromatic(const MoleculeType &mol, typename molecule_traits<MoleculeType>::bond_type bond);
 
   /**
    * @brief Get the bond's cyclic flag.
@@ -495,7 +495,7 @@ namespace Helium {
    * @return True if the bond is cyclic, false otherwise.
    */
   template<typename MoleculeType>
-  bool is_cyclic(const MoleculeType *mol, typename molecule_traits<MoleculeType>::bond_type bond);
+  bool is_cyclic(const MoleculeType &mol, typename molecule_traits<MoleculeType>::bond_type bond);
 
   /**
    * @brief Get the bond's order.
@@ -508,7 +508,7 @@ namespace Helium {
    * @return The bond's order.
    */
   template<typename MoleculeType>
-  bool get_order(const MoleculeType *mol, typename molecule_traits<MoleculeType>::bond_type bond);
+  bool get_order(const MoleculeType &mol, typename molecule_traits<MoleculeType>::bond_type bond);
 
   //@}
 

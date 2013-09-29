@@ -34,12 +34,37 @@
 
 namespace Helium {
 
+  /**
+   * @brief Get the cyclomatic number.
+   *
+   * The cyclomatic number is defined by \f$m - n + c\f$ where \f$n\f$ is the
+   * number of atoms, \f$m\f$ the number of bonds and \f$c\f$ the number of
+   * connected components. This formula is known as Cauchy's formula. The
+   * cyclomatic number is the same as the nullity or first Betti's number.
+   *
+   * @param mol The molecule.
+   * @param numComponents The number of connected components.
+   *
+   * @return The cyclomatic number.
+   */
   template<typename MoleculeType>
   Size cyclomatic_number(MoleculeType &mol, Size numComponents)
   {
     return num_bonds(mol) - num_atoms(mol) + numComponents;
   }
 
+  /**
+   * @brief Get the cyclomatic number.
+   *
+   * The cyclomatic number is defined by \f$m - n + c\f$ where \f$n\f$ is the
+   * number of atoms, \f$m\f$ the number of bonds and \f$c\f$ the number of
+   * connected components. This formula is known as Cauchy's formula. The
+   * cyclomatic number is the same as the nullity or first Betti's number.
+   *
+   * @param mol The molecule.
+   *
+   * @return The cyclomatic number.
+   */
   template<typename MoleculeType>
   Size cyclomatic_number(MoleculeType &mol)
   {
@@ -47,7 +72,7 @@ namespace Helium {
   }
 
   namespace impl {
-  
+
     template<typename MoleculeType>
     struct CycleMembershipVisitor : public DFSVisitor<MoleculeType>
     {
@@ -65,7 +90,7 @@ namespace Helium {
         path.reserve(num_atoms(mol));
       }
 
-      void atom(MoleculeType &mol, atom_type prev, atom_type atom) 
+      void atom(MoleculeType &mol, atom_type prev, atom_type atom)
       {
         path.push_back(get_index(mol, atom));
       }
@@ -102,6 +127,15 @@ namespace Helium {
 
   }
 
+  /**
+   * @brief Determine atom and bond cycle membership.
+   *
+   * @note Complexity: O(n)
+   *
+   * @param mol The molecule.
+   * @param cycle_atoms cyclic atoms output parameter.
+   * @param cycle_bonds cyclic bonds output parameter.
+   */
   template<typename MoleculeType>
   void cycle_membership(MoleculeType &mol, std::vector<bool> &cycle_atoms, std::vector<bool> &cycle_bonds)
   {
@@ -144,6 +178,13 @@ namespace Helium {
 
   }
 
+  /**
+   * @brief Find the relevant cycles.
+   *
+   * The set of relevant cycles is formed by taking the union of all the
+   * minimum cycles bases. An alternative definition is that a cycle is
+   * relevant if it is not the sum of smaller cycles.
+   */
   template<typename MoleculeType>
   std::vector<std::vector<Index> > relevant_cycles(MoleculeType &mol, Size cyclomaticNumber)
   {

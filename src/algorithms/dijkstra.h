@@ -1,27 +1,61 @@
+/*
+ * Copyright (c) 2013, Tim Vandermeersch
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *     * Redistributions of source code must retain the above copyright
+ *       notice, this list of conditions and the following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright
+ *       notice, this list of conditions and the following disclaimer in the
+ *       documentation and/or other materials provided with the distribution.
+ *     * Neither the name of the <organization> nor the
+ *       names of its contributors may be used to endorse or promote products
+ *       derived from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL <COPYRIGHT HOLDER> BE LIABLE FOR ANY
+ * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 #ifndef HELIUM_DIJKSTRA_H
 #define HELIUM_DIJKSTRA_H
 
 #include <vector>
 #include <limits>
+#include <algorithm>
 
 #include <Helium/molecule.h>
 
 namespace Helium {
 
-  struct DijkstraSmallerIndexAtoms
-  {
-    DijkstraSmallerIndexAtoms(Index index) : m_index(index)
-    {
-    }
+  namespace impl {
 
-    template<typename MoleculeType, typename AtomType>
-    bool operator()(const MoleculeType &mol, AtomType atom) const
+    template<typename MoleculeType>
+    struct DijkstraHeapCompare
     {
-      return get_index(mol, atom) <= m_index;
-    }
+      DijkstraHeapCompare(const MoleculeType &mol, const std::vector<Size> &dist)
+        : m_mol(mol), m_dist(dist)
+      {
+      }
 
-    Index m_index;
-  };
+      bool operator()(typename molecule_traits<MoleculeType>::atom_type first,
+                      typename molecule_traits<MoleculeType>::atom_type second) const
+      {
+        return m_dist[get_index(m_mol, first)] >= m_dist[get_index(m_mol, second)];
+      }
+
+      const MoleculeType &m_mol;
+      const std::vector<Size> &m_dist;
+    };
+
+  }
 
   /**
    * @brief Class for running Dijkstra's shortest path algorithm.
@@ -44,9 +78,12 @@ namespace Helium {
        *
        * @param mol The molecule.
        * @param source The source atom.
+       * @param preferSmallerIndexPaths When true, same length paths are
+       *        preferred that include only atoms with indices smaller than the
+       *        source's index.
        */
       template<typename AtomType>
-      Dijkstra(const MoleculeType &mol, AtomType source)
+      Dijkstra(const MoleculeType &mol, AtomType source, bool preferSmallerIndexPaths = false)
           : m_mol(mol), m_source(source)
       {
         // add all atoms in mol to Q
@@ -54,42 +91,7 @@ namespace Helium {
         FOREACH_ATOM (atom, mol, MoleculeType)
           Q.push_back(*atom);
 
-        dijkstra(mol, source, Q);
-      }
-
-      /**
-       * @brief Constructor.
-       *
-       * Using this constructor, some atoms can be excluded using the
-       * appropriate predicate functor. The functor should implement the
-       * function call operator as illustrated below:
-       *
-       * @code
-       * struct MyDijkstraAtomPredicate
-       * {
-       *   template<typename MoleculeType, typename AtomType>
-       *   bool operator()(const MoleculeType &mol, AtomType atom) const
-       *   {
-       *     return true; // include all atoms..
-       *   }
-       * };
-       * @endcode
-       *
-       * @param mol The molecule.
-       * @param source The source atom.
-       * @param predicate The atoms predicate.
-       */
-      template<typename AtomType, typename AtomPredicate>
-      Dijkstra(const MoleculeType &mol, AtomType source, const AtomPredicate &predicate)
-          : m_mol(mol), m_source(source)
-      {
-        // add all atoms in mol to Q
-        std::vector<AtomType> Q;
-        FOREACH_ATOM (atom, mol, MoleculeType)
-          if (predicate(mol, *atom))
-            Q.push_back(*atom);
-
-        dijkstra(mol, source, Q);
+        dijkstra(mol, source, Q, preferSmallerIndexPaths);
       }
 
       /**
@@ -141,7 +143,7 @@ namespace Helium {
 
     private:
       template<typename AtomType>
-      void dijkstra(const MoleculeType &mol, AtomType source, std::vector<AtomType> &Q)
+      void dijkstra(const MoleculeType &mol, AtomType source, std::vector<AtomType> &Q, bool preferSmallerIndexPaths)
       {
         // distance from source to other atoms
         m_dist.resize(num_atoms(mol), std::numeric_limits<Size>::max());
@@ -151,7 +153,12 @@ namespace Helium {
         // distance from source to source
         m_dist[get_index(mol, source)] = 0;
 
+        // make Q a heap [heap implementation only]
+        typedef typename impl::DijkstraHeapCompare<MoleculeType> HeapCompare;
+        std::make_heap(Q.begin(), Q.end(), HeapCompare(mol, m_dist));
+
         while (Q.size()) {
+          /* [array implementation]
           // find atom in Q with smallest distance in m_dist
           std::size_t uIndex = 0;
           for (std::size_t i = 1; i < Q.size(); ++i)
@@ -160,6 +167,13 @@ namespace Helium {
           AtomType u = Q[uIndex];
           // remove u from Q
           Q.erase(Q.begin() + uIndex);
+          */
+
+          // find atom in Q with smallest distance in m_dist
+          AtomType u = Q.front();
+          // remove u from Q
+          std::pop_heap(Q.begin(), Q.end(), HeapCompare(mol, m_dist));
+          Q.pop_back();
 
           if (m_dist[get_index(mol, u)] == std::numeric_limits<Size>::max())
             // all remaining atoms are inaccessible from source
@@ -171,7 +185,13 @@ namespace Helium {
             if (alt < m_dist[get_index(mol, *v)]) {
               m_dist[get_index(mol, *v)] = alt;
               m_prev[get_index(mol, *v)] = u;
+              // [heap implementation only]
+              std::make_heap(Q.begin(), Q.end(), HeapCompare(mol, m_dist));
             }
+
+            if (preferSmallerIndexPaths && alt == m_dist[get_index(mol, *v)] &&
+                contains_larger_index(mol, path(*v), get_index(mol, m_source)))
+              m_prev[get_index(mol, *v)] = u;
           }
         }
       }

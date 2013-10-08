@@ -1,3 +1,6 @@
+#ifndef HELIUM_TEST_H
+#define HELIUM_TEST_H
+
 #include <iostream>
 #include <cstdlib>
 
@@ -42,3 +45,5 @@ std::string datadir()
 {
   return HEDATADIR + std::string("/");
 }
+
+#endif

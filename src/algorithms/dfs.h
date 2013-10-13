@@ -59,7 +59,7 @@ namespace Helium {
      *
      * @param mol The molecule.
      */
-    void initialize(MoleculeType &mol) {}
+    void initialize(const MoleculeType &mol) {}
 
     /**
      * @brief Visit an atom.
@@ -70,7 +70,7 @@ namespace Helium {
      * @param prev The previous atom on the DFS path.
      * @param atom The traversed atom.
      */
-    void atom(MoleculeType &mol, atom_type prev, atom_type atom) {}
+    void atom(const MoleculeType &mol, atom_type prev, atom_type atom) {}
 
     /**
      * @brief Visit a bond.
@@ -81,7 +81,7 @@ namespace Helium {
      * @param prev The previous atom on the DFS path.
      * @param bond The traversed bond.
      */
-    void bond(MoleculeType &mol, atom_type prev, bond_type bond) {}
+    void bond(const MoleculeType &mol, atom_type prev, bond_type bond) {}
 
     /**
      * @brief Backtrack.
@@ -92,7 +92,7 @@ namespace Helium {
      * @param mol The molecule.
      * @param atom The atom.
      */
-    void backtrack(MoleculeType &mol, atom_type atom) {}
+    void backtrack(const MoleculeType &mol, atom_type atom) {}
 
     /**
      * @brief Visit a "back" bond.
@@ -103,13 +103,13 @@ namespace Helium {
      * @param mol The molecule.
      * @param bond The "back" bond.
      */
-    void back_bond(MoleculeType &mol, bond_type bond) {}
+    void back_bond(const MoleculeType &mol, bond_type bond) {}
   };
 
   namespace impl {
 
     template<typename MoleculeType, typename AtomType, typename DFSVisitorType>
-    void dfs_visit(MoleculeType &mol, AtomType atom, DFSVisitorType &visitor, std::vector<bool> &visited,
+    void dfs_visit(const MoleculeType &mol, AtomType atom, DFSVisitorType &visitor, std::vector<bool> &visited,
         AtomType prev = molecule_traits<MoleculeType>::null_atom())
     {
       typedef AtomType atom_type;
@@ -196,7 +196,7 @@ namespace Helium {
      * @param prev The previous atom on the DFS path.
      * @param atom The traversed atom.
      */
-    void atom(MoleculeType &mol, atom_type prev, atom_type atom)
+    void atom(const MoleculeType &mol, atom_type prev, atom_type atom)
     {
       atoms.push_back(get_index(mol, atom));
     }
@@ -231,7 +231,7 @@ namespace Helium {
      * @param prev The previous atom on the DFS path.
      * @param bond The traversed bond.
      */
-    void bond(MoleculeType &mol, atom_type prev, bond_type bond)
+    void bond(const MoleculeType &mol, atom_type prev, bond_type bond)
     {
       bonds.push_back(get_index(mol, bond));
     }
@@ -261,7 +261,7 @@ namespace Helium {
      * @param mol The molecule.
      * @param bond The "back" bond.
      */
-    void back_bond(MoleculeType &mol, bond_type bond)
+    void back_bond(const MoleculeType &mol, bond_type bond)
     {
       back_bonds.push_back(get_index(mol, bond));
     }
@@ -297,7 +297,7 @@ namespace Helium {
      * @param prev The previous atom on the DFS path.
      * @param atom The traversed atom.
      */
-    void atom(MoleculeType &mol, atom_type prev, atom_type atom)
+    void atom(const MoleculeType &mol, atom_type prev, atom_type atom)
     {
       std::cout << "atom(" << get_index(mol, atom) << ")" << std::endl;
     }
@@ -312,7 +312,7 @@ namespace Helium {
      * @param prev The previous atom on the DFS path.
      * @param bond The traversed bond.
      */
-    void bond(MoleculeType &mol, atom_type prev, bond_type bond)
+    void bond(const MoleculeType &mol, atom_type prev, bond_type bond)
     {
       std::cout << "bond(" << get_index(mol, bond) << ")" << std::endl;
     }
@@ -326,7 +326,7 @@ namespace Helium {
      * @param mol The molecule.
      * @param atom The atom.
      */
-    void backtrack(MoleculeType &mol, atom_type atom)
+    void backtrack(const MoleculeType &mol, atom_type atom)
     {
       std::cout << "backtrack(" << get_index(mol, atom) << ")" << std::endl;
     }
@@ -340,7 +340,7 @@ namespace Helium {
      * @param mol The molecule.
      * @param bond The "back" bond.
      */
-    void back_bond(MoleculeType &mol, bond_type bond)
+    void back_bond(const MoleculeType &mol, bond_type bond)
     {
       std::cout << "back_bond(" << get_index(mol, bond) << ")" << std::endl;
     }

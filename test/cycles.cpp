@@ -2,7 +2,7 @@
 #include <Helium/smiles.h>
 #include <Helium/fileio/molecules.h>
 
-#include "test.h"
+#include "cycles.h"
 
 using namespace Helium;
 
@@ -61,14 +61,33 @@ void test_relevant_cycles(const std::string &smiles, std::vector<std::pair<unsig
     std::cerr << e.what();
   }
 
-  std::vector<std::vector<Index> > cycles = relevant_cycles(mol);
+  RingSet<HeMol> cycles = relevant_cycles(mol);
   std::map<unsigned int, unsigned int> cycleSizeCounts;
   for (std::size_t i = 0; i < cycles.size(); ++i)
-    cycleSizeCounts[cycles[i].size()]++;
+    cycleSizeCounts[cycles.ring(i).size()]++;
 
   for (std::size_t i = 0; i < expected.size(); ++i)
     COMPARE(expected[i].second, cycleSizeCounts[expected[i].first]);
 }
+
+struct IsomorphismCycleAlgorithm
+{
+  template<typename MoleculeType>
+  std::vector<TestCycle> operator()(const MoleculeType &mol) const
+  {
+    RingSet<HeMol> cycles = relevant_cycles(mol);
+
+    std::vector<TestCycle> result;
+    for (std::size_t i = 0; i < cycles.size(); ++i) {
+      TestCycle cycle(num_bonds(mol));
+      for (std::size_t j = 0; j < cycles.ring(i).size(); ++j)
+        cycle.cycle()[get_index(mol, cycles.ring(i).bond(j))] = true;
+      result.push_back(cycle);
+    }
+
+    return result;
+  }
+};
 
 int main()
 {
@@ -104,4 +123,5 @@ int main()
   cycles.push_back(std::make_pair(6, 1));
   test_relevant_cycles("C1C(N)C1Cc1ccc(O)cc1", cycles);
 
+  test_cycle_perception(IsomorphismCycleAlgorithm());
 }

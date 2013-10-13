@@ -28,9 +28,10 @@
 #define HELIUM_CYCLES_H
 
 #include <Helium/algorithms/components.h>
+#include <Helium/algorithms/dfs.h>
 #include <Helium/algorithms/isomorphism.h>
 #include <Helium/smiles.h>
-#include <Helium/algorithms/dfs.h>
+#include <Helium/ring.h>
 
 namespace Helium {
 
@@ -85,22 +86,22 @@ namespace Helium {
       {
       }
 
-      void initialize(MoleculeType &mol)
+      void initialize(const MoleculeType &mol)
       {
         path.reserve(num_atoms(mol));
       }
 
-      void atom(MoleculeType &mol, atom_type prev, atom_type atom)
+      void atom(const MoleculeType &mol, atom_type prev, atom_type atom)
       {
         path.push_back(get_index(mol, atom));
       }
 
-      void backtrack(MoleculeType &mol, atom_type atom)
+      void backtrack(const MoleculeType &mol, atom_type atom)
       {
         path.pop_back();
       }
 
-      void back_bond(MoleculeType &mol, bond_type bond)
+      void back_bond(const MoleculeType &mol, bond_type bond)
       {
         // find the atom that ends the cycle
         atom_type last_atom = get_other(mol, bond, get_atom(mol, path.back()));
@@ -137,7 +138,7 @@ namespace Helium {
    * @param cycle_bonds cyclic bonds output parameter.
    */
   template<typename MoleculeType>
-  void cycle_membership(MoleculeType &mol, std::vector<bool> &cycle_atoms, std::vector<bool> &cycle_bonds)
+  void cycle_membership(const MoleculeType &mol, std::vector<bool> &cycle_atoms, std::vector<bool> &cycle_bonds)
   {
     cycle_atoms.clear();
     cycle_bonds.clear();
@@ -156,11 +157,16 @@ namespace Helium {
       typedef typename molecule_traits<MoleculeType>::atom_type atom_type;
       typedef typename molecule_traits<QueryType>::atom_type query_atom_type;
 
-      bool operator()(QueryType &query, query_atom_type queryAtom, MoleculeType &mol, atom_type atom) const
+      CycleAtomMatcher(Index source_) : source(source_)
       {
-        return true;
-        //return is_cyclic(mol, atom);
       }
+
+      bool operator()(const QueryType &query, query_atom_type queryAtom, const MoleculeType &mol, atom_type atom) const
+      {
+        return get_index(mol, atom) <= source;
+      }
+
+      Index source;
     };
 
     template<typename MoleculeType, typename QueryType>
@@ -169,14 +175,82 @@ namespace Helium {
       typedef typename molecule_traits<MoleculeType>::bond_type bond_type;
       typedef typename molecule_traits<QueryType>::bond_type query_bond_type;
 
-      bool operator()(QueryType &query, query_bond_type queryAtom, MoleculeType &mol, bond_type bond) const
+      bool operator()(const QueryType &query, query_bond_type queryAtom, const MoleculeType &mol, bond_type bond) const
       {
         return true;
-        //return is_cyclic(mol, bond);
       }
     };
 
+    class IsomorphismCycle
+    {
+      public:
+        IsomorphismCycle()
+        {
+        }
+
+        template<typename MoleculeType>
+        IsomorphismCycle(const MoleculeType &mol, const std::vector<Index> &atoms)
+        {
+          m_edges.insert(get_index(mol, get_bond(mol, get_atom(mol, atoms[0]), get_atom(mol, atoms[atoms.size() - 1]))));
+          for (std::size_t i = 1; i < atoms.size(); ++i)
+            m_edges.insert(get_index(mol, get_bond(mol, get_atom(mol, atoms[i - 1]), get_atom(mol, atoms[i]))));
+        }
+
+        bool operator==(const IsomorphismCycle &other) const
+        {
+          return m_edges == other.m_edges;
+        }
+
+        IsomorphismCycle& operator+=(const IsomorphismCycle &other)
+        {
+          std::set<Index> result;
+          std::set_symmetric_difference(m_edges.begin(), m_edges.end(),
+                                        other.m_edges.begin(), other.m_edges.end(),
+                                        std::inserter(result, result.begin()));
+          m_edges = result;
+          return *this;
+        }
+
+        const std::set<Index>& edges() const
+        {
+          return m_edges;
+        }
+
+      private:
+        std::set<Index> m_edges;
+    };
+
+    bool is_relevant(const std::vector<IsomorphismCycle> &cycles, const IsomorphismCycle &cycle)
+    {
+      std::size_t n = 0;
+
+      // check for identical
+      for (std::size_t i = 0; i < cycles.size(); ++i) {
+        if (cycle == cycles[i])
+          return false;
+        if (cycles[i].edges().size() < cycle.edges().size())
+          ++n;
+      }
+
+      // check if cycle is sum of smaller cycles
+      std::vector<std::size_t> indices;
+      for (std::size_t i = 0; i < n; ++i)
+        indices.push_back(i);
+
+      for (std::size_t size = 2; size <= indices.size(); ++size)
+        do {
+          IsomorphismCycle sum;
+          for (std::size_t i = 0; i < size; ++i)
+            sum += cycles[indices[i]];
+          if (cycle == sum)
+            return false;
+        } while (next_combination(indices.begin(), indices.begin() + size, indices.end()));
+
+      return true;
+    }
+
   }
+
 
   /**
    * @brief Find the relevant cycles.
@@ -184,16 +258,31 @@ namespace Helium {
    * The set of relevant cycles is formed by taking the union of all the
    * minimum cycles bases. An alternative definition is that a cycle is
    * relevant if it is not the sum of smaller cycles.
+   *
+   * This function returns the set of relevant cycles listing the atom
+   * indices in sequence.
+   *
+   * @param mol The molecule.
+   * @param cyclomatricNumber The cyclomatic number.
+   *
+   * @return The set of relevant cycles.
    */
   template<typename MoleculeType>
-  std::vector<std::vector<Index> > relevant_cycles(MoleculeType &mol, Size cyclomaticNumber)
+  RingSet<MoleculeType> relevant_cycles(const MoleculeType &mol, Size cyclomaticNumber)
   {
-    std::vector<std::vector<Index> > cycles;
+    typedef typename molecule_traits<MoleculeType>::atom_type atom_type;
+
+    RingSet<MoleculeType> rings(mol);
 
     // current cycle size
     unsigned int size = 3;
+    unsigned int lastSize = 3;
 
-    while (cycles.size() < cyclomaticNumber) {
+    std::vector<impl::IsomorphismCycle> relevant;
+    while (true) {
+      std::cout << "size: " << size << ", lastSize: " << lastSize << ", nullity: " << cyclomaticNumber << ", count: " << relevant.size() << std::endl;
+      if (rings.size() >= cyclomaticNumber && lastSize < size)
+        break;
       // create query
       std::string smiles = "*1" + std::string(size - 1, '*') + "1";
       HeMol cycleMol;
@@ -201,20 +290,37 @@ namespace Helium {
 
       // find all cycles of size
       MappingList mappings;
-      if (isomorphism_search<impl::CycleAtomMatcher, impl::CycleBondMatcher, MoleculeType, HeMol, MappingList>(mol, cycleMol, mappings)) {
-        for (std::size_t i = 0; i < mappings.maps.size(); ++i)
-          cycles.push_back(mappings.maps[i]);
+      impl::CycleBondMatcher<MoleculeType, HeMol> bondMatcher;
+      FOREACH_ATOM (atom, mol, MoleculeType) {
+        impl::CycleAtomMatcher<MoleculeType, HeMol> atomMatcher(get_index(mol, *atom));
+
+        if (isomorphism_search(mol, *atom, cycleMol, mappings, atomMatcher, bondMatcher)) {
+          for (std::size_t i = 0; i < mappings.maps.size(); ++i) {
+            impl::IsomorphismCycle cycle(mol, mappings.maps[i]);
+            if (is_relevant(relevant, cycle)) {
+              std::vector<atom_type> atoms;
+              for (std::size_t j = 0; j < mappings.maps[i].size(); ++j)
+                atoms.push_back(get_atom(mol, mappings.maps[i][j]));
+              rings.addRing(Ring<MoleculeType>(mol, atoms));
+              relevant.push_back(cycle);
+              lastSize = size;
+            }
+          }
+        }
       }
 
       // increment cycle size
       ++size;
     }
 
-    return cycles;
+    return rings;
   }
 
+  /**
+   * @overload
+   */
   template<typename MoleculeType>
-  std::vector<std::vector<Index> > relevant_cycles(MoleculeType &mol)
+  RingSet<MoleculeType> relevant_cycles(const MoleculeType &mol)
   {
     return relevant_cycles(mol, cyclomatic_number(mol));
   }

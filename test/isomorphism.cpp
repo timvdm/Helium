@@ -16,7 +16,9 @@ void test_isomorphisms(const std::string &smiles)
     std::cerr << e.what();
   }
 
-  isomorphism_search<DefaultAtomMatcher, DefaultBondMatcher, HeMol, HeMol>(mol, mol);
+  DefaultAtomMatcher<HeMol, HeMol> atomMatcher;
+  DefaultBondMatcher<HeMol, HeMol> bondMatcher;
+  isomorphism_search(mol, mol, atomMatcher, bondMatcher);
 }
 
 int main()

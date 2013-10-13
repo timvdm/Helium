@@ -674,6 +674,23 @@ namespace Helium {
 
   //@endcond
 
+  /**
+   * @brief Read a SMILES string and construct a HeMol object from it.
+   *
+   * @param smiles The SMILES string.
+   * @param mol The molecule output paramater.
+   */
+  void hemol_from_smiles(const std::string &smiles, HeMol &mol);
+
+  /**
+   * @brief Read a SMILES string and construct a HeMol object from it.
+   *
+   * @param smiles The SMILES string.
+   *
+   * @return The HeMol object for the SMILES.
+   */
+  HeMol hemol_from_smiles(const std::string &smiles);
+
 }
 
 #endif

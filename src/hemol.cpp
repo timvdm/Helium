@@ -25,6 +25,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 #include <Helium/hemol.h>
+#include <Helium/smiles.h>
 
 namespace Helium {
 
@@ -100,6 +101,22 @@ namespace Helium {
     m_target = copy;
   }
 
+  void hemol_from_smiles(const std::string &smiles, HeMol &mol)
+  {
+    try {
+      parse_smiles(smiles, mol);
+    }
+    catch(Smiley::Exception &e) {
+      std::cerr << e.what();
+    }
+  }
+
+  HeMol hemol_from_smiles(const std::string &smiles)
+  {
+    HeMol mol;
+    hemol_from_smiles(smiles, mol);
+    return mol;
+  }
 
 
 }

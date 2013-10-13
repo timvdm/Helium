@@ -56,10 +56,16 @@ namespace Helium {
   {
     enum { single = true };
 
+    /**
+     * @brief Constructor.
+     */
     NoMapping() : match(false)
     {
     }
 
+    /**
+     * @brief True when a match is found.
+     */
     bool match;
   };
 
@@ -70,10 +76,16 @@ namespace Helium {
   {
     enum { single = false };
 
+    /**
+     * @brief Constructor.
+     */
     CountMapping() : count(0)
     {
     }
 
+    /**
+     * @brief The number of found matches.
+     */
     int count;
   };
 
@@ -83,6 +95,10 @@ namespace Helium {
   struct SingleMapping
   {
     enum { single = true };
+
+    /**
+     * @brief The atom mapping.
+     */
     IsomorphismMapping map;
   };
 
@@ -92,6 +108,10 @@ namespace Helium {
   struct MappingList
   {
     enum { single = false };
+
+    /**
+     * @brief The atom mappings.
+     */
     IsomorphismMappings maps;
   };
 
@@ -386,9 +406,25 @@ namespace Helium {
   template<typename MoleculeType, typename QueryType>
   struct DefaultAtomMatcher
   {
+    /**
+     * @brief The molecule atom type.
+     */
     typedef typename molecule_traits<MoleculeType>::atom_type atom_type;
+    /**
+     * @brief The query atom type.
+     */
     typedef typename molecule_traits<QueryType>::atom_type query_atom_type;
 
+    /**
+     * @brief Atom match function.
+     *
+     * @brief query The query.
+     * @brief queryAtom The query atom.
+     * @brief mol The queried molecule.
+     * @brief atom The queried atom.
+     *
+     * @return True if the query atom matches the molecule atom.
+     */
     bool operator()(QueryType &query, query_atom_type queryAtom, MoleculeType &mol, atom_type atom) const
     {
       return get_element(query, queryAtom) == get_element(mol, atom);
@@ -401,9 +437,25 @@ namespace Helium {
   template<typename MoleculeType, typename QueryType>
   struct DefaultBondMatcher
   {
+    /**
+     * @brief The molecule bond type.
+     */
     typedef typename molecule_traits<MoleculeType>::bond_type bond_type;
+    /**
+     * @brief The query bond type.
+     */
     typedef typename molecule_traits<QueryType>::bond_type query_bond_type;
 
+    /**
+     * @brief Bond match function.
+     *
+     * @brief query The query.
+     * @brief queryBond The query bond.
+     * @brief mol The queried molecule.
+     * @brief bond The queried bond.
+     *
+     * @return True if the query atom matches the molecule atom.
+     */
     bool operator()(QueryType &query, query_bond_type queryBond, MoleculeType &mol, bond_type bond) const
     {
       return get_order(query, queryBond) == get_order(mol, bond);

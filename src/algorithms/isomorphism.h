@@ -165,7 +165,7 @@ namespace Helium {
       std::cout << std::endl;
     }
 
-    template<template <typename, typename> class AtomMatcher, template<typename, typename> class BondMatcher, typename MoleculeType, typename QueryType, typename MappingType>
+    template<typename MoleculeType, typename QueryType, typename MappingType, typename AtomMatcher, typename BondMatcher>
     class Isomorphism
     {
       public:
@@ -177,7 +177,9 @@ namespace Helium {
         typedef typename molecule_traits<MoleculeType>::atom_iter atom_iter;
         typedef typename molecule_traits<MoleculeType>::incident_iter incident_iter;
 
-        Isomorphism(MoleculeType &mol, QueryType &query) : m_mol(mol), m_query(query)
+        Isomorphism(MoleculeType &mol, QueryType &query,
+            const AtomMatcher &atomMatcher, const BondMatcher &bondMatcher)
+          : m_atomMatcher(atomMatcher), m_bondMatcher(bondMatcher), m_mol(mol), m_query(query)
         {
           dfsBonds();
           m_map.resize(num_atoms(query), -1);
@@ -297,7 +299,7 @@ namespace Helium {
 
         }
 
-        void match(MappingType &mapping)
+        void match(MappingType &mapping, atom_type atom)
         {
           if (!num_atoms(m_query))
             return;
@@ -305,59 +307,69 @@ namespace Helium {
           if (!num_bonds(m_query)) {
             query_atom_type queryAtom = get_atom(m_query, 0);
 
-            atom_iter atom, end_atoms;
-            TIE(atom, end_atoms) = get_atoms(m_mol);
-            for (; atom != end_atoms; ++atom) {
-              if (!m_atomMatcher(m_query, queryAtom, m_mol, *atom))
-                continue;
+            if (!m_atomMatcher(m_query, queryAtom, m_mol, atom))
+              return;
 
-              if (DEBUG_ISOMORPHISM)
-                std::cout << get_index(m_query, queryAtom) << " -> " << get_index(m_mol, *atom) << std::endl;
+            if (DEBUG_ISOMORPHISM)
+              std::cout << get_index(m_query, queryAtom) << " -> " << get_index(m_mol, atom) << std::endl;
 
-              // map the source atom
-              m_map[get_index(m_query, queryAtom)] = get_index(m_mol, *atom);
+            // map the source atom
+            m_map[get_index(m_query, queryAtom)] = get_index(m_mol, atom);
 
-              add_mapping(mapping, m_map);
+            add_mapping(mapping, m_map);
 
-              if (DEBUG_ISOMORPHISM)
-                std::cout << "backtrack: " << get_index(m_query, queryAtom) << std::endl;
-              m_map[get_index(m_query, queryAtom)] = -1;
+            if (DEBUG_ISOMORPHISM)
+              std::cout << "backtrack: " << get_index(m_query, queryAtom) << std::endl;
+            m_map[get_index(m_query, queryAtom)] = -1;
 
-              if (MappingType::single && !empty_mappig(mapping))
-                return;
-            }
+            if (MappingType::single && !empty_mappig(mapping))
+              return;
           } else {
             query_atom_type queryAtom = m_bondSwap[0] ? get_target(m_query, get_bond(m_query, m_dfsBonds[0])) : get_source(m_query, get_bond(m_query, m_dfsBonds[0]));
 
+            if (!m_atomMatcher(m_query, queryAtom, m_mol, atom))
+              return;
+
+            if (DEBUG_ISOMORPHISM)
+              std::cout << get_index(m_query, queryAtom) << " -> " << get_index(m_mol, atom) << std::endl;
+
+            // map the source atom
+            m_map[get_index(m_query, queryAtom)] = get_index(m_mol, atom);
+
+            match(mapping, 0);
+
+            if (DEBUG_ISOMORPHISM)
+              std::cout << "backtrack: " << get_index(m_query, queryAtom) << std::endl;
+            m_map[get_index(m_query, queryAtom)] = -1;
+
+            if (MappingType::single && !empty_mappig(mapping))
+              return;
+          }
+        }
+
+        void match(MappingType &mapping)
+        {
+          if (!num_atoms(m_query))
+            return;
+
+          if (!num_bonds(m_query)) {
+            atom_iter atom, end_atoms;
+            TIE(atom, end_atoms) = get_atoms(m_mol);
+            for (; atom != end_atoms; ++atom)
+              match(mapping, *atom);
+          } else {
             // try to match each atom in the molecule against the first atom
             // epxression in the SMARTS
             atom_iter atom, end_atoms;
             TIE(atom, end_atoms) = get_atoms(m_mol);
-            for (; atom != end_atoms; ++atom) {
-              if (!m_atomMatcher(m_query, queryAtom, m_mol, *atom))
-                continue;
-
-              if (DEBUG_ISOMORPHISM)
-                std::cout << get_index(m_query, queryAtom) << " -> " << get_index(m_mol, *atom) << std::endl;
-
-              // map the source atom
-              m_map[get_index(m_query, queryAtom)] = get_index(m_mol, *atom);
-
-              match(mapping, 0);
-
-              if (DEBUG_ISOMORPHISM)
-                std::cout << "backtrack: " << get_index(m_query, queryAtom) << std::endl;
-              m_map[get_index(m_query, queryAtom)] = -1;
-
-              if (MappingType::single && !empty_mappig(mapping))
-                return;
-            }
+            for (; atom != end_atoms; ++atom)
+              match(mapping, *atom);
           }
         }
 
       private:
-        AtomMatcher<MoleculeType, QueryType> m_atomMatcher;
-        BondMatcher<MoleculeType, QueryType> m_bondMatcher;
+        const AtomMatcher &m_atomMatcher;
+        const BondMatcher &m_bondMatcher;
         MoleculeType &m_mol; // the queried molecule
         QueryType &m_query; // the query
         IsomorphismMapping  m_map; // current mapping: query atom index -> queried atom index
@@ -404,20 +416,47 @@ namespace Helium {
    * molecule.
    *
    * @param mol The molecule (queried).
+   * @param atom The first atom to be matched against query atom 0.
    * @param query The query.
    * @param mapping The desired mapping (e.g. NoMapping, SingleMapping, ...).
    *
    * @return True if the query is a substructure of @p mol.
    */
-  template<template <typename, typename> class AtomMatcher, template <typename, typename> class BondMatcher, typename MoleculeType, typename QueryType, typename MappingType>
-  bool isomorphism_search(MoleculeType &mol, QueryType &query, MappingType &mapping)
+  template<typename MoleculeType, typename AtomType, typename QueryType, typename MappingType, typename AtomMatcher, typename BondMatcher>
+  bool isomorphism_search(MoleculeType &mol, AtomType atom, QueryType &query, MappingType &mapping,
+      const AtomMatcher &atomMatcher, const BondMatcher &bondMatcher)
   {
     impl::clear_mappig(mapping);
 
     if (!num_atoms(query))
       return false;
 
-    impl::Isomorphism<AtomMatcher, BondMatcher, MoleculeType, QueryType, MappingType> iso(mol, query);
+    impl::Isomorphism<MoleculeType, QueryType, MappingType, AtomMatcher, BondMatcher> iso(mol, query, atomMatcher, bondMatcher);
+    iso.match(mapping, atom);
+
+    return !impl::empty_mappig(mapping);
+  }
+
+  /**
+   * Perform a subgraph isomorphism search for the specified query in the
+   * molecule.
+   *
+   * @param mol The molecule (queried).
+   * @param query The query.
+   * @param mapping The desired mapping (e.g. NoMapping, SingleMapping, ...).
+   *
+   * @return True if the query is a substructure of @p mol.
+   */
+  template<typename MoleculeType, typename QueryType, typename MappingType, typename AtomMatcher, typename BondMatcher>
+  bool isomorphism_search(MoleculeType &mol, QueryType &query, MappingType &mapping,
+      const AtomMatcher &atomMatcher, const BondMatcher &bondMatcher)
+  {
+    impl::clear_mappig(mapping);
+
+    if (!num_atoms(query))
+      return false;
+
+    impl::Isomorphism<MoleculeType, QueryType, MappingType, AtomMatcher, BondMatcher> iso(mol, query, atomMatcher, bondMatcher);
     iso.match(mapping);
 
     return !impl::empty_mappig(mapping);
@@ -426,11 +465,12 @@ namespace Helium {
   /**
    * @overload
    */
-  template<template<typename, typename> class AtomMatcher, template<typename, typename> class BondMatcher, typename MoleculeType, typename QueryType>
-  bool isomorphism_search(MoleculeType &mol, QueryType &query)
+  template<typename MoleculeType, typename QueryType, typename AtomMatcher, typename BondMatcher>
+  bool isomorphism_search(MoleculeType &mol, QueryType &query,
+      const AtomMatcher &atomMatcher, const BondMatcher &bondMatcher)
   {
     NoMapping mapping;
-    return isomorphism_search<AtomMatcher, BondMatcher, MoleculeType, QueryType>(mol, query, mapping);
+    return isomorphism_search(mol, query, mapping, atomMatcher, bondMatcher);
   }
 
 }

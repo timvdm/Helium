@@ -58,21 +58,20 @@ namespace Helium {
    * Like all Helium binary files, the fingerprint file formats include a JSON
    * header containing all information about the binary data contained in the
    * file. Below is an example of such a header.
-   *
-@code
-{
-  'filetype': 'fingerprints',
-  'order': 'row-major',
-  'num_bits': 1024,
-  'num_fingerprints': 1000000,
-  'fingerprint': {
-    'name': 'My custom fingerprint',
-    'type': 'Helium::trees_fingerprint',
-    'k': 7,
-    'prime': 1021
-  }
-}
-@endcode
+   * @verbatim
+     {
+       'filetype': 'fingerprints',
+       'order': 'row-major',
+       'num_bits': 1024,
+       'num_fingerprints': 1000000,
+       'fingerprint': {
+         'name': 'My custom fingerprint',
+         'type': 'Helium::trees_fingerprint',
+         'k': 7,
+         'prime': 1021
+       }
+     }
+     @endverbatim
    *
    * For fingerprint files the 'filetype' attribute will always be 'fingerprints'.
    * The 'order', 'num_bits', 'num_fingerprints' and 'fingerprint' attributes are
@@ -96,39 +95,38 @@ namespace Helium {
    * fingerprint bit is stored consecutively in memory). To illustrate the
    * difference, consider storing these 8-bit fingerprints for four molecules:
    *
-@verbatim
-molecule 1: 00101100
-molecule 2: 10001011
-molecule 3: 00000110
-molecule 4: 10101100
-@endverbatim
+   * @verbatim
+     molecule 1: 00101100
+     molecule 2: 10001011
+     molecule 3: 00000110
+     molecule 4: 10101100
+     @endverbatim
    *
    * In the row-major order storage, the fingerprints are stored by concatenating
    * the above fingerprints. In the figure below, the addresses are bit addresses
    * in hexadecimal. Using this storage method, the bits of an individual
    * molecule's fingerprint are stored consecutively.
-   *
-@verbatim
-0x00  00101100
-0x08  10001011
-0x10  00000110
-0x18  10101100
-@endverbatim
+   * @verbatim
+     0x00  00101100
+     0x08  10001011
+     0x10  00000110
+     0x18  10101100
+     @endverbatim
    *
    * In the column major order, the fingerprint are stored by concatenating the
    * columns. As a result, the individual fingerprint bits for all molecules are
    * stored consecutively. This can be seen in the figure below.
    *
-@verbatim
-0x00  0101
-0x04  0000
-0x08  1001
-0x0C  0000
-0x10  1101
-0x14  1011
-0x18  0110
-0x1C  0100
-@endverbatim
+   * @verbatim
+     0x00  0101
+     0x04  0000
+     0x08  1001
+     0x0C  0000
+     0x10  1101
+     0x14  1011
+     0x18  0110
+     0x1C  0100
+     @endverbatim
    *
    * The difference between these two methods of storing fingerprints can
    * dramatically influence the performance of an application. Due to various
@@ -190,20 +188,20 @@ molecule 4: 10101100
    *
    * A concrete example will illustrate how this works:
    *
-@verbatim
-query: 00001011 (bit 5, 7 & 8 are set)
+   * @verbatim
+     query: 00001011 (bit 5, 7 & 8 are set)
 
-0x00  0101
-0x04  0000
-0x08  1001
-0x0C  0000
-0x10  1101 <- bit 5
-0x14  1011
-0x18  0110 <- bit 7
-0x1C  0100 <- bit 8
+     0x00  0101
+     0x04  0000
+     0x08  1001
+     0x0C  0000
+     0x10  1101 <- bit 5
+     0x14  1011
+     0x18  0110 <- bit 7
+     0x1C  0100 <- bit 8
 
-1101 & 0110 & 0100 = 0100 -> only molecule 2 can contain the query
-@endverbatim
+     1101 & 0110 & 0100 = 0100 -> only molecule 2 can contain the query
+     @endverbatim
    *
    * In this example only 3 bitstrings have to be accessed. For this 8-bit
    * fingerprint this results in 62.5% less data that has to be processed.

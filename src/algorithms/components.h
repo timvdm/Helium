@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2013, Tim Vandermeersch
  * All rights reserved.
  *
@@ -124,7 +124,7 @@ namespace Helium {
     }
 
     // handle isolated atoms
-    unsigned int number = unique_elements(atom_components);
+    unsigned int number = unique_elements(atom_components) - 1;
     atom_iter atom, end_atoms;
     TIE(atom, end_atoms) = get_atoms(mol);
     for (; atom != end_atoms; ++atom)
@@ -146,7 +146,7 @@ namespace Helium {
   template<typename MoleculeType>
   Size num_connected_components(MoleculeType &mol)
   {
-    return unique_elements(connected_bond_components(mol));
+    return unique_elements(connected_atom_components(mol));
   }
 
 }

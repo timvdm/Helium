@@ -2,6 +2,7 @@ set(examples
   dfs1
   dfs2
   bfs1
+  components
   )
 
 foreach(example ${examples})

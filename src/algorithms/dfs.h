@@ -146,16 +146,78 @@ namespace Helium {
       visitor.backtrack(mol, atom);
     }
 
+    template<typename MoleculeType, typename AtomType, typename DFSVisitorType>
+    void exhaustive_dfs_visit(const MoleculeType &mol, AtomType atom, DFSVisitorType &visitor, std::vector<bool> &visited,
+        AtomType prev = molecule_traits<MoleculeType>::null_atom())
+    {
+      typedef AtomType atom_type;
+      typedef typename molecule_traits<MoleculeType>::bond_type bond_type;
+      typedef typename molecule_traits<MoleculeType>::incident_iter incident_iter;
+
+      // mark atom as visited
+      visited[get_index(mol, atom)] = true;
+      // invoke atom visitor
+      visitor.atom(mol, prev, atom);
+
+      // create list of bonds to visit next
+      std::vector<bond_type> bonds;
+      FOREACH_INCIDENT (bond, atom, mol, MoleculeType) {
+        if (!visited[num_atoms(mol) + get_index(mol, *bond)])
+          bonds.push_back(*bond);
+      }
+
+      // sort the list of bonds
+      std::sort(bonds.begin(), bonds.end());
+
+      std::vector<bool> oldVisited = visited;
+      do {
+        if (bonds.size() > 1)
+        visited = oldVisited;
+
+        // call dfs_visit for all unvisited neighbors of v
+        for (typename std::vector<bond_type>::iterator bond = bonds.begin(); bond != bonds.end(); ++bond) {
+          atom_type nbr = get_other(mol, *bond, atom);
+
+          if (visited[get_index(mol, nbr)]) {
+            // if this bond has not been visited before, a back_bond has been found
+            if (!visited[num_atoms(mol) + get_index(mol, *bond)])
+              visitor.back_bond(mol, *bond);
+            // mark bond as visited
+            visited[num_atoms(mol) + get_index(mol, *bond)] = true;
+            continue;
+          }
+
+          // mark bond as visited
+          visited[num_atoms(mol) + get_index(mol, *bond)] = true;
+          // invoke bond visitor
+          visitor.bond(mol, prev, *bond);
+
+          exhaustive_dfs_visit(mol, nbr, visitor, visited, atom);
+        }
+
+      } while (std::next_permutation(bonds.begin(), bonds.end()));
+
+      // invoke backtrack visitor
+      visitor.backtrack(mol, atom);
+    }
+
   }
 
   /**
-   * @brief Perform a depth first search (DFS).
+   * @brief Perform a depth-first search (DFS).
+   *
+   * This depth-first search function considers all fragments and walks a single
+   * spanning tree for each fragment. The atom with the lowest index from each
+   * fragment is used as root of the resulting spanning tree to start the
+   * search.
    *
    * This function makes use of a visitor functor to allow actions to be
    * performed. A number of visitors are available (e.g. DFSAtomOrderVisitor,
    * DFSBondOrderVisitor, DFSClosureRecorderVisitor, DFSDebugVisitor). Custom
    * functor can be implemented by inheriting the DFSVisitor struct and
    * reimplementing the required functions.
+   *
+   * @note Complexity: O(n)
    *
    * @param mol The molecule.
    * @param visitor The DFS visitor functor.
@@ -172,8 +234,40 @@ namespace Helium {
 
     FOREACH_ATOM (atom, mol, MoleculeType) {
       if (!visited[get_index(mol, *atom)])
-        dfs_visit(mol, *atom, visitor, visited);
+        impl::dfs_visit(mol, *atom, visitor, visited);
     }
+  }
+
+  /**
+   * @brief Perform an exhaustive depth-first search (DFS).
+   *
+   * This depth-first search function considers a single fragment and starts
+   * walking from the specified atom. If there are multiple neighbors to visit
+   * next, all permutations are tried making this an exhaustive search.
+   *
+   * This function makes use of a visitor functor to allow actions to be
+   * performed. A number of visitors are available (e.g. DFSAtomOrderVisitor,
+   * DFSBondOrderVisitor, DFSClosureRecorderVisitor, DFSDebugVisitor). Custom
+   * functor can be implemented by inheriting the DFSVisitor struct and
+   * reimplementing the required functions.
+   *
+   * @note Complexity: O(2^n)
+   *
+   * @param mol The molecule.
+   * @param atom The root atom for the DFS spanning tree.
+   * @param visitor The DFS visitor functor.
+   */
+  template<typename MoleculeType, typename AtomType, typename DFSVisitorType>
+  void exhaustive_depth_first_search(MoleculeType &mol, AtomType atom, DFSVisitorType &visitor)
+  {
+    typedef typename molecule_traits<MoleculeType>::atom_type atom_type;
+    typedef typename molecule_traits<MoleculeType>::atom_iter atom_iter;
+
+    visitor.initialize(mol);
+
+    std::vector<bool> visited(num_atoms(mol) + num_bonds(mol));
+
+    impl::exhaustive_dfs_visit(mol, atom, visitor, visited);
   }
 
   /**
@@ -288,9 +382,18 @@ namespace Helium {
     typedef typename molecule_traits<MoleculeType>::bond_type bond_type;
 
     /**
+     * @brief Constructor.
+     *
+     * @param os The STL output stream to print to.
+     */
+    DFSDebugVisitor(std::ostream &os_ = std::cout) : os(os_)
+    {
+    }
+
+    /**
      * @brief Visit an atom.
      *
-     * This function prints the string "atom(i)" to std::cout where i is the
+     * This function prints the string "atom(i)" to os where i is the
      * atom index.
      *
      * @param mol The molecule.
@@ -299,13 +402,13 @@ namespace Helium {
      */
     void atom(const MoleculeType &mol, atom_type prev, atom_type atom)
     {
-      std::cout << "atom(" << get_index(mol, atom) << ")" << std::endl;
+      os << "atom(" << get_index(mol, atom) << ")" << std::endl;
     }
 
     /**
      * @brief Visit a bond.
      *
-     * This function prints the string "bond(i)" to std::cout where i is the
+     * This function prints the string "bond(i)" to os where i is the
      * bond index.
      *
      * @param mol The molecule.
@@ -314,13 +417,13 @@ namespace Helium {
      */
     void bond(const MoleculeType &mol, atom_type prev, bond_type bond)
     {
-      std::cout << "bond(" << get_index(mol, bond) << ")" << std::endl;
+      os << "bond(" << get_index(mol, bond) << ")" << std::endl;
     }
 
     /**
      * @brief Backtrack.
      *
-     * This function prints the string "backtrack(i)" to std::cout where i is the
+     * This function prints the string "backtrack(i)" to os where i is the
      * atom index.
      *
      * @param mol The molecule.
@@ -328,13 +431,13 @@ namespace Helium {
      */
     void backtrack(const MoleculeType &mol, atom_type atom)
     {
-      std::cout << "backtrack(" << get_index(mol, atom) << ")" << std::endl;
+      os << "backtrack(" << get_index(mol, atom) << ")" << std::endl;
     }
 
     /**
      * @brief Visit a "back" bond.
      *
-     * This function prints the string "back_bond(i)" to std::cout where i is the
+     * This function prints the string "back_bond(i)" to os where i is the
      * "back" bond index.
      *
      * @param mol The molecule.
@@ -342,8 +445,10 @@ namespace Helium {
      */
     void back_bond(const MoleculeType &mol, bond_type bond)
     {
-      std::cout << "back_bond(" << get_index(mol, bond) << ")" << std::endl;
+      os << "back_bond(" << get_index(mol, bond) << ")" << std::endl;
     }
+
+    std::ostream &os; //!< The STL output stream.
   };
 
 }

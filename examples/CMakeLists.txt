@@ -3,6 +3,9 @@ set(examples
   dfs2
   bfs1
   components
+  molecule1
+  molecule2
+  molecule3
   )
 
 foreach(example ${examples})

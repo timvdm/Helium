@@ -15,7 +15,10 @@ set(Helium_HDRS
   util.h
   hemol.h
   smiles.h
+  distancematrix.h
+  ring.h
   # algorithms
+  algorithms/bfs.h
   algorithms/canonical.h
   algorithms/components.h
   algorithms/cycles.h
@@ -25,6 +28,8 @@ set(Helium_HDRS
   algorithms/extendedconnectivities.h
   algorithms/invariants.h
   algorithms/isomorphism.h
+  algorithms/dijkstra.h
+  algorithms/floydwarshall.h
   # util
   util/fileio.h
   util/functor.h
@@ -39,12 +44,16 @@ set(Helium_HDRS
   # fingerprints
   fingerprints/fingerprints.h
   fingerprints/similarity.h
+  # stereo
+  stereo/stereounit.h
+  stereo/razinger.h
 )
 
 # Set up the include directory and symlink/copy all headers to it.
 # Note: Windows lacks symlinks and so the files must be copied.
 make_directory("${CMAKE_BINARY_DIR}/include/Helium")
 make_directory("${CMAKE_BINARY_DIR}/include/Helium/util")
+make_directory("${CMAKE_BINARY_DIR}/include/Helium/stereo")
 make_directory("${CMAKE_BINARY_DIR}/include/Helium/fileio")
 make_directory("${CMAKE_BINARY_DIR}/include/Helium/fingerprints")
 make_directory("${CMAKE_BINARY_DIR}/include/Helium/algorithms")

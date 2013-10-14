@@ -123,6 +123,7 @@ set(TEST_PATH ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
 add_subdirectory(test)
 
 add_subdirectory(tools)
+add_subdirectory(examples)
 
 ############################################################
 #

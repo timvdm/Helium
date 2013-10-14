@@ -13,6 +13,12 @@ set(tests
   cycles
   smiles
   bitvec
+  distancematrix
+  dijkstra
+  floydwarshall
+  razinger
+  dfs
+  bfs
   )
 
 foreach(test ${tests})

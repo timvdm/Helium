@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2013, Tim Vandermeersch
  * All rights reserved.
  *
@@ -263,7 +263,7 @@ namespace Helium {
    * indices in sequence.
    *
    * @param mol The molecule.
-   * @param cyclomatricNumber The cyclomatic number.
+   * @param cyclomaticNumber The cyclomatic number.
    *
    * @return The set of relevant cycles.
    */
@@ -280,7 +280,7 @@ namespace Helium {
 
     std::vector<impl::IsomorphismCycle> relevant;
     while (true) {
-      std::cout << "size: " << size << ", lastSize: " << lastSize << ", nullity: " << cyclomaticNumber << ", count: " << relevant.size() << std::endl;
+      //std::cout << "size: " << size << ", lastSize: " << lastSize << ", nullity: " << cyclomaticNumber << ", count: " << relevant.size() << std::endl;
       if (rings.size() >= cyclomaticNumber && lastSize < size)
         break;
       // create query

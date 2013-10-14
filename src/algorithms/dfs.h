@@ -384,7 +384,7 @@ namespace Helium {
     /**
      * @brief Constructor.
      *
-     * @param os The STL output stream to print to.
+     * @param os_ The STL output stream to print to.
      */
     DFSDebugVisitor(std::ostream &os_ = std::cout) : os(os_)
     {

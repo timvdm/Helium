@@ -28,27 +28,50 @@
 #define HELIUM_MOLECULE_H
 
 #include <utility>
+#include <vector>
+#include <sstream>
 
-#define FOREACH_ATOM(atom, mol, molecule_type) \
-  typename molecule_traits<molecule_type>::atom_iter atom, end_##atom##__; \
-  TIE(atom, end_##atom##__) = get_atoms(mol); \
-  for (; atom != end_##atom##__; ++atom)
+/**
+ * @brief Iterate over all the atoms in a molecule.
+ *
+ * @param atom The atom.
+ * @param mol The molecule.
+ * @param MoleculeType The type of the molecule.
+ */
+#define FOREACH_ATOM(atom, mol, MoleculeType) \
+  for (typename Helium::impl::ForeachAtom<MoleculeType> atom(mol); atom.begin != atom.end; ++atom.begin)
 
-#define FOREACH_BOND(bond, mol, molecule_type) \
-  typename molecule_traits<molecule_type>::bond_iter bond, end_##bond##__; \
-  TIE(bond, end_##bond##__) = get_bonds(mol); \
-  for (; bond != end_##bond##__; ++bond)
+/**
+ * @brief Iterate over all the bonds in a molecule.
+ *
+ * @param bond The bond.
+ * @param mol The molecule.
+ * @param MoleculeType The type of the molecule.
+ */
+#define FOREACH_BOND(bond, mol, MoleculeType) \
+  for (typename Helium::impl::ForeachBond<MoleculeType> bond(mol); bond.begin != bond.end; ++bond.begin)
 
-#define FOREACH_NBR(nbr, atom, mol, molecule_type) \
-  typename molecule_traits<molecule_type>::nbr_iter nbr, end_##nbr##__; \
-  TIE(nbr, end_##nbr##__) = get_nbrs(mol, atom); \
-  for (; nbr != end_##nbr##__; ++nbr)
+/**
+ * @brief Iterate over all the neighbors of an atom.
+ *
+ * @param nbr The neighbor atom.
+ * @param atom The center atom.
+ * @param mol The molecule.
+ * @param MoleculeType The type of the molecule.
+ */
+#define FOREACH_NBR(nbr, atom, mol, MoleculeType) \
+  for (typename Helium::impl::ForeachNbr<MoleculeType> nbr(mol, atom); nbr.begin != nbr.end; ++nbr.begin)
 
-#define FOREACH_INCIDENT(bond, atom, mol, molecule_type) \
-  typename molecule_traits<molecule_type>::incident_iter bond, end_##bond##__; \
-  TIE(bond, end_##bond##__) = get_bonds(mol, atom); \
-  for (; bond != end_##bond##__; ++bond)
-
+/**
+ * @brief Iterate over all the incident bonds of an atom.
+ *
+ * @param bond The incident bond.
+ * @param atom The center atom.
+ * @param mol The molecule.
+ * @param MoleculeType The type of the molecule.
+ */
+#define FOREACH_INCIDENT(bond, atom, mol, MoleculeType) \
+  for (typename Helium::impl::ForeachIncident<MoleculeType> bond(mol, atom); bond.begin != bond.end; ++bond.begin)
 
 namespace Helium {
 
@@ -163,6 +186,74 @@ namespace Helium {
       return MoleculeType::null_bond();
     }
   };
+
+  namespace impl {
+
+    template<typename MoleculeType>
+    struct ForeachAtom
+    {
+      ForeachAtom(const MoleculeType &mol)
+      {
+        TIE(begin, end) = get_atoms(mol);
+      }
+
+      typename molecule_traits<MoleculeType>::atom_type operator*()
+      {
+        return *begin;
+      }
+
+      typename molecule_traits<MoleculeType>::atom_iter begin, end;
+    };
+
+    template<typename MoleculeType>
+    struct ForeachBond
+    {
+      ForeachBond(const MoleculeType &mol)
+      {
+        TIE(begin, end) = get_bonds(mol);
+      }
+
+      typename molecule_traits<MoleculeType>::bond_type operator*()
+      {
+        return *begin;
+      }
+
+      typename molecule_traits<MoleculeType>::bond_iter begin, end;
+    };
+
+    template<typename MoleculeType>
+    struct ForeachNbr
+    {
+      ForeachNbr(const MoleculeType &mol, typename molecule_traits<MoleculeType>::atom_type atom)
+      {
+        TIE(begin, end) = get_nbrs(mol, atom);
+      }
+
+      typename molecule_traits<MoleculeType>::atom_type operator*()
+      {
+        return *begin;
+      }
+
+      typename molecule_traits<MoleculeType>::nbr_iter begin, end;
+    };
+
+    template<typename MoleculeType>
+    struct ForeachIncident
+    {
+      ForeachIncident(const MoleculeType &mol, typename molecule_traits<MoleculeType>::atom_type atom)
+      {
+        TIE(begin, end) = get_bonds(mol, atom);
+      }
+
+      typename molecule_traits<MoleculeType>::bond_type operator*()
+      {
+        return *begin;
+      }
+
+      typename molecule_traits<MoleculeType>::incident_iter begin, end;
+    };
+
+  }
 
   //////////////////////////////////////////////////////////////////////////////
   //
@@ -508,9 +599,1672 @@ namespace Helium {
    * @return The bond's order.
    */
   template<typename MoleculeType>
-  bool get_order(const MoleculeType &mol, typename molecule_traits<MoleculeType>::bond_type bond);
+  int get_order(const MoleculeType &mol, typename molecule_traits<MoleculeType>::bond_type bond);
+
+  //////////////////////////////////////////////////////////////////////////////
+  //
+  // Utility Functions
+  //
+  //////////////////////////////////////////////////////////////////////////////
+
+  /**
+   * @brief Check if an atom is a carbon atom.
+   *
+   * @param mol The molecule.
+   * @param atom The atom to check.
+   *
+   * @return True if the atom is a carbon atom.
+   */
+  template<typename MoleculeType>
+  bool is_carbon(const MoleculeType &mol, typename molecule_traits<MoleculeType>::atom_type atom)
+  {
+    return get_element(mol, atom) == 6;
+  }
+
+  /**
+   * @brief Check if an atom is a nitrogen atom.
+   *
+   * @param mol The molecule.
+   * @param atom The atom to check.
+   *
+   * @return True if the atom is a nitrogen atom.
+   */
+  template<typename MoleculeType>
+  bool is_nitrogen(const MoleculeType &mol, typename molecule_traits<MoleculeType>::atom_type atom)
+  {
+    return get_element(mol, atom) == 7;
+  }
+
+  /**
+   * @brief Check if an atom is a oxygen atom.
+   *
+   * @param mol The molecule.
+   * @param atom The atom to check.
+   *
+   * @return True if the atom is a oxygen atom.
+   */
+  template<typename MoleculeType>
+  bool is_oxygen(const MoleculeType &mol, typename molecule_traits<MoleculeType>::atom_type atom)
+  {
+    return get_element(mol, atom) == 8;
+  }
+
+  /**
+   * @brief Check if an atom is a phosphorus atom.
+   *
+   * @param mol The molecule.
+   * @param atom The atom to check.
+   *
+   * @return True if the atom is a phosphorus atom.
+   */
+  template<typename MoleculeType>
+  bool is_phosphorus(const MoleculeType &mol, typename molecule_traits<MoleculeType>::atom_type atom)
+  {
+    return get_element(mol, atom) == 15;
+  }
+
+  /**
+   * @brief Check if an atom is a sulfur atom.
+   *
+   * @param mol The molecule.
+   * @param atom The atom to check.
+   *
+   * @return True if the atom is a sulfur atom.
+   */
+  template<typename MoleculeType>
+  bool is_sulfur(const MoleculeType &mol, typename molecule_traits<MoleculeType>::atom_type atom)
+  {
+    return get_element(mol, atom) == 16;
+  }
+
+  /**
+   * @brief Get the number of attached heavy atoms.
+   *
+   * All atoms except hydrogen are heavy atoms.
+   *
+   * @param mol The molecule.
+   * @param atom The atom to check.
+   *
+   * @return The number of attached heavy atoms.
+   */
+  template<typename MoleculeType>
+  int get_heavy_degree(const MoleculeType &mol, typename molecule_traits<MoleculeType>::atom_type atom)
+  {
+    int degree = 0;
+    FOREACH_NBR (nbr, atom, mol, MoleculeType)
+      if (get_element(mol, *nbr) > 1)
+        ++degree;
+    return degree;
+  }
+
+  /**
+   * @brief Get the valence atom.
+   *
+   * The valence is the number of attached heavy atoms + the number of
+   * implicit/explicit hydrogens.
+   *
+   * @param mol The molecule.
+   * @param atom The atom to check.
+   *
+   * @return The valence for the atom.
+   */
+  template<typename MoleculeType>
+  int get_valence(const MoleculeType &mol, typename molecule_traits<MoleculeType>::atom_type atom)
+  {
+    return get_heavy_degree(mol, atom) + num_hydrogens(mol, atom);
+  }
+
+  //////////////////////////////////////////////////////////////////////////////
+  //
+  // Atom Predicates
+  //
+  //////////////////////////////////////////////////////////////////////////////
+
+  /**
+   * @brief Base class for atom predicates.
+   *
+   * Atom predicates are used in combination with a number of functions
+   * (e.g. molecule_has_atom(), atom_has_nbr(), bond_has_atom(), ...).
+   * An atom predicate is a functor that returns true if an atom matches
+   * the description of the predicate. There are a number of predicates
+   * predefined (e.g. ElementPredicate, ChargePredicate, ...). Additional
+   * predicates can be added by inheriting AtomPredicate and implementing
+   * the pure virtual function operator.
+   */
+  template<typename MoleculeType>
+  class AtomPredicate
+  {
+    public:
+      /**
+       * @brief The the atom type.
+       */
+      typedef typename molecule_traits<MoleculeType>::atom_type atom_type;
+
+      /**
+       * @brief Destructor.
+       */
+      virtual ~AtomPredicate()
+      {
+      }
+
+      /**
+       * @brief The predicate function.
+       *
+       * @param mol The molecule.
+       * @param atom The atom to test.
+       *
+       * @return True if the atom matches the predicate.
+       */
+      virtual bool operator()(const MoleculeType &mol, atom_type atom) const = 0;
+  };
+
+  /**
+   * @brief Class for combining atom predicates using a locgical and.
+   */
+  template<typename MoleculeType>
+  class AtomAndPredicates : public AtomPredicate<MoleculeType>
+  {
+    public:
+      /**
+       * @brief The atom type.
+       */
+      typedef typename molecule_traits<MoleculeType>::atom_type atom_type;
+
+      /**
+       * @brief Constructor.
+       *
+       * @param predicate1 The first atom predicate.
+       * @param predicate2 The second atom predicate.
+       */
+      template<typename Predicate1, typename Predicate2>
+      AtomAndPredicates(const Predicate1 &predicate1, const Predicate2 &predicate2)
+      {
+        m_predicates.push_back(new Predicate1(predicate1));
+        m_predicates.push_back(new Predicate2(predicate2));
+      }
+
+      /**
+       * @brief Constructor.
+       *
+       * @param predicate1 The first atom predicate.
+       * @param predicate2 The second atom predicate.
+       * @param predicate3 The 3th atom predicate.
+       */
+      template<typename Predicate1, typename Predicate2, typename Predicate3>
+      AtomAndPredicates(const Predicate1 &predicate1, const Predicate2 &predicate2,
+          const Predicate3 &predicate3)
+      {
+        m_predicates.push_back(new Predicate1(predicate1));
+        m_predicates.push_back(new Predicate2(predicate2));
+        m_predicates.push_back(new Predicate3(predicate3));
+      }
+
+      /**
+       * @brief Destructor.
+       */
+      ~AtomAndPredicates()
+      {
+        for (std::size_t i = 0; i < m_predicates.size(); ++i)
+          delete m_predicates[i];
+      }
+
+      /**
+       * @brief The predicate function.
+       *
+       * @param mol The molecule.
+       * @param atom The atom to test.
+       *
+       * @return True if all predicates return true, otherwise false is returned.
+       */
+      bool operator()(const MoleculeType &mol, atom_type atom) const
+      {
+        for (std::size_t i = 0; i < m_predicates.size(); ++i)
+          if (!m_predicates[i]->operator()(mol, atom))
+            return false;
+        return true;
+      }
+
+    private:
+      std::vector<AtomPredicate<MoleculeType>*> m_predicates; //!< The atom predicates.
+  };
+
+  /**
+   * @brief Utility function to create an AtomAndPredicate.
+   *
+   * @param mol The molecule (only used for type deduction).
+   * @param predicate1 The 1st atom predicate.
+   * @param predicate2 The 2nd atom predicate.
+   *
+   * @return The AtomAndPredicate.
+   */
+  template<typename MoleculeType, typename Predicate1, typename Predicate2>
+  AtomAndPredicates<MoleculeType> atom_and_predicates(const MoleculeType &mol,
+      const Predicate1 &predicate1, const Predicate2 &predicate2)
+  {
+    return AtomAndPredicates<MoleculeType>(predicate1, predicate2);
+  }
+
+  /**
+   * @brief Utility function to create an AtomAndPredicate.
+   *
+   * @param mol The molecule (only used for type deduction).
+   * @param predicate1 The 1st atom predicate.
+   * @param predicate2 The 2nd atom predicate.
+   * @param predicate3 The 3th atom predicate.
+   *
+   * @return The AtomAndPredicate.
+   */
+  template<typename MoleculeType, typename Predicate1, typename Predicate2, typename Predicate3>
+  AtomAndPredicates<MoleculeType> atom_and_predicates(const MoleculeType &mol,
+      const Predicate1 &predicate1, const Predicate2 &predicate2,
+      const Predicate3 &predicate3)
+  {
+    return AtomAndPredicates<MoleculeType>(predicate1, predicate2, predicate3);
+  }
+
+  /**
+   * @brief Class for combining atom predicates using a locgical or.
+   */
+  template<typename MoleculeType>
+  class AtomOrPredicates : public AtomPredicate<MoleculeType>
+  {
+    public:
+      /**
+       * @brief The atom type.
+       */
+      typedef typename molecule_traits<MoleculeType>::atom_type atom_type;
+
+      /**
+       * @brief Constructor.
+       *
+       * @param predicate1 The first atom predicate.
+       * @param predicate2 The second atom predicate.
+       */
+      template<typename Predicate1, typename Predicate2>
+      AtomOrPredicates(const Predicate1 &predicate1, const Predicate2 &predicate2)
+      {
+        m_predicates.push_back(new Predicate1(predicate1));
+        m_predicates.push_back(new Predicate2(predicate2));
+      }
+
+      /**
+       * @brief Constructor.
+       *
+       * @param predicate1 The first atom predicate.
+       * @param predicate2 The second atom predicate.
+       * @param predicate3 The 3th atom predicate.
+       */
+      template<typename Predicate1, typename Predicate2, typename Predicate3>
+      AtomOrPredicates(const Predicate1 &predicate1, const Predicate2 &predicate2,
+          const Predicate3 &predicate3)
+      {
+        m_predicates.push_back(new Predicate1(predicate1));
+        m_predicates.push_back(new Predicate2(predicate2));
+        m_predicates.push_back(new Predicate3(predicate3));
+      }
+
+      /**
+       * @brief Destructor.
+       */
+      ~AtomOrPredicates()
+      {
+        for (std::size_t i = 0; i < m_predicates.size(); ++i)
+          delete m_predicates[i];
+      }
+
+      /**
+       * @brief The predicate function.
+       *
+       * @param mol The molecule.
+       * @param atom The atom to test.
+       *
+       * @return True if once a predicate return true, otherwise false is
+       *         returned if all predicates return false.
+       */
+      bool operator()(const MoleculeType &mol, atom_type atom) const
+      {
+        for (std::size_t i = 0; i < m_predicates.size(); ++i)
+          if (m_predicates[i]->operator()(mol, atom))
+            return true;
+        return false;
+      }
+
+    private:
+      std::vector<AtomPredicate<MoleculeType>*> m_predicates; //!< The atom predicates.
+  };
+
+  /**
+   * @brief Utility function to create an AtomOrPredicate.
+   *
+   * @param mol The molecule (only used for type deduction).
+   * @param predicate1 The 1st atom predicate.
+   * @param predicate2 The 2nd atom predicate.
+   *
+   * @return The AtomOrPredicate.
+   */
+  template<typename MoleculeType, typename Predicate1, typename Predicate2>
+  AtomOrPredicates<MoleculeType> atom_or_predicates(const MoleculeType &mol,
+      const Predicate1 &predicate1, const Predicate2 &predicate2)
+  {
+    return AtomOrPredicates<MoleculeType>(predicate1, predicate2);
+  }
+
+  /**
+   * @brief Utility function to create an AtomOrPredicate.
+   *
+   * @param mol The molecule (only used for type deduction).
+   * @param predicate1 The 1st atom predicate.
+   * @param predicate2 The 2nd atom predicate.
+   * @param predicate3 The 3th atom predicate.
+   *
+   * @return The AtomOrPredicate.
+   */
+  template<typename MoleculeType, typename Predicate1, typename Predicate2, typename Predicate3>
+  AtomOrPredicates<MoleculeType> atom_and_predicates(const MoleculeType &mol,
+      const Predicate1 &predicate1, const Predicate2 &predicate2,
+      const Predicate3 &predicate3)
+  {
+    return AtomOrPredicates<MoleculeType>(predicate1, predicate2, predicate3);
+  }
+
+  /**
+   * @brief Element atom predicate.
+   *
+   * This AtomPredicate is used for comparing the atom's element.
+   */
+  template<typename MoleculeType, template<typename> class Compare = std::equal_to>
+  class ElementPredicate : public AtomPredicate<MoleculeType>
+  {
+    public:
+      /**
+       * @brief The atom type.
+       */
+      typedef typename molecule_traits<MoleculeType>::atom_type atom_type;
+
+      /**
+       * @brief Constructor.
+       *
+       * @param element The element number to compare with.
+       */
+      ElementPredicate(int element) : m_element(element)
+      {
+      }
+
+      /**
+       * @brief The predicate function.
+       *
+       * @param mol The molecule.
+       * @param atom The atom to test.
+       *
+       * @return The result of comparing the atom's element with the element
+       *         given in the constructor.
+       */
+      bool operator()(const MoleculeType &mol, atom_type atom) const
+      {
+        Compare<int> compare;
+        return compare(get_element(mol, atom), m_element);
+      }
+
+    private:
+      int m_element; //!< The element to compare with.
+  };
+
+  /**
+   * @brief Utility function to create an ElementPredicate with std::equal_to compare.
+   *
+   * @param mol The molecule (only used for type deduction).
+   * @param element The element to compare with.
+   *
+   * @return The ElementPredicate.
+   */
+  template<typename MoleculeType>
+  ElementPredicate<MoleculeType, std::equal_to> element_eq_predicate(const MoleculeType &mol, int element)
+  {
+    return ElementPredicate<MoleculeType, std::equal_to>(element);
+  }
+
+  /**
+   * @brief Utility function to create an ElementPredicate with std::less compare.
+   *
+   * @param mol The molecule (only used for type deduction).
+   * @param element The element to compare with.
+   *
+   * @return The ElementPredicate.
+   */
+  template<typename MoleculeType>
+  ElementPredicate<MoleculeType, std::less> element_lt_predicate(const MoleculeType &mol, int element)
+  {
+    return ElementPredicate<MoleculeType, std::less>(element);
+  }
+
+  /**
+   * @brief Utility function to create an ElementPredicate with std::greater compare.
+   *
+   * @param mol The molecule (only used for type deduction).
+   * @param element The element to compare with.
+   *
+   * @return The ElementPredicate.
+   */
+  template<typename MoleculeType>
+  ElementPredicate<MoleculeType, std::greater> element_gt_predicate(const MoleculeType &mol, int element)
+  {
+    return ElementPredicate<MoleculeType, std::greater>(element);
+  }
+
+  /**
+   * @brief Utility function to create an ElementPredicate with std::less_equal compare.
+   *
+   * @param mol The molecule (only used for type deduction).
+   * @param element The element to compare with.
+   *
+   * @return The ElementPredicate.
+   */
+  template<typename MoleculeType>
+  ElementPredicate<MoleculeType, std::less_equal> element_leq_predicate(const MoleculeType &mol, int element)
+  {
+    return ElementPredicate<MoleculeType, std::less_equal>(element);
+  }
+
+  /**
+   * @brief Utility function to create an ElementPredicate with std::greater_equal compare.
+   *
+   * @param mol The molecule (only used for type deduction).
+   * @param element The element to compare with.
+   *
+   * @return The ElementPredicate.
+   */
+  template<typename MoleculeType>
+  ElementPredicate<MoleculeType, std::greater_equal> element_geq_predicate(const MoleculeType &mol, int element)
+  {
+    return ElementPredicate<MoleculeType, std::greater_equal>(element);
+  }
+
+  /**
+   * @brief Mass atom predicate.
+   *
+   * This AtomPredicate is used for comparing the atom's mass.
+   */
+  template<typename MoleculeType, template<typename> class Compare = std::equal_to>
+  class MassPredicate : public AtomPredicate<MoleculeType>
+  {
+    public:
+      /**
+       * @brief The atom type.
+       */
+      typedef typename molecule_traits<MoleculeType>::atom_type atom_type;
+
+      /**
+       * @brief Constructor.
+       *
+       * @param mass The mass number to compare with.
+       */
+      MassPredicate(int mass) : m_mass(mass)
+      {
+      }
+
+      /**
+       * @brief The predicate function.
+       *
+       * @param mol The molecule.
+       * @param atom The atom to test.
+       *
+       * @return The result of comparing the atom's mass with the mass
+       *         given in the constructor.
+       */
+      bool operator()(const MoleculeType &mol, atom_type atom) const
+      {
+        Compare<int> compare;
+        return compare(get_mass(mol, atom), m_mass);
+      }
+
+    private:
+      int m_mass; //!< The mass to compare with.
+  };
+
+  /**
+   * @brief Utility function to create an MassPredicate with std::equal_to compare.
+   *
+   * @param mol The molecule (only used for type deduction).
+   * @param mass The mass to compare with.
+   *
+   * @return The MassPredicate.
+   */
+  template<typename MoleculeType>
+  MassPredicate<MoleculeType, std::equal_to> mass_eq_predicate(const MoleculeType &mol, int mass)
+  {
+    return MassPredicate<MoleculeType, std::equal_to>(mass);
+  }
+
+  /**
+   * @brief Utility function to create an MassPredicate with std::less compare.
+   *
+   * @param mol The molecule (only used for type deduction).
+   * @param mass The mass to compare with.
+   *
+   * @return The MassPredicate.
+   */
+  template<typename MoleculeType>
+  MassPredicate<MoleculeType, std::less> mass_lt_predicate(const MoleculeType &mol, int mass)
+  {
+    return MassPredicate<MoleculeType, std::less>(mass);
+  }
+
+  /**
+   * @brief Utility function to create an MassPredicate with std::greater compare.
+   *
+   * @param mol The molecule (only used for type deduction).
+   * @param mass The mass to compare with.
+   *
+   * @return The MassPredicate.
+   */
+  template<typename MoleculeType>
+  MassPredicate<MoleculeType, std::greater> mass_gt_predicate(const MoleculeType &mol, int mass)
+  {
+    return MassPredicate<MoleculeType, std::greater>(mass);
+  }
+
+  /**
+   * @brief Utility function to create an MassPredicate with std::less_equal compare.
+   *
+   * @param mol The molecule (only used for type deduction).
+   * @param mass The mass to compare with.
+   *
+   * @return The MassPredicate.
+   */
+  template<typename MoleculeType>
+  MassPredicate<MoleculeType, std::less_equal> mass_leq_predicate(const MoleculeType &mol, int mass)
+  {
+    return MassPredicate<MoleculeType, std::less_equal>(mass);
+  }
+
+  /**
+   * @brief Utility function to create an MassPredicate with std::greater_equal compare.
+   *
+   * @param mol The molecule (only used for type deduction).
+   * @param mass The mass to compare with.
+   *
+   * @return The MassPredicate.
+   */
+  template<typename MoleculeType>
+  MassPredicate<MoleculeType, std::greater_equal> mass_geq_predicate(const MoleculeType &mol, int mass)
+  {
+    return MassPredicate<MoleculeType, std::greater_equal>(mass);
+  }
+
+  /**
+   * @brief Charge atom predicate.
+   *
+   * This AtomPredicate is used for comparing the atom's charge.
+   */
+  template<typename MoleculeType, template<typename> class Compare = std::equal_to>
+  class ChargePredicate : public AtomPredicate<MoleculeType>
+  {
+    public:
+      /**
+       * @brief The atom type.
+       */
+      typedef typename molecule_traits<MoleculeType>::atom_type atom_type;
+
+      /**
+       * @brief Constructor.
+       *
+       * @param charge The charge to compare with.
+       */
+      ChargePredicate(int charge) : m_charge(charge)
+      {
+      }
+
+      /**
+       * @brief The predicate function.
+       *
+       * @param mol The molecule.
+       * @param atom The atom to test.
+       *
+       * @return The result of comparing the atom's charge with the charge
+       *         given in the constructor.
+       */
+      bool operator()(const MoleculeType &mol, atom_type atom) const
+      {
+        Compare<int> compare;
+        return compare(get_charge(mol, atom), m_charge);
+      }
+
+    private:
+      int m_charge; //!< The charge to compare with.
+  };
+
+  /**
+   * @brief Utility function to create an ChargePredicate with std::equal_to compare.
+   *
+   * @param mol The molecule (only used for type deduction).
+   * @param charge The charge to compare with.
+   *
+   * @return The ChargePredicate.
+   */
+  template<typename MoleculeType>
+  ChargePredicate<MoleculeType, std::equal_to> charge_eq_predicate(const MoleculeType &mol, int charge)
+  {
+    return ChargePredicate<MoleculeType, std::equal_to>(charge);
+  }
+
+  /**
+   * @brief Utility function to create an ChargePredicate with std::less compare.
+   *
+   * @param mol The molecule (only used for type deduction).
+   * @param charge The charge to compare with.
+   *
+   * @return The ChargePredicate.
+   */
+  template<typename MoleculeType>
+  ChargePredicate<MoleculeType, std::less> charge_lt_predicate(const MoleculeType &mol, int charge)
+  {
+    return ChargePredicate<MoleculeType, std::less>(charge);
+  }
+
+  /**
+   * @brief Utility function to create an ChargePredicate with std::greater compare.
+   *
+   * @param mol The molecule (only used for type deduction).
+   * @param charge The charge to compare with.
+   *
+   * @return The ChargePredicate.
+   */
+  template<typename MoleculeType>
+  ChargePredicate<MoleculeType, std::greater> charge_gt_predicate(const MoleculeType &mol, int charge)
+  {
+    return ChargePredicate<MoleculeType, std::greater>(charge);
+  }
+
+  /**
+   * @brief Utility function to create an ChargePredicate with std::less_equal compare.
+   *
+   * @param mol The molecule (only used for type deduction).
+   * @param charge The charge to compare with.
+   *
+   * @return The ChargePredicate.
+   */
+  template<typename MoleculeType>
+  ChargePredicate<MoleculeType, std::less_equal> charge_leq_predicate(const MoleculeType &mol, int charge)
+  {
+    return ChargePredicate<MoleculeType, std::less_equal>(charge);
+  }
+
+  /**
+   * @brief Utility function to create an ChargePredicate with std::greater_equal compare.
+   *
+   * @param mol The molecule (only used for type deduction).
+   * @param charge The charge to compare with.
+   *
+   * @return The ChargePredicate.
+   */
+  template<typename MoleculeType>
+  ChargePredicate<MoleculeType, std::greater_equal> charge_geq_predicate(const MoleculeType &mol, int charge)
+  {
+    return ChargePredicate<MoleculeType, std::greater_equal>(charge);
+  }
+
+  /**
+   * @brief Number of hydrogens atom predicate.
+   *
+   * This AtomPredicate is used for comparing the atom's number of hydrogens.
+   */
+  template<typename MoleculeType, template<typename> class Compare = std::equal_to>
+  class NumHydrogensPredicate : public AtomPredicate<MoleculeType>
+  {
+    public:
+      /**
+       * @brief The atom type.
+       */
+      typedef typename molecule_traits<MoleculeType>::atom_type atom_type;
+
+      /**
+       * @brief Constructor.
+       *
+       * @param numHydrogens The number of hydrogens to compare with.
+       */
+      NumHydrogensPredicate(int numHydrogens) : m_numHydrogens(numHydrogens)
+      {
+      }
+
+      /**
+       * @brief The predicate function.
+       *
+       * @param mol The molecule.
+       * @param atom The atom to test.
+       *
+       * @return The result of comparing the atom's number of hydrogens with
+       *         the number of hydrogens given in the constructor.
+       */
+      bool operator()(const MoleculeType &mol, atom_type atom) const
+      {
+        Compare<int> compare;
+        return compare(num_hydrogens(mol, atom), m_numHydrogens);
+      }
+
+    private:
+      int m_numHydrogens; //!< The number of hydrogens to compare with.
+  };
+
+  /**
+   * @brief Utility function to create an NumHydrogensPredicate with std::equal_to compare.
+   *
+   * @param mol The molecule (only used for type deduction).
+   * @param numHydrogens The number of hydrogens to compare with.
+   *
+   * @return The NumHydrogensPredicate.
+   */
+  template<typename MoleculeType>
+  NumHydrogensPredicate<MoleculeType, std::equal_to> num_hydrogens_eq_predicate(const MoleculeType &mol, int numHydrogens)
+  {
+    return NumHydrogensPredicate<MoleculeType, std::equal_to>(numHydrogens);
+  }
+
+  /**
+   * @brief Utility function to create an NumHydrogensPredicate with std::less compare.
+   *
+   * @param mol The molecule (only used for type deduction).
+   * @param numHydrogens The number of hydrogens to compare with.
+   *
+   * @return The NumHydrogensPredicate.
+   */
+  template<typename MoleculeType>
+  NumHydrogensPredicate<MoleculeType, std::less> num_hydrogens_lt_predicate(const MoleculeType &mol, int numHydrogens)
+  {
+    return NumHydrogensPredicate<MoleculeType, std::less>(numHydrogens);
+  }
+
+  /**
+   * @brief Utility function to create an NumHydrogensPredicate with std::greater compare.
+   *
+   * @param mol The molecule (only used for type deduction).
+   * @param numHydrogens The number of hydrogens to compare with.
+   *
+   * @return The NumHydrogensPredicate.
+   */
+  template<typename MoleculeType>
+  NumHydrogensPredicate<MoleculeType, std::greater> num_hydrogens_gt_predicate(const MoleculeType &mol, int numHydrogens)
+  {
+    return NumHydrogensPredicate<MoleculeType, std::greater>(numHydrogens);
+  }
+
+  /**
+   * @brief Utility function to create an NumHydrogensPredicate with std::less_equal compare.
+   *
+   * @param mol The molecule (only used for type deduction).
+   * @param numHydrogens The number of hydrogens to compare with.
+   *
+   * @return The NumHydrogensPredicate.
+   */
+  template<typename MoleculeType>
+  NumHydrogensPredicate<MoleculeType, std::less_equal> num_hydrogens_leq_predicate(const MoleculeType &mol, int numHydrogens)
+  {
+    return NumHydrogensPredicate<MoleculeType, std::less_equal>(numHydrogens);
+  }
+
+  /**
+   * @brief Utility function to create an NumHydrogensPredicate with std::greater_equal compare.
+   *
+   * @param mol The molecule (only used for type deduction).
+   * @param numHydrogens The number of hydrogens to compare with.
+   *
+   * @return The NumHydrogensPredicate.
+   */
+  template<typename MoleculeType>
+  NumHydrogensPredicate<MoleculeType, std::greater_equal> num_hydrogens_geq_predicate(const MoleculeType &mol, int numHydrogens)
+  {
+    return NumHydrogensPredicate<MoleculeType, std::greater_equal>(numHydrogens);
+  }
+
+  /**
+   * @brief Degree atom predicate.
+   *
+   * This AtomPredicate is used for comparing the atom's degree.
+   */
+  template<typename MoleculeType, template<typename> class Compare = std::equal_to>
+  class DegreePredicate : public AtomPredicate<MoleculeType>
+  {
+    public:
+      /**
+       * @brief The atom type.
+       */
+      typedef typename molecule_traits<MoleculeType>::atom_type atom_type;
+
+      /**
+       * @brief Constructor.
+       *
+       * @param degree The degree to compare with.
+       */
+      DegreePredicate(int degree) : m_degree(degree)
+      {
+      }
+
+      /**
+       * @brief The predicate function.
+       *
+       * @param mol The molecule.
+       * @param atom The atom to test.
+       *
+       * @return The result of comparing the atom's degree with the degree
+       *         given in the constructor.
+       */
+      bool operator()(const MoleculeType &mol, atom_type atom) const
+      {
+        Compare<int> compare;
+        return compare(get_degree(mol, atom), m_degree);
+      }
+
+    private:
+      int m_degree; //!< The degree to compare with.
+  };
+
+  /**
+   * @brief Utility function to create an DegreePredicate with std::equal_to compare.
+   *
+   * @param mol The molecule (only used for type deduction).
+   * @param degree The degree to compare with.
+   *
+   * @return The DegreePredicate.
+   */
+  template<typename MoleculeType>
+  DegreePredicate<MoleculeType, std::equal_to> degree_eq_predicate(const MoleculeType &mol, int degree)
+  {
+    return DegreePredicate<MoleculeType, std::equal_to>(degree);
+  }
+
+  /**
+   * @brief Utility function to create an DegreePredicate with std::less compare.
+   *
+   * @param mol The molecule (only used for type deduction).
+   * @param degree The degree to compare with.
+   *
+   * @return The DegreePredicate.
+   */
+  template<typename MoleculeType>
+  DegreePredicate<MoleculeType, std::less> degree_lt_predicate(const MoleculeType &mol, int degree)
+  {
+    return DegreePredicate<MoleculeType, std::less>(degree);
+  }
+
+  /**
+   * @brief Utility function to create an DegreePredicate with std::greater compare.
+   *
+   * @param mol The molecule (only used for type deduction).
+   * @param degree The degree to compare with.
+   *
+   * @return The DegreePredicate.
+   */
+  template<typename MoleculeType>
+  DegreePredicate<MoleculeType, std::greater> degree_gt_predicate(const MoleculeType &mol, int degree)
+  {
+    return DegreePredicate<MoleculeType, std::greater>(degree);
+  }
+
+  /**
+   * @brief Utility function to create an DegreePredicate with std::less_equal compare.
+   *
+   * @param mol The molecule (only used for type deduction).
+   * @param degree The degree to compare with.
+   *
+   * @return The DegreePredicate.
+   */
+  template<typename MoleculeType>
+  DegreePredicate<MoleculeType, std::less_equal> degree_leq_predicate(const MoleculeType &mol, int degree)
+  {
+    return DegreePredicate<MoleculeType, std::less_equal>(degree);
+  }
+
+  /**
+   * @brief Utility function to create an DegreePredicate with std::greater_equal compare.
+   *
+   * @param mol The molecule (only used for type deduction).
+   * @param degree The degree to compare with.
+   *
+   * @return The DegreePredicate.
+   */
+  template<typename MoleculeType>
+  DegreePredicate<MoleculeType, std::greater_equal> degree_geq_predicate(const MoleculeType &mol, int degree)
+  {
+    return DegreePredicate<MoleculeType, std::greater_equal>(degree);
+  }
+
+  /**
+   * @brief Aromatic atom predicate.
+   *
+   * This AtomPredicate is used for comparing the atom's aromaticity.
+   */
+  template<typename MoleculeType>
+  class AromaticAtomPredicate : public AtomPredicate<MoleculeType>
+  {
+    public:
+      /**
+       * @brief The atom type.
+       */
+      typedef typename molecule_traits<MoleculeType>::atom_type atom_type;
+
+      /**
+       * @brief Constructor.
+       *
+       * @param aromatic The aromaticity to compare with.
+       */
+      AromaticAtomPredicate(bool aromatic) : m_aromatic(aromatic)
+      {
+      }
+
+      /**
+       * @brief The predicate function.
+       *
+       * @param mol The molecule.
+       * @param atom The atom to test.
+       *
+       * @return The result of comparing the atom's aromaticity with the
+       *         aromaticity given in the constructor.
+       */
+      bool operator()(const MoleculeType &mol, atom_type atom) const
+      {
+        return is_aromatic(mol, atom) == m_aromatic;
+      }
+
+    private:
+      bool m_aromatic; //!< The aromaticity to compare with.
+  };
+
+  /**
+   * @brief Utility function to create an AromaticAtomPredicate for aromatic atoms.
+   *
+   * @param mol The molecule (only used for type deduction).
+   *
+   * @return The AromaticAtomPredicate.
+   */
+  template<typename MoleculeType>
+  AromaticAtomPredicate<MoleculeType> aromatic_atom_predicate(const MoleculeType &mol)
+  {
+    return AromaticAtomPredicate<MoleculeType>(true);
+  }
+
+  /**
+   * @brief Utility function to create an AromaticAtomPredicate for non-aromatic atoms.
+   *
+   * @param mol The molecule (only used for type deduction).
+   *
+   * @return The AromaticAtomPredicate.
+   */
+  template<typename MoleculeType>
+  AromaticAtomPredicate<MoleculeType> not_aromatic_atom_predicate(const MoleculeType &mol)
+  {
+    return AromaticAtomPredicate<MoleculeType>(false);
+  }
+
+  //////////////////////////////////////////////////////////////////////////////
+  //
+  // Bond Predicates
+  //
+  //////////////////////////////////////////////////////////////////////////////
+
+  /**
+   * @brief Base class for bond predicates.
+   *
+   * Bond predicates are used in combination with a number of functions
+   * (e.g. molecule_has_bond(), atom_has_bond(), ...).
+   * A bond predicate is a functor that returns true if a bond matches
+   * the description of the predicate. There are a number of predicates
+   * predefined (e.g. OrderPredicate, AromaticBondPredicate, ...). Additional
+   * predicates can be added by inheriting BondPredicate and implementing
+   * the pure virtual function operator.
+   */
+  template<typename MoleculeType>
+  class BondPredicate
+  {
+    public:
+      /**
+       * @brief The bond type.
+       */
+      typedef typename molecule_traits<MoleculeType>::bond_type bond_type;
+
+      /**
+       * @brief Destructor.
+       */
+      virtual ~BondPredicate()
+      {
+      }
+
+      /**
+       * @brief The predicate function.
+       *
+       * @param mol The molecule.
+       * @param bond The bond to test.
+       *
+       * @return True if the bond matches the predicate.
+       */
+      virtual bool operator()(const MoleculeType &mol, bond_type bond) const = 0;
+  };
+
+
+
+  /**
+   * @brief Class for combining bond predicates using a locgical and.
+   */
+  template<typename MoleculeType>
+  class BondAndPredicates : public BondPredicate<MoleculeType>
+  {
+    public:
+      /**
+       * @brief The bond type.
+       */
+      typedef typename molecule_traits<MoleculeType>::bond_type bond_type;
+
+      /**
+       * @brief Constructor.
+       *
+       * @param predicate1 The 1st predicate.
+       * @param predicate2 The 2nd predicate.
+       */
+      template<typename Predicate1, typename Predicate2>
+      BondAndPredicates(const Predicate1 &predicate1, const Predicate2 &predicate2)
+      {
+        m_predicates.push_back(new Predicate1(predicate1));
+        m_predicates.push_back(new Predicate2(predicate2));
+      }
+
+      /**
+       * @brief Constructor.
+       *
+       * @param predicate1 The 1st bond predicate.
+       * @param predicate2 The 2nd bond predicate.
+       * @param predicate3 The 3th bond predicate.
+       */
+      template<typename Predicate1, typename Predicate2, typename Predicate3>
+      BondAndPredicates(const Predicate1 &predicate1, const Predicate2 &predicate2,
+          const Predicate3 &predicate3)
+      {
+        m_predicates.push_back(new Predicate1(predicate1));
+        m_predicates.push_back(new Predicate2(predicate2));
+        m_predicates.push_back(new Predicate3(predicate3));
+      }
+
+      /**
+       * @brief Destructor.
+       */
+      ~BondAndPredicates()
+      {
+        for (std::size_t i = 0; i < m_predicates.size(); ++i)
+          delete m_predicates[i];
+      }
+
+      /**
+       * @brief The predicate function.
+       *
+       * @param mol The molecule.
+       * @param bond The bond to test.
+       *
+       * @return True if a predicates return true, otherwise false is returned.
+       */
+      bool operator()(const MoleculeType &mol, bond_type bond) const
+      {
+        for (std::size_t i = 0; i < m_predicates.size(); ++i)
+          if (!m_predicates->operator()(mol, bond))
+            return false;
+        return true;
+      }
+
+    private:
+      std::vector<BondPredicate<MoleculeType>*> m_predicates; //!< The bond predicates
+  };
+
+  /**
+   * @brief Utility function to create an BondAndPredicate.
+   *
+   * @param mol The molecule (only used for type deduction).
+   * @param predicate1 The 1st bond predicate.
+   * @param predicate2 The 2nd bond predicate.
+   *
+   * @return The BondAndPredicate.
+   */
+  template<typename MoleculeType, typename Predicate1, typename Predicate2>
+  BondAndPredicates<MoleculeType> bond_and_predicates(const MoleculeType &mol,
+      const Predicate1 &predicate1, const Predicate2 &predicate2)
+  {
+    return BondAndPredicates<MoleculeType>(predicate1, predicate2);
+  }
+
+  /**
+   * @brief Utility function to create an BondAndPredicate.
+   *
+   * @param mol The molecule (only used for type deduction).
+   * @param predicate1 The 1st bond predicate.
+   * @param predicate2 The 2nd bond predicate.
+   * @param predicate3 The 3th bond predicate.
+   *
+   * @return The BondAndPredicate.
+   */
+  template<typename MoleculeType, typename Predicate1, typename Predicate2, typename Predicate3>
+  BondAndPredicates<MoleculeType> bond_and_predicates(const MoleculeType &mol,
+      const Predicate1 &predicate1, const Predicate2 &predicate2,
+      const Predicate3 &predicate3)
+  {
+    return BondAndPredicates<MoleculeType>(predicate1, predicate2, predicate3);
+  }
+
+  /**
+   * @brief Class for combining bond predicates using a locgical or.
+   */
+  template<typename MoleculeType>
+  class BondOrPredicates : public BondPredicate<MoleculeType>
+  {
+    public:
+      /**
+       * @brief The bond type.
+       */
+      typedef typename molecule_traits<MoleculeType>::bond_type bond_type;
+
+      /**
+       * @brief Constructor.
+       *
+       * @param predicate1 The first bond predicate.
+       * @param predicate2 The second bond predicate.
+       */
+      template<typename Predicate1, typename Predicate2>
+      BondOrPredicates(const Predicate1 &predicate1, const Predicate2 &predicate2)
+      {
+        m_predicates.push_back(new Predicate1(predicate1));
+        m_predicates.push_back(new Predicate2(predicate2));
+      }
+
+      /**
+       * @brief Constructor.
+       *
+       * @param predicate1 The first bond predicate.
+       * @param predicate2 The second bond predicate.
+       * @param predicate3 The 3th bond predicate.
+       */
+      template<typename Predicate1, typename Predicate2, typename Predicate3>
+      BondOrPredicates(const Predicate1 &predicate1, const Predicate2 &predicate2,
+          const Predicate3 &predicate3)
+      {
+        m_predicates.push_back(new Predicate1(predicate1));
+        m_predicates.push_back(new Predicate2(predicate2));
+        m_predicates.push_back(new Predicate3(predicate3));
+      }
+
+      /**
+       * @brief Destructor.
+       */
+      ~BondOrPredicates()
+      {
+        for (std::size_t i = 0; i < m_predicates.size(); ++i)
+          delete m_predicates[i];
+      }
+
+      /**
+       * @brief The predicate function.
+       *
+       * @param mol The molecule.
+       * @param bond The bond to test.
+       *
+       * @return True if once a predicate return true, otherwise false is
+       *         returned if all predicates return false.
+       */
+      bool operator()(const MoleculeType &mol, bond_type bond) const
+      {
+        for (std::size_t i = 0; i < m_predicates.size(); ++i)
+          if (m_predicates[i]->operator()(mol, bond))
+            return true;
+        return false;
+      }
+
+    private:
+      std::vector<BondPredicate<MoleculeType>*> m_predicates; //!< The bond predicates.
+  };
+
+  /**
+   * @brief Utility function to create an BondOrPredicate.
+   *
+   * @param mol The molecule (only used for type deduction).
+   * @param predicate1 The 1st bond predicate.
+   * @param predicate2 The 2nd bond predicate.
+   *
+   * @return The BondOrPredicate.
+   */
+  template<typename MoleculeType, typename Predicate1, typename Predicate2>
+  BondOrPredicates<MoleculeType> bond_or_predicates(const MoleculeType &mol,
+      const Predicate1 &predicate1, const Predicate2 &predicate2)
+  {
+    return BondOrPredicates<MoleculeType>(predicate1, predicate2);
+  }
+
+  /**
+   * @brief Utility function to create an BondOrPredicate.
+   *
+   * @param mol The molecule (only used for type deduction).
+   * @param predicate1 The 1st bond predicate.
+   * @param predicate2 The 2nd bond predicate.
+   * @param predicate3 The 3th bond predicate.
+   *
+   * @return The BondOrPredicate.
+   */
+  template<typename MoleculeType, typename Predicate1, typename Predicate2, typename Predicate3>
+  BondOrPredicates<MoleculeType> bond_and_predicates(const MoleculeType &mol,
+      const Predicate1 &predicate1, const Predicate2 &predicate2,
+      const Predicate3 &predicate3)
+  {
+    return BondOrPredicates<MoleculeType>(predicate1, predicate2, predicate3);
+  }
+
+  /**
+   * @brief Order bond predicate.
+   *
+   * This BondPredicate is used for comparing the bond's order.
+   */
+  template<typename MoleculeType, template<typename> class Compare = std::equal_to>
+  class OrderPredicate : public BondPredicate<MoleculeType>
+  {
+    public:
+      /**
+       * @brief The bond type.
+       */
+      typedef typename molecule_traits<MoleculeType>::bond_type bond_type;
+
+      /**
+       * @brief Constructor.
+       *
+       * @param order The bond order to compare with.
+       */
+      OrderPredicate(int order) : m_order(order)
+      {
+      }
+
+      /**
+       * @brief The predicate function.
+       *
+       * @param mol The molecule.
+       * @param bond The bond to test.
+       *
+       * @return The result of comparing the bond's order with the order
+       *         given in the constructor.
+       */
+      bool operator()(const MoleculeType &mol, bond_type bond) const
+      {
+        Compare<int> compare;
+        return compare(get_order(mol, bond), m_order);
+      }
+
+    private:
+      int m_order; //!< The order to compare with.
+  };
+
+  /**
+   * @brief Utility function to create an OrderPredicate with std::equal_to compare.
+   *
+   * @param mol The molecule (only used for type deduction).
+   * @param order The bond order to compare with.
+   *
+   * @return The OrderPredicate.
+   */
+  template<typename MoleculeType>
+  OrderPredicate<MoleculeType> order_eq_predicate(const MoleculeType &mol, int order)
+  {
+    return OrderPredicate<MoleculeType, std::equal_to>(order);
+  }
+
+  /**
+   * @brief Utility function to create an OrderPredicate with std::less compare.
+   *
+   * @param mol The molecule (only used for type deduction).
+   * @param order The bond order to compare with.
+   *
+   * @return The OrderPredicate.
+   */
+  template<typename MoleculeType>
+  OrderPredicate<MoleculeType> order_lt_predicate(const MoleculeType &mol, int order)
+  {
+    return OrderPredicate<MoleculeType, std::less>(order);
+  }
+
+  /**
+   * @brief Utility function to create an OrderPredicate with std::greater compare.
+   *
+   * @param mol The molecule (only used for type deduction).
+   * @param order The bond order to compare with.
+   *
+   * @return The OrderPredicate.
+   */
+  template<typename MoleculeType>
+  OrderPredicate<MoleculeType> order_gt_predicate(const MoleculeType &mol, int order)
+  {
+    return OrderPredicate<MoleculeType, std::greater>(order);
+  }
+
+  /**
+   * @brief Utility function to create an OrderPredicate with std::less_equal compare.
+   *
+   * @param mol The molecule (only used for type deduction).
+   * @param order The bond order to compare with.
+   *
+   * @return The OrderPredicate.
+   */
+  template<typename MoleculeType>
+  OrderPredicate<MoleculeType> order_leq_predicate(const MoleculeType &mol, int order)
+  {
+    return OrderPredicate<MoleculeType, std::less_equal>(order);
+  }
+
+  /**
+   * @brief Utility function to create an OrderPredicate with std::greater_equal compare.
+   *
+   * @param mol The molecule (only used for type deduction).
+   * @param order The bond order to compare with.
+   *
+   * @return The OrderPredicate.
+   */
+  template<typename MoleculeType>
+  OrderPredicate<MoleculeType> order_geq_predicate(const MoleculeType &mol, int order)
+  {
+    return OrderPredicate<MoleculeType, std::greater_equal>(order);
+  }
+
+  /**
+   * @brief Aromatic bond predicate.
+   *
+   * This BondPredicate is used for comparing the bond's aromaticity.
+   */
+  template<typename MoleculeType>
+  class AromaticBondPredicate : public BondPredicate<MoleculeType>
+  {
+    public:
+      /**
+       * @brief The bond type.
+       */
+      typedef typename molecule_traits<MoleculeType>::bond_type bond_type;
+
+      /**
+       * @brief Constructor.
+       *
+       * @param aromatic The aromaticity to compare with.
+       */
+      AromaticBondPredicate(bool aromatic) : m_aromatic(aromatic)
+      {
+      }
+
+      /**
+       * @brief The predicate function.
+       *
+       * @param mol The molecule.
+       * @param bond The bond to test.
+       *
+       * @return The result of comparing the bond's aromaticity with the
+       *         aromaticity given in the constructor.
+       */
+      bool operator()(const MoleculeType &mol, bond_type bond) const
+      {
+        return is_aromatic(mol, bond) == m_aromatic;
+      }
+
+    private:
+      bool m_aromatic; //!< The aromaticity to compare with.
+  };
+
+  /**
+   * @brief Utility function to create an AromaticBondPredicate for aromatic bonds.
+   *
+   * @param mol The molecule (only used for type deduction).
+   *
+   * @return The AromaticBondPredicate.
+   */
+  template<typename MoleculeType>
+  AromaticBondPredicate<MoleculeType> aromatic_bond_predicate(const MoleculeType &mol)
+  {
+    return AromaticBondPredicate<MoleculeType>(true);
+  }
+
+  /**
+   * @brief Utility function to create an AromaticBondPredicate for non-aromatic bonds.
+   *
+   * @param mol The molecule (only used for type deduction).
+   *
+   * @return The AromaticBondPredicate.
+   */
+  template<typename MoleculeType>
+  AromaticBondPredicate<MoleculeType> not_aromatic_bond_predicate(const MoleculeType &mol)
+  {
+    return AromaticBondPredicate<MoleculeType>(false);
+  }
+
+  //////////////////////////////////////////////////////////////////////////////
+  //
+  // Applying Predicates
+  //
+  //////////////////////////////////////////////////////////////////////////////
+
+  /**
+   * @brief Apply an atom predicate to each atom in a molecule.
+   *
+   * @param mol The molecule.
+   * @param predicate The atom predicate.
+   *
+   * @return True once the predicate returns true for an atom.
+   */
+  template<typename MoleculeType, typename AtomPredicateType>
+  bool molecule_has_atom(const MoleculeType &mol, const AtomPredicateType &predicate)
+  {
+    FOREACH_ATOM (atom, mol, MoleculeType)
+      if (predicate(mol, *atom))
+        return true;
+    return false;
+  }
+
+  /**
+   * @brief Get all atoms in a molecule for which the predicate returns true.
+   *
+   * @param mol The molecule.
+   * @param predicate The atom predicate.
+   *
+   * @return A list of all atoms for which the predicate returns true.
+   */
+  template<typename MoleculeType, typename AtomPredicateType>
+  std::vector<typename molecule_traits<MoleculeType>::atom_type>
+  molecule_get_atoms(const MoleculeType &mol, const AtomPredicateType &predicate)
+  {
+    std::vector<typename molecule_traits<MoleculeType>::atom_type> atoms;
+    FOREACH_ATOM (atom, mol, MoleculeType)
+      if (predicate(mol, *atom))
+        atoms.push_back(*atom);
+    return atoms;
+  }
+
+  /**
+   * @brief Apply a bond predicate to each bond in a molecule.
+   *
+   * @param mol The molecule.
+   * @param predicate The bond predicate.
+   *
+   * @return True once the predicate returns true for a bond.
+   */
+  template<typename MoleculeType, typename BondPredicateType>
+  bool molecule_has_bond(const MoleculeType &mol, const BondPredicateType &predicate)
+  {
+    FOREACH_BOND (bond, mol, MoleculeType)
+      if (predicate(mol, *bond))
+        return true;
+    return false;
+  }
+
+  /**
+   * @brief Get all bonds in a molecule for which the predicate returns true.
+   *
+   * @param mol The molecule.
+   * @param predicate The bond predicate.
+   *
+   * @return A list of all bonds for which the predicate returns true.
+   */
+  template<typename MoleculeType, typename BondPredicateType>
+  std::vector<typename molecule_traits<MoleculeType>::bond_type>
+  molecule_get_bonds(const MoleculeType &mol, const BondPredicateType &predicate)
+  {
+    std::vector<typename molecule_traits<MoleculeType>::bond_type> bonds;
+    FOREACH_BOND (bond, mol, MoleculeType)
+      if (predicate(mol, *bond))
+        bonds.push_back(*bond);
+    return bonds;
+  }
+
+  /**
+   * @brief Apply an atom predicate to each neighbor of an atom.
+   *
+   * @param mol The molecule.
+   * @param atom The central atom.
+   * @param predicate The atom predicate.
+   *
+   * @return True once the predicate returns true for a neighbor atom.
+   */
+  template<typename MoleculeType, typename AtomPredicateType>
+  bool atom_has_nbr(const MoleculeType &mol, typename molecule_traits<MoleculeType>::atom_type atom, const AtomPredicateType &predicate)
+  {
+    FOREACH_NBR (nbr, atom, mol, MoleculeType)
+      if (predicate(mol, *nbr))
+        return true;
+    return false;
+  }
+
+  /**
+   * @brief Get all neighbor atoms for which the predicate returns true.
+   *
+   * @param mol The molecule.
+   * @param atom The central atom.
+   * @param predicate The atom predicate.
+   *
+   * @return A list of all neighbor atoms for which the predicate returns true.
+   */
+  template<typename MoleculeType, typename AtomPredicateType>
+  std::vector<typename molecule_traits<MoleculeType>::atom_type>
+  atom_get_nbrs(const MoleculeType &mol, typename molecule_traits<MoleculeType>::atom_type atom, const AtomPredicateType &predicate)
+  {
+    std::vector<typename molecule_traits<MoleculeType>::atom_type> atoms;
+    FOREACH_NBR (nbr, atom, mol, MoleculeType)
+      if (predicate(mol, *atom))
+        atoms.push_back(*atom);
+    return atoms;
+  }
+
+  /**
+   * @brief Apply an atom predicate to each incident bond of an atom.
+   *
+   * @param mol The molecule.
+   * @param atom The central atom.
+   * @param predicate The atom predicate.
+   *
+   * @return True once the predicate returns true for an incident bond.
+   */
+  template<typename MoleculeType, typename BondPredicateType>
+  bool atom_has_bond(const MoleculeType &mol, typename molecule_traits<MoleculeType>::atom_type atom, const BondPredicateType &predicate)
+  {
+    FOREACH_INCIDENT (bond, atom, mol, MoleculeType)
+      if (predicate(mol, *bond))
+        return true;
+    return false;
+  }
+
+  /**
+   * @brief Get all incident bonds for which the predicate returns true.
+   *
+   * @param mol The molecule.
+   * @param atom The central atom.
+   * @param predicate The bond predicate.
+   *
+   * @return A list of all incident bonds for which the predicate returns true.
+   */
+  template<typename MoleculeType, typename BondPredicateType>
+  std::vector<typename molecule_traits<MoleculeType>::bond_type>
+  atom_get_bonds(const MoleculeType &mol, typename molecule_traits<MoleculeType>::atom_type atom, const BondPredicateType &predicate)
+  {
+    std::vector<typename molecule_traits<MoleculeType>::bond_type> bonds;
+    FOREACH_INCIDENT (bond, atom, mol, MoleculeType)
+      if (predicate(mol, *bond))
+        bonds.push_back(*bond);
+    return bonds;
+  }
+
+
+
+
+
+  //////////////////////////////////////////////////////////////////////////////
+  //
+  // Lists of atoms and bonds
+  //
+  //////////////////////////////////////////////////////////////////////////////
+
+  /**
+   * @brief Check if a list of atoms/bonds contains an atom/bond with the specified index.
+   *
+   * @param mol The molecule.
+   * @param objects The atom or bond list.
+   * @param index The index to compare with.
+   *
+   * @return True if an atom/bond with the specified index is found in the list.
+   */
+  template<typename MoleculeType, typename AtomBondType>
+  bool contains_index(const MoleculeType &mol, const std::vector<AtomBondType> &objects, Index index)
+  {
+    for (std::size_t i = 0; i < objects.size(); ++i)
+      if (get_index(mol, objects[i]) == index)
+        return true;
+    return false;
+  }
+
+  /**
+   * @brief Check if a list of atoms/bonds contains an atom/bond with a smaller index.
+   *
+   * @param mol The molecule.
+   * @param objects The atom or bond list.
+   * @param index The index to compare with.
+   *
+   * @return True if an atom/bond with a smaller index is found in the list.
+   */
+  template<typename MoleculeType, typename AtomBondType>
+  bool contains_smaller_index(const MoleculeType &mol, const std::vector<AtomBondType> &objects, Index index)
+  {
+    for (std::size_t i = 0; i < objects.size(); ++i)
+      if (get_index(mol, objects[i]) < index)
+        return true;
+    return false;
+  }
+
+  /**
+   * @brief Check if a list of atoms/bonds contains an atom/bond with a larger index.
+   *
+   * @param mol The molecule.
+   * @param objects The atom or bond list.
+   * @param index The index to compare with.
+   *
+   * @return True if an atom/bond with a larger index is found in the list.
+   */
+  template<typename MoleculeType, typename AtomBondType>
+  bool contains_larger_index(const MoleculeType &mol, const std::vector<AtomBondType> &objects, Index index)
+  {
+    for (std::size_t i = 0; i < objects.size(); ++i)
+      if (get_index(mol, objects[i]) > index)
+        return true;
+    return false;
+  }
+
+  /**
+   * @brief Get a string with the indices of the atoms/bonds in a list.
+   *
+   * @param mol The molecule.
+   * @param objects The atom or bond list.
+   *
+   * @return A string with the indices of the atoms/bonds in a list.
+   */
+  template<typename MoleculeType, typename AtomBondType>
+  std::string index_string(const MoleculeType &mol, const std::vector<AtomBondType> &objects)
+  {
+    std::stringstream ss;
+    for (std::size_t i = 0; i < objects.size(); ++i)
+      ss << get_index(mol, objects[i]) << " ";
+    return ss.str();
+  }
 
   //@}
+
 
 }
 

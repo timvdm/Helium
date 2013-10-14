@@ -1,3 +1,29 @@
+/*
+ * Copyright (c) 2013, Tim Vandermeersch
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *     * Redistributions of source code must retain the above copyright
+ *       notice, this list of conditions and the following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright
+ *       notice, this list of conditions and the following disclaimer in the
+ *       documentation and/or other materials provided with the distribution.
+ *     * Neither the name of the <organization> nor the
+ *       names of its contributors may be used to endorse or promote products
+ *       derived from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL <COPYRIGHT HOLDER> BE LIABLE FOR ANY
+ * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 #ifndef HELIUM_ENUMERATESUBGRAPHS_H
 #define HELIUM_ENUMERATESUBGRAPHS_H
 
@@ -15,20 +41,45 @@
 
 namespace Helium {
 
+  /**
+   * @brief Return type for subgraph enumeration.
+   *
+   * This object is passed as a parameter to the callback functor.
+   */
   struct Subgraph
   {
+    /**
+     * @brief Default constructor.
+     */
     Subgraph()
     {
     }
 
+    /**
+     * @brief Constructor.
+     *
+     * @param numAtoms The number of atoms in the molecule.
+     * @param numBonds The number of bonds in the molecule.
+     */
     Subgraph(unsigned int numAtoms, unsigned int numBonds) : atoms(numAtoms), bonds(numBonds)
     {
     }
 
+    /**
+     * @brief Constructor.
+     *
+     * @param atoms_ Bitvec specifiying the atoms.
+     * @param bonds_ Bitvec specifiying the bonds.
+     */
     Subgraph(const std::vector<bool> &atoms_, const std::vector<bool> &bonds_) : atoms(atoms_), bonds(bonds_)
     {
     }
 
+    /**
+     * @brief Get a hashable object for the subgraph.
+     *
+     * @return A hashable object.
+     */
     std::vector<bool> hashable() const
     {
       std::vector<bool> h(atoms);
@@ -36,8 +87,8 @@ namespace Helium {
       return h;
     }
 
-    std::vector<bool> atoms;
-    std::vector<bool> bonds;
+    std::vector<bool> atoms; //!< The atoms.
+    std::vector<bool> bonds; //!< The bonds.
   };
 
 
@@ -139,7 +190,7 @@ namespace Helium {
 
         if (!sameComponent)
           continue;
-        
+
         /*
         std::cout << "combination: ";
         for (int i = 0; i < size; ++i)
@@ -157,7 +208,7 @@ namespace Helium {
           atoms[source] = true;
           atoms[target] = true;
         }
-        
+
         if (std::count(atoms.begin(), atoms.end(), true) > maxSize)
           continue;
 
@@ -171,7 +222,7 @@ namespace Helium {
           if (unique_elements(subcomponents) > 1)
             continue;
         }
- 
+
 
         callback(Subgraph(atoms, bonds));
         foundSubgraph = true;
@@ -410,7 +461,7 @@ namespace Helium {
         for (std::set<unsigned int>::const_iterator i = internalExtensions.begin(); i != internalExtensions.end(); ++i)
           extensions.push_back(std::make_pair(*i, molecule_traits<MoleculeType>::null_index()));
 
-      return extensions;      
+      return extensions;
     }
 
     /**
@@ -457,7 +508,7 @@ namespace Helium {
             atoms.insert(combinations[i][j].second);
         if (atoms.size() > limit)
           continue;
-        result.push_back(std::make_pair(atoms, combinations[i]));      
+        result.push_back(std::make_pair(atoms, combinations[i]));
       }
     }
 
@@ -549,26 +600,26 @@ namespace Helium {
           newAtoms[*index] = true;
         }
 
-        
+
         std::vector<bool> bonds(seed.subgraph.bonds);
         for (std::size_t j = 0; j < combinations[i].second.size(); ++j)
           bonds[combinations[i].second[j].first] = true;
 
         Subgraph subgraph(atoms, bonds);
         assert(std::count(subgraph.atoms.begin(), subgraph.atoms.end(), true) <= maxSize);
-        
+
 
         Substructure<MoleculeType> substruct(mol, atoms, bonds);
         if (trees && is_cyclic(substruct))
           continue;
 
         callback(subgraph);
-        
+
         // if no new atoms were added, and all ways to expand from the old atoms
         // has been explorered, than there is no other way to expand this seed
         if (combinations[i].first.empty())
           continue;
-      
+
         // start from the new atoms to find additional bonds for further expansion
         impl::SubgraphExtensions extensions = impl::find_extensions(mol, newVisited, newAtoms, atoms, trees);
         //std::cout << "    extensions: " << extensions << std::endl;

@@ -28,6 +28,8 @@
 #include <Helium/smiles.h>
 
 namespace Helium {
+  
+  //@cond dev
 
   molecule_traits<HeMol>::atom_type HeMol::addAtom()
   {
@@ -117,6 +119,7 @@ namespace Helium {
     hemol_from_smiles(smiles, mol);
     return mol;
   }
-
+  
+  //@endcond dev
 
 }

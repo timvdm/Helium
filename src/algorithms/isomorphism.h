@@ -471,6 +471,8 @@ namespace Helium {
    * @param atom The first atom to be matched against query atom 0.
    * @param query The query.
    * @param mapping The desired mapping (e.g. NoMapping, SingleMapping, ...).
+   * @param atomMatcher The AtomMatcher functor.
+   * @param bondMatcher The BondMatcher functor.
    *
    * @return True if the query is a substructure of @p mol.
    */
@@ -496,6 +498,8 @@ namespace Helium {
    * @param mol The molecule (queried).
    * @param query The query.
    * @param mapping The desired mapping (e.g. NoMapping, SingleMapping, ...).
+   * @param atomMatcher The AtomMatcher functor.
+   * @param bondMatcher The BondMatcher functor.
    *
    * @return True if the query is a substructure of @p mol.
    */

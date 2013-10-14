@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2013, Tim Vandermeersch
  * All rights reserved.
  *
@@ -78,11 +78,15 @@ namespace Helium {
   /**
    * Calculate the Morgan's Extended Connectivities for the specified molecule.
    *
+   * @param mol The molecule.
+   *
 @verbatim
 Morgan, H. L. The Generation of a Unique Machine Description for Chemical
 Structures - A Technique Developed at Chemical Abstracts Service. J. Chem.
 Doc. 1965, 5: 107-112.
 @endverbatim
+   *
+   * @return The extended connectivities.
    */
   template<typename MoleculeType>
   std::vector<unsigned long> extended_connectivities(MoleculeType &mol)

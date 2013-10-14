@@ -391,7 +391,7 @@ namespace Helium {
    * principle can be used to compute the Tanimoto coefficient faster.
    *
    * \f[
-   *   T_{\mathrm{sim}} = \frac{| A \wedge B |}{|A| + |B| - | A \vee B |}
+   *   T_{\mathrm{sim}} = \frac{| A \wedge B |}{|A| + |B| - | A \wedge B |}
    * \f]
    *
    * @pre Both bitvec1 and bitvec2 pointers must be valid.

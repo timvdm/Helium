@@ -624,7 +624,7 @@ namespace Helium {
     return bond.isCyclic();
   }
 
-  inline bool get_order(const HeMol &mol, const  molecule_traits<HeMol>::bond_type bond)
+  inline int get_order(const HeMol &mol, const  molecule_traits<HeMol>::bond_type bond)
   {
     return bond.order();
   }

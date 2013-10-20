@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2013, Tim Vandermeersch
  * All rights reserved.
  *
@@ -60,7 +60,7 @@ namespace Helium {
       Index target; // canonical target index
     };
 
-    template<typename MoleculeType>
+    template<typename MoleculeType, typename AtomAttribute, typename BondAttribute>
     class Canonicalize
     {
         typedef typename molecule_traits<MoleculeType>::atom_type atom_type;
@@ -69,8 +69,10 @@ namespace Helium {
         typedef typename molecule_traits<MoleculeType>::incident_iter incident_iter;
 
       public:
-        Canonicalize(MoleculeType &mol, const std::vector<unsigned long> &symmetry)
-            : m_mol(mol), m_symmetry(symmetry), m_visited(num_bonds(mol))
+        Canonicalize(MoleculeType &mol, const std::vector<unsigned long> &symmetry,
+            const AtomAttribute &atomAttribute, const BondAttribute &bondAttribute)
+          : m_mol(mol), m_symmetry(symmetry), m_visited(num_bonds(mol)),
+            m_atomAttribute(atomAttribute), m_bondAttribute(bondAttribute)
         {
         }
 
@@ -274,13 +276,65 @@ namespace Helium {
 
         std::vector<Index> m_labels; // currently lowest canonical labels
         std::vector<unsigned long> m_code; // currently lowest canonical code
+
+        const AtomAttribute &m_atomAttribute;
+        const BondAttribute &m_bondAttribute;
     };
 
   }
 
+  /**
+   * @brief Atom attribute to be used for canonical coding.
+   */
+  class AtomElementAttribute
+  {
+    public:
+      /**
+       * @brief Get an attribute label classifying the atom.
+       *
+       * This attribute label is used for generating and comparing canonical
+       * codes.
+       *
+       * @param mol The molecule.
+       * @param atom The atom.
+       *
+       * @return The attribute label.
+       */
+      template<typename MoleculeType, typename AtomType>
+      unsigned long operator()(const MoleculeType &mol, AtomType atom) const
+      {
+        return get_element(mol, atom);
+      }
+  };
 
   /**
-   * Canonicalize a molecule. The canonicalization algorithm consists of two
+   * @brief Bond attribute to be used for canonical coding.
+   */
+  class BondOrderAttribute
+  {
+    public:
+      /**
+       * @brief Get an attribute label classifying the bond.
+       *
+       * This attribute label is used for generating and comparing canonical
+       * codes.
+       *
+       * @param mol The molecule.
+       * @param atom The bond.
+       *
+       * @return The attribute label.
+       */
+      template<typename MoleculeType, typename BondType>
+      unsigned long operator()(const MoleculeType &mol, BondType bond) const
+      {
+        return get_order(mol, bond);
+      }
+  };
+
+  /**
+   * @brief Canonicalize a molecule.
+   *
+   * The canonicalization algorithm consists of two
    * steps. In the first step, the atoms are partitioned using graph
    * invariants (e.g. atom degree). This initial partitioning reduces the
    * number of states that need to be visited to find the canonical code.
@@ -289,10 +343,21 @@ namespace Helium {
    * investigated and a code is generated for each one. The unique code is
    * selected and the associated atom order is the canonical atom order.
    *
+   * @param mol The molecule.
+   * @param symmetry The extended connectivities (see extended_connectivities()).
+   * @param atomAttribute The atom attributes to use for the canonical code
+   *        (e.g. AtomElementAttribute). The used attributes determine what kind
+   *        of information is considered for making the molecule canonical.
+   * @param bondAttribute The bond attributes to use for the canonical code
+   *        (e.g. BondOrderAttribute). The used attributes determine what kind
+   *        of information is considered for making the molecule canonical.
+   *
    * @return The canonical atom order and canonical code.
    */
-  template<typename MoleculeType, typename T>
-  std::pair<std::vector<Index>, std::vector<unsigned long> > canonicalize(MoleculeType &mol, const std::vector<T> &symmetry)
+  template<typename MoleculeType, typename T, typename AtomAttribute, typename BondAttribute>
+  std::pair<std::vector<Index>, std::vector<unsigned long> > canonicalize(MoleculeType &mol,
+      const std::vector<T> &symmetry, const AtomAttribute &atomAttribute,
+      const BondAttribute &bondAttribute)
   {
     if (DEBUG_CANON) {
       std::cout << "+---------------------------+" << std::endl;
@@ -300,7 +365,7 @@ namespace Helium {
       std::cout << "+---------------------------+" << std::endl;
       std::cout << "symmetry: " << symmetry << std::endl;
     }
-    impl::Canonicalize<MoleculeType> can(mol, symmetry);
+    impl::Canonicalize<MoleculeType, AtomAttribute, BondAttribute> can(mol, symmetry, atomAttribute, bondAttribute);
     can.canonicalize();
     if (DEBUG_CANON) {
       std::cout << "labels: " << can.labels() << ", code: " << can.code() << std::endl;

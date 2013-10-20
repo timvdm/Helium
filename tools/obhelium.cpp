@@ -25,6 +25,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 #include <Helium/molecule.h>
+#include <Helium/element.h>
 #include <Helium/fileio/file.h>
 
 #include "args.h"
@@ -79,7 +80,10 @@ void write_molecule(std::ostream &os, OpenBabel::OBMol *mol)
     // write aromatic property
     write8<unsigned char>(os, atom->IsAromatic());
     // write isotope
-    write8<unsigned char>(os, atom->GetIsotope());
+    if (atom->GetIsotope())
+      write8<unsigned char>(os, atom->GetIsotope());
+    else
+      write8<unsigned char>(os, Element::averageMass(atom->GetAtomicNum()));
     // write hydrogen count
     write8<unsigned char>(os, atom->ExplicitHydrogenCount() + atom->ImplicitHydrogenCount());
     // write formal charge

@@ -21,7 +21,7 @@ void test_canonicalize(const std::string &smiles)
   }
   std::vector<unsigned long> symmetry = extended_connectivities(mol);
   std::cout << "symmetry: " << symmetry << std::endl;
-  canonicalize(mol, symmetry);
+  canonicalize(mol, symmetry, AtomElementAttribute(), BondOrderAttribute());
 }
 
 bool shuffle_test_mol(HeMol &mol)
@@ -31,7 +31,10 @@ bool shuffle_test_mol(HeMol &mol)
   for (std::size_t i = 0; i < num_atoms(mol); ++i)
     atoms.push_back(i);
 
-  std::vector<unsigned long> ref_code = canonicalize(mol, extended_connectivities(mol)).second;
+
+  std::pair<std::vector<Index>, std::vector<unsigned long> > ref_canon = canonicalize(mol, extended_connectivities(mol), AtomElementAttribute(), BondOrderAttribute());
+  const std::vector<unsigned long> &ref_code = ref_canon.second;
+  std::string ref_smiles = write_smiles(mol, ref_canon.first, WriteSmiles::Order);
 
   for (int i = 0; i < 10; ++i) {
     std::random_shuffle(atoms.begin(), atoms.end());
@@ -39,10 +42,16 @@ bool shuffle_test_mol(HeMol &mol)
     //std::cout << mol << std::endl;
     mol.renumberAtoms(atoms);
     //std::cout << mol << std::endl;
-    std::vector<unsigned long> code = canonicalize(mol, extended_connectivities(mol)).second;
+    
+    std::pair<std::vector<Index>, std::vector<unsigned long> > canon = canonicalize(mol, extended_connectivities(mol), AtomElementAttribute(), BondOrderAttribute());
+    const std::vector<unsigned long> &code = canon.second;
+    std::string smiles = write_smiles(mol, canon.first, WriteSmiles::Order);
+    
     COMPARE(ref_code, code);
     if (ref_code != code)
       pass = false;
+
+    COMPARE(ref_smiles, smiles);
   }
 
   return pass;
@@ -93,6 +102,8 @@ int main()
   shuffle_test_smiles("Clc1ccc(cc1)Cc1c(C)nc(N)[nH]c1=O");
   shuffle_test_smiles("COc1cc(C)nc(Cl)n1");
   shuffle_test_smiles("C1CN1");
+  
+  shuffle_test_smiles("CCOC(C)OCC");
 
   shuffle_test(datadir() + "1K.hel");
 }

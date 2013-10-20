@@ -28,6 +28,8 @@
 #define HELIUM_SMILES_H
 
 #include <Helium/hemol.h>
+#include <Helium/algorithms/dfs.h>
+#include <Helium/element.h>
 
 #include <smiley.h>
 
@@ -55,8 +57,14 @@ namespace Helium {
         typename molecule_traits<MoleculeType>::atom_type atom = mol.addAtom();
         atom.setElement(element);
         atom.setAromatic(aromatic);
-        atom.setMass(isotope);
-        atom.setHydrogens(hCount);
+        if (isotope != -1)
+          atom.setMass(isotope);
+        else
+          atom.setMass(Element::averageMass(element));
+        if (hCount != -1)
+          atom.setHydrogens(hCount);
+        else
+          atom.setHydrogens(99);
         atom.setCharge(charge);
       }
 
@@ -110,6 +118,210 @@ namespace Helium {
           errorStream.str(), e.pos(), e.length());
 
     }
+
+    // add hydrogens
+    FOREACH_ATOM (atom, mol, MoleculeType) {
+      if (num_hydrogens(mol, *atom) != 99)
+        continue;
+      if (!Element::addHydrogens(get_element(mol, *atom)))
+        continue;
+      int degree = get_degree(mol, *atom);
+      int valence = Element::valence(get_element(mol, *atom), get_charge(mol, *atom), degree);
+      if (valence > degree)
+        (*atom).setHydrogens(valence - degree);
+    }
+  }
+
+  namespace WriteSmiles {
+
+    /**
+     * @brief SMILES features to write.
+     */
+    enum Flags {
+      Mass = 1,
+      Charge = 2,
+      Hydrogens = 4,
+      Order = 8,
+      All = Mass | Charge | Hydrogens | Order
+    };
+
+  }
+
+  namespace impl {
+
+    template<typename MoleculeType>
+    struct WriteSmilesRingNumberVisitor : public DFSVisitor<MoleculeType>
+    {
+      typedef typename molecule_traits<MoleculeType>::atom_type atom_type;
+      typedef typename molecule_traits<MoleculeType>::bond_type bond_type;
+
+      void initialize(const MoleculeType &mol)
+      {
+        ringNumber = 0;
+        ringNumbers.clear();
+      }
+
+      void back_bond(const MoleculeType &mol, bond_type bond)
+      {
+        ++ringNumber;
+
+        if (ringNumbers.find(get_source(mol, bond)) == ringNumbers.end())
+          ringNumbers[get_source(mol, bond)] = std::vector<int>();
+        ringNumbers[get_source(mol, bond)].push_back(ringNumber);
+
+        if (ringNumbers.find(get_target(mol, bond)) == ringNumbers.end())
+          ringNumbers[get_target(mol, bond)] = std::vector<int>();
+        ringNumbers[get_target(mol, bond)].push_back(ringNumber);
+      }
+
+      int ringNumber;
+      std::map<atom_type, std::vector<int> > ringNumbers;
+    };
+
+    template<typename MoleculeType>
+    struct WriteSmilesVisitor : public DFSVisitor<MoleculeType>
+    {
+      typedef typename molecule_traits<MoleculeType>::atom_type atom_type;
+      typedef typename molecule_traits<MoleculeType>::bond_type bond_type;
+
+      WriteSmilesVisitor(const std::map<atom_type, std::vector<int> > &ringNumbers_, int flags_)
+        : ringNumbers(ringNumbers_), flags(flags_)
+      {
+      }
+
+      void initialize(const MoleculeType &mol)
+      {
+        degrees.resize(num_atoms(mol));
+      }
+
+      void atom(const MoleculeType &mol, atom_type prev, atom_type atom)
+      {
+
+        if (prev != molecule_traits<MoleculeType>::null_atom()) {
+          typename std::map<atom_type, std::vector<int> >::const_iterator rings = ringNumbers.find(prev);
+          int numRings = rings == ringNumbers.end() ? 0 : rings->second.size();
+          degrees[get_index(mol, prev)]++;
+
+          if (degrees[get_index(mol, prev)] < get_degree(mol, prev) - 1 - numRings) {
+            smiles << "(";
+            branches.push_back(get_index(mol, atom));
+          }
+        }
+
+        std::string element = Element::symbol(get_element(mol, atom));
+
+        bool needBrackets = element.size() > 1;
+        if (get_charge(mol, atom) && (flags & WriteSmiles::Charge))
+          needBrackets = true;
+        if (get_mass(mol, atom) != Element::averageMass(get_element(mol, atom)) && (flags & WriteSmiles::Mass))
+          needBrackets = true;
+
+        if (needBrackets)
+          smiles << "[";
+
+        if (get_mass(mol, atom) != Element::averageMass(get_element(mol, atom)) && (flags & WriteSmiles::Mass))
+          smiles << get_mass(mol, atom);
+
+        smiles << element;
+
+        int numH = get_valence(mol, atom) - get_heavy_degree(mol, atom);
+        if (needBrackets && (flags & WriteSmiles::Hydrogens) && numH)
+          smiles << "H" << numH;
+
+        if ((flags & WriteSmiles::Charge) && get_charge(mol, atom)) {
+          int charge = get_charge(mol, atom);
+          if (charge == 1)
+            smiles << "+";
+          else if (charge == -1)
+            smiles << "-";
+          else if (charge > 0)
+            smiles << "+" << charge;
+          else
+            smiles << "-" << charge;
+        }
+
+
+        if (needBrackets)
+          smiles << "]";
+
+
+        typename std::map<atom_type, std::vector<int> >::const_iterator rings = ringNumbers.find(atom);
+        if (rings != ringNumbers.end())
+          for (std::size_t i = 0; i < rings->second.size(); ++i) {
+            if (rings->second[i] > 9)
+              smiles << "%" << rings->second[i];
+            else
+              smiles << rings->second[i];
+          }
+      }
+
+      void bond(const MoleculeType &mol, atom_type prev, bond_type bond)
+      {
+      }
+
+      void backtrack(const MoleculeType &mol, atom_type atom)
+      {
+        if (branches.size() && branches.back() == get_index(mol, atom)) {
+          smiles << ")";
+          branches.pop_back();
+        }
+      }
+
+      void back_bond(const MoleculeType &mol, bond_type bond)
+      {
+      }
+
+      const std::map<atom_type, std::vector<int> > &ringNumbers;
+      std::vector<int> degrees;
+      std::vector<Index> branches;
+      std::stringstream smiles;
+      int flags;
+    };
+
+  }
+
+  /**
+   * @brief Write a SMILES string for the molecule.
+   *
+   * @param mol The molecule.
+   * @param flags The SMILES features to write (see WriteSmiles::Flags).
+   *
+   * @return The SMILES string.
+   */
+  template<typename MoleculeType>
+  std::string write_smiles(const MoleculeType &mol, int flags = WriteSmiles::All)
+  {
+    impl::WriteSmilesRingNumberVisitor<MoleculeType> ringNumbers;
+    depth_first_search(mol, ringNumbers);
+
+    impl::WriteSmilesVisitor<MoleculeType> smilesWriter(ringNumbers.ringNumbers, flags);
+    depth_first_search(mol, smilesWriter);
+
+    return smilesWriter.smiles.str();
+  }
+
+  /**
+   * @brief Write a SMILES string for the molecule using a specified order.
+   *
+   * This version of write_smiles() can be used to write canonical SMILES if a
+   * canonical atom order is used.
+   *
+   * @param mol The molecule.
+   * @param order The atom order.
+   * @param flags The SMILES features to write (see WriteSmiles::Flags).
+   *
+   * @return The SMILES string.
+   */
+  template<typename MoleculeType>
+  std::string write_smiles(const MoleculeType &mol, const std::vector<Index> &order, int flags = WriteSmiles::All)
+  {
+    impl::WriteSmilesRingNumberVisitor<MoleculeType> ringNumbers;
+    depth_first_search(mol, order, ringNumbers);
+
+    impl::WriteSmilesVisitor<MoleculeType> smilesWriter(ringNumbers.ringNumbers, flags);
+    depth_first_search(mol, order, smilesWriter);
+
+    return smilesWriter.smiles.str();
   }
 
 }

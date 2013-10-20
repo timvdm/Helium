@@ -8,6 +8,7 @@ set(Helium_HDRS
   bitvec.h
   contract.h
   concurrent.h
+  element.h
   molecule.h
   substructure.h
   tie.h

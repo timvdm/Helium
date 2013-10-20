@@ -320,7 +320,7 @@ namespace Helium {
        * codes.
        *
        * @param mol The molecule.
-       * @param atom The bond.
+       * @param bond The bond.
        *
        * @return The attribute label.
        */

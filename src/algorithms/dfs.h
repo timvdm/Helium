@@ -30,6 +30,7 @@
 #include <iostream>
 
 #include <Helium/molecule.h>
+#include <Helium/util.h>
 
 namespace Helium {
 
@@ -147,6 +148,54 @@ namespace Helium {
     }
 
     template<typename MoleculeType, typename AtomType, typename DFSVisitorType>
+    void dfs_visit(const MoleculeType &mol, AtomType atom, const std::vector<Index> &order,
+        DFSVisitorType &visitor, std::vector<bool> &visited,
+        AtomType prev = molecule_traits<MoleculeType>::null_atom())
+    {
+      typedef AtomType atom_type;
+      typedef typename molecule_traits<MoleculeType>::bond_type bond_type;
+      typedef typename molecule_traits<MoleculeType>::incident_iter incident_iter;
+
+      // mark atom as visited
+      visited[get_index(mol, atom)] = true;
+      // invoke atom visitor
+      visitor.atom(mol, prev, atom);
+
+      std::vector<std::pair<std::size_t, bond_type> > bonds;
+      FOREACH_INCIDENT (bond, atom, mol, MoleculeType) {
+        atom_type nbr = get_other(mol, *bond, atom);
+        bonds.push_back(std::make_pair(std::find(order.begin(), order.end(), get_index(mol, nbr)) - order.begin(), *bond));
+      }
+
+      std::sort(bonds.begin(), bonds.end(), compare_first<std::size_t, bond_type>());
+
+      // call dfs_visit for all unvisited neighbors of v
+      for (std::size_t i = 0; i < bonds.size(); ++i) {
+        bond_type bond = bonds[i].second;
+        atom_type nbr = get_other(mol, bond, atom);
+
+        if (visited[get_index(mol, nbr)]) {
+          // if this bond has not been visited before, a back_bond has been found
+          if (!visited[num_atoms(mol) + get_index(mol, bond)])
+            visitor.back_bond(mol, bond);
+          // mark bond as visited
+          visited[num_atoms(mol) + get_index(mol, bond)] = true;
+          continue;
+        }
+
+        // mark bond as visited
+        visited[num_atoms(mol) + get_index(mol, bond)] = true;
+        // invoke bond visitor
+        visitor.bond(mol, prev, bond);
+
+        dfs_visit(mol, nbr, order, visitor, visited, atom);
+      }
+
+      // invoke backtrack visitor
+      visitor.backtrack(mol, atom);
+    }
+
+    template<typename MoleculeType, typename AtomType, typename DFSVisitorType>
     void exhaustive_dfs_visit(const MoleculeType &mol, AtomType atom, DFSVisitorType &visitor, std::vector<bool> &visited,
         AtomType prev = molecule_traits<MoleculeType>::null_atom())
     {
@@ -235,6 +284,42 @@ namespace Helium {
     FOREACH_ATOM (atom, mol, MoleculeType) {
       if (!visited[get_index(mol, *atom)])
         impl::dfs_visit(mol, *atom, visitor, visited);
+    }
+  }
+
+  /**
+   * @brief Perform a depth-first search (DFS).
+   *
+   * This depth-first search function considers all fragments and walks a single
+   * spanning tree for each fragment. The atom with the lowest index from each
+   * fragment is used as root of the resulting spanning tree to start the
+   * search.
+   *
+   * This function makes use of a visitor functor to allow actions to be
+   * performed. A number of visitors are available (e.g. DFSAtomOrderVisitor,
+   * DFSBondOrderVisitor, DFSClosureRecorderVisitor, DFSDebugVisitor). Custom
+   * functor can be implemented by inheriting the DFSVisitor struct and
+   * reimplementing the required functions.
+   *
+   * @note Complexity: O(n)
+   *
+   * @param mol The molecule.
+   * @param order An order for visiting atoms.
+   * @param visitor The DFS visitor functor.
+   */
+  template<typename MoleculeType, typename DFSVisitorType>
+  void depth_first_search(MoleculeType &mol, const std::vector<Index> &order, DFSVisitorType &visitor)
+  {
+    typedef typename molecule_traits<MoleculeType>::atom_type atom_type;
+    typedef typename molecule_traits<MoleculeType>::atom_iter atom_iter;
+
+    visitor.initialize(mol);
+
+    std::vector<bool> visited(num_atoms(mol) + num_bonds(mol));
+
+    for (std::size_t i = 0; i < order.size(); ++i) {
+      if (!visited[order[i]])
+        impl::dfs_visit(mol, get_atom(mol, order[i]), order, visitor, visited);
     }
   }
 

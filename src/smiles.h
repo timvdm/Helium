@@ -209,6 +209,8 @@ namespace Helium {
         }
 
         std::string element = Element::symbol(get_element(mol, atom));
+        if (is_aromatic(mol, atom))
+          std::transform(element.begin(), element.end(), element.begin(), ::tolower);
 
         bool needBrackets = element.size() > 1;
         if (get_charge(mol, atom) && (flags & WriteSmiles::Charge))

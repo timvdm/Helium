@@ -80,6 +80,8 @@ int main()
   // rings
   test_write_smiles("C1CCCC1");
   test_write_smiles("C1CCCC1C2CCCC2");
+  // aromatic
+  test_write_smiles("n1ccccc1");
 
   test_write_smiles("[13C]");
   test_write_smiles("[C+]");

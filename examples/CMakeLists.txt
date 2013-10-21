@@ -6,6 +6,8 @@ set(examples
   molecule1
   molecule2
   molecule3
+
+  enumeratesubgraphs
   )
 
 foreach(example ${examples})

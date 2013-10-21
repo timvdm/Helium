@@ -194,6 +194,25 @@ namespace Helium {
         degrees.resize(num_atoms(mol));
       }
 
+      bool isOrganicSubset(int element) const
+      {
+        switch (element) {
+          case 5: // B
+          case 6: // C
+          case 7: // N
+          case 8: // O
+          case 9: // F
+          case 15: // P
+          case 16: // S
+          case 17: // Cl
+          case 35: // Br
+          case 53: // I
+            return true;
+          default:
+            return false;
+        }
+      }
+
       void atom(const MoleculeType &mol, atom_type prev, atom_type atom)
       {
 
@@ -212,7 +231,7 @@ namespace Helium {
         if (is_aromatic(mol, atom))
           std::transform(element.begin(), element.end(), element.begin(), ::tolower);
 
-        bool needBrackets = element.size() > 1;
+        bool needBrackets = !isOrganicSubset(get_element(mol, atom));
         if (get_charge(mol, atom) && (flags & WriteSmiles::Charge))
           needBrackets = true;
         if (get_mass(mol, atom) != Element::averageMass(get_element(mol, atom)) && (flags & WriteSmiles::Mass))

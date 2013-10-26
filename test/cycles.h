@@ -331,7 +331,6 @@ void test_cycle_perception(const CyclePerceptionAlgorithm &algorithm)
                       TestCycle(20, 5, 10, 11, 12),
                       TestCycle(20, 6, 8, 9, 10),
                       TestCycle(20, 7, 8, 18, 19)));
-  /* SLOW
   test_cycle_perception(algorithm, "Berger, Figure 4 (b)", "C1C234C56C78C19%10C%11%12C2%13C%11%14C%129C%107C85C63C4%13%14",
       TestCycle::list(TestCycle(26, 0, 1, 2, 3, 4),
                       TestCycle(26, 0, 4, 5, 6, 7),
@@ -347,7 +346,6 @@ void test_cycle_perception(const CyclePerceptionAlgorithm &algorithm)
                       TestCycle(26, 9, 10, 11),
                       TestCycle(26, 7, 23, 24),
                       TestCycle(26, 8, 24, 25)));
-  */
   test_cycle_perception(algorithm, "Berger, Figure 5 (a)", "C12C34C1C25C6C5C67C3C74",
       TestCycle::list(TestCycle(15, 0, 1, 2),
                       TestCycle(15, 2, 3, 4),

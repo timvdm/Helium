@@ -31,6 +31,7 @@
 #include <Helium/ring.h>
 
 #include <vector>
+#include <limits>
 #include <cassert>
 
 namespace Helium {

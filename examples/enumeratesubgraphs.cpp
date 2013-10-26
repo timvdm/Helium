@@ -4,6 +4,8 @@
 #include <Helium/algorithms/canonical.h>
 #include <Helium/smiles.h>
 
+#include "../tools/progress.h"
+
 using namespace Helium;
 
 template<typename MoleculeType>
@@ -54,8 +56,7 @@ int main(int argc, char **argv)
 
   HeMol mol;
   for (unsigned int i = 0; i < moleculeFile.numMolecules(); ++i) {
-    if ((i % 100) == 0)
-      std::cerr << i << std::endl;
+    unknown_progress("Enumerating subgraphs", i, 100);
 
     moleculeFile.read_molecule(i, mol);
 

@@ -36,9 +36,9 @@ namespace Helium {
   {
     if ((current % stride) != 0)
       return;
-    std::cout << std::flush;
+    std::cerr << std::flush;
     const char *bars = "-\\|/";
-    std::cout << "\r" << label << ": " << current << " " << bars[(current / stride) % sizeof(bars)];
+    std::cerr << "\r" << label << ": " << current << " " << bars[(current / stride) % sizeof(bars)];
   }
 
 }

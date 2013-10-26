@@ -196,19 +196,9 @@ namespace Helium {
             m_edges.insert(get_index(mol, get_bond(mol, get_atom(mol, atoms[i - 1]), get_atom(mol, atoms[i]))));
         }
 
-        bool operator==(const IsomorphismCycle &other) const
+        int size() const
         {
-          return m_edges == other.m_edges;
-        }
-
-        IsomorphismCycle& operator+=(const IsomorphismCycle &other)
-        {
-          std::set<Index> result;
-          std::set_symmetric_difference(m_edges.begin(), m_edges.end(),
-                                        other.m_edges.begin(), other.m_edges.end(),
-                                        std::inserter(result, result.begin()));
-          m_edges = result;
-          return *this;
+          return m_edges.size();
         }
 
         const std::set<Index>& edges() const
@@ -220,37 +210,142 @@ namespace Helium {
         std::set<Index> m_edges;
     };
 
-    bool is_relevant(const std::vector<IsomorphismCycle> &cycles, const IsomorphismCycle &cycle)
+    class CycleBitMatrix
     {
-      std::size_t n = 0;
+      public:
+        CycleBitMatrix(int cols) : m_rows(0), m_cols(cols)
+        {
+        }
 
-      // check for identical
-      for (std::size_t i = 0; i < cycles.size(); ++i) {
-        if (cycle == cycles[i])
-          return false;
-        if (cycles[i].edges().size() < cycle.edges().size())
-          ++n;
+        void addRow()
+        {
+          ++m_rows;
+          m_data.resize(m_data.size() + m_cols);
+        }
+
+        void popRow()
+        {
+          --m_rows;
+          m_data.resize(m_data.size() - m_cols);
+        }
+
+        template<typename MoleculeType>
+        void addRow(const MoleculeType &mol, const std::vector<Index> &atoms)
+        {
+          int offset = m_data.size();
+          addRow();
+          m_data[offset + get_index(mol, get_bond(mol, get_atom(mol, atoms[0]), get_atom(mol, atoms[atoms.size() - 1])))] = true;
+          for (std::size_t i = 1; i < atoms.size(); ++i)
+            m_data[offset + get_index(mol, get_bond(mol, get_atom(mol, atoms[i - 1]), get_atom(mol, atoms[i])))] = true;
+        }
+
+        int rows() const
+        {
+          return m_rows;
+        }
+
+        int cols() const
+        {
+          return m_cols;
+        }
+
+        bool get(int row, int col) const
+        {
+          return m_data[index(row, col)];
+        }
+
+        void set(int row, int col, bool value)
+        {
+          m_data[index(row, col)] = value;
+        }
+
+        int eliminate(int x = 0, int y = 0)
+        {
+          while (x < m_cols && y < m_rows) {
+            int i = indexOf(x, y);
+
+            // this column is done, continue with next column
+            if (i < 0)
+              return eliminate(x + 1, y);
+
+            // swap rows if needed
+            if (i != y)
+              swapRows(i, y);
+
+            for (int j = y + 1; j < m_rows; ++j)
+              if (m_data[index(j, x)])
+                xorRows(y, j);
+
+            ++y;
+          }
+          return y;
+        }
+
+
+      private:
+        std::size_t index(int row, int col) const
+        {
+          return m_cols * row + col;
+        }
+
+        int indexOf(int x, int y) const
+        {
+          for (int i = y; i < m_rows; ++i)
+            if (m_data[index(i, x)])
+              return i;
+          return -1;
+        }
+
+        void swapRows(int i, int j)
+        {
+          std::vector<bool> tmp(m_cols);
+          // i -> tmp
+          std::copy(m_data.begin() + i * m_cols, m_data.begin() + (i + 1) * m_cols, tmp.begin());
+          // j -> i
+          std::copy(m_data.begin() + j * m_cols, m_data.begin() + (j + 1) * m_cols, m_data.begin() + i * m_cols);
+          // tmp -> j
+          std::copy(tmp.begin(), tmp.end(), m_data.begin() + j * m_cols);
+        }
+
+        void xorRows(int i, int j)
+        {
+          for (int col = 0; col < m_cols; ++col)
+            m_data[index(j, col)] = m_data[index(i, col)] ^ m_data[index(j, col)];
+        }
+
+        std::vector<bool> m_data;
+        int m_rows;
+        int m_cols;
+    };
+
+    std::ostream& operator<<(std::ostream &os, const CycleBitMatrix &m)
+    {
+      for (int i = 0; i < m.rows(); ++i) {
+        os << "[ ";
+        for (int j = 0; j < m.cols(); ++j)
+          os << m.get(i, j) << " ";
+        os << "]" << std::endl;
       }
+      return os;
+    }
 
-      // check if cycle is sum of smaller cycles
-      std::vector<std::size_t> indices;
-      for (std::size_t i = 0; i < n; ++i)
-        indices.push_back(i);
+    bool is_relevant(const CycleBitMatrix &matrix, const IsomorphismCycle &cycle)
+    {
+      CycleBitMatrix m(matrix);
 
-      for (std::size_t size = 2; size <= indices.size(); ++size)
-        do {
-          IsomorphismCycle sum;
-          for (std::size_t i = 0; i < size; ++i)
-            sum += cycles[indices[i]];
-          if (cycle == sum)
-            return false;
-        } while (next_combination(indices.begin(), indices.begin() + size, indices.end()));
+      std::set<Index>::const_iterator e;
 
-      return true;
+      int row = m.rows();
+      m.addRow();
+      for (e = cycle.edges().begin(); e != cycle.edges().end(); ++e)
+        m.set(row, *e, true);
+
+      int rank = m.rows();
+      bool relevant = (rank == m.eliminate());
+      return relevant;
     }
 
   }
-
 
   /**
    * @brief Find the relevant cycles.
@@ -279,9 +374,14 @@ namespace Helium {
     unsigned int lastSize = 3;
 
     std::vector<impl::IsomorphismCycle> relevant;
+    impl::CycleBitMatrix matrix(num_bonds(mol));
+
     while (true) {
       //std::cout << "size: " << size << ", lastSize: " << lastSize << ", nullity: " << cyclomaticNumber << ", count: " << relevant.size() << std::endl;
       if (rings.size() >= cyclomaticNumber && lastSize < size)
+        break;
+      // sanity check
+      if (size > num_atoms(mol))
         break;
       // create query
       std::string smiles = "*1" + std::string(size - 1, '*') + "1";
@@ -296,8 +396,10 @@ namespace Helium {
 
         if (isomorphism_search(mol, *atom, cycleMol, mappings, atomMatcher, bondMatcher)) {
           for (std::size_t i = 0; i < mappings.maps.size(); ++i) {
+
             impl::IsomorphismCycle cycle(mol, mappings.maps[i]);
-            if (is_relevant(relevant, cycle)) {
+
+            if (is_relevant(matrix, cycle)) {
               std::vector<atom_type> atoms;
               for (std::size_t j = 0; j < mappings.maps[i].size(); ++j)
                 atoms.push_back(get_atom(mol, mappings.maps[i][j]));
@@ -308,6 +410,21 @@ namespace Helium {
           }
         }
       }
+
+      // add cycles of size to matrix
+      for (std::size_t i = 0; i < relevant.size(); ++i) {
+        if (relevant[i].size() < size)
+          continue;
+        matrix.addRow();
+        std::set<Index>::const_iterator e;
+        for (e = relevant[i].edges().begin(); e != relevant[i].edges().end(); ++e)
+          matrix.set(i, *e, true);
+      }
+
+      int rank = matrix.eliminate();
+      while (matrix.rows() > rank)
+        matrix.popRow();
+
 
       // increment cycle size
       ++size;

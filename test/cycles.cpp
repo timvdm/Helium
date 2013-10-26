@@ -89,8 +89,90 @@ struct IsomorphismCycleAlgorithm
   }
 };
 
+void test_cycle_bit_matrix1()
+{
+  impl::CycleBitMatrix m(4);
+  m.addRow();
+  m.addRow();
+  m.addRow();
+
+  m.set(0, 0, true);
+  m.set(0, 1, true);
+  m.set(1, 2, true);
+  m.set(1, 3, true);
+  m.set(2, 0, true);
+  m.set(2, 1, true);
+  m.set(2, 2, true);
+  m.set(2, 3, true);
+
+  std::cout << m << std::endl;
+
+  COMPARE(2, m.eliminate());
+
+  std::cout << m << std::endl;
+}
+
+void test_cycle_bit_matrix2()
+{
+  impl::CycleBitMatrix m(5);
+  m.addRow();
+  m.addRow();
+  m.addRow();
+
+  m.set(0, 2, true);
+  m.set(0, 3, true);
+  m.set(0, 4, true);
+  m.set(1, 0, true);
+  m.set(1, 1, true);
+  m.set(1, 2, true);
+  m.set(2, 0, true);
+  m.set(2, 1, true);
+  m.set(2, 3, true);
+  m.set(2, 4, true);
+
+  std::cout << m << std::endl;
+
+  COMPARE(2, m.eliminate());
+
+  std::cout << m << std::endl;
+}
+
+void test_cycle_bit_matrix3()
+{
+  impl::CycleBitMatrix m(6);
+  m.addRow();
+  m.addRow();
+  m.addRow();
+
+  m.set(0, 0, true);
+  m.set(0, 1, true);
+  m.set(0, 2, true);
+  m.set(0, 3, true);
+
+  m.set(1, 0, true);
+  m.set(1, 1, true);
+  m.set(1, 4, true);
+  m.set(1, 5, true);
+
+  m.set(2, 2, true);
+  m.set(2, 3, true);
+  m.set(2, 4, true);
+  m.set(2, 5, true);
+
+  std::cout << m << std::endl;
+
+  COMPARE(2, m.eliminate());
+
+  std::cout << m << std::endl;
+}
+
 int main()
 {
+  test_cycle_bit_matrix1();
+  test_cycle_bit_matrix2();
+  test_cycle_bit_matrix3();
+
+
   // test cyclomatc number
   test_cyclomatic_number("CCC", 0);
   test_cyclomatic_number("C1CC1", 1);

@@ -415,16 +415,16 @@ namespace Helium {
       for (std::size_t i = 0; i < relevant.size(); ++i) {
         if (relevant[i].size() < size)
           continue;
+        int row = matrix.rows();
         matrix.addRow();
         std::set<Index>::const_iterator e;
         for (e = relevant[i].edges().begin(); e != relevant[i].edges().end(); ++e)
-          matrix.set(i, *e, true);
+          matrix.set(row, *e, true);
       }
 
       int rank = matrix.eliminate();
       while (matrix.rows() > rank)
         matrix.popRow();
-
 
       // increment cycle size
       ++size;

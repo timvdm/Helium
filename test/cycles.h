@@ -412,6 +412,7 @@ void test_cycle_perception(const CyclePerceptionAlgorithm &algorithm)
                       TestCycle(23, 17, 18, 19, 22)));
 
 
+  //test_cycle_perception(algorithm, "chain", "Oc1c([N+]([O-])O)cc([N+]([O-])O)cc1[N+]([O-])ON2C3N(C2NN3c4ccccc4)c5ccccc5c6ccccc6", TestCycle::list());
 
   //test_cycle_perception(algorithm, "chain", "OC1(OC(C(O)C1O)CO)COC2(OC(C(O)C2O)CO)COC3(OC(C(O)C3O)CO)COC4(OC(C(O)C4O)CO)COC5(OC(C(O)C5O)CO)COC6(OC(C(O)C6O)CO)COC7(OC(C(O)C7O)CO)COC8(OC(C(O)C8O)CO)COC9(OC(C(O)C9O)CO)COC%10(OC(C(O)C%10O)CO)COC%11(OC(C(O)C%11O)CO)COC%12(OC(C(O)C%12O)CO)COC%13(OC(C(O)C%13O)CO)COC%14(OC(C(O)C%14O)CO)COC%15(OC(C(O)C%15O)CO)COC%16(OC(C(O)C%16O)CO)COC%17(OC(C(O)C%17O)CO)COC%18(OC(C(O)C%18O)CO)COC%19(OC(C(O)C%19O)CO)COC%20(OC(C(O)C%20O)CO)COC%21(OC(C(O)C%21O)CO)COC%22(OC(C(O)C%22O)CO)COC%23(OC(C(O)C%23O)CO)COCC%38(OCC%37(OCC%36(OCC%35(OCC%34(OCC%33(OCC%32(OCC%31(OCC%30(OCC%24(OC(C(O)C%24O)CO)OCC%25(OC(C(O)C%25O)CO)OCC%26(OC(C(O)C%26O)CO)OCC%27(OC(C(O)C%27O)CO)OCC%28(OC(C(O)C%28O)CO)OC%29OC(C(O)C(O)C%29O)CO)OC(C(O)C%30O)CO)OC(C(O)C%31O)CO)OC(C(O)C%32O)CO)OC(C(O)C%33O)CO)OC(C(O)C%34O)CO)OC(C(O)C%35O)CO)OC(C(O)C%36O)CO)OC(C(O)C%37O)CO)OC(C(O)C%38O)CO", TestCycle::list());
 

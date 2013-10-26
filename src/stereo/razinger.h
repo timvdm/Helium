@@ -560,7 +560,7 @@ namespace Helium {
         //cout << "OK: " << __LINE__ << endl;
         return true;
       }
-      assert(mol->GetAtom(currentPara.outIdx));
+      //assert(mol->GetAtom(currentPara.outIdx));
       std::vector<bool> ligand = get_fragment(mol, currentPara.outsideNbrs[0], get_atom(mol, currentPara.outIdx));
       for (StereoUnitSet::const_iterator unit = units.begin(); unit != units.end(); ++unit) {
         if (is_unit_in_fragment(mol, *unit, ligand)) {

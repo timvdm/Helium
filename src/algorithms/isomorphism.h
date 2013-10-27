@@ -248,7 +248,7 @@ namespace Helium {
           query_bond_type queryBond = get_bond(m_query, m_dfsBonds[bondIndex]);
           query_atom_type querySource = m_bondSwap[bondIndex] ? get_target(m_query, queryBond) : get_source(m_query, queryBond);
 
-          atom_type atom = get_atom(m_mol, m_map[get_index(m_mol, querySource)]);
+          atom_type atom = get_atom(m_mol, m_map[get_index(m_query, querySource)]);
 
           query_atom_type queryTarget = m_bondSwap[bondIndex] ? get_source(m_query, queryBond) : get_target(m_query, queryBond);
           bool isRingClosure = m_map[get_index(m_query, queryTarget)] != -1;

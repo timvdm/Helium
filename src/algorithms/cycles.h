@@ -374,7 +374,6 @@ namespace Helium {
     unsigned int size = 3;
     unsigned int lastSize = 3;
 
-    std::vector<impl::IsomorphismCycle> relevant;
     impl::CycleBitMatrix matrix(num_bonds(mol));
 
     while (true) {
@@ -405,7 +404,6 @@ namespace Helium {
               for (std::size_t j = 0; j < mappings.maps[i].size(); ++j)
                 atoms.push_back(get_atom(mol, mappings.maps[i][j]));
               rings.addRing(Ring<MoleculeType>(mol, atoms));
-              relevant.push_back(cycle);
               lastSize = size;
             }
           }
@@ -413,14 +411,13 @@ namespace Helium {
       }
 
       // add cycles of size to matrix
-      for (std::size_t i = 0; i < relevant.size(); ++i) {
-        if (relevant[i].size() < size)
+      for (std::size_t i = 0; i < rings.size(); ++i) {
+        if (rings.ring(i).size() < size)
           continue;
         int row = matrix.rows();
         matrix.addRow();
-        std::set<Index>::const_iterator e;
-        for (e = relevant[i].edges().begin(); e != relevant[i].edges().end(); ++e)
-          matrix.set(row, *e, true);
+        for (std::size_t j = 0; j < rings.ring(i).size(); ++j)
+          matrix.set(row, get_index(mol, rings.ring(i).bond(j)), true);
       }
 
       int rank = matrix.eliminate();

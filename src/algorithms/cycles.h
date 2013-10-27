@@ -32,6 +32,7 @@
 #include <Helium/algorithms/isomorphism.h>
 #include <Helium/smiles.h>
 #include <Helium/ring.h>
+#include <Helium/substructure.h>
 
 namespace Helium {
 
@@ -441,6 +442,58 @@ namespace Helium {
   {
     return relevant_cycles(mol, cyclomatic_number(mol));
   }
+
+  /* SLOWER than regular relevant_cycles()
+  template<typename MoleculeType>
+  RingSet<MoleculeType> relevant_cycles_substructure(const MoleculeType &mol, Size cyclomaticNumber)
+  {
+    typedef typename molecule_traits<MoleculeType>::atom_type atom_type;
+
+    std::vector<bool> cycle_atoms;
+    std::vector<bool> cycle_bonds;
+    cycle_membership(mol, cycle_atoms, cycle_bonds);
+
+    Substructure<MoleculeType> substructure(mol, cycle_atoms, cycle_bonds);
+
+    std::vector<unsigned int> components = connected_bond_components(substructure);
+    unsigned int numComponents = unique_elements(components);
+
+    RingSet<MoleculeType> cycles(mol);
+
+    for (unsigned int i = 0; i < numComponents; ++i) {
+      std::vector<bool> atoms(num_atoms(mol));
+      std::vector<bool> bonds(num_bonds(mol));
+
+      FOREACH_BOND (bond, substructure, Substructure<MoleculeType>) {
+        if (i == components[get_index(substructure, *bond)]) {
+          bonds[substructure.oldBondIndex(*bond)] = true;
+          atoms[substructure.oldAtomIndex(get_source(substructure, *bond))] = true;
+          atoms[substructure.oldAtomIndex(get_target(substructure, *bond))] = true;
+        }
+      }
+
+      Substructure<MoleculeType> component(mol, atoms, bonds);
+
+      RingSet<Substructure<MoleculeType> > componentCycles = relevant_cycles(component);
+
+      for (std::size_t j = 0; j < componentCycles.size(); ++j) {
+        const Ring<Substructure<MoleculeType> > &ring = componentCycles.ring(j);
+        std::vector<atom_type> atoms;
+        for (std::size_t k = 0; k < ring.size(); ++k)
+          atoms.push_back(get_atom(mol, component.oldAtomIndex(ring.atom(k))));
+        cycles.addRing(Ring<MoleculeType>(mol, atoms));
+      }
+    }
+
+    return cycles;
+  }
+
+  template<typename MoleculeType>
+  RingSet<MoleculeType> relevant_cycles_substructure(const MoleculeType &mol)
+  {
+    return relevant_cycles2(mol, cyclomatic_number(mol));
+  }
+  */
 
 }
 

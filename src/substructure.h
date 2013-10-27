@@ -52,7 +52,7 @@ namespace Helium {
         {
         }
 
-        substructure_atom_iterator(SubstructureType *substructure, const atom_iter &iter, const atom_iter &end)
+        substructure_atom_iterator(const SubstructureType *substructure, const atom_iter &iter, const atom_iter &end)
           : m_substructure(substructure), m_iter(iter), m_end(end)
         {
           while (m_iter != m_end && m_substructure->isHidden(*m_iter))
@@ -87,7 +87,7 @@ namespace Helium {
         }
 
       private:
-        SubstructureType *m_substructure;
+        const SubstructureType *m_substructure;
         atom_iter m_iter;
         atom_iter m_end;
     };
@@ -104,7 +104,7 @@ namespace Helium {
           {
           }
 
-          substructure_bond_iterator(SubstructureType *substructure, const bond_iter &iter, const bond_iter &end)
+          substructure_bond_iterator(const SubstructureType *substructure, const bond_iter &iter, const bond_iter &end)
             : m_substructure(substructure), m_iter(iter), m_end(end)
           {
             while (m_iter != m_end && m_substructure->isHidden(*m_iter))
@@ -139,7 +139,7 @@ namespace Helium {
           }
 
         private:
-          SubstructureType *m_substructure;
+          const SubstructureType *m_substructure;
           bond_iter m_iter;
           bond_iter m_end;
     };
@@ -263,7 +263,7 @@ namespace Helium {
       typedef impl::substructure_atom_iterator<Substructure> const_atom_iter;
       typedef impl::substructure_bond_iterator<Substructure> const_bond_iter;
 
-      Substructure(molecule_type &mol, const std::vector<bool> &atoms,
+      Substructure(const molecule_type &mol, const std::vector<bool> &atoms,
           const std::vector<bool> &bonds) : m_mol(mol),
           m_atoms(atoms), m_bonds(bonds)
       {
@@ -272,19 +272,15 @@ namespace Helium {
         m_numAtoms = std::count(atoms.begin(), atoms.end(), true);
         m_numBonds = std::count(bonds.begin(), bonds.end(), true);
 
-        typename molecule_traits<molecule_type>::atom_iter atom, end_atoms;
-        TIE(atom, end_atoms) = get_atoms(mol);
         Index index = 0;
-        for (; atom != end_atoms; ++atom)
+        FOREACH_ATOM (atom, mol, MoleculeType)
           if (m_atoms[get_index(mol, *atom)])
             m_atomIndices.push_back(index++);
           else
             m_atomIndices.push_back(-1);
 
-        typename molecule_traits<molecule_type>::bond_iter bond, end_bonds;
-        TIE(bond, end_bonds) = get_bonds(mol);
         index = 0;
-        for (; bond != end_bonds; ++bond)
+        FOREACH_BOND (bond, mol, MoleculeType)
           if (m_bonds[get_index(mol, *bond)])
             m_bondIndices.push_back(index++);
           else
@@ -304,14 +300,14 @@ namespace Helium {
         return m_numBonds;
       }
 
-      std::pair<atom_iter, atom_iter> atoms()
+      std::pair<atom_iter, atom_iter> atoms() const
       {
         typename molecule_traits<molecule_type>::atom_iter begin, end;
         TIE(begin, end) = get_atoms(m_mol);
         return std::make_pair(atom_iter(this, begin, end), atom_iter(this, end, end));
       }
 
-      std::pair<bond_iter, bond_iter> bonds()
+      std::pair<bond_iter, bond_iter> bonds() const
       {
         typename molecule_traits<molecule_type>::bond_iter begin, end;
         TIE(begin, end) = get_bonds(m_mol);
@@ -359,7 +355,7 @@ namespace Helium {
         return molecule_traits<molecule_type>::null_bond();
       }
 
-      molecule_type& mol() const
+      const molecule_type& mol() const
       {
         return m_mol;
       }
@@ -374,18 +370,28 @@ namespace Helium {
         return !m_bonds[get_index(m_mol, bond)];
       }
 
-      Index atomIndex(atom_type atom) const
+      Index newAtomIndex(atom_type atom) const
       {
         return m_atomIndices[get_index(m_mol, atom)];
       }
 
-      Index bondIndex(bond_type bond) const
+      Index oldAtomIndex(atom_type atom) const
+      {
+        return index_of(m_atomIndices, newAtomIndex(atom));
+      }
+
+      Index newBondIndex(bond_type bond) const
       {
         return m_bondIndices[get_index(m_mol, bond)];
       }
 
+      Index oldBondIndex(bond_type bond) const
+      {
+        return index_of(m_bondIndices, newBondIndex(bond));
+      }
+
     private:
-      molecule_type &m_mol;
+      const molecule_type &m_mol;
       Size m_numAtoms;
       Size m_numBonds;
       std::vector<bool> m_atoms;
@@ -418,7 +424,7 @@ namespace Helium {
 
   template<typename SubstructureType>
   std::pair<typename molecule_traits<SubstructureType>::atom_iter, typename molecule_traits<SubstructureType>::atom_iter>
-  get_atoms(SubstructureType &mol)
+  get_atoms(const SubstructureType &mol)
   {
     return mol.atoms();
   }
@@ -444,7 +450,7 @@ namespace Helium {
 
   template<typename SubstructureType>
   std::pair<typename molecule_traits<SubstructureType>::bond_iter, typename molecule_traits<SubstructureType>::bond_iter>
-  get_bonds(SubstructureType &mol)
+  get_bonds(const SubstructureType &mol)
   {
     return mol.bonds();
   }
@@ -464,7 +470,7 @@ namespace Helium {
   template<typename SubstructureType>
   Index get_index(const SubstructureType &mol, typename molecule_traits<SubstructureType>::atom_type atom)
   {
-    return mol.atomIndex(atom);
+    return mol.newAtomIndex(atom);
   }
 
   template<typename SubstructureType>
@@ -543,7 +549,7 @@ namespace Helium {
   template<typename SubstructureType>
   Index get_index(const SubstructureType &mol, typename molecule_traits<SubstructureType>::bond_type bond)
   {
-    return mol.bondIndex(bond);
+    return mol.newBondIndex(bond);
   }
 
   template<typename SubstructureType>

@@ -197,7 +197,7 @@ namespace Helium {
         typedef typename molecule_traits<MoleculeType>::atom_iter atom_iter;
         typedef typename molecule_traits<MoleculeType>::incident_iter incident_iter;
 
-        Isomorphism(MoleculeType &mol, QueryType &query,
+        Isomorphism(const MoleculeType &mol, const QueryType &query,
             const AtomMatcher &atomMatcher, const BondMatcher &bondMatcher)
           : m_atomMatcher(atomMatcher), m_bondMatcher(bondMatcher), m_mol(mol), m_query(query)
         {
@@ -388,10 +388,10 @@ namespace Helium {
         }
 
       private:
-        const AtomMatcher &m_atomMatcher;
-        const BondMatcher &m_bondMatcher;
-        MoleculeType &m_mol; // the queried molecule
-        QueryType &m_query; // the query
+        const AtomMatcher &m_atomMatcher; // the atom matcher
+        const BondMatcher &m_bondMatcher; // the bond matcher
+        const MoleculeType &m_mol; // the queried molecule
+        const QueryType &m_query; // the query
         IsomorphismMapping  m_map; // current mapping: query atom index -> queried atom index
         std::set<std::vector<bool> > m_mappings; // keep track of unique mappins
         std::vector<Index> m_dfsBonds; // dfs bond order
@@ -425,7 +425,8 @@ namespace Helium {
      *
      * @return True if the query atom matches the molecule atom.
      */
-    bool operator()(QueryType &query, query_atom_type queryAtom, MoleculeType &mol, atom_type atom) const
+    bool operator()(const QueryType &query, query_atom_type queryAtom,
+        const MoleculeType &mol, atom_type atom) const
     {
       return get_element(query, queryAtom) == get_element(mol, atom);
     }
@@ -456,7 +457,8 @@ namespace Helium {
      *
      * @return True if the query atom matches the molecule atom.
      */
-    bool operator()(QueryType &query, query_bond_type queryBond, MoleculeType &mol, bond_type bond) const
+    bool operator()(const QueryType &query, query_bond_type queryBond,
+        const MoleculeType &mol, bond_type bond) const
     {
       return get_order(query, queryBond) == get_order(mol, bond);
     }
@@ -504,7 +506,7 @@ namespace Helium {
    * @return True if the query is a substructure of @p mol.
    */
   template<typename MoleculeType, typename QueryType, typename MappingType, typename AtomMatcher, typename BondMatcher>
-  bool isomorphism_search(MoleculeType &mol, QueryType &query, MappingType &mapping,
+  bool isomorphism_search(const MoleculeType &mol, const QueryType &query, MappingType &mapping,
       const AtomMatcher &atomMatcher, const BondMatcher &bondMatcher)
   {
     impl::clear_mappig(mapping);
@@ -522,7 +524,7 @@ namespace Helium {
    * @overload
    */
   template<typename MoleculeType, typename QueryType, typename AtomMatcher, typename BondMatcher>
-  bool isomorphism_search(MoleculeType &mol, QueryType &query,
+  bool isomorphism_search(const MoleculeType &mol, const QueryType &query,
       const AtomMatcher &atomMatcher, const BondMatcher &bondMatcher)
   {
     NoMapping mapping;

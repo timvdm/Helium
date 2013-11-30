@@ -608,6 +608,20 @@ namespace Helium {
   //////////////////////////////////////////////////////////////////////////////
 
   /**
+   * @brief Check if an atom is a hydrogen atom.
+   *
+   * @param mol The molecule.
+   * @param atom The atom to check.
+   *
+   * @return True if the atom is a hydrogen  atom.
+   */
+  template<typename MoleculeType>
+  bool is_hydrogen(const MoleculeType &mol, typename molecule_traits<MoleculeType>::atom_type atom)
+  {
+    return get_element(mol, atom) == 1;
+  }
+
+  /**
    * @brief Check if an atom is a carbon atom.
    *
    * @param mol The molecule.
@@ -700,7 +714,7 @@ namespace Helium {
   /**
    * @brief Get the valence atom.
    *
-   * The valence is the number of attached heavy atoms + the number of
+   * The valence is the bond order sum of the explicit bonds + the number of
    * implicit/explicit hydrogens.
    *
    * @param mol The molecule.
@@ -711,7 +725,32 @@ namespace Helium {
   template<typename MoleculeType>
   int get_valence(const MoleculeType &mol, typename molecule_traits<MoleculeType>::atom_type atom)
   {
-    return get_heavy_degree(mol, atom) + num_hydrogens(mol, atom);
+    double val = 0;
+    FOREACH_INCIDENT (bond, atom, mol, MoleculeType) {
+      int order = get_order(mol, *bond);
+      if (order == 5)
+        val += 1.5;
+      else
+        val += order;
+    }
+    return val;
+  }
+
+  /**
+   * @brief Get the atom connectivity.
+   *
+   * The connectivity is the number of attached heavy atoms + the number of
+   * implicit/explicit hydrogens.
+   *
+   * @param mol The molecule.
+   * @param atom The atom to check.
+   *
+   * @return The connectivity for the atom.
+   */
+  template<typename MoleculeType>
+  int get_connectivity(const MoleculeType &mol, typename molecule_traits<MoleculeType>::atom_type atom)
+  {
+    return get_valence(mol, atom) + num_hydrogens(mol, atom);
   }
 
   //////////////////////////////////////////////////////////////////////////////

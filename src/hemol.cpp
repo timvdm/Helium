@@ -107,8 +107,7 @@ namespace Helium {
   {
     try {
       parse_smiles(smiles, mol);
-    }
-    catch(Smiley::Exception &e) {
+    } catch(Smiley::Exception &e) {
       std::cerr << e.what();
     }
   }

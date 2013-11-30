@@ -31,6 +31,7 @@ set(Helium_HDRS
   algorithms/isomorphism.h
   algorithms/dijkstra.h
   algorithms/floydwarshall.h
+  algorithms/smarts.h
   # util
   util/fileio.h
   util/functor.h

@@ -19,6 +19,7 @@ set(tests
   razinger
   dfs
   bfs
+  smarts
   )
 
 foreach(test ${tests})

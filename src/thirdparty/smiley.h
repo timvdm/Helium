@@ -620,11 +620,6 @@ namespace Smiley {
      */
     void bondPrimitive(int type) {}
     /**
-     * Invoked when a branch ends and the next bond should start from a
-     * previously parsed atom expression with specified @p index.
-     */
-    void setPrevious(int index) {}
-    /**
      * Invoked when a new ring bond number is parsed.
      */
     void startRingBond(int number) {}
@@ -737,6 +732,11 @@ namespace Smiley {
       return ss.str();
     }
 
+    void beginAtom()
+    {
+      std::cout << "beginAtom()" << std::endl;
+    }
+
     void atomPrimitive(int type, int value)
     {
       std::size_t pos = str.size();
@@ -816,6 +816,11 @@ namespace Smiley {
       std::cout << "atomPrimitive: " << str.substr(pos) << std::endl;
     }
 
+    void endAtom()
+    {
+      std::cout << "endAtom()" << std::endl;
+    }
+
     void bondPrimitive(int type)
     {
       switch (type) {
@@ -850,12 +855,6 @@ namespace Smiley {
           return;
       }
       std::cout << "bondPrimitive: " << str[str.size() - 1] << std::endl;
-    }
-
-    void setPrevious(int index)
-    {
-      str += number2string(index);
-      std::cout << "setPrevious: " << index << std::endl;
     }
 
     void startRingBond(int number)
@@ -2092,7 +2091,7 @@ namespace Smiley {
           m_prev = m_index;
           ++m_index;
           m_chiralInfo.push_back(ChiralInfo());
-          
+
           return;
         }
 
@@ -2348,8 +2347,13 @@ namespace Smiley {
             case '!':
               if (m_mode == SmilesMode)
                 break;
+
+              if (!firstPrimitive && !parsedOp)
+                m_callback.bondOperation(OP_AndHi);
+              firstPrimitive = true;
+              parsedOp = 0;
+
               m_callback.bondOperation(OP_Not);
-              parsedOp = OP_Not;
               ++m_pos;
               break;
           }

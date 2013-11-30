@@ -1,5 +1,6 @@
 #include "../src/smiles.h"
 #include "../src/fileio/molecules.h"
+#include "../src/algorithms/components.h"
 
 #include "test.h"
 
@@ -32,7 +33,7 @@ void test_parse_smiles()
   COMPARE(13, get_mass(mol, get_atom(mol, 0)));
   COMPARE(0, get_charge(mol, get_atom(mol, 0)));
   COMPARE(4, num_hydrogens(mol, get_atom(mol, 0)));
-  
+
   hemol_from_smiles("[NH4+]", mol);
   COMPARE(1, num_atoms(mol));
   COMPARE(0, num_bonds(mol));
@@ -59,6 +60,11 @@ void test_parse_smiles()
   hemol_from_smiles("c1ccccc1", mol);
   COMPARE(6, mol.numAtoms());
   COMPARE(6, mol.numBonds());
+
+  hemol_from_smiles("CC.CC", mol);
+  COMPARE(4, mol.numAtoms());
+  COMPARE(2, mol.numBonds());
+  COMPARE(2, num_connected_components(mol));
 }
 
 void test_write_smiles(const std::string &smiles)

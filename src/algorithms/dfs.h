@@ -266,7 +266,9 @@ namespace Helium {
    * functor can be implemented by inheriting the DFSVisitor struct and
    * reimplementing the required functions.
    *
+   * @ingroup Production
    * @note Complexity: O(n)
+   * @note Phase: Production
    *
    * @param mol The molecule.
    * @param visitor The DFS visitor functor.
@@ -301,7 +303,9 @@ namespace Helium {
    * functor can be implemented by inheriting the DFSVisitor struct and
    * reimplementing the required functions.
    *
+   * @ingroup Production
    * @note Complexity: O(n)
+   * @note Phase: Production
    *
    * @param mol The molecule.
    * @param order An order for visiting atoms.
@@ -336,7 +340,9 @@ namespace Helium {
    * functor can be implemented by inheriting the DFSVisitor struct and
    * reimplementing the required functions.
    *
+   * @ingroup Production
    * @note Complexity: O(2^n)
+   * @note Phase: Production
    *
    * @param mol The molecule.
    * @param atom The root atom for the DFS spanning tree.

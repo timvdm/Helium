@@ -280,11 +280,11 @@ namespace Helium {
  *   print_stuff(mol);
  * }
  * @endcode
- * 
+ *
  * All of the functions above are primitive functions in the sense that each model
  * of the molecule concept has to implement them. Using these primitive functions,
  * a number of useful functions are defined.
- * 
+ *
  * @li is_carbon(): Check if an atom is a carbon atom.
  * @li is_nitrogen(): Check if an atom is a nitrogen atom.
  * @li is_oxygen(): Check if an atom is an oxygen atom.
@@ -294,7 +294,7 @@ namespace Helium {
  * @li get_valence(): Get the valence (i.e. number of attached heavy atoms + implicit/explicit hydrogens) of an atom.
  *
  * @subsection mol_predicates Atom & Bond Predicates
- * 
+ *
  * Helium provides atom and bond predicates to make development easier.
  * A predicate in this context is a boolean values function that checks some
  * attributes of an atom or bond and returns the result of the comparison.
@@ -304,7 +304,7 @@ namespace Helium {
  * since template parameters have to be specified etc. To aid developers in
  * writing code faster, functions are provided for creating each  type of
  * predicate with various comparison methods.
- *  
+ *
  * @li ElementPredicate: Compare an atom's element (element_eq_predicate(),
  *     element_lt_predicate(), element_gt_predicate(), element_leq_predicate(),
  *     element_geq_predicate()).
@@ -322,8 +322,8 @@ namespace Helium {
  *     degree_lt_predicate(), degree_gt_predicate(), degree_leq_predicate(),
  *     degree_geq_predicate()).
  * @li AromaticAtomPredicate : Check an atom's aromaticity
- *     (aromatic_atom_predicate(), not_aromatic_atom_predicate()). 
- *  
+ *     (aromatic_atom_predicate(), not_aromatic_atom_predicate()).
+ *
  * Atom predicates can be logically combined using the AtomAndPredicates and
  * AtomOrPredicates classes. These also have functions to make construction
  * easier (atom_and_predicates() and atom_or_predicates()).
@@ -336,9 +336,9 @@ namespace Helium {
  *     order_lt_predicate(), order_gt_predicate(), order_leq_predicate(),
  *     order_geq_predicate()).
  * @li AromaticBondPredicate : Check a bond's aromaticity
- *     (aromatic_bond_predicate(), not_aromatic_bond_predicate()). 
+ *     (aromatic_bond_predicate(), not_aromatic_bond_predicate()).
  *
- * 
+ *
  *
  * @subsection mol_concept_substruct Substructures
  *
@@ -529,5 +529,20 @@ namespace Helium {
  * @li cycle_membership()
  * @li relevant_cycles()
  */
+
+ /**
+  * @defgroup Production
+  * @brief Code in production phase.
+  */
+
+ /**
+  * @defgroup Alpha
+  * @brief Code in aplha phase.
+  */
+
+ /**
+  * @defgroup Beta
+  * @brief Code in beta phase.
+  */
 
 }

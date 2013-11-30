@@ -378,6 +378,14 @@ namespace Helium {
       typedef std::vector<bond_type>::iterator incident_iter;
       typedef impl::nbr_iterator<atom_type, bond_type> nbr_iter;
 
+      HeMol()
+      {
+      }
+
+      HeMol(const HeMol &other);
+
+      HeMol& operator=(const HeMol &other);
+
       ~HeMol()
       {
       }
@@ -469,18 +477,23 @@ namespace Helium {
   //
   /////////////////////////////
 
-  inline Size num_atoms(const HeMol &mol)
+  template<>
+  inline Size num_atoms<HeMol>(const HeMol &mol)
   {
     return mol.numAtoms();
   }
 
-  inline std::pair< molecule_traits<HeMol>::atom_iter,  molecule_traits<HeMol>::atom_iter>
-  get_atoms(const HeMol &mol)
+  template<>
+  inline std::pair<molecule_traits<HeMol>::atom_iter,
+                   molecule_traits<HeMol>::atom_iter>
+  get_atoms<HeMol>(const HeMol &mol)
   {
     return mol.atoms();
   }
 
-  inline  molecule_traits<HeMol>::atom_type get_atom(const HeMol &mol, Index index)
+  template<>
+  inline molecule_traits<HeMol>::atom_type
+  get_atom<HeMol>(const HeMol &mol, Index index)
   {
     return mol.atom(index);
   }
@@ -492,18 +505,23 @@ namespace Helium {
   //
   /////////////////////////////
 
-  inline Size num_bonds(const HeMol &mol)
+  template<>
+  inline Size num_bonds<HeMol>(const HeMol &mol)
   {
     return mol.numBonds();
   }
 
-  inline std::pair< molecule_traits<HeMol>::bond_iter,  molecule_traits<HeMol>::bond_iter>
-  get_bonds(const HeMol &mol)
+  template<>
+  inline std::pair<molecule_traits<HeMol>::bond_iter,
+                   molecule_traits<HeMol>::bond_iter>
+  get_bonds<HeMol>(const HeMol &mol)
   {
     return mol.bonds();
   }
 
-  inline  molecule_traits<HeMol>::bond_type get_bond(const HeMol &mol, Index index)
+  template<>
+  inline molecule_traits<HeMol>::bond_type
+  get_bond<HeMol>(const HeMol &mol, Index index)
   {
     return mol.bond(index);
   }
@@ -514,49 +532,67 @@ namespace Helium {
   //
   //////////////////////////////////////////////////////////////////////////////
 
-  inline Index get_index(const HeMol &mol, const  molecule_traits<HeMol>::atom_type atom)
+  template<>
+  inline Index get_index<HeMol>(const HeMol &mol,
+      const molecule_traits<HeMol>::atom_type atom)
   {
     return atom.index();
   }
 
-  inline std::pair< molecule_traits<HeMol>::incident_iter,  molecule_traits<HeMol>::incident_iter>
-  get_bonds(const HeMol &mol,  molecule_traits<HeMol>::atom_type atom)
+  template<>
+  inline std::pair<molecule_traits<HeMol>::incident_iter,
+                   molecule_traits<HeMol>::incident_iter>
+  get_bonds<HeMol>(const HeMol &mol, molecule_traits<HeMol>::atom_type atom)
   {
     return atom.bonds();
   }
 
-  inline std::pair< molecule_traits<HeMol>::nbr_iter,  molecule_traits<HeMol>::nbr_iter>
-  get_nbrs(const HeMol &mol,  molecule_traits<HeMol>::atom_type atom)
+  template<>
+  inline std::pair<molecule_traits<HeMol>::nbr_iter,
+                   molecule_traits<HeMol>::nbr_iter>
+  get_nbrs<HeMol>(const HeMol &mol, molecule_traits<HeMol>::atom_type atom)
   {
     return atom.nbrs();
   }
 
-  inline bool is_aromatic(const HeMol &mol, const  molecule_traits<HeMol>::atom_type atom)
+  template<>
+  inline bool is_aromatic<HeMol>(const HeMol &mol,
+      const molecule_traits<HeMol>::atom_type atom)
   {
     return atom.isAromatic();
   }
 
-  inline int get_element(const HeMol &mol, const  molecule_traits<HeMol>::atom_type atom)
+  template<>
+  inline int get_element<HeMol>(const HeMol &mol,
+      const molecule_traits<HeMol>::atom_type atom)
   {
     return atom.element();
   }
 
-  inline int get_mass(const HeMol &mol, const  molecule_traits<HeMol>::atom_type atom)
+  template<>
+  inline int get_mass<HeMol>(const HeMol &mol,
+      const molecule_traits<HeMol>::atom_type atom)
   {
     return atom.mass();
   }
 
-  inline int get_degree(const HeMol &mol, const  molecule_traits<HeMol>::atom_type atom)
+  template<>
+  inline int get_degree<HeMol>(const HeMol &mol,
+      const molecule_traits<HeMol>::atom_type atom)
   {
     return atom.degree();
   }
 
-  inline int num_hydrogens(const HeMol &mol, const  molecule_traits<HeMol>::atom_type atom)
+  template<>
+  inline int num_hydrogens<HeMol>(const HeMol &mol,
+      const molecule_traits<HeMol>::atom_type atom)
   {
     return atom.hydrogens();
   }
 
-  inline int get_charge(const HeMol &mol, const  molecule_traits<HeMol>::atom_type atom)
+  template<>
+  inline int get_charge<HeMol>(const HeMol &mol,
+      const molecule_traits<HeMol>::atom_type atom)
   {
     return atom.charge();
   }
@@ -567,38 +603,54 @@ namespace Helium {
   //
   //////////////////////////////////////////////////////////////////////////////
 
-  inline Index get_index(const HeMol &mol, const  molecule_traits<HeMol>::bond_type bond)
+  template<>
+  inline Index get_index<HeMol>(const HeMol &mol,
+      const molecule_traits<HeMol>::bond_type bond)
   {
     return bond.index();
   }
 
-  inline HeAtom get_source(const HeMol &mol, const  molecule_traits<HeMol>::bond_type bond)
+  template<>
+  inline HeAtom get_source<HeMol>(const HeMol &mol,
+      const molecule_traits<HeMol>::bond_type bond)
   {
     return bond.source();
   }
 
-  inline HeAtom get_target(const HeMol &mol, const  molecule_traits<HeMol>::bond_type bond)
+  template<>
+  inline HeAtom get_target<HeMol>(const HeMol &mol,
+      const molecule_traits<HeMol>::bond_type bond)
   {
     return bond.target();
   }
 
-  inline HeAtom get_other(const HeMol &mol, const  molecule_traits<HeMol>::bond_type bond, const  molecule_traits<HeMol>::atom_type atom)
+  template<>
+  inline HeAtom get_other<HeMol>(const HeMol &mol,
+      const molecule_traits<HeMol>::bond_type bond,
+      const molecule_traits<HeMol>::atom_type atom)
   {
     return bond.other(atom);
   }
 
-  inline bool is_aromatic(const HeMol &mol, const  molecule_traits<HeMol>::bond_type bond)
+  template<>
+  inline bool is_aromatic<HeMol>(const HeMol &mol,
+      const molecule_traits<HeMol>::bond_type bond)
   {
     return bond.isAromatic();
   }
 
-  inline int get_order(const HeMol &mol, const  molecule_traits<HeMol>::bond_type bond)
+  template<>
+  inline int get_order<HeMol>(const HeMol &mol,
+      const molecule_traits<HeMol>::bond_type bond)
   {
     return bond.order();
   }
 
-  inline  molecule_traits<HeMol>::bond_type get_bond(const HeMol &mol,  molecule_traits<HeMol>::atom_type source,
-                                                                                molecule_traits<HeMol>::atom_type target)
+  template<>
+  inline molecule_traits<HeMol>::bond_type
+  get_bond<HeMol>(const HeMol &mol,
+      molecule_traits<HeMol>::atom_type source,
+      molecule_traits<HeMol>::atom_type target)
   {
     molecule_traits<HeMol>::incident_iter bond, end_bonds;
     TIE(bond, end_bonds) = get_bonds(mol, source);
@@ -611,22 +663,7 @@ namespace Helium {
   /**
    * @brief STL output stream operator for HeMol.
    */
-  inline std::ostream& operator<<(std::ostream &os, HeMol &mol)
-  {
-    os << "Molecule:" << std::endl;
-    os << "    Atoms:\tindex\telement" << std::endl;
-    molecule_traits<HeMol>::atom_iter atom, end_atoms;
-    TIE(atom, end_atoms) = mol.atoms();
-    for (; atom != end_atoms; ++atom)
-      os << "          \t" << (*atom).index() << "\t" << (*atom).element() << std::endl;
-
-    os << "    Bonds:\tsource\ttarget\torder" << std::endl;
-    molecule_traits<HeMol>::bond_iter bond, end_bonds;
-    TIE(bond, end_bonds) = mol.bonds();
-    for (; bond != end_bonds; ++bond)
-      os << "          \t" << (*bond).source().index() << "\t" << (*bond).target().index() << "\t" << (*bond).order() << std::endl;
-    return os;
-  }
+  std::ostream& operator<<(std::ostream &os, HeMol &mol);
 
   inline std::ostream& operator<<(std::ostream &os, const HeAtom &atom)
   {

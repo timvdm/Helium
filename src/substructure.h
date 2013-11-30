@@ -416,21 +416,23 @@ namespace Helium {
   //
   /////////////////////////////
 
-  template<typename SubstructureType>
-  Size num_atoms(const SubstructureType &mol)
+  template<typename MoleculeType>
+  Size num_atoms(const Substructure<MoleculeType> &mol)
   {
     return mol.numAtoms();
   }
 
-  template<typename SubstructureType>
-  std::pair<typename molecule_traits<SubstructureType>::atom_iter, typename molecule_traits<SubstructureType>::atom_iter>
-  get_atoms(const SubstructureType &mol)
+  template<typename MoleculeType>
+  std::pair<typename molecule_traits<Substructure<MoleculeType> >::atom_iter,
+            typename molecule_traits<Substructure<MoleculeType> >::atom_iter>
+  get_atoms(const Substructure<MoleculeType> &mol)
   {
     return mol.atoms();
   }
 
-  template<typename SubstructureType>
-  typename molecule_traits<SubstructureType>::atom_type get_atom(const SubstructureType &mol, Index index)
+  template<typename MoleculeType>
+  typename molecule_traits<Substructure<MoleculeType> >::atom_type
+  get_atom(const Substructure<MoleculeType> &mol, Index index)
   {
     return mol.atom(index);
   }
@@ -442,21 +444,23 @@ namespace Helium {
   //
   /////////////////////////////
 
-  template<typename SubstructureType>
-  Size num_bonds(const SubstructureType &mol)
+  template<typename MoleculeType>
+  Size num_bonds(const Substructure<MoleculeType> &mol)
   {
     return mol.numBonds();
   }
 
-  template<typename SubstructureType>
-  std::pair<typename molecule_traits<SubstructureType>::bond_iter, typename molecule_traits<SubstructureType>::bond_iter>
-  get_bonds(const SubstructureType &mol)
+  template<typename MoleculeType>
+  std::pair<typename molecule_traits<Substructure<MoleculeType> >::bond_iter,
+            typename molecule_traits<Substructure<MoleculeType> >::bond_iter>
+  get_bonds(const Substructure<MoleculeType> &mol)
   {
     return mol.bonds();
   }
 
-  template<typename SubstructureType>
-  typename molecule_traits<SubstructureType>::bond_type get_bond(const SubstructureType &mol, Index index)
+  template<typename MoleculeType>
+  typename molecule_traits<Substructure<MoleculeType> >::bond_type
+  get_bond(const Substructure<MoleculeType> &mol, Index index)
   {
     return mol.bond(index);
   }
@@ -467,69 +471,80 @@ namespace Helium {
   //
   //////////////////////////////////////////////////////////////////////////////
 
-  template<typename SubstructureType>
-  Index get_index(const SubstructureType &mol, typename molecule_traits<SubstructureType>::atom_type atom)
+  template<typename MoleculeType>
+  Index get_index(const Substructure<MoleculeType> &mol,
+      typename molecule_traits<Substructure<MoleculeType> >::atom_type atom)
   {
     return mol.newAtomIndex(atom);
   }
 
-  template<typename SubstructureType>
-  std::pair<typename molecule_traits<SubstructureType>::incident_iter, typename molecule_traits<SubstructureType>::incident_iter>
-  get_bonds(const SubstructureType &mol, typename molecule_traits<SubstructureType>::atom_type atom)
+  template<typename MoleculeType>
+  std::pair<typename molecule_traits<Substructure<MoleculeType> >::incident_iter,
+            typename molecule_traits<Substructure<MoleculeType> >::incident_iter>
+  get_bonds(const Substructure<MoleculeType> &mol,
+      typename molecule_traits<Substructure<MoleculeType> >::atom_type atom)
   {
     molecule_traits<HeMol>::incident_iter begin, end;
     TIE(begin, end) = get_bonds(mol.mol(), atom);
-    typedef typename molecule_traits<SubstructureType>::incident_iter incident_iter;
+    typedef typename molecule_traits<Substructure<MoleculeType> >::incident_iter incident_iter;
     return std::make_pair(incident_iter(&mol, begin, end), incident_iter(&mol, end, end));
   }
 
-  template<typename SubstructureType>
-  std::pair<typename molecule_traits<SubstructureType>::nbr_iter, typename molecule_traits<SubstructureType>::nbr_iter>
-  get_nbrs(const SubstructureType &mol, typename molecule_traits<SubstructureType>::atom_type atom)
+  template<typename MoleculeType>
+  std::pair<typename molecule_traits<Substructure<MoleculeType> >::nbr_iter,
+            typename molecule_traits<Substructure<MoleculeType> >::nbr_iter>
+  get_nbrs(const Substructure<MoleculeType> &mol,
+      typename molecule_traits<Substructure<MoleculeType> >::atom_type atom)
   {
-    typename molecule_traits<SubstructureType>::incident_iter begin, end;
+    typename molecule_traits<Substructure<MoleculeType> >::incident_iter begin, end;
     TIE(begin, end) = get_bonds(mol, atom);
-    typedef typename molecule_traits<SubstructureType>::nbr_iter nbr_iter;
+    typedef typename molecule_traits<Substructure<MoleculeType> >::nbr_iter nbr_iter;
     return std::make_pair(nbr_iter(atom, begin), nbr_iter(atom, end));
   }
 
-  template<typename SubstructureType>
-  bool is_aromatic(const SubstructureType &mol, typename molecule_traits<SubstructureType>::atom_type atom)
+  template<typename MoleculeType>
+  bool is_aromatic(const Substructure<MoleculeType> &mol,
+      typename molecule_traits<Substructure<MoleculeType> >::atom_type atom)
   {
     return is_aromatic(mol.mol(), atom);
   }
 
-  template<typename SubstructureType>
-  int get_element(const SubstructureType &mol, typename molecule_traits<SubstructureType>::atom_type atom)
+  template<typename MoleculeType>
+  int get_element(const Substructure<MoleculeType> &mol,
+      typename molecule_traits<Substructure<MoleculeType> >::atom_type atom)
   {
     return get_element(mol.mol(), atom);
   }
 
-  template<typename SubstructureType>
-  int get_mass(const SubstructureType &mol, typename molecule_traits<SubstructureType>::atom_type atom)
+  template<typename MoleculeType>
+  int get_mass(const Substructure<MoleculeType> &mol,
+      typename molecule_traits<Substructure<MoleculeType> >::atom_type atom)
   {
     return get_mass(mol.mol(), atom);
   }
 
-  template<typename SubstructureType>
-  int get_degree(const SubstructureType &mol, typename molecule_traits<SubstructureType>::atom_type atom)
+  template<typename MoleculeType>
+  int get_degree(const Substructure<MoleculeType> &mol,
+      typename molecule_traits<Substructure<MoleculeType> >::atom_type atom)
   {
-    typename molecule_traits<SubstructureType>::incident_iter bond, end_bonds;
-    TIE(bond, end_bonds) = get_bonds(const_cast<SubstructureType&>(mol), atom);
+    typename molecule_traits<Substructure<MoleculeType> >::incident_iter bond, end_bonds;
+    TIE(bond, end_bonds) = get_bonds(const_cast<Substructure<MoleculeType>&>(mol), atom);
     int d = 0;
     for (; bond != end_bonds; ++bond)
       ++d;
     return d;
   }
 
-  template<typename SubstructureType>
-  int num_hydrogens(const SubstructureType &mol, typename molecule_traits<SubstructureType>::atom_type atom)
+  template<typename MoleculeType>
+  int num_hydrogens(const Substructure<MoleculeType> &mol,
+      typename molecule_traits<Substructure<MoleculeType> >::atom_type atom)
   {
     return num_hydrogens(mol.mol(), atom);
   }
 
-  template<typename SubstructureType>
-  int get_charge(const SubstructureType &mol, typename molecule_traits<SubstructureType>::atom_type atom)
+  template<typename MoleculeType>
+  int get_charge(const Substructure<MoleculeType> &mol,
+      typename molecule_traits<Substructure<MoleculeType> >::atom_type atom)
   {
     return get_charge(mol.mol(), atom);
   }
@@ -540,49 +555,59 @@ namespace Helium {
   //
   //////////////////////////////////////////////////////////////////////////////
 
-  template<typename SubstructureType>
-  Index get_index(const SubstructureType &mol, typename molecule_traits<SubstructureType>::bond_type bond)
+  template<typename MoleculeType>
+  Index get_index(const Substructure<MoleculeType> &mol,
+      typename molecule_traits<Substructure<MoleculeType> >::bond_type bond)
   {
     return mol.newBondIndex(bond);
   }
 
-  template<typename SubstructureType>
-  typename molecule_traits<SubstructureType>::atom_type get_source(const SubstructureType &mol, typename molecule_traits<SubstructureType>::bond_type bond)
+  template<typename MoleculeType>
+  typename molecule_traits<Substructure<MoleculeType> >::atom_type
+  get_source(const Substructure<MoleculeType> &mol,
+      typename molecule_traits<Substructure<MoleculeType> >::bond_type bond)
   {
     return get_source(mol.mol(), bond);
   }
 
-  template<typename SubstructureType>
-  typename molecule_traits<SubstructureType>::atom_type get_target(const SubstructureType &mol, typename molecule_traits<SubstructureType>::bond_type bond)
+  template<typename MoleculeType>
+  typename molecule_traits<Substructure<MoleculeType> >::atom_type
+  get_target(const Substructure<MoleculeType> &mol,
+      typename molecule_traits<Substructure<MoleculeType> >::bond_type bond)
   {
     return get_target(mol.mol(), bond);
   }
 
-  template<typename SubstructureType>
-  typename molecule_traits<SubstructureType>::atom_type get_other(const SubstructureType &mol,
-                                                     typename molecule_traits<SubstructureType>::bond_type bond,
-                                                     typename molecule_traits<SubstructureType>::atom_type atom)
+  template<typename MoleculeType>
+  typename molecule_traits<Substructure<MoleculeType> >::atom_type
+  get_other(const Substructure<MoleculeType> &mol,
+      typename molecule_traits<Substructure<MoleculeType> >::bond_type bond,
+      typename molecule_traits<Substructure<MoleculeType> >::atom_type atom)
   {
     return get_other(mol.mol(), bond, atom);
   }
 
-  template<typename SubstructureType>
-  bool is_aromatic(const SubstructureType &mol, typename molecule_traits<SubstructureType>::bond_type bond)
+  template<typename MoleculeType>
+  bool is_aromatic(const Substructure<MoleculeType> &mol,
+      typename molecule_traits<Substructure<MoleculeType> >::bond_type bond)
   {
     return is_aromatic(mol.mol(), bond);
   }
 
-  template<typename SubstructureType>
-  bool get_order(const SubstructureType &mol, typename molecule_traits<SubstructureType>::bond_type bond)
+  template<typename MoleculeType>
+  bool get_order(const Substructure<MoleculeType> &mol,
+      typename molecule_traits<Substructure<MoleculeType> >::bond_type bond)
   {
     return get_order(mol.mol(), bond);
   }
 
-  template<typename SubstructureType>
-  typename molecule_traits<SubstructureType>::bond_type get_bond(const SubstructureType &mol, typename molecule_traits<SubstructureType>::atom_type source,
-                                                                             typename molecule_traits<SubstructureType>::atom_type target)
+  template<typename MoleculeType>
+  typename molecule_traits<Substructure<MoleculeType> >::bond_type
+  get_bond(const Substructure<MoleculeType> &mol,
+      typename molecule_traits<Substructure<MoleculeType> >::atom_type source,
+      typename molecule_traits<Substructure<MoleculeType> >::atom_type target)
   {
-    typename molecule_traits<SubstructureType>::incident_iter bond, end_bonds;
+    typename molecule_traits<Substructure<MoleculeType> >::incident_iter bond, end_bonds;
     TIE(bond, end_bonds) = get_bonds(mol, source);
     for (; bond != end_bonds; ++bond)
       if (get_other(mol.mol(), *bond, source) == target)

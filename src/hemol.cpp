@@ -28,8 +28,54 @@
 #include <Helium/smiles.h>
 
 namespace Helium {
-  
+
   //@cond dev
+  HeMol::HeMol(const HeMol &other)
+  {
+    // copy m_adjList
+    m_adjList.resize(other.m_adjList.size());
+    for (std::size_t i = 0; i < other.m_adjList.size(); ++i)
+      for (std::size_t j = 0; j < other.m_adjList[i].size(); ++j)
+        m_adjList[i].push_back(bond_type(this, other.m_adjList[i][j].index()));
+
+    // copy atom properties
+    m_atomAromatic = other.m_atomAromatic;
+    m_element = other.m_element;
+    m_mass = other.m_mass;
+    m_hydrogens = other.m_hydrogens;
+    m_charge = other.m_charge;
+
+    // copy bond properties
+    m_source = other.m_source;
+    m_target = other.m_target;
+    m_bondAromatic = other.m_bondAromatic;
+    m_order = other.m_order;
+  }
+
+  HeMol& HeMol::operator=(const HeMol &other)
+  {
+    // copy m_adjList
+    m_adjList.clear();
+    m_adjList.resize(other.m_adjList.size());
+    for (std::size_t i = 0; i < other.m_adjList.size(); ++i)
+      for (std::size_t j = 0; j < other.m_adjList[i].size(); ++j)
+        m_adjList[i].push_back(bond_type(this, other.m_adjList[i][j].index()));
+
+    // copy atom properties
+    m_atomAromatic = other.m_atomAromatic;
+    m_element = other.m_element;
+    m_mass = other.m_mass;
+    m_hydrogens = other.m_hydrogens;
+    m_charge = other.m_charge;
+
+    // copy bond properties
+    m_source = other.m_source;
+    m_target = other.m_target;
+    m_bondAromatic = other.m_bondAromatic;
+    m_order = other.m_order;
+
+    return *this;
+  }
 
   molecule_traits<HeMol>::atom_type HeMol::addAtom()
   {
@@ -98,6 +144,23 @@ namespace Helium {
     m_target = copy;
   }
 
+  std::ostream& operator<<(std::ostream &os, HeMol &mol)
+  {
+    os << "Molecule:" << std::endl;
+    os << "    Atoms:\tindex\telement" << std::endl;
+    molecule_traits<HeMol>::atom_iter atom, end_atoms;
+    TIE(atom, end_atoms) = mol.atoms();
+    for (; atom != end_atoms; ++atom)
+      os << "          \t" << (*atom).index() << "\t" << (*atom).element() << std::endl;
+
+    os << "    Bonds:\tsource\ttarget\torder" << std::endl;
+    molecule_traits<HeMol>::bond_iter bond, end_bonds;
+    TIE(bond, end_bonds) = mol.bonds();
+    for (; bond != end_bonds; ++bond)
+      os << "          \t" << (*bond).source().index() << "\t" << (*bond).target().index() << "\t" << (*bond).order() << std::endl;
+    return os;
+  }
+
   void hemol_from_smiles(const std::string &smiles, HeMol &mol)
   {
     try {
@@ -113,7 +176,7 @@ namespace Helium {
     hemol_from_smiles(smiles, mol);
     return mol;
   }
-  
+
   //@endcond dev
 
 }

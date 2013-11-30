@@ -397,7 +397,7 @@ void test_cycle_perception(const CyclePerceptionAlgorithm &algorithm)
                       TestCycle(24, 8, 9, 21, 22, 23),
                       TestCycle(24, 0, 1, 8, 9, 10, 12, 14, 15)));
   test_cycle_perception(algorithm, "Berger, Figure 8 (b)", "C12CCCC3C4C1C56CC47CC38CC2(C5)C876",
-      TestCycle::list(/*TestCycle(23, 0, 1, 2, 3, 4, 5, 6),*/
+      TestCycle::list(TestCycle(23, 0, 1, 2, 3, 4, 5, 6),
                       TestCycle(23, 4, 10, 11, 12, 13),
                       TestCycle(23, 4, 10, 13, 20, 21),
                       TestCycle(23, 5, 7, 8, 9, 10),

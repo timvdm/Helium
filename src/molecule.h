@@ -421,19 +421,6 @@ namespace Helium {
   bool is_aromatic(const MoleculeType &mol, typename molecule_traits<MoleculeType>::atom_type atom);
 
   /**
-   * @brief Get the atom's cyclic flag.
-   *
-   * @pre The atom must be valid (i.e. not equal to molecule_traits<MoleculeType>::null_atom()).
-   *
-   * @param mol The molecule.
-   * @param atom The atom.
-   *
-   * @return True if the atom is cyclic, false otherwise.
-   */
-  template<typename MoleculeType>
-  bool is_cyclic(const MoleculeType &mol, typename molecule_traits<MoleculeType>::atom_type atom);
-
-  /**
    * @brief Get the atom's chemical element number.
    *
    * @pre The atom must be valid (i.e. not equal to molecule_traits<MoleculeType>::null_atom()).
@@ -574,19 +561,6 @@ namespace Helium {
    */
   template<typename MoleculeType>
   bool is_aromatic(const MoleculeType &mol, typename molecule_traits<MoleculeType>::bond_type bond);
-
-  /**
-   * @brief Get the bond's cyclic flag.
-   *
-   * @pre The bond must be valid (i.e. not equal to molecule_traits<MoleculeType>::null_bond()).
-   *
-   * @param mol The molecule.
-   * @param bond The bond.
-   *
-   * @return True if the bond is cyclic, false otherwise.
-   */
-  template<typename MoleculeType>
-  bool is_cyclic(const MoleculeType &mol, typename molecule_traits<MoleculeType>::bond_type bond);
 
   /**
    * @brief Get the bond's order.

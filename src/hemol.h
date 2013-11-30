@@ -124,16 +124,6 @@ namespace Helium {
           m_mol->m_atomAromatic[m_index] = value;
         }
 
-        bool isCyclic() const
-        {
-          return m_mol->m_atomCyclic[m_index];
-        }
-
-        void setCyclic(bool value)
-        {
-          m_mol->m_atomCyclic[m_index] = value;
-        }
-
         int element() const
         {
           return m_mol->m_element[m_index];
@@ -245,16 +235,6 @@ namespace Helium {
         void setAromatic(bool value)
         {
           m_mol->m_bondAromatic[m_index] = value;
-        }
-
-        bool isCyclic() const
-        {
-          return m_mol->m_bondCyclic[m_index];
-        }
-
-        void setCyclic(bool value)
-        {
-          m_mol->m_bondCyclic[m_index] = value;
         }
 
         int order() const
@@ -462,7 +442,6 @@ namespace Helium {
       // atoms
       std::vector<std::vector<bond_type> > m_adjList;
       std::vector<bool> m_atomAromatic;
-      std::vector<bool> m_atomCyclic;
       std::vector<unsigned char> m_element;
       std::vector<unsigned char> m_mass;
       std::vector<unsigned char> m_hydrogens;
@@ -472,7 +451,6 @@ namespace Helium {
       std::vector<Index> m_source;
       std::vector<Index> m_target;
       std::vector<bool> m_bondAromatic;
-      std::vector<bool> m_bondCyclic;
       std::vector<unsigned char> m_order;
   };
 
@@ -558,11 +536,6 @@ namespace Helium {
     return atom.isAromatic();
   }
 
-  inline bool is_cyclic(const HeMol &mol, const  molecule_traits<HeMol>::atom_type atom)
-  {
-    return atom.isCyclic();
-  }
-
   inline int get_element(const HeMol &mol, const  molecule_traits<HeMol>::atom_type atom)
   {
     return atom.element();
@@ -617,11 +590,6 @@ namespace Helium {
   inline bool is_aromatic(const HeMol &mol, const  molecule_traits<HeMol>::bond_type bond)
   {
     return bond.isAromatic();
-  }
-
-  inline bool is_cyclic(const HeMol &mol, const  molecule_traits<HeMol>::bond_type bond)
-  {
-    return bond.isCyclic();
   }
 
   inline int get_order(const HeMol &mol, const  molecule_traits<HeMol>::bond_type bond)

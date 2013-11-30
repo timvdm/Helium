@@ -36,7 +36,6 @@ namespace Helium {
     Index index = m_element.size();
     m_adjList.resize(m_adjList.size() + 1);
     m_atomAromatic.resize(m_atomAromatic.size() + 1);
-    m_atomCyclic.resize(m_atomCyclic.size() + 1);
     m_element.resize(m_element.size() + 1);
     m_mass.resize(m_mass.size() + 1);
     m_hydrogens.resize(m_hydrogens.size() + 1);
@@ -53,7 +52,6 @@ namespace Helium {
     m_source.push_back(source.index());
     m_target.push_back(target.index());
     m_bondAromatic.resize(m_bondAromatic.size() + 1);
-    m_bondCyclic.resize(m_bondCyclic.size() + 1);
     m_order.resize(m_order.size() + 1);
 
     bond_type bond(this, index);
@@ -68,7 +66,6 @@ namespace Helium {
   {
     m_adjList.clear();
     m_atomAromatic.clear();
-    m_atomCyclic.clear();
     m_element.clear();
     m_mass.clear();
     m_hydrogens.clear();
@@ -77,7 +74,6 @@ namespace Helium {
     m_source.clear();
     m_target.clear();
     m_bondAromatic.clear();
-    m_bondCyclic.clear();
     m_order.clear();
   }
 
@@ -86,7 +82,6 @@ namespace Helium {
     assert(permutation.size() == m_adjList.size());
     impl::apply_permutation(m_adjList, permutation);
     impl::apply_permutation(m_atomAromatic, permutation);
-    impl::apply_permutation(m_atomCyclic, permutation);
     impl::apply_permutation(m_element, permutation);
     impl::apply_permutation(m_mass, permutation);
     impl::apply_permutation(m_hydrogens, permutation);

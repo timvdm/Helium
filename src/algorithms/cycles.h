@@ -364,7 +364,8 @@ namespace Helium {
    * @return The set of relevant cycles.
    */
   template<typename MoleculeType>
-  RingSet<MoleculeType> relevant_cycles(const MoleculeType &mol, Size cyclomaticNumber)
+  RingSet<MoleculeType> relevant_cycles(const MoleculeType &mol, Size cyclomaticNumber,
+      const std::vector<bool> &cyclicAtoms, const std::vector<bool> &cyclicBonds)
   {
     typedef typename molecule_traits<MoleculeType>::atom_type atom_type;
 
@@ -378,8 +379,23 @@ namespace Helium {
 
     while (true) {
       //std::cout << "size: " << size << ", lastSize: " << lastSize << ", nullity: " << cyclomaticNumber << ", count: " << relevant.size() << std::endl;
-      if (rings.size() >= cyclomaticNumber && lastSize < size)
-        break;
+      if (rings.size() >= cyclomaticNumber && lastSize < size) {
+        // check if all cyclic atoms/bonds are convered
+        bool done = true;
+        FOREACH_ATOM (atom, mol, MoleculeType)
+          if (cyclicAtoms[get_index(mol, *atom)] && !rings.isAtomInRing(*atom)) {
+            done = false;
+            break;
+          }
+        FOREACH_BOND (bond, mol, MoleculeType)
+          if (cyclicBonds[get_index(mol, *bond)] && !rings.isBondInRing(*bond)) {
+            done = false;
+            break;
+          }
+
+        if (done)
+          break;
+      }
       // sanity check
       if (size > num_atoms(mol))
         break;
@@ -437,7 +453,9 @@ namespace Helium {
   template<typename MoleculeType>
   RingSet<MoleculeType> relevant_cycles(const MoleculeType &mol)
   {
-    return relevant_cycles(mol, cyclomatic_number(mol));
+    std::vector<bool> cyclicAtoms, cyclicBonds;
+    cycle_membership(mol, cyclicAtoms, cyclicBonds);
+    return relevant_cycles(mol, cyclomatic_number(mol), cyclicAtoms, cyclicBonds);
   }
 
   /* SLOWER than regular relevant_cycles()

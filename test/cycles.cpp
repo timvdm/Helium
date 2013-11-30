@@ -19,6 +19,33 @@ void test_cyclomatic_number(const std::string &smiles, unsigned int expected)
   COMPARE(expected, cyclomatic_number(mol));
 }
 
+void test_cycle_membership(const HeMol &mol)
+{
+  std::vector<bool> cyclic_atoms, cyclic_bonds;
+  cycle_membership(mol, cyclic_atoms, cyclic_bonds);
+  RingSet<HeMol> rings = relevant_cycles(mol);
+
+  //std::cout << write_smiles(mol, WriteSmiles::Order) << std::endl;
+
+  HeMol::atom_iter atom, end_atom;
+  TIE(atom, end_atom) = get_atoms(mol);
+  for (; atom != end_atom; ++atom) {
+    if (rings.isAtomInRing(*atom))
+      COMPARE(true, cyclic_atoms[get_index(mol, *atom)]);
+    else
+      COMPARE(false, cyclic_atoms[get_index(mol, *atom)]);
+  }
+
+  HeMol::bond_iter bond, end_bond;
+  TIE(bond, end_bond) = get_bonds(mol);
+  for (; bond != end_bond; ++bond) {
+    if (rings.isBondInRing(*bond))
+      COMPARE(true, cyclic_bonds[get_index(mol, *bond)]);
+    else
+      COMPARE(false, cyclic_bonds[get_index(mol, *bond)]);
+  }
+}
+
 void test_cycle_membership(const std::string &filename)
 {
   std::cout << "Testing cycle_membership()..." << std::endl;
@@ -27,26 +54,7 @@ void test_cycle_membership(const std::string &filename)
   HeMol mol;
   for (unsigned int i = 0; i < file.numMolecules(); ++i) {
     file.read_molecule(mol);
-    std::vector<bool> cyclic_atoms, cyclic_bonds;
-    cycle_membership(mol, cyclic_atoms, cyclic_bonds);
-
-    HeMol::atom_iter atom, end_atom;
-    TIE(atom, end_atom) = get_atoms(mol);
-    for (; atom != end_atom; ++atom) {
-      if (is_cyclic(mol, *atom))
-        COMPARE(true, cyclic_atoms[get_index(mol, *atom)]);
-      else
-        COMPARE(false, cyclic_atoms[get_index(mol, *atom)]);
-    }
-
-    HeMol::bond_iter bond, end_bond;
-    TIE(bond, end_bond) = get_bonds(mol);
-    for (; bond != end_bond; ++bond) {
-      if (is_cyclic(mol, *bond))
-        COMPARE(true, cyclic_bonds[get_index(mol, *bond)]);
-      else
-        COMPARE(false, cyclic_bonds[get_index(mol, *bond)]);
-    }
+    test_cycle_membership(mol);
   }
 }
 
@@ -168,6 +176,11 @@ void test_cycle_bit_matrix3()
 
 int main()
 {
+  // counter example to relevant_cycles
+  HeMol mol = hemol_from_smiles("C(NC1CN2CCC1CC2)CN3CCC5(CCC3)NCc4ccccc4O5");
+  test_cycle_membership(mol);
+
+
   test_cycle_bit_matrix1();
   test_cycle_bit_matrix2();
   test_cycle_bit_matrix3();

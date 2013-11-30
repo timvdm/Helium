@@ -68,7 +68,6 @@ namespace Helium {
       HeAtom atom = mol.addAtom();
       // set the atom properties
       atom.setAromatic(aromatic);
-      atom.setCyclic(cyclic);
       atom.setElement(element);
       atom.setMass(mass);
       atom.setHydrogens(hydrogens);
@@ -92,7 +91,6 @@ namespace Helium {
       HeBond bond = mol.addBond(s, t);
       // set the bond properties
       bond.setAromatic(props & 128);
-      bond.setCyclic(props & 64);
       bond.setOrder(props & 63);
     }
 
@@ -124,7 +122,6 @@ namespace Helium {
       HeAtom atom = mol.addAtom();
       // set the atom properties
       atom.setAromatic(aromatic);
-      atom.setCyclic(cyclic);
       atom.setElement(element);
       atom.setMass(mass);
       atom.setHydrogens(hydrogens);
@@ -149,7 +146,6 @@ namespace Helium {
       HeBond bond = mol.addBond(s, t);
       // set the bond properties
       bond.setAromatic(props & 128);
-      bond.setCyclic(props & 64);
       bond.setOrder(props & 63);
     }
 

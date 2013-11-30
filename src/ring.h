@@ -211,6 +211,15 @@ namespace Helium {
         return result;
       }
 
+      int numRings(atom_type atom) const
+      {
+        int count = 0;
+        for (std::size_t i = 0; i < m_rings.size(); ++i)
+          if (m_rings[i].containsAtom(atom))
+            ++count;
+        return count;
+      }
+
       void addRing(const ring_type &ring)
       {
         m_rings.push_back(ring);

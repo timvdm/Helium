@@ -20,6 +20,7 @@ set(tests
   dfs
   bfs
   smarts
+  smirks
   )
 
 foreach(test ${tests})

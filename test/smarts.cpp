@@ -283,6 +283,15 @@ void test_atom_class()
   COMPARE(4, smarts4.atomClass(5));
   COMPARE(7, smarts4.atomClass(6));
   COMPARE(-1, smarts4.atomClass(7));
+
+  Smarts smarts5;
+  ASSERT(smarts5.init("[CH3:1]C"));
+  impl::SmartsAtomExpr *root = smarts5.trees().atom(0);
+  COMPARE(Smiley::OP_AndHi, root->type);
+  COMPARE(Smiley::OP_AndHi, root->left->type);
+  COMPARE(Smiley::AE_AliphaticElement, root->right->type);
+  COMPARE(Smiley::AE_AtomClass, root->left->left->type);
+  COMPARE(Smiley::AE_TotalH, root->left->right->type);
 }
 
 void test_atom_not()

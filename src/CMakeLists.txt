@@ -32,6 +32,7 @@ set(Helium_HDRS
   algorithms/dijkstra.h
   algorithms/floydwarshall.h
   algorithms/smarts.h
+  algorithms/smirks.h
   # util
   util/fileio.h
   util/functor.h

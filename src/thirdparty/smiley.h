@@ -340,6 +340,10 @@ namespace Smiley {
     //
     ////////////////////////////////////////
     /**
+     * No error
+     */
+    None,
+    /**
      * Example: "[C"
      */
     NoClosingAtomBracket = 1,
@@ -446,7 +450,14 @@ namespace Smiley {
       /**
        * Exception type.
        */
-      enum Type { SyntaxError, SemanticsError };
+      enum Type { NoError, SyntaxError, SemanticsError };
+
+      /**
+       * Default Constructor.
+       */
+      Exception() : m_type(NoError), m_errorCode(None), m_pos(0), m_length(0)
+      {
+      }
 
       /**
        * Constructor.
@@ -549,7 +560,8 @@ namespace Smiley {
     AE_RingConnectivity,
     AE_Charge,
     AE_Chirality,
-    AE_AtomClass
+    AE_AtomClass,
+    AE_Recursive
   };
 
   enum SmartsBondExprType
@@ -627,6 +639,14 @@ namespace Smiley {
      * Invoked when a prviously found ring bond number is parsed to add the bond.
      */
     void endRingBond(int number) {}
+    /**
+     * Invoked when a recursive (i.e. $(...)) SMARTS is found.
+     */
+    void pushState() {}
+    /**
+     * Invoked when a recursive SMARTS is done parsing.
+     */
+    void popState() {}
     //@}
   };
 
@@ -869,6 +889,16 @@ namespace Smiley {
       std::cout << "endRingBond: " << number << std::endl;
     }
 
+    void pushState()
+    {
+      std::cout << "pushState" << std::endl;
+    }
+
+    void popState()
+    {
+      std::cout << "popState" << std::endl;
+    }
+
     std::string str;
   };
 
@@ -969,6 +999,79 @@ namespace Smiley {
         Chirality chiral;
       };
 
+      struct State
+      {
+        State(const std::string &str_) : str(str_), pos(0), index(0), prev(-1)
+        {
+          chiralInfo.push_back(ChiralInfo());
+        }
+
+        std::string str; //!< the SMILES/SMARTS string
+        std::size_t pos; //!< current position in m_str
+
+        std::vector<BranchInfo> branches; //!< used as stack
+        std::map<int, std::vector<RingBondInfo> > ringBonds; //!< atom index -> RingBondInfo
+        std::vector<ChiralInfo> chiralInfo; //!< atom index -> ChiralInfo
+        std::vector<bool> aromaticAtoms; //!< atom index -> aromatic
+        int index; //!< current atom index
+        int prev; // !< previous atom index (-1 for none)
+      };
+
+      State& m_state()
+      {
+        return m_states.back();
+      }
+
+      const std::string& m_str()
+      {
+        return m_state().str;
+      }
+
+      std::size_t& m_pos()
+      {
+        return m_state().pos;
+      }
+
+      std::vector<BranchInfo>& m_branches()
+      {
+        return m_state().branches;
+      }
+
+      std::map<int, std::vector<RingBondInfo> >& m_ringBonds()
+      {
+        return m_state().ringBonds;
+      }
+
+      std::vector<ChiralInfo>& m_chiralInfo()
+      {
+        return m_state().chiralInfo;
+      }
+
+      std::vector<bool>& m_aromaticAtoms()
+      {
+        return m_state().aromaticAtoms;
+      }
+
+      int& m_index()
+      {
+        return m_state().index;
+      }
+
+      int& m_prev()
+      {
+        return m_state().prev;
+      }
+
+      void pushState(const std::string &str)
+      {
+        m_states.push_back(State(str));
+      }
+
+      void popState()
+      {
+        m_states.pop_back();
+      }
+
       /**
        * find a matching bracket with the open bracket at position @p pos.
        *
@@ -991,12 +1094,12 @@ namespace Smiley {
       {
         std::size_t indent = 1;
         while (indent) {
-          std::size_t open_pos = m_str.find(open, pos + 1);
-          std::size_t close_pos = m_str.find(close, pos + 1);
+          std::size_t open_pos = m_str().find(open, pos + 1);
+          std::size_t close_pos = m_str().find(close, pos + 1);
           // syntax error when there is no closing bracket
           if (close_pos == std::string::npos)
             throw Exception(Exception::SyntaxError, NoClosingAtomBracket,
-                "Could not find matching bracket", pos, m_str.size() - pos);
+                "Could not find matching bracket", pos, m_str().size() - pos);
           if (open_pos > close_pos) {
             --indent;
             pos = close_pos;
@@ -1009,28 +1112,28 @@ namespace Smiley {
       }
 
       /**
-       * Check the character at position @p m_pos. If the next character matches
-       * @p chr, position @p m_pos is incremeneted.
+       * Check the character at position @p m_pos(). If the next character matches
+       * @p chr, position @p m_pos() is incremeneted.
        *
        * @param chr The character to check for.
        * @return True if the character matches.
        */
       bool checkNextChar(char chr)
       {
-        if (m_pos + 1 >= m_str.size())
+        if (m_pos() + 1 >= m_str().size())
           return false;
-        bool match = m_str[m_pos + 1] == chr;
+        bool match = m_str()[m_pos() + 1] == chr;
         if (match)
-          ++m_pos;
+          ++m_pos();
         return match;
       }
 
       void print_chiralNbrs()
       {
-        for (std::size_t i = 0; i < m_chiralInfo.size(); ++i) {
+        for (std::size_t i = 0; i < m_chiralInfo().size(); ++i) {
           std::cout << "chiralNbrs for " << i << ": ";
-          for (std::size_t j = 0; j < m_chiralInfo[i].nbrs.size(); ++j)
-            std::cout << m_chiralInfo[i].nbrs[j] << " ";
+          for (std::size_t j = 0; j < m_chiralInfo()[i].nbrs.size(); ++j)
+            std::cout << m_chiralInfo()[i].nbrs[j] << " ";
           std::cout << std::endl;
         }
       }
@@ -1049,15 +1152,15 @@ namespace Smiley {
         //print_chiralNbrs();
 
         if (order == -1) {
-          if (m_aromaticAtoms[source] && m_aromaticAtoms[target])
+          if (m_aromaticAtoms()[source] && m_aromaticAtoms()[target])
             order = 5;
           else
             order = 1;
         }
 
         // check for parallel ring bonds
-        for (std::size_t i = 0; i < m_chiralInfo[source].nbrs.size(); i++) {
-          int nbr = m_chiralInfo[source].nbrs[i];
+        for (std::size_t i = 0; i < m_chiralInfo()[source].nbrs.size(); i++) {
+          int nbr = m_chiralInfo()[source].nbrs[i];
           if (nbr == target) {
             if (m_exceptions & InvalidRingBond)
               throw Exception(Exception::SemanticsError, InvalidRingBond,
@@ -1081,18 +1184,18 @@ namespace Smiley {
           m_callback.addBond(source, target, order, isUp, isDown);
 
         if (!rnum) {
-          m_chiralInfo[source].nbrs.push_back(target);
+          m_chiralInfo()[source].nbrs.push_back(target);
         } else {
-          for (std::size_t i = 0; i < m_chiralInfo.size(); ++i)
-            for (std::size_t j = 0; j < m_chiralInfo[i].nbrs.size(); ++j)
-              if (m_chiralInfo[i].nbrs[j] == -rnum)
-                m_chiralInfo[i].nbrs[j] = target;
+          for (std::size_t i = 0; i < m_chiralInfo().size(); ++i)
+            for (std::size_t j = 0; j < m_chiralInfo()[i].nbrs.size(); ++j)
+              if (m_chiralInfo()[i].nbrs[j] == -rnum)
+                m_chiralInfo()[i].nbrs[j] = target;
         }
 
-        if (m_chiralInfo[target].nbrs.size() && m_chiralInfo[target].nbrs.front() == implicitHydrogen())
-          m_chiralInfo[target].nbrs.insert(m_chiralInfo[target].nbrs.begin(), source);
+        if (m_chiralInfo()[target].nbrs.size() && m_chiralInfo()[target].nbrs.front() == implicitHydrogen())
+          m_chiralInfo()[target].nbrs.insert(m_chiralInfo()[target].nbrs.begin(), source);
         else
-          m_chiralInfo[target].nbrs.push_back(source);
+          m_chiralInfo()[target].nbrs.push_back(source);
       }
 
       /**
@@ -1113,14 +1216,14 @@ namespace Smiley {
         else
           m_callback.addOrganicSubsetAtom(element, aromatic);
 
-        m_aromaticAtoms.push_back(aromatic);
+        m_aromaticAtoms().push_back(aromatic);
 
-        if (m_prev != -1)
-          addBond(m_prev, m_index, m_bondOrder, m_isUp, m_isDown);
+        if (m_prev() != -1)
+          addBond(m_prev(), m_index(), m_bondOrder, m_isUp, m_isDown);
 
-        m_prev = m_index;
-        ++m_index;
-        m_chiralInfo.push_back(ChiralInfo());
+        m_prev() = m_index();
+        ++m_index();
+        m_chiralInfo().push_back(ChiralInfo());
       }
 
       /**
@@ -1144,10 +1247,10 @@ namespace Smiley {
       {
         m_isotope = 0;
         bool found_isotope = false;
-        while (std::isdigit(m_str[m_pos])) {
+        while (std::isdigit(m_str()[m_pos()])) {
           m_isotope *= 10;
-          m_isotope += m_str[m_pos] - '0';
-          ++m_pos;
+          m_isotope += m_str()[m_pos()] - '0';
+          ++m_pos();
           found_isotope = true;
         }
         if (!found_isotope)
@@ -1165,7 +1268,7 @@ namespace Smiley {
        */
       std::pair<int, bool> parseSymbol(bool ignoreHydrogen = false)
       {
-        switch (m_str[m_pos]) {
+        switch (m_str()[m_pos()]) {
           case 'H':
             if (checkNextChar('e'))
               m_element = He;
@@ -1480,10 +1583,10 @@ namespace Smiley {
         int elem = m_element;
         bool arom = m_aromatic;
         if (m_element != -1)
-          ++m_pos;
+          ++m_pos();
         else if (m_mode == SmilesMode)
             throw Exception(Exception::SyntaxError, NoSymbolInBracketAtom,
-                "Bracket atom expression does not contain element symbol", m_pos, 1);
+                "Bracket atom expression does not contain element symbol", m_pos(), 1);
         else if (m_mode == SmartsMode) {
           m_element = -1;
           m_aromatic = false;
@@ -1502,15 +1605,15 @@ namespace Smiley {
        */
       void parseChiral()
       {
-        m_chiralInfo.back().pos = m_pos;
+        m_chiralInfo().back().pos = m_pos();
 
-        if (m_str[m_pos] != '@')
+        if (m_str()[m_pos()] != '@')
           return;
 
         // @@
         if (checkNextChar('@')) {
           m_chiral = Clockwise;
-          ++m_pos;
+          ++m_pos();
           return;
         }
         if (checkNextChar('T')) {
@@ -1522,55 +1625,55 @@ namespace Smiley {
               m_chiral = TH2;
             else
               throw Exception(Exception::SyntaxError, InvalidChirality,
-                  "Invalid chiral specified, expected 1 or 2", m_pos + 1, 1);
-            ++m_pos;
+                  "Invalid chiral specified, expected 1 or 2", m_pos() + 1, 1);
+            ++m_pos();
             return;
           }
           // @TB1 ... @TB20
           if (checkNextChar('B')) {
-            std::size_t pos = m_pos;
+            std::size_t pos = m_pos();
             int tb = 0;
-            if (std::isdigit(m_str[m_pos + 1])) {
-              tb = m_str[m_pos + 1] - '0';
-              ++m_pos;
+            if (std::isdigit(m_str()[m_pos() + 1])) {
+              tb = m_str()[m_pos() + 1] - '0';
+              ++m_pos();
             }
-            if (std::isdigit(m_str[m_pos + 1])) {
+            if (std::isdigit(m_str()[m_pos() + 1])) {
               tb *= 10;
-              tb += m_str[m_pos + 1] - '0';
-              ++m_pos;
+              tb += m_str()[m_pos() + 1] - '0';
+              ++m_pos();
             }
             if (tb < 1 || tb > 20)
               throw Exception(Exception::SyntaxError, InvalidChirality,
-                  "Invalid chiral class specified, expected 1-20", pos + 1, m_pos == pos ? 1 : m_pos - pos);
+                  "Invalid chiral class specified, expected 1-20", pos + 1, m_pos() == pos ? 1 : m_pos() - pos);
 
             m_chiral = static_cast<Chirality>(tb + TB1 - 1);
-            ++m_pos;
+            ++m_pos();
             return;
           }
 
           throw Exception(Exception::SyntaxError, InvalidChirality,
-              "Invalid chiral specifier, expected H or B", m_pos + 1, 1);
+              "Invalid chiral specifier, expected H or B", m_pos() + 1, 1);
         }
         // @AL1 & @AL2
         if (checkNextChar('A')) {
           if (!checkNextChar('L'))
             throw Exception(Exception::SyntaxError, InvalidChirality,
-                "Invalid chiral specifier, expected L", m_pos + 1, 1);
+                "Invalid chiral specifier, expected L", m_pos() + 1, 1);
           if (checkNextChar('1'))
             m_chiral = AL1;
           else if (checkNextChar('2'))
             m_chiral = AL2;
           else
             throw Exception(Exception::SyntaxError,  InvalidChirality,
-                "Invalid chiral specified, expected 1 or 2", m_pos + 1, 1);
-          ++m_pos;
+                "Invalid chiral specified, expected 1 or 2", m_pos() + 1, 1);
+          ++m_pos();
           return;
         }
         // @SP1, @SP2 & @SP3
         if (checkNextChar('S')) {
           if (!checkNextChar('P'))
             throw Exception(Exception::SyntaxError, InvalidChirality,
-                "Invalid chiral specifier, expected P", m_pos + 1, 1);
+                "Invalid chiral specifier, expected P", m_pos() + 1, 1);
           if (checkNextChar('1'))
             m_chiral = SP1;
           else if (checkNextChar('2'))
@@ -1579,38 +1682,38 @@ namespace Smiley {
             m_chiral = SP3;
           else
             throw Exception(Exception::SyntaxError, InvalidChirality,
-                "Invalid chiral specified, expected 1, 2 or 3", m_pos + 1, 1);
-          ++m_pos;
+                "Invalid chiral specified, expected 1, 2 or 3", m_pos() + 1, 1);
+          ++m_pos();
           return;
         }
         // @OH1 ... @OH30
         if (checkNextChar('O')) {
           if (!checkNextChar('H'))
             throw Exception(Exception::SyntaxError, InvalidChirality,
-                "Invalid chiral specifier, expected H", m_pos + 1, 1);
+                "Invalid chiral specifier, expected H", m_pos() + 1, 1);
 
-          std::size_t pos = m_pos;
+          std::size_t pos = m_pos();
           int oh = 0;
-          if (std::isdigit(m_str[m_pos + 1])) {
-            oh = m_str[m_pos + 1] - '0';
-            ++m_pos;
+          if (std::isdigit(m_str()[m_pos() + 1])) {
+            oh = m_str()[m_pos() + 1] - '0';
+            ++m_pos();
           }
-          if (std::isdigit(m_str[m_pos + 1])) {
+          if (std::isdigit(m_str()[m_pos() + 1])) {
             oh *= 10;
-            oh += m_str[m_pos + 1] - '0';
-            ++m_pos;
+            oh += m_str()[m_pos() + 1] - '0';
+            ++m_pos();
           }
           if (oh < 1 || oh > 30)
             throw Exception(Exception::SyntaxError, InvalidChirality,
-                "Invalid chiral class specified, expected 1-30", pos + 1, m_pos == pos ? 1 : m_pos - pos);
+                "Invalid chiral class specified, expected 1-30", pos + 1, m_pos() == pos ? 1 : m_pos() - pos);
 
           m_chiral = static_cast<Chirality>(oh + OH1 - 1);
-          ++m_pos;
+          ++m_pos();
           return;
         }
 
         m_chiral = AntiClockwise;
-        ++m_pos;
+        ++m_pos();
       }
 
       /**
@@ -1621,16 +1724,16 @@ namespace Smiley {
       void parseHydrogenCount()
       {
         if (DEBUG)
-          std::cout << "parseHydrogenCount(" << m_str.substr(m_pos) << ")" << std::endl;
+          std::cout << "parseHydrogenCount(" << m_str().substr(m_pos()) << ")" << std::endl;
 
         // [C] = [CH0]
         m_hCount = 0;
-        if (m_str[m_pos] != 'H')
+        if (m_str()[m_pos()] != 'H')
           return;
-        ++m_pos;
-        if (std::isdigit(m_str[m_pos])) {
-          m_hCount = m_str[m_pos] - '0';
-          ++m_pos;
+        ++m_pos();
+        if (std::isdigit(m_str()[m_pos()])) {
+          m_hCount = m_str()[m_pos()] - '0';
+          ++m_pos();
           return;
         }
         m_hCount = 1;
@@ -1646,41 +1749,41 @@ namespace Smiley {
       void parseCharge()
       {
         if (DEBUG)
-          std::cout << "parseCharge(" << m_str.substr(m_pos) << ")" << std::endl;
+          std::cout << "parseCharge(" << m_str().substr(m_pos()) << ")" << std::endl;
 
-        if (m_str[m_pos] == '-') {
+        if (m_str()[m_pos()] == '-') {
           if (checkNextChar('-')) {
             m_charge = -2;
-            ++m_pos;
+            ++m_pos();
             return;
           }
-          if (std::isdigit(m_str[m_pos + 1])) {
-            m_charge = - (m_str[m_pos + 1] - '0');
-            m_pos += 2;
-            if (std::isdigit(m_str[m_pos])) {
-              m_charge = 10 * m_charge - (m_str[m_pos] - '0');
-              ++m_pos;
+          if (std::isdigit(m_str()[m_pos() + 1])) {
+            m_charge = - (m_str()[m_pos() + 1] - '0');
+            m_pos() += 2;
+            if (std::isdigit(m_str()[m_pos()])) {
+              m_charge = 10 * m_charge - (m_str()[m_pos()] - '0');
+              ++m_pos();
             }
             return;
           }
-          ++m_pos;
+          ++m_pos();
           m_charge = -1;
-        } else if (m_str[m_pos] == '+') {
+        } else if (m_str()[m_pos()] == '+') {
           if (checkNextChar('+')) {
             m_charge = 2;
-            ++m_pos;
+            ++m_pos();
             return;
           }
-          if (std::isdigit(m_str[m_pos + 1])) {
-            m_charge = m_str[m_pos + 1] - '0';
-            m_pos += 2;
-            if (std::isdigit(m_str[m_pos])) {
-              m_charge = 10 * m_charge + (m_str[m_pos] - '0');
-              ++m_pos;
+          if (std::isdigit(m_str()[m_pos() + 1])) {
+            m_charge = m_str()[m_pos() + 1] - '0';
+            m_pos() += 2;
+            if (std::isdigit(m_str()[m_pos()])) {
+              m_charge = 10 * m_charge + (m_str()[m_pos()] - '0');
+              ++m_pos();
             }
             return;
           }
-          ++m_pos;
+          ++m_pos();
           m_charge = 1;
         }
       }
@@ -1693,35 +1796,35 @@ namespace Smiley {
       void parseClass()
       {
         if (DEBUG)
-          std::cout << "parseClass(" << m_str.substr(m_pos) << ")" << std::endl;
+          std::cout << "parseClass(" << m_str().substr(m_pos()) << ")" << std::endl;
 
-        if (m_str[m_pos] != ':')
+        if (m_str()[m_pos()] != ':')
           return;
         bool found_number = false;
-        while (std::isdigit(m_str[m_pos + 1])) {
+        while (std::isdigit(m_str()[m_pos() + 1])) {
           m_class *= 10;
-          m_class += m_str[m_pos + 1] - '0';
-          ++m_pos;
+          m_class += m_str()[m_pos() + 1] - '0';
+          ++m_pos();
           found_number = true;
         }
-        ++m_pos;
+        ++m_pos();
         if (!found_number)
           throw Exception(Exception::SyntaxError, NoAtomClass,
-              "No atom class, expected number", m_pos + 1, 1);
+              "No atom class, expected number", m_pos() + 1, 1);
       }
 
       bool parseCharDigit(char chr, int type, int defaultValue, int &parsedOp,
           bool firstPrimitive)
       {
         if (DEBUG)
-          std::cout << "parseCharDigit(" << m_str.substr(m_pos) << ")" << std::endl;
+          std::cout << "parseCharDigit(" << m_str().substr(m_pos()) << ")" << std::endl;
 
-        if (m_str[m_pos] != chr)
+        if (m_str()[m_pos()] != chr)
           return false;
-        ++m_pos;
-        if (std::isdigit(m_str[m_pos])) {
-          defaultValue = m_str[m_pos] - '0';
-          ++m_pos;
+        ++m_pos();
+        if (std::isdigit(m_str()[m_pos()])) {
+          defaultValue = m_str()[m_pos()] - '0';
+          ++m_pos();
         }
 
         processImplicitAnd(parsedOp, firstPrimitive);
@@ -1733,14 +1836,14 @@ namespace Smiley {
           bool firstPrimitive, bool noDefault = false)
       {
         if (DEBUG)
-          std::cout << "parseCharNumber(" << m_str.substr(m_pos) << ")" << std::endl;
+          std::cout << "parseCharNumber(" << m_str().substr(m_pos()) << ")" << std::endl;
 
-        if (m_str[m_pos] != chr)
+        if (m_str()[m_pos()] != chr)
           return false;
 
         // check for element symbols
         if (chr == 'D')
-          switch (m_str[m_pos + 1]) {
+          switch (m_str()[m_pos() + 1]) {
             case 'b':
             case 's':
             case 'y':
@@ -1749,7 +1852,7 @@ namespace Smiley {
               break;
           }
         if (chr == 'H')
-          switch (m_str[m_pos + 1]) {
+          switch (m_str()[m_pos() + 1]) {
             case 'e':
             case 'f':
             case 'g':
@@ -1759,20 +1862,20 @@ namespace Smiley {
             default:
               break;
           }
-        if (chr == 'X' && m_str[m_pos + 1] == 'e')
+        if (chr == 'X' && m_str()[m_pos() + 1] == 'e')
           return false;
 
-        //++m_pos;
+        //++m_pos();
         bool found_number = false;
         // parse NUMBER
         int value = 0;
-        while (std::isdigit(m_str[m_pos + 1])) {
+        while (std::isdigit(m_str()[m_pos() + 1])) {
           value *= 10;
-          value += m_str[m_pos + 1] - '0';
-          ++m_pos;
+          value += m_str()[m_pos() + 1] - '0';
+          ++m_pos();
           found_number = true;
         }
-        ++m_pos;
+        ++m_pos();
 
         //
         // handle defaults
@@ -1818,7 +1921,7 @@ namespace Smiley {
 
       void isValidAtomExprChar()
       {
-        switch (m_str[m_pos]) {
+        switch (m_str()[m_pos()]) {
           case '*':
           case '&':
           case ';':
@@ -1827,12 +1930,12 @@ namespace Smiley {
           case '@':
           case '#':
           case ':':
-          //case '$':
+          case '$':
           //case '(':
           //case ')':
           case '+':
           case '-':
-          // chack ranges?
+          // check ranges?
           // no J, Q, j, q, w
           case '0': case '1': case '2': case '3': case '4':
           case '5': case '6': case '7': case '8': case '9':
@@ -1849,7 +1952,7 @@ namespace Smiley {
             return;
           default:
             throw Exception(Exception::SyntaxError, InvalidAtomPrimitive,
-                "Invalid character inside bracketed atom expression", m_pos, 1);
+                "Invalid character inside bracketed atom expression", m_pos(), 1);
             break;
         }
       }
@@ -1861,56 +1964,76 @@ namespace Smiley {
         int parsedOp = 0;
         std::size_t lastPos = std::string::npos;
 
-        m_aromaticAtoms.push_back(false);
+        m_aromaticAtoms().push_back(false);
 
-        while (m_str[m_pos] != ']') {
-          if (lastPos == m_pos)
+        while (m_str()[m_pos()] != ']') {
+          if (lastPos == m_pos())
             throw Exception(Exception::SyntaxError, InvalidAtomPrimitive,
-                "Invalid atom primitive", m_pos, 1);
+                "Invalid atom primitive", m_pos(), 1);
           isValidAtomExprChar();
-          lastPos = m_pos;
+          lastPos = m_pos();
 
-          int chr = m_str[m_pos];
+          int chr = m_str()[m_pos()];
           switch (chr) {
+            case '$':
+              if (m_pos() + 1 >= m_str().size() || m_str()[m_pos() + 1] != '(')
+                throw Exception(Exception::SyntaxError, BinaryOpWithoutLeftOperand,
+                    "Expected '(' following recursive SMARTS", m_pos(), 1);
+              {
+                processImplicitAnd(parsedOp, first_primitive);
+                std::size_t close = findMatchingBracket("(", ")", m_pos() + 1);
+                if (DEBUG)
+                  std::cout << "Found Recursive SMARTS: " << m_str().substr(m_pos() + 2, close - m_pos() - 2) << std::endl;
+
+                m_callback.pushState();
+                pushState(m_str().substr(m_pos() + 2, close - m_pos() - 2));
+                parseImpl();
+                popState();
+                m_callback.popState();
+
+                first_primitive = false;
+                m_pos() = close + 1;
+              }
+              continue;
             case '&':
               if (first_primitive)
                 throw Exception(Exception::SyntaxError, BinaryOpWithoutLeftOperand,
-                    "Binary '&' without left operand", m_pos, 1);
+                    "Binary '&' without left operand", m_pos(), 1);
               m_callback.atomOperation(OP_AndHi);
-              ++m_pos;
+              ++m_pos();
               parsedOp = OP_AndHi;
               continue;
             case ';':
               if (first_primitive)
                 throw Exception(Exception::SyntaxError, BinaryOpWithoutLeftOperand,
-                    "Binary ';' without left operand", m_pos, 1);
+                    "Binary ';' without left operand", m_pos(), 1);
               m_callback.atomOperation(OP_AndLo);
-              ++m_pos;
+              ++m_pos();
               parsedOp = OP_AndLo;
               continue;
             case ',':
               if (first_primitive)
                 throw Exception(Exception::SyntaxError, BinaryOpWithoutLeftOperand,
-                    "Binary ',' without left operand", m_pos, 1);
+                    "Binary ',' without left operand", m_pos(), 1);
               m_callback.atomOperation(OP_Or);
-              ++m_pos;
+              ++m_pos();
               parsedOp = OP_Or;
               continue;
             case '!':
               processImplicitAnd(parsedOp, first_primitive);
               m_callback.atomOperation(OP_Not);
-              ++m_pos;
+              ++m_pos();
               parsedOp = OP_Not;
               continue;
             case 'a':
-              m_aromaticAtoms.back() = true;
+              m_aromaticAtoms().back() = true;
               processImplicitAnd(parsedOp, first_primitive);
               m_callback.atomPrimitive(AE_Aromatic, 1);
               first_primitive = false;
-              ++m_pos;
+              ++m_pos();
               continue;
             case 'A':
-              switch (m_str[m_pos + 1]) {
+              switch (m_str()[m_pos() + 1]) {
                 case 'l':
                 case 'r':
                 case 's':
@@ -1924,12 +2047,12 @@ namespace Smiley {
                   processImplicitAnd(parsedOp, first_primitive);
                   m_callback.atomPrimitive(AE_Aliphatic, 1);
                   first_primitive = false;
-                  ++m_pos;
+                  ++m_pos();
                   break;
               }
               break;
             case 'R':
-              switch (m_str[m_pos + 1]) {
+              switch (m_str()[m_pos() + 1]) {
                 case 'b':
                 case 'u':
                 case 'h':
@@ -1940,28 +2063,28 @@ namespace Smiley {
                 case 'g':
                   break;
                 default:
-                  if (m_str[m_pos + 1] == '0') {
+                  if (m_str()[m_pos() + 1] == '0') {
                     processImplicitAnd(parsedOp, first_primitive);
                     m_callback.atomPrimitive(AE_Acyclic, 1);
                     first_primitive = false;
-                    m_pos += 2;
+                    m_pos() += 2;
                     continue;
-                  } else if (!std::isdigit(m_str[m_pos + 1])) {
+                  } else if (!std::isdigit(m_str()[m_pos() + 1])) {
                     processImplicitAnd(parsedOp, first_primitive);
                     m_callback.atomPrimitive(AE_Cyclic, 1);
                     first_primitive = false;
-                    ++m_pos;
+                    ++m_pos();
                     continue;
                   }
                   break;
               }
               break;
             case 'r':
-              if (!std::isdigit(m_str[m_pos + 1])) {
+              if (!std::isdigit(m_str()[m_pos() + 1])) {
                 processImplicitAnd(parsedOp, first_primitive);
                 m_callback.atomPrimitive(AE_Cyclic, 1);
                 first_primitive = false;
-                ++m_pos;
+                ++m_pos();
               }
               break;
             default:
@@ -1986,7 +2109,7 @@ namespace Smiley {
             if (symbol.first == 0)
               m_callback.atomPrimitive(AE_True, 1); // '*'
             else if (symbol.second) {
-              m_aromaticAtoms.back() = true;
+              m_aromaticAtoms().back() = true;
               m_callback.atomPrimitive(AE_AromaticElement, m_element);
             } else
               m_callback.atomPrimitive(AE_AliphaticElement, m_element);
@@ -2058,10 +2181,10 @@ namespace Smiley {
           case OP_AndLo:
           case OP_Or:
             throw Exception(Exception::SyntaxError, BinaryOpWithoutRightOperand,
-                "Binary operator inside bracket atom without right operand", m_pos - 1, 1);
+                "Binary operator inside bracket atom without right operand", m_pos() - 1, 1);
           case OP_Not:
             throw Exception(Exception::SyntaxError, UnaryOpWithoutArgument,
-                "Unary operator inside bracket atom without argument", m_pos - 1, 1);
+                "Unary operator inside bracket atom without argument", m_pos() - 1, 1);
           default:
             break;
         }
@@ -2075,22 +2198,22 @@ namespace Smiley {
       void parseBracketAtom()
       {
         if (DEBUG)
-          std::cout << "parseBracketAtom(" << m_str.substr(m_pos) << ")" << std::endl;
+          std::cout << "parseBracketAtom(" << m_str().substr(m_pos()) << ")" << std::endl;
 
-        std::size_t close = findMatchingBracket("[", "]", m_pos);
-        ++m_pos;
+        std::size_t close = findMatchingBracket("[", "]", m_pos());
+        ++m_pos();
 
         if (m_mode == SmartsMode) {
           m_callback.beginAtom();
           parseAtomExpr();
           m_callback.endAtom();
 
-          if (m_prev != -1)
-            addBond(m_prev, m_index, m_bondOrder, m_isUp, m_isDown);
+          if (m_prev() != -1)
+            addBond(m_prev(), m_index(), m_bondOrder, m_isUp, m_isDown);
 
-          m_prev = m_index;
-          ++m_index;
-          m_chiralInfo.push_back(ChiralInfo());
+          m_prev() = m_index();
+          ++m_index();
+          m_chiralInfo().push_back(ChiralInfo());
 
           return;
         }
@@ -2102,17 +2225,17 @@ namespace Smiley {
         parseCharge();
         parseClass();
 
-        m_chiralInfo.back().chiral = static_cast<Chirality>(m_chiral);
+        m_chiralInfo().back().chiral = static_cast<Chirality>(m_chiral);
         if (m_hCount >= 1)
-          m_chiralInfo.back().nbrs.push_back(implicitHydrogen());
+          m_chiralInfo().back().nbrs.push_back(implicitHydrogen());
         if (m_hCount > 1 && m_chiral && m_exceptions & InvalidChiralHydrogenCount) {
           throw Exception(Exception::SemanticsError, InvalidChiralHydrogenCount,
-              "Chiral atoms can only have one hydrogen", m_chiralInfo.back().pos, 1);
+              "Chiral atoms can only have one hydrogen", m_chiralInfo().back().pos, 1);
         }
 
-        if (m_str[m_pos] != ']')
+        if (m_str()[m_pos()] != ']')
           throw Exception(Exception::SyntaxError, TrailingCharInBracketAtom,
-              "Bracket atom expression contains invalid trailing characters", m_pos, close - m_pos);
+              "Bracket atom expression contains invalid trailing characters", m_pos(), close - m_pos());
 
         addAtom(m_element, m_aromatic, m_isotope, m_hCount, m_charge, m_class);
       }
@@ -2126,82 +2249,82 @@ namespace Smiley {
       bool parseOrganicSubsetAtom()
       {
         if (DEBUG)
-          std::cout << "parseOrganicSubsetAtom(" << m_str.substr(m_pos) << ")" << std::endl;
+          std::cout << "parseOrganicSubsetAtom(" << m_str().substr(m_pos()) << ")" << std::endl;
 
-        switch (m_str[m_pos]) {
+        switch (m_str()[m_pos()]) {
           case 'B':
             if (checkNextChar('r'))
               addAtom(Br);
             else
               addAtom(B);
-            ++m_pos;
+            ++m_pos();
             return true;
           case 'C':
             if (checkNextChar('l'))
               addAtom(Cl);
             else
               addAtom(C);
-            ++m_pos;
+            ++m_pos();
             return true;
           case 'N':
             addAtom(N);
-            ++m_pos;
+            ++m_pos();
             return true;
           case 'O':
             addAtom(O);
-            ++m_pos;
+            ++m_pos();
             return true;
           case 'S':
             addAtom(S);
-            ++m_pos;
+            ++m_pos();
             return true;
           case 'P':
             addAtom(P);
-            ++m_pos;
+            ++m_pos();
             return true;
           case 'F':
             addAtom(F);
-            ++m_pos;
+            ++m_pos();
             return true;
           case 'I':
             addAtom(I);
-            ++m_pos;
+            ++m_pos();
             return true;
           case 'b':
             addAtom(B, true);
-            ++m_pos;
+            ++m_pos();
             return true;
           case 'c':
             addAtom(C, true);
-            ++m_pos;
+            ++m_pos();
             return true;
           case 'n':
             addAtom(N, true);
-            ++m_pos;
+            ++m_pos();
             return true;
           case 'o':
             addAtom(O, true);
-            ++m_pos;
+            ++m_pos();
             return true;
           case 's':
             addAtom(S, true);
-            ++m_pos;
+            ++m_pos();
             return true;
           case 'p':
             addAtom(P, true);
-            ++m_pos;
+            ++m_pos();
             return true;
           case 'a':
             if (m_mode == SmilesMode)
               return false;
             addAtom(-1, true);
-            ++m_pos;
+            ++m_pos();
             return true;
           case 'A':
             if (m_mode == SmilesMode)
               return false;
             addAtom(-1, false);
-            ++m_pos;
+            ++m_pos();
             return true;
         }
 
@@ -2216,7 +2339,7 @@ namespace Smiley {
       bool parseAtom()
       {
         if (DEBUG)
-          std::cout << "parseAtom(" << m_str.substr(m_pos) << ")" << std::endl;
+          std::cout << "parseAtom(" << m_str().substr(m_pos()) << ")" << std::endl;
 
         m_element = -1;
         m_isotope = -1;
@@ -2226,14 +2349,14 @@ namespace Smiley {
         m_class = 0;
         m_aromatic = false;
 
-        switch (m_str[m_pos]) {
+        switch (m_str()[m_pos()]) {
           case '[':
             parseBracketAtom();
-            ++m_pos;
+            ++m_pos();
             return true;
           case '*':
             addAtom(0);
-            ++m_pos;
+            ++m_pos();
             return true;
         }
 
@@ -2243,9 +2366,9 @@ namespace Smiley {
       void processBondPrimitive(int type, bool &firstPrimitive, int &parsedOp)
       {
         if (DEBUG)
-          std::cout << "processBondPrimitive(" << m_str.substr(m_pos) << ")" << std::endl;
+          std::cout << "processBondPrimitive(" << m_str().substr(m_pos()) << ")" << std::endl;
         m_explicitBond = true;
-        ++m_pos;
+        ++m_pos();
         if (m_mode == SmilesMode)
           return;
         // implicit AND for bonds
@@ -2264,18 +2387,18 @@ namespace Smiley {
       void parseBond()
       {
         if (DEBUG)
-          std::cout << "parseBond(" << m_str.substr(m_pos) << ")" << std::endl;
+          std::cout << "parseBond(" << m_str().substr(m_pos()) << ")" << std::endl;
 
         bool firstPrimitive = true;
         int parsedOp = 0;
         std::size_t lastPos = std::string::npos;
 
-        while (lastPos != m_pos) {
-          if (m_pos >= m_str.size())
+        while (lastPos != m_pos()) {
+          if (m_pos() >= m_str().size())
             return;
-          lastPos = m_pos;
+          lastPos = m_pos();
 
-          switch (m_str[m_pos]) {
+          switch (m_str()[m_pos()]) {
             case '-':
               m_bondOrder = 1;
               processBondPrimitive(BE_Single, firstPrimitive, parsedOp);
@@ -2319,30 +2442,30 @@ namespace Smiley {
                 break;
               if (firstPrimitive)
                 throw Exception(Exception::SyntaxError, BinaryOpWithoutLeftOperand,
-                    "Binary '&' in bond expression without left operand", m_pos, 1);
+                    "Binary '&' in bond expression without left operand", m_pos(), 1);
               m_callback.bondOperation(OP_AndHi);
               parsedOp = OP_AndHi;
-              ++m_pos;
+              ++m_pos();
               break;
             case ';': // legal?
               if (m_mode == SmilesMode)
                 break;
               if (firstPrimitive)
                 throw Exception(Exception::SyntaxError, BinaryOpWithoutLeftOperand,
-                    "Binary ';' in bond expression without left operand", m_pos, 1);
+                    "Binary ';' in bond expression without left operand", m_pos(), 1);
               m_callback.bondOperation(OP_AndLo);
               parsedOp = OP_AndLo;
-              ++m_pos;
+              ++m_pos();
               break;
             case ',':
               if (m_mode == SmilesMode)
                 break;
               if (firstPrimitive)
                 throw Exception(Exception::SyntaxError, BinaryOpWithoutLeftOperand,
-                    "Binary ',' in bond expression without left operand", m_pos, 1);
+                    "Binary ',' in bond expression without left operand", m_pos(), 1);
               m_callback.bondOperation(OP_Or);
               parsedOp = OP_Or;
-              ++m_pos;
+              ++m_pos();
               break;
             case '!':
               if (m_mode == SmilesMode)
@@ -2354,7 +2477,7 @@ namespace Smiley {
               parsedOp = 0;
 
               m_callback.bondOperation(OP_Not);
-              ++m_pos;
+              ++m_pos();
               break;
           }
         }
@@ -2364,10 +2487,10 @@ namespace Smiley {
           case OP_AndLo:
           case OP_Or:
             throw Exception(Exception::SyntaxError, BinaryOpWithoutRightOperand,
-                "Binary operator in bond expression without right operand", m_pos - 1, 1);
+                "Binary operator in bond expression without right operand", m_pos() - 1, 1);
           case OP_Not:
             throw Exception(Exception::SyntaxError, UnaryOpWithoutArgument,
-                "Unary operator in bond expression without argument", m_pos - 1, 1);
+                "Unary operator in bond expression without argument", m_pos() - 1, 1);
           default:
             break;
         }
@@ -2378,7 +2501,7 @@ namespace Smiley {
        */
       void printRingBonds()
       {
-        for (typename std::map<int, std::vector<RingBondInfo> >::iterator i = m_ringBonds.begin(); i != m_ringBonds.end(); ++i) {
+        for (typename std::map<int, std::vector<RingBondInfo> >::iterator i = m_ringBonds().begin(); i != m_ringBonds().end(); ++i) {
           std::cout << "    RingBond: index = " << i->first << std::endl;
           for (std::size_t j = 0; j < i->second.size(); ++j)
             std::cout << "        " << i->second[j].number << std::endl;
@@ -2393,10 +2516,10 @@ namespace Smiley {
         //std::cout << "BEFORE processing " << rnum << std::endl; printRingBonds();
 
         // check if this ringbond is the second of a pair
-        typename std::map<int, std::vector<RingBondInfo> >::iterator ringBond = m_ringBonds.begin();
+        typename std::map<int, std::vector<RingBondInfo> >::iterator ringBond = m_ringBonds().begin();
         std::size_t j;
         bool found = false;
-        for (; ringBond != m_ringBonds.end(); ++ringBond) {
+        for (; ringBond != m_ringBonds().end(); ++ringBond) {
           for (j = 0; j < ringBond->second.size(); ++j)
             if (ringBond->second[j].number == rnum) {
               found = true;
@@ -2405,7 +2528,7 @@ namespace Smiley {
           if (found)
             break;
         }
-        if (ringBond != m_ringBonds.end()) {
+        if (ringBond != m_ringBonds().end()) {
           // this is the second ringbond of a pair, make the bond
           m_callback.endRingBond(rnum);
           if (ringBond->second[j].isExplicit) {
@@ -2417,25 +2540,25 @@ namespace Smiley {
                 throw Exception(Exception::SemanticsError, ConflictingRingBonds,
                     "Conflicing ring bonds", pos, 1);
             }
-            addBond(ringBond->first, m_prev, ringBond->second[j].order, ringBond->second[j].isUp, ringBond->second[j].isDown, rnum);
+            addBond(ringBond->first, m_prev(), ringBond->second[j].order, ringBond->second[j].isUp, ringBond->second[j].isDown, rnum);
           } else {
             /*
             std::cout << "adding ring bond..." << std::endl;
-            for (std::size_t i = 0; i < m_aromaticAtoms.size(); ++i)
-              std::cout << m_aromaticAtoms[i] << " ";
+            for (std::size_t i = 0; i < m_aromaticAtoms().size(); ++i)
+              std::cout << m_aromaticAtoms()[i] << " ";
             std::cout << std::endl;
             */
-            addBond(ringBond->first, m_prev, m_bondOrder, m_isUp, m_isDown, rnum);
+            addBond(ringBond->first, m_prev(), m_bondOrder, m_isUp, m_isDown, rnum);
           }
           // remove the ringbond from the list so it can be reused
           ringBond->second.erase(ringBond->second.begin() + j);
           if (ringBond->second.empty())
-            m_ringBonds.erase(ringBond);
+            m_ringBonds().erase(ringBond);
         } else {
           // add the ringbond to the list
-          //std::cout << m_prev << std::endl;
-          m_ringBonds[m_prev].push_back(RingBondInfo(rnum, m_bondOrder, m_isUp, m_isDown, m_explicitBond, pos));
-          m_chiralInfo[m_prev].nbrs.push_back(-rnum);
+          //std::cout << m_prev() << std::endl;
+          m_ringBonds()[m_prev()].push_back(RingBondInfo(rnum, m_bondOrder, m_isUp, m_isDown, m_explicitBond, pos));
+          m_chiralInfo()[m_prev()].nbrs.push_back(-rnum);
           m_callback.startRingBond(rnum);
         }
 
@@ -2451,23 +2574,23 @@ namespace Smiley {
       void parseRingBond()
       {
         if (DEBUG)
-          std::cout << "parseRingBond(" << m_str.substr(m_pos) << ")" << std::endl;
+          std::cout << "parseRingBond(" << m_str().substr(m_pos()) << ")" << std::endl;
 
         parseBond();
-        if (std::isdigit(m_str[m_pos])) {
-          processRingBond(m_str[m_pos] - '0', m_pos);
-          ++m_pos;
-        } else if (m_str[m_pos] == '%') {
-          std::size_t bond_pos = m_pos - 1;
-          if (m_pos + 2 >= m_str.size())
+        if (std::isdigit(m_str()[m_pos()])) {
+          processRingBond(m_str()[m_pos()] - '0', m_pos());
+          ++m_pos();
+        } else if (m_str()[m_pos()] == '%') {
+          std::size_t bond_pos = m_pos() - 1;
+          if (m_pos() + 2 >= m_str().size())
             throw Exception(Exception::SyntaxError, InvalidRingBondNumber,
-                "Invalid ring bond, expected number", m_pos + 1, 2);
-          if (!std::isdigit(m_str[m_pos + 1]) || !std::isdigit(m_str[m_pos + 2]))
+                "Invalid ring bond, expected number", m_pos() + 1, 2);
+          if (!std::isdigit(m_str()[m_pos() + 1]) || !std::isdigit(m_str()[m_pos() + 2]))
             throw Exception(Exception::SyntaxError, InvalidRingBondNumber,
-                "Expected ring bond number", m_pos + 1, 2);
-          int r = 10 * (m_str[m_pos + 1] - '0') + m_str[m_pos + 2] - '0';
+                "Expected ring bond number", m_pos() + 1, 2);
+          int r = 10 * (m_str()[m_pos() + 1] - '0') + m_str()[m_pos() + 2] - '0';
           processRingBond(r, bond_pos);
-          m_pos += 3;
+          m_pos() += 3;
         }
       }
 
@@ -2484,79 +2607,79 @@ namespace Smiley {
       void parseChain()
       {
         if (DEBUG)
-          std::cout << "parseChain(" << m_str.substr(m_pos) << ")" << std::endl;
+          std::cout << "parseChain(" << m_str().substr(m_pos()) << ")" << std::endl;
 
         while (true) {
           // check for dot ::= '.'?
-          if (m_str[m_pos] == '.') {
-            if (m_index == 0)
+          if (m_str()[m_pos()] == '.') {
+            if (m_index() == 0)
               throw Exception(Exception::SyntaxError, LeadingDot,
                   "Found dot '.' at begining of pattern", 0, 1);
-            if (m_pos + 1 >= m_str.size())
+            if (m_pos() + 1 >= m_str().size())
               throw Exception(Exception::SyntaxError, TrailingDot,
-                  "Found dor '.' at ending of pattern", m_pos - 1, 1);
-            ++m_pos;
-            m_prev = -1;
+                  "Found dor '.' at ending of pattern", m_pos() - 1, 1);
+            ++m_pos();
+            m_prev() = -1;
           }
 
           // check for closing branch ::= ')'*
-          while (m_str[m_pos] == ')') {
-            if (m_branches.size()) {
+          while (m_str()[m_pos()] == ')') {
+            if (m_branches().size()) {
               if (DEBUG)
-                std::cout << "    close branch: " << m_branches.back().index << " @pos " << m_pos << std::endl;
-              m_prev = m_branches.back().index;
-              m_branches.pop_back();
-              ++m_pos;
+                std::cout << "    close branch: " << m_branches().back().index << " @pos " << m_pos() << std::endl;
+              m_prev() = m_branches().back().index;
+              m_branches().pop_back();
+              ++m_pos();
             } else
               throw Exception(Exception::SyntaxError, UnmatchedBranchClosing,
-                  "Unmatched branch closing", 0, m_pos + 1);
-            if (m_pos >= m_str.size())
+                  "Unmatched branch closing", 0, m_pos() + 1);
+            if (m_pos() >= m_str().size())
               break;
           }
 
           // if there is a previous atom, check for bond ::= bond?
-          if (m_prev != -1)
+          if (m_prev() != -1)
             parseBond();
-          if (m_pos >= m_str.size())
+          if (m_pos() >= m_str().size())
             break;
 
           // check atom ::= atom
-          if (!parseAtom() && m_str[m_pos] != '(')
+          if (!parseAtom() && m_str()[m_pos()] != '(')
             throw Exception(Exception::SyntaxError, InvalidAtomExpr,
-                "Could not parse atom expression", m_pos);
+                "Could not parse atom expression", m_pos());
           else
             resetBondInfo();
-          if (m_pos >= m_str.size())
+          if (m_pos() >= m_str().size())
             break;
 
           // check for ring bond ::= ring_bond*
           std::size_t pos = std::string::npos;
-          while (pos != m_pos && m_pos < m_str.size()) {
-            pos = m_pos;
+          while (pos != m_pos() && m_pos() < m_str().size()) {
+            pos = m_pos();
             parseRingBond();
           }
-          if (m_pos >= m_str.size())
+          if (m_pos() >= m_str().size())
             break;
 
           // check for branch opening ::= '('?
           pos = std::string::npos;
-		  while (pos != m_pos && m_pos < m_str.size()) {
-            pos = m_pos;
-            if (m_str[m_pos] == '(') {
+		  while (pos != m_pos() && m_pos() < m_str().size()) {
+            pos = m_pos();
+            if (m_str()[m_pos()] == '(') {
               if (DEBUG)
-                std::cout << "    open branch: " << m_prev << " @pos " << m_pos << std::endl;
-              m_branches.push_back(BranchInfo(m_prev, m_pos));
-              ++m_pos;
+                std::cout << "    open branch: " << m_prev() << " @pos " << m_pos() << std::endl;
+              m_branches().push_back(BranchInfo(m_prev(), m_pos()));
+              ++m_pos();
               parseChain();
             }
           }
 
-          if (m_pos >= m_str.size())
+          if (m_pos() >= m_str().size())
             break;
 
           // check for termination
           bool terminate = false;
-          switch (m_str[m_pos]) {
+          switch (m_str()[m_pos()]) {
             case ' ':
             case '\t':
             case '\n':
@@ -2581,16 +2704,16 @@ namespace Smiley {
         std::vector<int> &nbrs = chiralInfo.nbrs;
         int lft = nbrs[0];
         int rgt = nbrs[1];
-        if (m_chiralInfo[lft].nbrs.size() != 3 || m_chiralInfo[rgt].nbrs.size() != 3)
+        if (m_chiralInfo()[lft].nbrs.size() != 3 || m_chiralInfo()[rgt].nbrs.size() != 3)
           return -1;
         // NC(F)=[C@AL1]=C(Cl)I     nbrs[1] = [ 0 2 3 ]  <-----------+
         // ^  ^   ^        ^  ^     nbrs[3] = [ 1 4 ]    <- chiral   +-- neigbors
         // 0  2   3        5  6     nbrs[4] = [ 3 5 6 ]  <-----------+
         nbrs.clear();
         // copy [ 0 2 ] to nbrs[3]
-        nbrs.insert(nbrs.end(), m_chiralInfo[lft].nbrs.begin(), m_chiralInfo[lft].nbrs.end() - 1);
+        nbrs.insert(nbrs.end(), m_chiralInfo()[lft].nbrs.begin(), m_chiralInfo()[lft].nbrs.end() - 1);
         // copy [ 5 6 ] to nbrs[3]
-        nbrs.insert(nbrs.end(), m_chiralInfo[rgt].nbrs.begin() + 1, m_chiralInfo[rgt].nbrs.end());
+        nbrs.insert(nbrs.end(), m_chiralInfo()[rgt].nbrs.begin() + 1, m_chiralInfo()[rgt].nbrs.end());
         if (chiralInfo.chiral == AntiClockwise)
           chiralInfo.chiral = AL1;
         else if (chiralInfo.chiral == Clockwise)
@@ -2603,16 +2726,16 @@ namespace Smiley {
        */
       void processStereochemistry()
       {
-        for (std::size_t i = 0; i < m_chiralInfo.size(); ++i) {
-          if (!m_chiralInfo[i].chiral)
+        for (std::size_t i = 0; i < m_chiralInfo().size(); ++i) {
+          if (!m_chiralInfo()[i].chiral)
             continue;
           int expectedValence = -1;
-          switch (m_chiralInfo[i].chiral) {
+          switch (m_chiralInfo()[i].chiral) {
             case Clockwise:
-              switch (m_chiralInfo[i].nbrs.size()) {
+              switch (m_chiralInfo()[i].nbrs.size()) {
                 case 2:
                   // Allene
-                  expectedValence = processAlleneStereochemistry(m_chiralInfo[i]);
+                  expectedValence = processAlleneStereochemistry(m_chiralInfo()[i]);
                   break;
                 case 4:
                   // Tetrahedral
@@ -2621,30 +2744,30 @@ namespace Smiley {
                   // determining correct class requires knowledge of atom (TH vs. SP)
                   break;
                 case 5:
-                  m_chiralInfo[i].chiral = TB1;
+                  m_chiralInfo()[i].chiral = TB1;
                   expectedValence = 5;
                   break;
                 case 6:
-                  m_chiralInfo[i].chiral = OH1;
+                  m_chiralInfo()[i].chiral = OH1;
                   expectedValence = 6;
                   break;
               }
               break;
             case AntiClockwise:
-              switch (m_chiralInfo[i].nbrs.size()) {
+              switch (m_chiralInfo()[i].nbrs.size()) {
                 case 2:
                   // Allene
-                  expectedValence = processAlleneStereochemistry(m_chiralInfo[i]);
+                  expectedValence = processAlleneStereochemistry(m_chiralInfo()[i]);
                   break;
                 case 4:
                   expectedValence = 4;
                   break;
                 case 5:
-                  m_chiralInfo[i].chiral = TB2;
+                  m_chiralInfo()[i].chiral = TB2;
                   expectedValence = 5;
                   break;
                 case 6:
-                  m_chiralInfo[i].chiral = OH2;
+                  m_chiralInfo()[i].chiral = OH2;
                   expectedValence = 6;
                   break;
               }
@@ -2658,22 +2781,36 @@ namespace Smiley {
               break;
             case AL1:
             case AL2:
-              expectedValence = processAlleneStereochemistry(m_chiralInfo[i]);
+              expectedValence = processAlleneStereochemistry(m_chiralInfo()[i]);
               break;
             default:
-              if (m_chiralInfo[i].chiral >= TB1 && m_chiralInfo[i].chiral <= TB20)
+              if (m_chiralInfo()[i].chiral >= TB1 && m_chiralInfo()[i].chiral <= TB20)
                 expectedValence = 5;
-              else if (m_chiralInfo[i].chiral >= OH1 && m_chiralInfo[i].chiral <= OH30)
+              else if (m_chiralInfo()[i].chiral >= OH1 && m_chiralInfo()[i].chiral <= OH30)
                 expectedValence = 6;
               break;
           }
 
-          if (m_chiralInfo[i].nbrs.size() != expectedValence && m_exceptions & InvalidChiralValence)
+          if (m_chiralInfo()[i].nbrs.size() != expectedValence && m_exceptions & InvalidChiralValence)
             throw Exception(Exception::SemanticsError, InvalidChiralValence,
-                "Invalid chiral valence", m_chiralInfo[i].pos, 1);
+                "Invalid chiral valence", m_chiralInfo()[i].pos, 1);
 
-          m_callback.setChiral(i, static_cast<Chirality>(m_chiralInfo[i].chiral), m_chiralInfo[i].nbrs);
+          m_callback.setChiral(i, static_cast<Chirality>(m_chiralInfo()[i].chiral), m_chiralInfo()[i].nbrs);
         }
+      }
+
+      void parseImpl()
+      {
+        parseChain();
+
+        if (m_branches().size())
+          throw Exception(Exception::SyntaxError, UnmatchedBranchOpening,
+              "Unmatched branch opening", m_branches().back().pos, m_str().size() - m_branches().back().pos);
+        if (m_ringBonds().size() && m_exceptions & UnmatchedRingBond)
+          throw Exception(Exception::SemanticsError, UnmatchedRingBond,
+              "Unmatched ring bond", m_ringBonds().begin()->second[0].pos, 1);
+
+        processStereochemistry();
       }
 
     public:
@@ -2714,26 +2851,12 @@ namespace Smiley {
         if (str.empty())
           return;
 
-        m_str = str;
-        m_pos = 0;
+        m_states.clear();
+        pushState(str);
 
-        m_index = 0;
-        m_prev = -1;
-        m_branches.clear();
-        m_ringBonds.clear();
-        m_chiralInfo.clear();
-        m_chiralInfo.push_back(ChiralInfo());
+        parseImpl();
 
-        parseChain();
-
-        if (m_branches.size())
-          throw Exception(Exception::SyntaxError, UnmatchedBranchOpening,
-              "Unmatched branch opening", m_branches.back().pos, m_str.size() - m_branches.back().pos);
-        if (m_ringBonds.size() && m_exceptions & UnmatchedRingBond)
-          throw Exception(Exception::SemanticsError, UnmatchedRingBond,
-              "Unmatched ring bond", m_ringBonds.begin()->second[0].pos, 1);
-
-        processStereochemistry();
+        popState();
 
         m_callback.end();
       }
@@ -2777,9 +2900,8 @@ namespace Smiley {
     private:
       Callback &m_callback; //!< callback for handling events
 
-      std::string m_str; //!< the SMILES/SMARTS string
-      std::size_t m_pos; //!< current position in m_str
-      Mode m_mode; // SMILES/SMARTS mode
+      Mode m_mode; //!< SMILES/SMARTS mode
+      int m_exceptions; //!< exceptions enabled?
 
       // atom
       int m_element; //!< atom element
@@ -2795,13 +2917,7 @@ namespace Smiley {
       bool m_isDown; //!< is last bond '\'
       bool m_explicitBond; //!< is last bond explicit
       // branches & other state
-      std::vector<BranchInfo> m_branches; //!< used as stack
-      std::map<int, std::vector<RingBondInfo> > m_ringBonds; //!< atom index -> RingBondInfo
-      std::vector<ChiralInfo> m_chiralInfo; //!< atom index -> ChiralInfo
-      std::vector<bool> m_aromaticAtoms; //!< atom index -> aromatic
-      int m_index; //!< current atom index
-      int m_prev; // !< previous atom index (-1 for none)
-      int m_exceptions;
+      std::vector<State> m_states;
   };
 
 }

@@ -469,6 +469,8 @@ namespace Helium {
    * Perform a subgraph isomorphism search for the specified query in the
    * molecule.
    *
+   * @note This function only works for single component queries.
+   *
    * @param mol The molecule (queried).
    * @param atom The first atom to be matched against query atom 0.
    * @param query The query.
@@ -496,6 +498,8 @@ namespace Helium {
   /**
    * Perform a subgraph isomorphism search for the specified query in the
    * molecule.
+   *
+   * @note This function only works for single component queries.
    *
    * @param mol The molecule (queried).
    * @param query The query.

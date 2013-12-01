@@ -27,58 +27,75 @@ void print_smarts(const std::string &smarts)
       errorStream << "^";
     errorStream << std::endl;
 
-    // Throw new exception with added details ...
-    throw Smiley::Exception(e.type(), e.errorCode(),
-        errorStream.str(), e.pos(), e.length());
+    std::cerr << errorStream.str();
   }
 }
 
+void test_parser_error()
+{
+  Smarts smarts;
+  ASSERT(smarts.init("C"));
+  ASSERT(smarts.error().type() == Smiley::Exception::NoError);
+
+  ASSERT(!smarts.init("gsfsf"));
+  std::cout << smarts.error().what() << std::endl;
+}
 
 void test_organic_subset()
 {
   // AE_AliphaticElement
-  Smarts smarts1("C");
+  Smarts smarts1;
+  smarts1.init("C");
   COMPARE(Smiley::AE_AliphaticElement, smarts1.trees().atom(0)->type);
   COMPARE(6, smarts1.trees().atom(0)->value);
-  Smarts smarts3("O");
+  Smarts smarts3;
+  smarts3.init("O");
   COMPARE(Smiley::AE_AliphaticElement, smarts3.trees().atom(0)->type);
   COMPARE(8, smarts3.trees().atom(0)->value);
 
   // AE_AromaticElement
-  Smarts smarts2("c");
+  Smarts smarts2;
+  smarts2.init("c");
   COMPARE(Smiley::AE_AromaticElement, smarts2.trees().atom(0)->type);
   COMPARE(6, smarts2.trees().atom(0)->value);
-  Smarts smarts4("o");
+  Smarts smarts4;
+  smarts4.init("o");
   COMPARE(Smiley::AE_AromaticElement, smarts4.trees().atom(0)->type);
   COMPARE(8, smarts4.trees().atom(0)->value);
 
   // AE_Aliphatic
-  Smarts smarts5("A");
+  Smarts smarts5;
+  smarts5.init("A");
   COMPARE(Smiley::AE_Aliphatic, smarts5.trees().atom(0)->type);
 
   // AE_Aromatic
-  Smarts smarts6("a");
+  Smarts smarts6;
+  smarts6.init("a");
   COMPARE(Smiley::AE_Aromatic, smarts6.trees().atom(0)->type);
 }
 
 void test_cyclic()
 {
   // AE_Cyclic
-  Smarts smarts1("[R]");
+  Smarts smarts1;
+  smarts1.init("[R]");
   COMPARE(Smiley::AE_Cyclic, smarts1.trees().atom(0)->type);
 
-  Smarts smarts3("[r]");
+  Smarts smarts3;
+  smarts3.init("[r]");
   COMPARE(Smiley::AE_Cyclic, smarts3.trees().atom(0)->type);
 
   // AE_Acyclic
-  Smarts smarts2("[R0]");
+  Smarts smarts2;
+  smarts2.init("[R0]");
   COMPARE(Smiley::AE_Acyclic, smarts2.trees().atom(0)->type);
 }
 
 void test_isotope()
 {
   // AE_Isotope
-  Smarts smarts1("[13]");
+  Smarts smarts1;
+  smarts1.init("[13]");
   COMPARE(Smiley::AE_Isotope, smarts1.trees().atom(0)->type);
   COMPARE(13, smarts1.trees().atom(0)->value);
 }
@@ -86,7 +103,8 @@ void test_isotope()
 void test_atomic_number()
 {
   // AE_AtomicNumber
-  Smarts smarts1("[#7]");
+  Smarts smarts1;
+  smarts1.init("[#7]");
   COMPARE(Smiley::AE_AtomicNumber, smarts1.trees().atom(0)->type);
   COMPARE(7, smarts1.trees().atom(0)->value);
 }
@@ -94,11 +112,13 @@ void test_atomic_number()
 void test_degree()
 {
   // AE_Degree
-  Smarts smarts1("[D]");
+  Smarts smarts1;
+  smarts1.init("[D]");
   COMPARE(Smiley::AE_Degree, smarts1.trees().atom(0)->type);
   COMPARE(1, smarts1.trees().atom(0)->value);
 
-  Smarts smarts2("[D3]");
+  Smarts smarts2;
+  smarts2.init("[D3]");
   COMPARE(Smiley::AE_Degree, smarts2.trees().atom(0)->type);
   COMPARE(3, smarts2.trees().atom(0)->value);
 }
@@ -106,11 +126,13 @@ void test_degree()
 void test_valence()
 {
   // AE_Valence
-  Smarts smarts1("[v]");
+  Smarts smarts1;
+  smarts1.init("[v]");
   COMPARE(Smiley::AE_Valence, smarts1.trees().atom(0)->type);
   COMPARE(1, smarts1.trees().atom(0)->value);
 
-  Smarts smarts2("[v3]");
+  Smarts smarts2;
+  smarts2.init("[v3]");
   COMPARE(Smiley::AE_Valence, smarts2.trees().atom(0)->type);
   COMPARE(3, smarts2.trees().atom(0)->value);
 }
@@ -118,11 +140,13 @@ void test_valence()
 void test_connectivity()
 {
   // AE_Connectivity
-  Smarts smarts1("[X]");
+  Smarts smarts1;
+  smarts1.init("[X]");
   COMPARE(Smiley::AE_Connectivity, smarts1.trees().atom(0)->type);
   COMPARE(1, smarts1.trees().atom(0)->value);
 
-  Smarts smarts2("[X3]");
+  Smarts smarts2;
+  smarts2.init("[X3]");
   COMPARE(Smiley::AE_Connectivity, smarts2.trees().atom(0)->type);
   COMPARE(3, smarts2.trees().atom(0)->value);
 }
@@ -130,11 +154,13 @@ void test_connectivity()
 void test_total_h()
 {
   // AE_TotalH
-  Smarts smarts1("[H]");
+  Smarts smarts1;
+  smarts1.init("[H]");
   COMPARE(Smiley::AE_TotalH, smarts1.trees().atom(0)->type);
   COMPARE(1, smarts1.trees().atom(0)->value);
 
-  Smarts smarts2("[H3]");
+  Smarts smarts2;
+  smarts2.init("[H3]");
   COMPARE(Smiley::AE_TotalH, smarts2.trees().atom(0)->type);
   COMPARE(3, smarts2.trees().atom(0)->value);
 }
@@ -142,11 +168,13 @@ void test_total_h()
 void test_implicit_h()
 {
   // AE_ImplicitH
-  Smarts smarts1("[h]");
+  Smarts smarts1;
+  smarts1.init("[h]");
   COMPARE(Smiley::AE_ImplicitH, smarts1.trees().atom(0)->type);
   COMPARE(-1, smarts1.trees().atom(0)->value); // >= h1
 
-  Smarts smarts2("[h3]");
+  Smarts smarts2;
+  smarts2.init("[h3]");
   COMPARE(Smiley::AE_ImplicitH, smarts2.trees().atom(0)->type);
   COMPARE(3, smarts2.trees().atom(0)->value);
 }
@@ -154,11 +182,13 @@ void test_implicit_h()
 void test_ring_membership()
 {
   // AE_RingMembership
-  Smarts smarts1("[R1]");
+  Smarts smarts1;
+  smarts1.init("[R1]");
   COMPARE(Smiley::AE_RingMembership, smarts1.trees().atom(0)->type);
   COMPARE(1, smarts1.trees().atom(0)->value);
 
-  Smarts smarts2("[R2]");
+  Smarts smarts2;
+  smarts2.init("[R2]");
   COMPARE(Smiley::AE_RingMembership, smarts2.trees().atom(0)->type);
   COMPARE(2, smarts2.trees().atom(0)->value);
 }
@@ -166,11 +196,13 @@ void test_ring_membership()
 void test_ring_size()
 {
   // AE_RingSize
-  Smarts smarts1("[r3]");
+  Smarts smarts1;
+  smarts1.init("[r3]");
   COMPARE(Smiley::AE_RingSize, smarts1.trees().atom(0)->type);
   COMPARE(3, smarts1.trees().atom(0)->value);
 
-  Smarts smarts2("[r6]");
+  Smarts smarts2;
+  smarts2.init("[r6]");
   COMPARE(Smiley::AE_RingSize, smarts2.trees().atom(0)->type);
   COMPARE(6, smarts2.trees().atom(0)->value);
 }
@@ -178,11 +210,13 @@ void test_ring_size()
 void test_ring_connectivity()
 {
   // AE_RingConnectivity
-  Smarts smarts1("[x]");
+  Smarts smarts1;
+  smarts1.init("[x]");
   COMPARE(Smiley::AE_RingConnectivity, smarts1.trees().atom(0)->type);
   COMPARE(-1, smarts1.trees().atom(0)->value); // >= x1
 
-  Smarts smarts2("[x3]");
+  Smarts smarts2;
+  smarts2.init("[x3]");
   COMPARE(Smiley::AE_RingConnectivity, smarts2.trees().atom(0)->type);
   COMPARE(3, smarts2.trees().atom(0)->value);
 }
@@ -190,19 +224,23 @@ void test_ring_connectivity()
 void test_charge()
 {
   // AE_Charge
-  Smarts smarts1("[-]");
+  Smarts smarts1;
+  smarts1.init("[-]");
   COMPARE(Smiley::AE_Charge, smarts1.trees().atom(0)->type);
   COMPARE(-1, smarts1.trees().atom(0)->value);
 
-  Smarts smarts2("[-3]");
+  Smarts smarts2;
+  smarts2.init("[-3]");
   COMPARE(Smiley::AE_Charge, smarts2.trees().atom(0)->type);
   COMPARE(-3, smarts2.trees().atom(0)->value);
 
-  Smarts smarts3("[+]");
+  Smarts smarts3;
+  smarts3.init("[+]");
   COMPARE(Smiley::AE_Charge, smarts3.trees().atom(0)->type);
   COMPARE(1, smarts3.trees().atom(0)->value);
 
-  Smarts smarts4("[+2]");
+  Smarts smarts4;
+  smarts4.init("[+2]");
   COMPARE(Smiley::AE_Charge, smarts4.trees().atom(0)->type);
   COMPARE(2, smarts4.trees().atom(0)->value);
 }
@@ -215,18 +253,21 @@ void test_chirality()
 void test_atom_class()
 {
   // AE_AtomClass
-  Smarts smarts1("[:2]");
+  Smarts smarts1;
+  smarts1.init("[:2]");
   COMPARE(Smiley::AE_AtomClass, smarts1.trees().atom(0)->type);
   COMPARE(2, smarts1.trees().atom(0)->value);
 
-  Smarts smarts2("[:5]");
+  Smarts smarts2;
+  smarts2.init("[:5]");
   COMPARE(Smiley::AE_AtomClass, smarts2.trees().atom(0)->type);
   COMPARE(5, smarts2.trees().atom(0)->value);
 }
 
 void test_atom_not()
 {
-  Smarts smarts("[!C!N]");
+  Smarts smarts;
+  smarts.init("[!C!N]");
 
   impl::SmartsAtomExpr *root = smarts.trees().atom(0);
 
@@ -241,7 +282,8 @@ void test_atom_not()
 
 void test_atom_and_or_complex()
 {
-  Smarts smarts("[13C,13C;13C,13C]");
+  Smarts smarts;
+  smarts.init("[13C,13C;13C,13C]");
 
   impl::SmartsAtomExpr *root = smarts.trees().atom(0);
 
@@ -268,11 +310,13 @@ void test_atom_and_or_complex()
 void test_implicit_bonds()
 {
   // implicit BE_Single
-  Smarts smarts1("CC");
+  Smarts smarts1;
+  smarts1.init("CC");
   COMPARE(Smiley::BE_Single, smarts1.trees().bond(0)->type);
 
   // implicit BE_Single or BE_Aromatic
-  Smarts smarts2("cc");
+  Smarts smarts2;
+  smarts2.init("cc");
   impl::SmartsBondExpr *root = smarts2.trees().bond(0);
   COMPARE(Smiley::OP_Or, root->type);
   COMPARE(Smiley::BE_Single, root->left->type);
@@ -282,48 +326,59 @@ void test_implicit_bonds()
 void test_bonds()
 {
   // BE_Single
-  Smarts smarts1("C-C");
+  Smarts smarts1;
+  smarts1.init("C-C");
   COMPARE(Smiley::BE_Single, smarts1.trees().bond(0)->type);
 
   // BE_Double
-  Smarts smarts2("C=C");
+  Smarts smarts2;
+  smarts2.init("C=C");
   COMPARE(Smiley::BE_Double, smarts2.trees().bond(0)->type);
 
   // BE_Triple
-  Smarts smarts3("C#C");
+  Smarts smarts3;
+  smarts3.init("C#C");
   COMPARE(Smiley::BE_Triple, smarts3.trees().bond(0)->type);
 
   // BE_Quadriple
-  Smarts smarts4("C$C");
+  Smarts smarts4;
+  smarts4.init("C$C");
   COMPARE(Smiley::BE_Quadriple, smarts4.trees().bond(0)->type);
 
   // BE_Aromatic
-  Smarts smarts5("c:c");
+  Smarts smarts5;
+  smarts5.init("c:c");
   COMPARE(Smiley::BE_Aromatic, smarts5.trees().bond(0)->type);
 
   // BE_Up
-  Smarts smarts6("C/C");
+  Smarts smarts6;
+  smarts6.init("C/C");
   COMPARE(Smiley::BE_Up, smarts6.trees().bond(0)->type);
 
   // BE_Down
-  Smarts smarts7("C\\C");
+  Smarts smarts7;
+  smarts7.init("C\\C");
   COMPARE(Smiley::BE_Down, smarts7.trees().bond(0)->type);
 
   // BE_Ring
-  Smarts smarts8("C@C");
+  Smarts smarts8;
+  smarts8.init("C@C");
   COMPARE(Smiley::BE_Ring, smarts8.trees().bond(0)->type);
 
   // BE_Any
-  Smarts smarts9("C~C");
+  Smarts smarts9;
+  smarts9.init("C~C");
   COMPARE(Smiley::BE_Any, smarts9.trees().bond(0)->type);
 
   // multiple bonds
-  Smarts smarts10("C-C=C#C");
+  Smarts smarts10;
+  smarts10.init("C-C=C#C");
   COMPARE(Smiley::BE_Single, smarts10.trees().bond(0)->type);
   COMPARE(Smiley::BE_Double, smarts10.trees().bond(1)->type);
   COMPARE(Smiley::BE_Triple, smarts10.trees().bond(2)->type);
 
-  Smarts smarts11("[C]-[C]=[C]#[C]");
+  Smarts smarts11;
+  smarts11.init("[C]-[C]=[C]#[C]");
   COMPARE(Smiley::BE_Single, smarts11.trees().bond(0)->type);
   COMPARE(Smiley::BE_Double, smarts11.trees().bond(1)->type);
   COMPARE(Smiley::BE_Triple, smarts11.trees().bond(2)->type);
@@ -331,7 +386,8 @@ void test_bonds()
 
 void test_bond_not()
 {
-  Smarts smarts("C!-!=C");
+  Smarts smarts;
+  smarts.init("C!-!=C");
 
   impl::SmartsBondExpr *root = smarts.trees().bond(0);
 
@@ -346,7 +402,8 @@ void test_bond_not()
 
 void test_bond_and_or_complex()
 {
-  Smarts smarts("C-@,=@C");
+  Smarts smarts;
+  smarts.init("C-@,=@C");
 
   impl::SmartsBondExpr *root = smarts.trees().bond(0);
 
@@ -363,13 +420,15 @@ void test_bond_and_or_complex()
 
 void test_bond_ring()
 {
-  Smarts smarts1("C1CC-,=1");
+  Smarts smarts1;
+  smarts1.init("C1CC-,=1");
   impl::SmartsBondExpr *root = smarts1.trees().bond(2);
   COMPARE(Smiley::OP_Or, root->type);
   COMPARE(Smiley::BE_Double, root->left->type);
   COMPARE(Smiley::BE_Single, root->right->type);
 
-  Smarts smarts2("C-,=1CC1");
+  Smarts smarts2;
+  smarts2.init("C-,=1CC1");
   root = smarts2.trees().bond(2);
   COMPARE(Smiley::OP_Or, root->type);
   COMPARE(Smiley::BE_Double, root->left->type);
@@ -379,7 +438,12 @@ void test_bond_ring()
 void test_smarts_match(const std::string &smarts, const std::string &smiles, bool expected = true)
 {
   std::cout << "Testing: " << smarts << " in " << smiles << std::endl;
-  Smarts s(smarts);
+  Smarts s;
+  if (!s.init(smarts)) {
+    std::cerr << s.error().what();
+    return;
+  }
+
   HeMol mol = hemol_from_smiles(smiles);
   RingSet<HeMol> rings = relevant_cycles(mol);
 
@@ -792,14 +856,156 @@ void test_daylight_examples()
   test_smarts_match("[C,c]=,#[C,c]", "C=O", false);
 }
 
+void test_complex()
+{
+  test_smarts_match("C(=O)N", "c1cc(CC(=O)NC)ccc1");
+}
+
+void test_disconnected()
+{
+  test_smarts_match("C.O", "CO");
+  test_smarts_match("C.O", "CC", false);
+}
+
+void test_disconnected_mapping1()
+{
+  // index:   01 23 45
+  // SMARTS:  CO.CN.CF
+  // SMILES:  CN.CF.CO
+
+  std::cout << "Testing: CO.CN.CF in CN.CF.CO" << std::endl;
+  Smarts s;
+  s.init("CO.CN.CF");
+  HeMol mol = hemol_from_smiles("CN.CF.CO");
+  RingSet<HeMol> rings = relevant_cycles(mol);
+
+  // perform match
+  MappingList mappings;
+  ASSERT(s.search(mol, mappings, rings));
+
+  // check mapping
+  COMPARE(1, mappings.maps.size());
+  const IsomorphismMapping &map = mappings.maps[0];
+
+  COMPARE(4, map[0]);
+  COMPARE(5, map[1]);
+  COMPARE(0, map[2]);
+  COMPARE(1, map[3]);
+  COMPARE(2, map[4]);
+  COMPARE(3, map[5]);
+}
+
+void test_disconnected_mapping2()
+{
+  // index:   01 23 45
+  // SMARTS:  CO.CO.CC
+  // SMILES:  OCCCCCO
+  // index:   0123456
+
+  std::cout << "Testing: CO.CO.CC in OCCCCO" << std::endl;
+  Smarts s;
+  s.init("CO.CO.CC");
+  HeMol mol = hemol_from_smiles("OCCCCCO");
+  RingSet<HeMol> rings = relevant_cycles(mol);
+
+  // perform match
+  MappingList mappings;
+  ASSERT(s.search(mol, mappings, rings));
+
+  // check mapping
+  COMPARE(4, mappings.maps.size());
+
+  const IsomorphismMapping &map1 = mappings.maps[0];
+  COMPARE(1, map1[0]);
+  COMPARE(0, map1[1]);
+  COMPARE(5, map1[2]);
+  COMPARE(6, map1[3]);
+  COMPARE(2, map1[4]);
+  COMPARE(3, map1[5]);
+
+  const IsomorphismMapping &map2 = mappings.maps[1];
+  COMPARE(1, map2[0]);
+  COMPARE(0, map2[1]);
+  COMPARE(5, map2[2]);
+  COMPARE(6, map2[3]);
+  COMPARE(3, map2[4]);
+  COMPARE(4, map2[5]);
+
+  const IsomorphismMapping &map3 = mappings.maps[2];
+  COMPARE(5, map3[0]);
+  COMPARE(6, map3[1]);
+  COMPARE(1, map3[2]);
+  COMPARE(0, map3[3]);
+  COMPARE(2, map3[4]);
+  COMPARE(3, map3[5]);
+
+  const IsomorphismMapping &map4 = mappings.maps[3];
+  COMPARE(5, map4[0]);
+  COMPARE(6, map4[1]);
+  COMPARE(1, map4[2]);
+  COMPARE(0, map4[3]);
+  COMPARE(3, map4[4]);
+  COMPARE(4, map4[5]);
+}
+
+void test_recursive_parsing()
+{
+  Smarts smarts;
+  smarts.init("[R,$(CCO),N]");
+
+  COMPARE(1, num_atoms(smarts.query()));
+  COMPARE(1, smarts.trees().atoms().size());
+  COMPARE(1, smarts.recursiveMols().size());
+  COMPARE(1, smarts.recursiveTrees().size());
+
+  impl::SmartsAtomExpr *root = smarts.trees().atom(0);
+  COMPARE(Smiley::OP_Or, root->type);
+  COMPARE(Smiley::AE_Cyclic, root->right->type);
+  COMPARE(Smiley::OP_Or, root->left->type);
+  COMPARE(Smiley::AE_AliphaticElement, root->left->left->type);
+  COMPARE(Smiley::AE_Recursive, root->left->right->type);
+  COMPARE(0, root->left->right->value);
+
+  COMPARE(3, num_atoms(smarts.recursiveMols()[0]));
+  COMPARE(3, smarts.recursiveTrees()[0].atoms().size());
+}
+
+void test_recursive()
+{
+  test_smarts_match("[$(*O);$(*N)]", "OCN");
+  test_smarts_match("[$(*O);$(*N)]", "OCO", false);
+  test_smarts_match("[$(*O);$(*N)]", "NCN", false);
+
+  // CaaO  C ortho to O
+  test_smarts_match("CaaO", "Cc1c(O)cccc1"); // ortho
+  test_smarts_match("CaaO", "Cc1cc(O)ccc1", false); // meta
+  test_smarts_match("CaaO", "Cc1ccc(O)cc1", false); // para
+
+  // CaaaN       C meta to N
+  test_smarts_match("CaaaN", "Cc1c(N)cccc1", false); // ortho
+  test_smarts_match("CaaaN", "Cc1cc(N)ccc1"); // meta
+  test_smarts_match("CaaaN", "Cc1ccc(N)cc1", false); // para
+
+  // Caa(O)aN    C ortho to O and meta to N (but 2O,3N only)
+  test_smarts_match("Caa(O)aN", "Cc1c(O)c(N)ccc1"); // 2O,3N
+  test_smarts_match("Caa(O)aN", "Cc1c(O)ccc(N)c1", false); // 2O,5N
+
+  // Ca(aO)aaN   C ortho to O and meta to N (but 2O,5N only)
+  test_smarts_match("Ca(aO)aaN", "Cc1c(O)c(N)ccc1", false); // 2O,3N
+  test_smarts_match("Ca(aO)aaN", "Cc1c(O)ccc(N)c1"); // 2O,5N
+
+  // C[$(aaO);$(aaaN)]   C ortho to O and meta to N (all cases)
+  test_smarts_match("C[$(aaO);$(aaaN)]", "Cc1c(O)c(N)ccc1"); // 2O,3N
+  test_smarts_match("C[$(aaO);$(aaaN)]", "Cc1c(O)ccc(N)c1"); // 2O,5N
+}
+
 int main()
 {
-  print_smarts("*");
-  //print_smarts("C1CC=1");
-
   //
   // Parsing
   //
+
+  test_parser_error();
 
   // atoms
   test_organic_subset();
@@ -839,8 +1045,25 @@ int main()
   test_simple_bond_match();
   test_bond_operators();
 
+
   //
   // Complex matching
   //
   test_daylight_examples();
+  test_complex();
+
+  //
+  // Disconnected SMARTS
+  //
+  test_disconnected();
+  test_disconnected_mapping1();
+  test_disconnected_mapping2();
+
+  //
+  // Recursive SMARTS
+  //
+  test_recursive_parsing();
+  test_recursive();
+
+  //print_smarts("[A$(CCC)R]");
 }

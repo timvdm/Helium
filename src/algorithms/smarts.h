@@ -34,8 +34,6 @@
 #include <Helium/algorithms/isomorphism.h>
 #include <Helium/algorithms/components.h>
 
-#include <Helium/smiles.h> // FIXME remove debug
-
 #include <smiley.h>
 
 namespace Helium {
@@ -105,6 +103,8 @@ namespace Helium {
         ~SmartsTrees();
 
         SmartsTrees& operator=(const SmartsTrees &other);
+
+        void clear();
 
         void addAtom(SmartsAtomExpr *expr)
         {
@@ -354,29 +354,23 @@ namespace Helium {
       bool init(const std::string &smarts);
 
       /**
-       * @brief Get the molecule for the specified component.
+       * @brief Get the query molecule.
        *
-       * @param index The component index.
-       *
-       * @return The molecule for the component.
+       * @return The query molecule.
        */
-      const HeMol& query(std::size_t index = 0) const
+      const HeMol& query() const
       {
-        assert(m_query.size() == 1);
-        return m_query[index];
+        return m_query;
       }
 
       /**
-       * @brief Get the SMARTS expression trees for the specified component.
+       * @brief Get the SMARTS expression trees.
        *
-       * @param index The component index.
-       *
-       * @return The SMARTS expression trees for the component.
+       * @return The SMARTS expression trees.
        */
-      const impl::SmartsTrees& trees(std::size_t index = 0) const
+      const impl::SmartsTrees& trees() const
       {
-        assert(m_trees.size() == 1);
-        return m_trees[index];
+        return m_trees;
       }
 
       /**
@@ -447,12 +441,14 @@ namespace Helium {
       }
 
     private:
-      std::vector<HeMol> m_query; //!< The query components
-      std::vector<impl::SmartsTrees> m_trees; //!< The SMARTS component expression trees
+      HeMol m_query; //!< The query
+      impl::SmartsTrees m_trees; //!< The SMARTS expression trees
+      std::vector<HeMol> m_components; //!< The query components
+      std::vector<impl::SmartsTrees> m_componentTrees; //!< The SMARTS component expression trees
       std::vector<HeMol> m_recursiveMols; //!< The recursive molecules
       std::vector<impl::SmartsTrees> m_recursiveTrees; //!< The recursive expression trees
-      std::vector<std::vector<Index> > m_atomMaps; //!< m_query atom index to original smarts index
-      //std::vector<std::vector<Index> > m_bondMaps; //!< m_query bond index to original smarts index
+      std::vector<std::vector<Index> > m_atomMaps; //!< m_components atom index to original smarts index
+      //std::vector<std::vector<Index> > m_bondMaps; //!< m_components bond index to original smarts index
       Smiley::Exception m_error;
   };
 
@@ -498,25 +494,25 @@ namespace Helium {
   template<typename MoleculeType, typename MappingType>
   bool Smarts::search(MoleculeType &mol, MappingType &mapping, const RingSet<MoleculeType> &rings)
   {
-    if (m_query.empty())
+    if (m_components.empty())
       return false;
 
-    if (m_query.size() == 1) {
+    if (m_components.size() == 1) {
       // simple case: single SMARTS fragment
-      impl::SmartsAtomMatcher<HeMol, MoleculeType> atomMatcher(m_trees[0].atoms(),
+      impl::SmartsAtomMatcher<HeMol, MoleculeType> atomMatcher(m_componentTrees[0].atoms(),
           rings, m_recursiveMols, m_recursiveTrees);
-      impl::SmartsBondMatcher<HeMol, MoleculeType> bondMatcher(m_trees[0].bonds(), rings);
-      return isomorphism_search(mol, m_query[0], mapping, atomMatcher, bondMatcher);
+      impl::SmartsBondMatcher<HeMol, MoleculeType> bondMatcher(m_componentTrees[0].bonds(), rings);
+      return isomorphism_search(mol, m_components[0], mapping, atomMatcher, bondMatcher);
     } else {
       // match each fragment seperatly and store results in mappings
       int numQueryAtoms = 0;
-      std::vector<MappingList> mappings(m_query.size());
-      for (std::size_t i = 0; i < m_query.size(); ++i) {
-        numQueryAtoms += num_atoms(m_query[i]);
-        impl::SmartsAtomMatcher<HeMol, MoleculeType> atomMatcher(m_trees[i].atoms(),
+      std::vector<MappingList> mappings(m_components.size());
+      for (std::size_t i = 0; i < m_components.size(); ++i) {
+        numQueryAtoms += num_atoms(m_components[i]);
+        impl::SmartsAtomMatcher<HeMol, MoleculeType> atomMatcher(m_componentTrees[i].atoms(),
             rings, m_recursiveMols, m_recursiveTrees);
-        impl::SmartsBondMatcher<HeMol, MoleculeType> bondMatcher(m_trees[i].bonds(), rings);
-        if (!isomorphism_search(mol, m_query[i], mappings[i], atomMatcher, bondMatcher))
+        impl::SmartsBondMatcher<HeMol, MoleculeType> bondMatcher(m_componentTrees[i].bonds(), rings);
+        if (!isomorphism_search(mol, m_components[i], mappings[i], atomMatcher, bondMatcher))
           return false;
       }
 

@@ -44,10 +44,7 @@ namespace Helium {
 
     SmartsTrees::~SmartsTrees()
     {
-      for (std::size_t i = 0; i < m_atoms.size(); ++i)
-        cleanup(m_atoms[i]);
-      for (std::size_t i = 0; i < m_bonds.size(); ++i)
-        cleanup(m_bonds[i]);
+      clear();
     }
 
     SmartsTrees& SmartsTrees::operator=(const SmartsTrees &other)
@@ -57,6 +54,16 @@ namespace Helium {
       for (std::size_t i = 0; i < other.m_bonds.size(); ++i)
         m_bonds.push_back(copy(other.m_bonds[i]));
       return *this;
+    }
+
+    void SmartsTrees::clear()
+    {
+      for (std::size_t i = 0; i < m_atoms.size(); ++i)
+        cleanup(m_atoms[i]);
+      for (std::size_t i = 0; i < m_bonds.size(); ++i)
+        cleanup(m_bonds[i]);
+      m_atoms.clear();
+      m_bonds.clear();
     }
 
     SmartsAtomExpr* SmartsTrees::copy(SmartsAtomExpr *expr)
@@ -460,17 +467,18 @@ namespace Helium {
   {
     // clear error, ...
     m_error = Smiley::Exception();
+
     m_query.clear();
     m_trees.clear();
+    m_components.clear();
+    m_componentTrees.clear();
+    m_recursiveMols.clear();
+    m_recursiveTrees.clear();
     m_atomMaps.clear();
     //m_bondMaps.clear();
 
-    // needed for SMARTS parser callback
-    HeMol query;
-    impl::SmartsTrees trees;
-
     // create SMARTS parser callback
-    impl::SmartsCallback callback(query, trees, m_recursiveMols, m_recursiveTrees);
+    impl::SmartsCallback callback(m_query, m_trees, m_recursiveMols, m_recursiveTrees);
     // create the parser
     Smiley::Parser<impl::SmartsCallback> parser(callback, Smiley::Parser<impl::SmartsCallback>::SmartsMode);
 
@@ -498,17 +506,17 @@ namespace Helium {
       return false;
     }
 
-    int numComponents = num_connected_components(query);
+    int numComponents = num_connected_components(m_query);
 
     if (numComponents <= 1) {
-      m_query.push_back(query);
-      m_trees.push_back(trees);
+      m_components.push_back(m_query);
+      m_componentTrees.push_back(m_trees);
     } else {
       m_atomMaps.resize(numComponents);
       //m_bondMaps.resize(numComponents);
 
-      std::vector<unsigned int> atomComponents = connected_atom_components(query);
-      std::vector<unsigned int> bondComponents = connected_bond_components(query);
+      std::vector<unsigned int> atomComponents = connected_atom_components(m_query);
+      std::vector<unsigned int> bondComponents = connected_bond_components(m_query);
 
       for (unsigned int c = 0; c < numComponents; ++c) {
         m_atomMaps[c].resize(std::count(atomComponents.begin(), atomComponents.end(), c));
@@ -517,36 +525,36 @@ namespace Helium {
         HeMol q;
         impl::SmartsTrees t;
 
-        // original smarts index to m_query index
+        // original smarts index to m_components index
         std::map<Index, Index> reverseAtomMap;
 
         Index index = 0;
-        for (Index i = 0; i < num_atoms(query); ++i) {
+        for (Index i = 0; i < num_atoms(m_query); ++i) {
           if (atomComponents[i] == c) {
             reverseAtomMap[i] = index;
             m_atomMaps[c][index++] = i;
             q.addAtom();
-            t.addAtom(trees.copy(trees.atom(i)));
+            t.addAtom(m_trees.copy(m_trees.atom(i)));
           }
         }
 
         //index = 0;
-        for (Index i = 0; i < num_bonds(query); ++i) {
+        for (Index i = 0; i < num_bonds(m_query); ++i) {
           if (bondComponents[i] == c) {
             //m_bondMaps[c][index++] = i;
-            molecule_traits<HeMol>::bond_type bond = get_bond(query, i);
-            molecule_traits<HeMol>::atom_type source = get_atom(q, reverseAtomMap[get_index(query, get_source(query, bond))]);
-            molecule_traits<HeMol>::atom_type target = get_atom(q, reverseAtomMap[get_index(query, get_target(query, bond))]);
+            molecule_traits<HeMol>::bond_type bond = get_bond(m_query, i);
+            molecule_traits<HeMol>::atom_type source = get_atom(q, reverseAtomMap[get_index(m_query, get_source(m_query, bond))]);
+            molecule_traits<HeMol>::atom_type target = get_atom(q, reverseAtomMap[get_index(m_query, get_target(m_query, bond))]);
             q.addBond(source, target);
-            t.addBond(trees.copy(trees.bond(i)));
+            t.addBond(m_trees.copy(m_trees.bond(i)));
           }
         }
 
         assert(num_atoms(q) == t.atoms().size());
         assert(num_bonds(q) == t.bonds().size());
 
-        m_query.push_back(q);
-        m_trees.push_back(t);
+        m_components.push_back(q);
+        m_componentTrees.push_back(t);
       }
     }
 
@@ -580,25 +588,8 @@ namespace Helium {
 
   int Smarts::atomClass(Index index) const
   {
-    std::size_t fragment = 0;
-
-    for (std::size_t i = 0; i < m_atomMaps.size(); ++i) {
-      bool found = false;
-      for (std::size_t j = 0; j < m_atomMaps[i].size(); ++j) {
-        if (m_atomMaps[i][j] == index) {
-          fragment = i;
-          index = j;
-          break;
-        }
-      }
-
-      if (found)
-        break;
-    }
-
-    assert(fragment < m_trees.size());
-    assert(index < m_trees[fragment].atoms().size());
-    return impl::extract_atom_class(m_trees[fragment].atom(index));
+    assert(index < num_atoms(m_query));
+    return impl::extract_atom_class(m_trees.atom(index));
   }
 
 }

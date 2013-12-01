@@ -74,6 +74,7 @@ set(Helium_SRCS
   hemol.cpp
   fileio/file.cpp
   thirdparty/jsoncpp/jsoncpp.cpp
+  algorithms/smarts.cpp
 )
 
 # Helium library

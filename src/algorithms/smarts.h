@@ -337,43 +337,108 @@ namespace Helium {
 
   }
 
+  /**
+   * @brief Class for matching SMARTS.
+   *
+   */
   class Smarts
   {
     public:
+      /**
+       * @brief Initialize with the specified SMARTS.
+       *
+       * @param smarts The SMARTS string.
+       *
+       * @return True when succesfull. Use error() when false is returned.
+       */
       bool init(const std::string &smarts);
 
+      /**
+       * @brief Get the molecule for the specified component.
+       *
+       * @param index The component index.
+       *
+       * @return The molecule for the component.
+       */
       const HeMol& query(std::size_t index = 0) const
       {
         assert(m_query.size() == 1);
         return m_query[index];
       }
 
+      /**
+       * @brief Get the SMARTS expression trees for the specified component.
+       *
+       * @param index The component index.
+       *
+       * @return The SMARTS expression trees for the component.
+       */
       const impl::SmartsTrees& trees(std::size_t index = 0) const
       {
         assert(m_trees.size() == 1);
         return m_trees[index];
       }
 
+      /**
+       * @brief Get the list of recursive molecules.
+       *
+       * These are the molecules for the recursive SMARTS (i.e. $(...))
+       * encountered in the SMARTS.
+       *
+       * @return The list of recursive molecules.
+       */
       const std::vector<HeMol>& recursiveMols() const
       {
         return m_recursiveMols;
       }
 
+      /**
+       * @brief Get the list of recursive SMARTS expression trees.
+       *
+       * These are the SMARTS expression trees for the recursive SMARTS
+       * (i.e. $(...)) encountered in the SMARTS.
+       *
+       * @return The list of recursive SMARTS expression trees.
+       */
       const std::vector<impl::SmartsTrees>& recursiveTrees() const
       {
         return m_recursiveTrees;
       }
 
+      /**
+       * @brief Get the error resulting from calling init().
+       *
+       * @return The parse error.
+       */
       const Smiley::Exception& error() const
       {
         return m_error;
       }
 
+      /**
+       * @brief Get the atom class for an atom in the SMARTS query.
+       *
+       * @param index The index of the atom in the original SMARTS query.
+       *
+       * @return The atom's atom class or -1 if none was specified.
+       */
       int atomClass(Index index) const;
 
+      /**
+       * @brief Perform a SMARTS search on the specified molecule.
+       *
+       * @param mol The queried molecule.
+       * @param mapping The mapping to store the result.
+       * @param rings The ring set (needed for R<n>, r<n>, ...).
+       *
+       * @return True if the SMARTS matches the molecule.
+       */
       template<typename MoleculeType, typename MappingType>
       bool search(MoleculeType &mol, MappingType &mapping, const RingSet<MoleculeType> &rings);
 
+      /**
+       * @overload
+       */
       template<typename MoleculeType>
       bool search(MoleculeType &mol, const RingSet<MoleculeType> &rings)
       {
@@ -382,12 +447,12 @@ namespace Helium {
       }
 
     private:
-      std::vector<HeMol> m_query;
-      std::vector<impl::SmartsTrees> m_trees;
-      std::vector<HeMol> m_recursiveMols;
-      std::vector<impl::SmartsTrees> m_recursiveTrees;
-      std::vector<std::vector<Index> > m_atomMaps; // m_query atom index to original smarts index
-      //std::vector<std::vector<Index> > m_bondMaps; // m_query bond index to original smarts index
+      std::vector<HeMol> m_query; //!< The query components
+      std::vector<impl::SmartsTrees> m_trees; //!< The SMARTS component expression trees
+      std::vector<HeMol> m_recursiveMols; //!< The recursive molecules
+      std::vector<impl::SmartsTrees> m_recursiveTrees; //!< The recursive expression trees
+      std::vector<std::vector<Index> > m_atomMaps; //!< m_query atom index to original smarts index
+      //std::vector<std::vector<Index> > m_bondMaps; //!< m_query bond index to original smarts index
       Smiley::Exception m_error;
   };
 

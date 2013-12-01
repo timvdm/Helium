@@ -40,43 +40,43 @@ namespace Helium {
 
   namespace impl {
 
-    template<typename MoleculeType>
+    template<typename EditableMoleculeType>
     struct SmileyCallback : public Smiley::CallbackBase
     {
-      SmileyCallback(MoleculeType &mol_) : mol(mol_)
+      SmileyCallback(EditableMoleculeType &mol_) : mol(mol_)
       {
       }
 
       void clear()
       {
-        mol.clear();
+        clear_molecule(mol);
       }
 
       void addAtom(int element, bool aromatic, int isotope, int hCount, int charge, int atomClass)
       {
-        typename molecule_traits<MoleculeType>::atom_type atom = mol.addAtom();
-        atom.setElement(element);
-        atom.setAromatic(aromatic);
+        typename molecule_traits<EditableMoleculeType>::atom_type atom = add_atom(mol);
+        set_element(mol, atom, element);
+        set_aromatic(mol, atom, aromatic);
         if (isotope != -1)
-          atom.setMass(isotope);
+          set_mass(mol, atom, isotope);
         else
-          atom.setMass(Element::averageMass(element));
+          set_mass(mol, atom, Element::averageMass(element));
         if (hCount != -1)
-          atom.setHydrogens(hCount);
+          set_hydrogens(mol, atom, hCount);
         else
-          atom.setHydrogens(99);
-        atom.setCharge(charge);
+          set_hydrogens(mol, atom, 99);
+        set_charge(mol, atom, charge);
       }
 
       void addBond(int source, int target, int order, bool isUp, bool isDown)
       {
-        typename molecule_traits<MoleculeType>::bond_type bond = mol.addBond(mol.atom(source), mol.atom(target));
+        typename molecule_traits<EditableMoleculeType>::bond_type bond = add_bond(mol, get_atom(mol, source), get_atom(mol, target));
         if (order == 5)
-          bond.setAromatic(true);
-        bond.setOrder(order);
+          set_aromatic(mol, bond, true);
+        set_order(mol, bond, order);
       }
 
-      MoleculeType &mol;
+      EditableMoleculeType &mol;
     };
 
   }
@@ -84,19 +84,18 @@ namespace Helium {
   /**
    * @brief Parse a SMILES string.
    *
-   * @tparam MoleculeType The type of the molecule, this must be a model of the
-   *         Molecule concept.
+   * @tparam EditableMoleculeType The type of the molecule, this must be a model
+   *         of the EdiatbleMolecule concept.
    *
    * @param smiles The SMILES string.
    * @param mol The molecule.
    */
-  template<typename MoleculeType>
-  void parse_smiles(const std::string &smiles, MoleculeType &mol)
+  template<typename EditableMoleculeType>
+  void parse_smiles(const std::string &smiles, EditableMoleculeType &mol)
   {
-    impl::SmileyCallback<MoleculeType> callback(mol);
-    Smiley::Parser<impl::SmileyCallback<MoleculeType> > parser(callback);
+    impl::SmileyCallback<EditableMoleculeType> callback(mol);
+    Smiley::Parser<impl::SmileyCallback<EditableMoleculeType> > parser(callback);
 
-    //parser.parse(smiles);
     try {
       parser.parse(smiles);
     } catch (Smiley::Exception &e) {
@@ -120,14 +119,14 @@ namespace Helium {
     }
 
     // add hydrogens
-    FOREACH_ATOM (atom, mol, MoleculeType) {
+    FOREACH_ATOM (atom, mol, EditableMoleculeType) {
       if (num_hydrogens(mol, *atom) != 99)
         continue;
       if (!Element::addHydrogens(get_element(mol, *atom)))
         continue;
 
       int explicitH = 0;
-      FOREACH_NBR (nbr, *atom, mol, MoleculeType)
+      FOREACH_NBR (nbr, *atom, mol, EditableMoleculeType)
         if (get_element(mol, *nbr) == 1)
           ++explicitH;
 
@@ -135,9 +134,9 @@ namespace Helium {
       int expValence = Element::valence(get_element(mol, *atom), get_charge(mol, *atom), valence);
       //std::cout << "val: " << valence << "  deg: " << valence << " explH: " << explicitH << std::endl;
       if (expValence > valence - explicitH)
-        (*atom).setHydrogens(expValence - valence);
+        set_hydrogens(mol, *atom, expValence - valence);
       else
-        (*atom).setHydrogens(0);
+        set_hydrogens(mol, *atom, 0);
     }
   }
 

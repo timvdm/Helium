@@ -90,6 +90,40 @@ namespace Helium {
     return atom_type(this, index);
   }
 
+  namespace impl {
+
+    struct SortBondsByDecreasingIndex
+    {
+      template<typename BondType>
+      bool operator()(const BondType &bond1, const BondType &bond2) const
+      {
+        return bond1.index() > bond2.index();
+      }
+    };
+
+  }
+
+  void HeMol::removeAtom(const atom_type &atom)
+  {
+    Index index = atom.index();
+    std::vector<bond_type> bonds = m_adjList[index];
+
+    // remove properties
+    m_adjList.erase(m_adjList.begin() + index);
+    m_atomAromatic.erase(m_atomAromatic.begin() + index);
+    m_element.erase(m_element.begin() + index);
+    m_mass.erase(m_mass.begin() + index);
+    m_hydrogens.erase(m_hydrogens.begin() + index);
+    m_charge.erase(m_charge.begin() + index);
+
+    // sort bonds by decreasing bond index so they can be correctly removed
+    std::sort(bonds.begin(), bonds.end(), impl::SortBondsByDecreasingIndex());
+
+    // remove bonds to removed atom
+    for (std::size_t i = 0; i < bonds.size(); ++i)
+      removeBond(bonds[i]);
+  }
+
   molecule_traits<HeMol>::bond_type HeMol::addBond(const molecule_traits<HeMol>::atom_type &source,
                                                    const molecule_traits<HeMol>::atom_type &target)
   {
@@ -106,6 +140,17 @@ namespace Helium {
     m_adjList[target.index()].push_back(bond);
 
     return bond;
+  }
+
+  void HeMol::removeBond(const bond_type &bond)
+  {
+    Index index = bond.index();
+
+    // remove properties
+    m_source.erase(m_source.begin() + index);
+    m_target.erase(m_target.begin() + index);
+    m_bondAromatic.erase(m_bondAromatic.begin() + index);
+    m_order.erase(m_order.begin() + index);
   }
 
   void HeMol::clear()

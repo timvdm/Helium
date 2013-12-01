@@ -484,7 +484,7 @@ namespace Helium {
   get_bonds(const Substructure<MoleculeType> &mol,
       typename molecule_traits<Substructure<MoleculeType> >::atom_type atom)
   {
-    molecule_traits<HeMol>::incident_iter begin, end;
+    typename molecule_traits<HeMol>::incident_iter begin, end; // <- use of HeMol is intended!!
     TIE(begin, end) = get_bonds(mol.mol(), atom);
     typedef typename molecule_traits<Substructure<MoleculeType> >::incident_iter incident_iter;
     return std::make_pair(incident_iter(&mol, begin, end), incident_iter(&mol, end, end));

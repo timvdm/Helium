@@ -436,8 +436,10 @@ namespace Helium {
       }
 
       atom_type addAtom();
+      void removeAtom(const atom_type &atom);
 
       bond_type addBond(const atom_type &source, const atom_type &target);
+      void removeBond(const bond_type &bond);
 
       void clear();
 
@@ -471,6 +473,12 @@ namespace Helium {
   //
   //////////////////////////////////////////////////////////////////////////////
 
+  template<>
+  inline void clear_molecule<HeMol>(HeMol &mol)
+  {
+    mol.clear();
+  }
+
   /////////////////////////////
   //
   // HeAtoms
@@ -498,6 +506,17 @@ namespace Helium {
     return mol.atom(index);
   }
 
+  template<>
+  inline molecule_traits<HeMol>::atom_type add_atom<HeMol>(HeMol &mol)
+  {
+    return mol.addAtom();
+  }
+
+  template<>
+  inline void remove_atom<HeMol>(HeMol &mol, molecule_traits<HeMol>::atom_type atom)
+  {
+    mol.removeAtom(atom);
+  }
 
   /////////////////////////////
   //
@@ -524,6 +543,20 @@ namespace Helium {
   get_bond<HeMol>(const HeMol &mol, Index index)
   {
     return mol.bond(index);
+  }
+
+  template<>
+  inline molecule_traits<HeMol>::bond_type add_bond<HeMol>(HeMol &mol,
+      molecule_traits<HeMol>::atom_type source,
+      molecule_traits<HeMol>::atom_type target)
+  {
+    return mol.addBond(source, target);
+  }
+
+  template<>
+  inline void remove_bond<HeMol>(HeMol &mol, molecule_traits<HeMol>::bond_type bond)
+  {
+    mol.removeBond(bond);
   }
 
   //////////////////////////////////////////////////////////////////////////////
@@ -563,6 +596,13 @@ namespace Helium {
   }
 
   template<>
+  inline void set_aromatic<HeMol>(HeMol &mol,
+      molecule_traits<HeMol>::atom_type atom, bool value)
+  {
+    atom.setAromatic(value);
+  }
+
+  template<>
   inline int get_element<HeMol>(const HeMol &mol,
       const molecule_traits<HeMol>::atom_type atom)
   {
@@ -570,10 +610,24 @@ namespace Helium {
   }
 
   template<>
+  inline void set_element<HeMol>(HeMol &mol,
+      molecule_traits<HeMol>::atom_type atom, int value)
+  {
+    atom.setElement(value);
+  }
+
+  template<>
   inline int get_mass<HeMol>(const HeMol &mol,
       const molecule_traits<HeMol>::atom_type atom)
   {
     return atom.mass();
+  }
+
+  template<>
+  inline void set_mass<HeMol>(HeMol &mol,
+      molecule_traits<HeMol>::atom_type atom, int value)
+  {
+    atom.setMass(value);
   }
 
   template<>
@@ -591,10 +645,24 @@ namespace Helium {
   }
 
   template<>
+  inline void set_hydrogens<HeMol>(HeMol &mol,
+      molecule_traits<HeMol>::atom_type atom, int value)
+  {
+    atom.setHydrogens(value);
+  }
+
+  template<>
   inline int get_charge<HeMol>(const HeMol &mol,
       const molecule_traits<HeMol>::atom_type atom)
   {
     return atom.charge();
+  }
+
+  template<>
+  inline void set_charge<HeMol>(HeMol &mol,
+      molecule_traits<HeMol>::atom_type atom, int value)
+  {
+    atom.setCharge(value);
   }
 
   //////////////////////////////////////////////////////////////////////////////
@@ -640,10 +708,24 @@ namespace Helium {
   }
 
   template<>
+  inline void set_aromatic<HeMol>(HeMol &mol,
+      molecule_traits<HeMol>::bond_type bond, bool value)
+  {
+    bond.setAromatic(value);
+  }
+
+  template<>
   inline int get_order<HeMol>(const HeMol &mol,
       const molecule_traits<HeMol>::bond_type bond)
   {
     return bond.order();
+  }
+
+  template<>
+  inline void set_order<HeMol>(HeMol &mol,
+      molecule_traits<HeMol>::bond_type bond, int value)
+  {
+    bond.setOrder(value);
   }
 
   template<>

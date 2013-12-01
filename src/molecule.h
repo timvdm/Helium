@@ -261,6 +261,14 @@ namespace Helium {
   //
   //////////////////////////////////////////////////////////////////////////////
 
+  /**
+   * @brief Clear the molecule (i.e. remove all atoms/bonds).
+   *
+   * @param mol The molecule.
+   */
+  template<typename EditableMoleculeType>
+  void clear_molecule(EditableMoleculeType &mol);
+
   /////////////////////////////
   //
   // Atoms
@@ -285,7 +293,8 @@ namespace Helium {
    * @return The iterator pair to iterate over the atoms inside a molecule.
    */
   template<typename MoleculeType>
-  std::pair<typename molecule_traits<MoleculeType>::atom_iter, typename molecule_traits<MoleculeType>::atom_iter>
+  std::pair<typename molecule_traits<MoleculeType>::atom_iter,
+    typename molecule_traits<MoleculeType>::atom_iter>
   get_atoms(const MoleculeType &mol);
 
   /**
@@ -300,7 +309,29 @@ namespace Helium {
    * @return The atom with the specified @p index.
    */
   template<typename MoleculeType>
-  typename molecule_traits<MoleculeType>::atom_type get_atom(const MoleculeType &mol, Index index);
+  typename molecule_traits<MoleculeType>::atom_type
+  get_atom(const MoleculeType &mol, Index index);
+
+  /**
+   * @brief Add an atom to the molecule.
+   *
+   * @param mol The molecule.
+   *
+   * @return The newly created atom.
+   */
+  template<typename EditableMoleculeType>
+  typename molecule_traits<EditableMoleculeType>::atom_type
+  add_atom(EditableMoleculeType &mol);
+
+  /**
+   * @brief Remove an atom from the molecule.
+   *
+   * @param mol The molecule.
+   * @param atom The atom to remove.
+   */
+  template<typename EditableMoleculeType>
+  void remove_atom(EditableMoleculeType &mol,
+      typename molecule_traits<EditableMoleculeType>::atom_type atom);
 
   /////////////////////////////
   //
@@ -326,7 +357,8 @@ namespace Helium {
    * @return The iterator pair to iterate over the bonds inside a molecule.
    */
   template<typename MoleculeType>
-  std::pair<typename molecule_traits<MoleculeType>::bond_iter, typename molecule_traits<MoleculeType>::bond_iter>
+  std::pair<typename molecule_traits<MoleculeType>::bond_iter,
+            typename molecule_traits<MoleculeType>::bond_iter>
   get_bonds(const MoleculeType &mol);
 
   /**
@@ -341,7 +373,8 @@ namespace Helium {
    * @return The bond with the specified @p index.
    */
   template<typename MoleculeType>
-  typename molecule_traits<MoleculeType>::bond_type get_bond(const MoleculeType &mol, Index index);
+  typename molecule_traits<MoleculeType>::bond_type
+  get_bond(const MoleculeType &mol, Index index);
 
   /**
    * @brief Get the bond between the specified source and target atoms.
@@ -357,8 +390,33 @@ namespace Helium {
    *         molecule_traits<MoleculeType>::null_bond() if there is no such bond.
    */
   template<typename MoleculeType>
-  typename molecule_traits<MoleculeType>::bond_type get_bond(const MoleculeType &mol, typename molecule_traits<MoleculeType>::atom_type source,
-                                                                                      typename molecule_traits<MoleculeType>::atom_type target);
+  typename molecule_traits<MoleculeType>::bond_type
+  get_bond(const MoleculeType &mol,
+      typename molecule_traits<MoleculeType>::atom_type source,
+      typename molecule_traits<MoleculeType>::atom_type target);
+
+  /**
+   * @brief Add a bond to the molecule.
+   *
+   * @param mol The molecule.
+   *
+   * @return The newly created bond.
+   */
+  template<typename EditableMoleculeType>
+  typename molecule_traits<EditableMoleculeType>::bond_type
+  add_bond(EditableMoleculeType &mol,
+      typename molecule_traits<EditableMoleculeType>::atom_type source,
+      typename molecule_traits<EditableMoleculeType>::atom_type target);
+
+  /**
+   * @brief Remove a bond from the molecule.
+   *
+   * @param mol The molecule.
+   * @param bond The bond to remove.
+   */
+  template<typename EditableMoleculeType>
+  void remove_bond(EditableMoleculeType &mol,
+      typename molecule_traits<EditableMoleculeType>::bond_type bond);
 
   //////////////////////////////////////////////////////////////////////////////
   //
@@ -377,7 +435,8 @@ namespace Helium {
    * @return The atom index.
    */
   template<typename MoleculeType>
-  Index get_index(const MoleculeType &mol, typename molecule_traits<MoleculeType>::atom_type atom);
+  Index get_index(const MoleculeType &mol,
+      typename molecule_traits<MoleculeType>::atom_type atom);
 
   /**
    * @brief Get the iterator pair to iterate over an atom's incident bonds.
@@ -390,8 +449,10 @@ namespace Helium {
    * @return The iterator pair to iterate over an atom's incident bonds.
    */
   template<typename MoleculeType>
-  std::pair<typename molecule_traits<MoleculeType>::incident_iter, typename molecule_traits<MoleculeType>::incident_iter>
-  get_bonds(const MoleculeType &mol, typename molecule_traits<MoleculeType>::atom_type atom);
+  std::pair<typename molecule_traits<MoleculeType>::incident_iter,
+            typename molecule_traits<MoleculeType>::incident_iter>
+  get_bonds(const MoleculeType &mol,
+      typename molecule_traits<MoleculeType>::atom_type atom);
 
   /**
    * @brief Get the iterator pair to iterate over an atom's neighboring atoms.
@@ -404,8 +465,10 @@ namespace Helium {
    * @return The iterator pair to iterate over an atom's neighboring atoms.
    */
   template<typename MoleculeType>
-  std::pair<typename molecule_traits<MoleculeType>::nbr_iter, typename molecule_traits<MoleculeType>::nbr_iter>
-  get_nbrs(const MoleculeType &mol, typename molecule_traits<MoleculeType>::atom_type atom);
+  std::pair<typename molecule_traits<MoleculeType>::nbr_iter,
+    typename molecule_traits<MoleculeType>::nbr_iter>
+  get_nbrs(const MoleculeType &mol,
+      typename molecule_traits<MoleculeType>::atom_type atom);
 
   /**
    * @brief Get the atom's aromaticity.
@@ -418,7 +481,22 @@ namespace Helium {
    * @return True if the atom is aromatic, false otherwise.
    */
   template<typename MoleculeType>
-  bool is_aromatic(const MoleculeType &mol, typename molecule_traits<MoleculeType>::atom_type atom);
+  bool is_aromatic(const MoleculeType &mol,
+      typename molecule_traits<MoleculeType>::atom_type atom);
+
+  /**
+   * @brief Set the atom's aromaticity.
+   *
+   * @pre The atom must be valid (i.e. not equal to molecule_traits<MoleculeType>::null_atom()).
+   *
+   * @param mol The molecule.
+   * @param atom The atom.
+   * @param value The new value.
+   */
+  template<typename EditableMoleculeType>
+  void set_aromatic(EditableMoleculeType &mol,
+      typename molecule_traits<EditableMoleculeType>::atom_type atom,
+      bool value);
 
   /**
    * @brief Get the atom's chemical element number.
@@ -431,7 +509,22 @@ namespace Helium {
    * @return The atom's chemical element number.
    */
   template<typename MoleculeType>
-  int get_element(const MoleculeType &mol, typename molecule_traits<MoleculeType>::atom_type atom);
+  int get_element(const MoleculeType &mol,
+      typename molecule_traits<MoleculeType>::atom_type atom);
+
+  /**
+   * @brief Set the atom's element.
+   *
+   * @pre The atom must be valid (i.e. not equal to molecule_traits<MoleculeType>::null_atom()).
+   *
+   * @param mol The molecule.
+   * @param atom The atom.
+   * @param value The new value.
+   */
+  template<typename EditableMoleculeType>
+  void set_element(EditableMoleculeType &mol,
+      typename molecule_traits<EditableMoleculeType>::atom_type atom,
+      int value);
 
   /**
    * @brief Get the atom's mass number.
@@ -444,7 +537,22 @@ namespace Helium {
    * @return The atom's mass number.
    */
   template<typename MoleculeType>
-  int get_mass(const MoleculeType &mol, typename molecule_traits<MoleculeType>::atom_type atom);
+  int get_mass(const MoleculeType &mol,
+      typename molecule_traits<MoleculeType>::atom_type atom);
+
+  /**
+   * @brief Set the atom's mass.
+   *
+   * @pre The atom must be valid (i.e. not equal to molecule_traits<MoleculeType>::null_atom()).
+   *
+   * @param mol The molecule.
+   * @param atom The atom.
+   * @param value The new value.
+   */
+  template<typename EditableMoleculeType>
+  void set_mass(EditableMoleculeType &mol,
+      typename molecule_traits<EditableMoleculeType>::atom_type atom,
+      int value);
 
   /**
    * @brief Get the atom's degree.
@@ -459,7 +567,8 @@ namespace Helium {
    * @return The atom's degree.
    */
   template<typename MoleculeType>
-  int get_degree(const MoleculeType &mol, typename molecule_traits<MoleculeType>::atom_type atom);
+  int get_degree(const MoleculeType &mol,
+      typename molecule_traits<MoleculeType>::atom_type atom);
 
   /**
    * @brief Get the atom's number of connected hydrogens.
@@ -472,7 +581,22 @@ namespace Helium {
    * @return The atom's number of connected hydrogens.
    */
   template<typename MoleculeType>
-  int num_hydrogens(const MoleculeType &mol, typename molecule_traits<MoleculeType>::atom_type atom);
+  int num_hydrogens(const MoleculeType &mol,
+      typename molecule_traits<MoleculeType>::atom_type atom);
+
+  /**
+   * @brief Set the atom's number of hydrogens.
+   *
+   * @pre The atom must be valid (i.e. not equal to molecule_traits<MoleculeType>::null_atom()).
+   *
+   * @param mol The molecule.
+   * @param atom The atom.
+   * @param value The new value.
+   */
+  template<typename EditableMoleculeType>
+  void set_hydrogens(EditableMoleculeType &mol,
+      typename molecule_traits<EditableMoleculeType>::atom_type atom,
+      int value);
 
   /**
    * @brief Get the atom's charge.
@@ -485,7 +609,22 @@ namespace Helium {
    * @return The atom's charge.
    */
   template<typename MoleculeType>
-  int get_charge(const MoleculeType &mol, typename molecule_traits<MoleculeType>::atom_type atom);
+  int get_charge(const MoleculeType &mol,
+      typename molecule_traits<MoleculeType>::atom_type atom);
+
+  /**
+   * @brief Set the atom's charge.
+   *
+   * @pre The atom must be valid (i.e. not equal to molecule_traits<MoleculeType>::null_atom()).
+   *
+   * @param mol The molecule.
+   * @param atom The atom.
+   * @param value The new value.
+   */
+  template<typename EditableMoleculeType>
+  void set_charge(EditableMoleculeType &mol,
+      typename molecule_traits<EditableMoleculeType>::atom_type atom,
+      int value);
 
   //////////////////////////////////////////////////////////////////////////////
   //
@@ -563,6 +702,20 @@ namespace Helium {
   bool is_aromatic(const MoleculeType &mol, typename molecule_traits<MoleculeType>::bond_type bond);
 
   /**
+   * @brief Set the bond's aromaticity.
+   *
+   * @pre The bond must be valid (i.e. not equal to molecule_traits<MoleculeType>::null_bond()).
+   *
+   * @param mol The molecule.
+   * @param bond The bond.
+   * @param value The new value.
+   */
+  template<typename EditableMoleculeType>
+  void set_aromatic(EditableMoleculeType &mol,
+      typename molecule_traits<EditableMoleculeType>::bond_type bond,
+      bool value);
+
+  /**
    * @brief Get the bond's order.
    *
    * @pre The bond must be valid (i.e. not equal to molecule_traits<MoleculeType>::null_bond()).
@@ -574,6 +727,20 @@ namespace Helium {
    */
   template<typename MoleculeType>
   int get_order(const MoleculeType &mol, typename molecule_traits<MoleculeType>::bond_type bond);
+
+  /**
+   * @brief Set the bond's order.
+   *
+   * @pre The bond must be valid (i.e. not equal to molecule_traits<MoleculeType>::null_bond()).
+   *
+   * @param mol The molecule.
+   * @param bond The bond.
+   * @param value The new value.
+   */
+  template<typename EditableMoleculeType>
+  void set_order(EditableMoleculeType &mol,
+      typename molecule_traits<EditableMoleculeType>::bond_type bond,
+      int value);
 
   //////////////////////////////////////////////////////////////////////////////
   //

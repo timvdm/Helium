@@ -124,8 +124,116 @@ void test_molecule_has_atom()
   ASSERT(!molecule_has_atom(methane, ElementPredicate<HeMol>(7)));
 }
 
+void test_editable_molecule()
+{
+  typedef molecule_traits<HeMol>::atom_type atom_type;
+  typedef molecule_traits<HeMol>::bond_type bond_type;
+  HeMol mol;
+
+  // create 4 atoms
+  atom_type atom1 = add_atom(mol);
+  COMPARE(1, num_atoms(mol));
+  atom_type atom2 = add_atom(mol);
+  COMPARE(2, num_atoms(mol));
+  atom_type atom3 = add_atom(mol);
+  COMPARE(3, num_atoms(mol));
+  atom_type atom4 = add_atom(mol);
+  COMPARE(4, num_atoms(mol));
+
+  // set some atom properties
+  set_aromatic(mol, atom1, true);
+  set_aromatic(mol, atom2, true);
+  set_aromatic(mol, atom3, false);
+  set_aromatic(mol, atom4, false);
+  COMPARE(true, is_aromatic(mol, atom1));
+  COMPARE(true, is_aromatic(mol, atom2));
+  COMPARE(false, is_aromatic(mol, atom3));
+  COMPARE(false, is_aromatic(mol, atom4));
+
+  set_element(mol, atom1, 6);
+  set_element(mol, atom2, 7);
+  set_element(mol, atom3, 8);
+  set_element(mol, atom4, 9);
+  COMPARE(6, get_element(mol, atom1));
+  COMPARE(7, get_element(mol, atom2));
+  COMPARE(8, get_element(mol, atom3));
+  COMPARE(9, get_element(mol, atom4));
+
+  set_mass(mol, atom1, 60);
+  set_mass(mol, atom2, 70);
+  set_mass(mol, atom3, 80);
+  set_mass(mol, atom4, 90);
+  COMPARE(60, get_mass(mol, atom1));
+  COMPARE(70, get_mass(mol, atom2));
+  COMPARE(80, get_mass(mol, atom3));
+  COMPARE(90, get_mass(mol, atom4));
+
+  set_hydrogens(mol, atom1, 1);
+  set_hydrogens(mol, atom2, 2);
+  set_hydrogens(mol, atom3, 3);
+  set_hydrogens(mol, atom4, 4);
+  COMPARE(1, num_hydrogens(mol, atom1));
+  COMPARE(2, num_hydrogens(mol, atom2));
+  COMPARE(3, num_hydrogens(mol, atom3));
+  COMPARE(4, num_hydrogens(mol, atom4));
+
+  set_charge(mol, atom1, -2);
+  set_charge(mol, atom2, -1);
+  set_charge(mol, atom3, 0);
+  set_charge(mol, atom4, 2);
+  COMPARE(-2, get_charge(mol, atom1));
+  COMPARE(-1, get_charge(mol, atom2));
+  COMPARE(0, get_charge(mol, atom3));
+  COMPARE(2, get_charge(mol, atom4));
+
+  // add 3 bonds
+  bond_type bond1 = add_bond(mol, atom1, atom2);
+  COMPARE(1, num_bonds(mol));
+  bond_type bond2 = add_bond(mol, atom2, atom3);
+  COMPARE(2, num_bonds(mol));
+  bond_type bond3 = add_bond(mol, atom3, atom4);
+  COMPARE(3, num_bonds(mol));
+
+  // set some bond properties
+  set_aromatic(mol, bond1, false);
+  set_aromatic(mol, bond2, true);
+  set_aromatic(mol, bond3, false);
+  COMPARE(false, is_aromatic(mol, bond1));
+  COMPARE(true, is_aromatic(mol, bond2));
+  COMPARE(false, is_aromatic(mol, bond3));
+
+  set_order(mol, bond1, 1);
+  set_order(mol, bond2, 2);
+  set_order(mol, bond3, 3);
+  COMPARE(1, get_order(mol, bond1));
+  COMPARE(2, get_order(mol, bond2));
+  COMPARE(3, get_order(mol, bond3));
+
+  // remove a bond
+  remove_bond(mol, bond3);
+  COMPARE(4, num_atoms(mol));
+  COMPARE(2, num_bonds(mol));
+  COMPARE(1, get_order(mol, get_bond(mol, 0)));
+  COMPARE(2, get_order(mol, get_bond(mol, 1)));
+
+  // remove an atom
+  remove_atom(mol, atom2);
+  COMPARE(3, num_atoms(mol));
+  COMPARE(0, num_bonds(mol));
+  COMPARE(60, get_mass(mol, get_atom(mol, 0)));
+  COMPARE(80, get_mass(mol, get_atom(mol, 1)));
+  COMPARE(90, get_mass(mol, get_atom(mol, 2)));
+
+  // clear the molecule
+  clear_molecule(mol);
+  COMPARE(0, num_atoms(mol));
+  COMPARE(0, num_bonds(mol));
+}
+
 int main()
 {
   test_atom_predicates();
   test_molecule_has_atom();
+
+  test_editable_molecule();
 }

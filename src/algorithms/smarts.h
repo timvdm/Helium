@@ -369,6 +369,8 @@ namespace Helium {
         return m_error;
       }
 
+      int atomClass(Index index) const;
+
       template<typename MoleculeType, typename MappingType>
       bool search(MoleculeType &mol, MappingType &mapping, const RingSet<MoleculeType> &rings);
 

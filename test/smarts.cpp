@@ -262,6 +262,27 @@ void test_atom_class()
   smarts2.init("[:5]");
   COMPARE(Smiley::AE_AtomClass, smarts2.trees().atom(0)->type);
   COMPARE(5, smarts2.trees().atom(0)->value);
+
+  Smarts smarts3;
+  ASSERT(smarts3.init("CC[C:1][C:2][C:7]C[C:4]"));
+  COMPARE(-1, smarts3.atomClass(0));
+  COMPARE(-1, smarts3.atomClass(1));
+  COMPARE(1, smarts3.atomClass(2));
+  COMPARE(2, smarts3.atomClass(3));
+  COMPARE(7, smarts3.atomClass(4));
+  COMPARE(-1, smarts3.atomClass(5));
+  COMPARE(4, smarts3.atomClass(6));
+
+  Smarts smarts4;
+  ASSERT(smarts4.init("CC[C:1][O:2].C[C:4][N:7]C"));
+  COMPARE(-1, smarts4.atomClass(0));
+  COMPARE(-1, smarts4.atomClass(1));
+  COMPARE(1, smarts4.atomClass(2));
+  COMPARE(2, smarts4.atomClass(3));
+  COMPARE(-1, smarts4.atomClass(4));
+  COMPARE(4, smarts4.atomClass(5));
+  COMPARE(7, smarts4.atomClass(6));
+  COMPARE(-1, smarts4.atomClass(7));
 }
 
 void test_atom_not()

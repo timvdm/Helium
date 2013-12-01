@@ -164,8 +164,7 @@ namespace Helium {
         }
 
 
-        //@name SMILES/SMARTS
-        //@{
+        // SMILES/SMARTS
         /**
          * Prepare the callback functor for a new SMILES/SMARTS. This method is
          * always invoked at the start of parsing before any of the other methods.
@@ -182,8 +181,7 @@ namespace Helium {
          */
         void setChiral(int index, Smiley::Chirality chirality, const std::vector<int> &chiralNbrs) {}
         void end() {}
-        //@}
-        //@name SMILES
+        // SMILES
         /**
          * Invoked when an atom is completly parsed.
          */
@@ -250,7 +248,6 @@ namespace Helium {
           bondStack().clear();
           bondPostfix().clear();
         }
-        //@}
 
         int precedence(int type)
         {
@@ -267,8 +264,7 @@ namespace Helium {
           return 0;
         }
 
-        //@name SMARTS
-        //@{
+        // SMARTS
         /**
          * Invoked when a unary or binary logical operator is parsed
          * (i.e. '&', ';' or ','). This method is also invoked for implicit AND.
@@ -433,7 +429,6 @@ namespace Helium {
             bondRing() = true;
           }
         }
-        //@}
 
         void pushState()
         {
@@ -556,6 +551,54 @@ namespace Helium {
     }
 
     return true;
+  }
+
+  namespace impl {
+
+    int extract_atom_class(SmartsAtomExpr *expr)
+    {
+      int cls = -1;
+      switch (expr->type) {
+        case Smiley::AE_AtomClass:
+          return expr->value;
+        case Smiley::OP_AndHi:
+        case Smiley::OP_AndLo:
+        case Smiley::OP_Or:
+          cls = extract_atom_class(expr->left);
+          if (cls != -1)
+            return cls;
+          cls = extract_atom_class(expr->right);
+          if (cls != -1)
+            return cls;
+          return -1;
+        default:
+          return -1;
+      }
+    }
+
+  }
+
+  int Smarts::atomClass(Index index) const
+  {
+    std::size_t fragment = 0;
+
+    for (std::size_t i = 0; i < m_atomMaps.size(); ++i) {
+      bool found = false;
+      for (std::size_t j = 0; j < m_atomMaps[i].size(); ++j) {
+        if (m_atomMaps[i][j] == index) {
+          fragment = i;
+          index = j;
+          break;
+        }
+      }
+
+      if (found)
+        break;
+    }
+
+    assert(fragment < m_trees.size());
+    assert(index < m_trees[fragment].atoms().size());
+    return impl::extract_atom_class(m_trees[fragment].atom(index));
   }
 
 }

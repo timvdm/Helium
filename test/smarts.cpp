@@ -1,4 +1,4 @@
-#include <Helium/algorithms/smarts.h>
+#include <Helium/smarts.h>
 #include <Helium/algorithms/cycles.h>
 #include <Helium/hemol.h>
 

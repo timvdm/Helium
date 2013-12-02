@@ -18,6 +18,8 @@ set(Helium_HDRS
   smiles.h
   distancematrix.h
   ring.h
+  smarts.h
+  smirks.h
   # algorithms
   algorithms/bfs.h
   algorithms/canonical.h
@@ -31,8 +33,6 @@ set(Helium_HDRS
   algorithms/isomorphism.h
   algorithms/dijkstra.h
   algorithms/floydwarshall.h
-  algorithms/smarts.h
-  algorithms/smirks.h
   # util
   util/fileio.h
   util/functor.h
@@ -74,9 +74,9 @@ endforeach()
 set(Helium_SRCS
   hemol.cpp
   fileio/file.cpp
+  smarts.cpp
+  smirks.cpp
   thirdparty/jsoncpp/jsoncpp.cpp
-  algorithms/smarts.cpp
-  algorithms/smirks.cpp
 )
 
 # Helium library

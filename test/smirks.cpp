@@ -1,4 +1,4 @@
-#include <Helium/algorithms/smirks.h>
+#include <Helium/smirks.h>
 #include <Helium/hemol.h>
 #include <Helium/smiles.h>
 

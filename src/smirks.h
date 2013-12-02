@@ -27,7 +27,7 @@
 #ifndef HELIUM_SMIRKS_H
 #define HELIUM_SMIRKS_H
 
-#include <Helium/algorithms/smarts.h>
+#include <Helium/smarts.h>
 
 #include <iostream>
 

@@ -101,7 +101,7 @@ namespace Helium {
       public:
         struct State
         {
-          State() : bondRing(false)
+          State(int recursion_ = 0) : bondRing(false), recursion(recursion_)
           {
           }
 
@@ -111,6 +111,7 @@ namespace Helium {
           std::vector<SmartsBondExpr*> bondPostfix;
           std::map<int, SmartsBondExpr*> bondRings;
           bool bondRing;
+          int recursion;
         };
 
         SmartsCallback(HeMol &mol, SmartsTrees &trees, std::vector<HeMol> &recursiveMols,
@@ -129,7 +130,7 @@ namespace Helium {
           if (m_states.size() == 1)
             return m_mol;
           assert(!m_recursiveMols.empty());
-          return m_recursiveMols.back();
+          return m_recursiveMols[state().recursion];
         }
 
         SmartsTrees& trees()
@@ -137,7 +138,7 @@ namespace Helium {
           if (m_states.size() == 1)
             return m_trees;
           assert(!m_recursiveTrees.empty());
-          return m_recursiveTrees.back();
+          return m_recursiveTrees[state().recursion];
         }
 
         std::vector<SmartsAtomExpr*>& atomStack()
@@ -365,6 +366,12 @@ namespace Helium {
 
         void endAtom()
         {
+          // special case:
+          //   [H]      hydrogen
+          //   [*H]     atom with 1 hydrogen attached
+          if (atomPostfix().size() == 1 && atomPostfix()[0]->type == Smiley::AE_TotalH && atomPostfix()[0]->value == 1)
+            atomPostfix()[0]->type = Smiley::AE_AliphaticElement;
+
           // pop stack
           while (!atomStack().empty()) {
             atomPostfix().push_back(atomStack().back());
@@ -423,6 +430,7 @@ namespace Helium {
           assert(bondStack().empty());
           assert(bondPostfix().empty());
         }
+
         /**
          * Invoked when a prviously found ring bond number is parsed to add the bond.
          */
@@ -443,7 +451,7 @@ namespace Helium {
           int index = m_recursiveMols.size();
           atomPostfix().push_back(new SmartsAtomExpr(Smiley::AE_Recursive, index));
           // push state
-          m_states.push_back(State());
+          m_states.push_back(State(index));
           m_recursiveMols.resize(m_recursiveMols.size() + 1);
           m_recursiveTrees.resize(m_recursiveTrees.size() + 1);
         }
@@ -559,6 +567,48 @@ namespace Helium {
     }
 
     return true;
+  }
+
+  bool Smarts::hasCycleQuery() const
+  {
+    for (std::size_t i = 0; i < m_trees.atoms().size(); ++i) {
+      if (impl::smarts_expr_contains(m_trees.atom(i), Smiley::AE_Cyclic))
+        return true;
+      if (impl::smarts_expr_contains(m_trees.atom(i), Smiley::AE_Acyclic))
+        return true;
+      if (impl::smarts_expr_contains(m_trees.atom(i), Smiley::AE_RingMembership))
+        return true;
+      if (impl::smarts_expr_contains(m_trees.atom(i), Smiley::AE_RingSize))
+        return true;
+      if (impl::smarts_expr_contains(m_trees.atom(i), Smiley::AE_RingConnectivity))
+        return true;
+    }
+
+    for (std::size_t i = 0; i < m_trees.bonds().size(); ++i)
+      if (impl::smarts_expr_contains(m_trees.bond(i), Smiley::BE_Ring))
+        return true;
+
+    for (std::size_t i = 0; i < m_recursiveTrees.size(); ++i) {
+      for (std::size_t j = 0; j < m_recursiveTrees[i].atoms().size(); ++j) {
+        if (impl::smarts_expr_contains(m_recursiveTrees[i].atom(j), Smiley::AE_Cyclic))
+          return true;
+        if (impl::smarts_expr_contains(m_recursiveTrees[i].atom(j), Smiley::AE_Acyclic))
+          return true;
+        if (impl::smarts_expr_contains(m_recursiveTrees[i].atom(j), Smiley::AE_RingMembership))
+          return true;
+        if (impl::smarts_expr_contains(m_recursiveTrees[i].atom(j), Smiley::AE_RingSize))
+          return true;
+        if (impl::smarts_expr_contains(m_recursiveTrees[i].atom(j), Smiley::AE_RingConnectivity))
+          return true;
+      }
+    }
+
+    for (std::size_t i = 0; i < m_recursiveTrees.size(); ++i)
+      for (std::size_t j = 0; j < m_recursiveTrees[i].bonds().size(); ++j)
+        if (impl::smarts_expr_contains(m_recursiveTrees[i].bond(j), Smiley::BE_Ring))
+          return true;
+
+    return false;
   }
 
   namespace impl {

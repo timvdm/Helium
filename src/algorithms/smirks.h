@@ -365,41 +365,6 @@ namespace Helium {
       }
 
       /**
-       * @brief Check if an expression tree contains a specific type.
-       *
-       * @param expr The SMARTS expression tree.
-       * @param type The type to search for.
-       *
-       * @return True if the @p type is found in the expression tree.
-       */
-      template<typename ExprType>
-      bool exprContains(ExprType *expr, int type)
-      {
-        if (expr->type == type)
-          return true;
-
-        switch (expr->type) {
-          case Smiley::OP_AndHi:
-          case Smiley::OP_AndLo:
-          case Smiley::OP_And:
-          case Smiley::OP_Or:
-            if (exprContains(expr->left, type))
-              return true;
-            if (exprContains(expr->right, type))
-              return true;
-            break;
-          case Smiley::OP_Not:
-            if (exprContains(expr->arg, type))
-              return true;
-            break;
-          default:
-            break;
-        }
-
-        return false;
-      }
-
-      /**
        * @brief Extract atom class to SMARTS expression mapping from SMARTS object.
        *
        * @param smarts The SMARTS object.

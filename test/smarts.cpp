@@ -155,14 +155,18 @@ void test_total_h()
 {
   // AE_TotalH
   Smarts smarts1;
-  smarts1.init("[H]");
-  COMPARE(Smiley::AE_TotalH, smarts1.trees().atom(0)->type);
-  COMPARE(1, smarts1.trees().atom(0)->value);
+  smarts1.init("[*H]");
+  impl::SmartsAtomExpr *root = smarts1.trees().atom(0);
+  COMPARE(Smiley::OP_AndHi, root->type);
+  COMPARE(Smiley::AE_TotalH, root->left->type);
+  COMPARE(1, root->left->value);
 
   Smarts smarts2;
-  smarts2.init("[H3]");
-  COMPARE(Smiley::AE_TotalH, smarts2.trees().atom(0)->type);
-  COMPARE(3, smarts2.trees().atom(0)->value);
+  smarts2.init("[*H3]");
+  root = smarts2.trees().atom(0);
+  COMPARE(Smiley::OP_AndHi, root->type);
+  COMPARE(Smiley::AE_TotalH, root->left->type);
+  COMPARE(3, root->left->value);
 }
 
 void test_implicit_h()
@@ -566,7 +570,7 @@ void test_simple_atom_match()
   test_smarts_match("[X]", "C", false);
   test_smarts_match("[X4]", "C");
   test_smarts_match("[X3]", "C", false);
-  test_smarts_match("[X4]", "C=C");
+  test_smarts_match("[X3]", "C=C");
   test_smarts_match("[X4]", "C([H])[H]");
   test_smarts_match("[X3]", "C([H])[H]", false);
   test_smarts_match("[X1]", "C([H])[H]");
@@ -574,8 +578,8 @@ void test_simple_atom_match()
   test_smarts_match("[X2]", "N", false);
 
   // total H
-  test_smarts_match("[H]", "[CH]"); // default: exactly 1
-  test_smarts_match("[H]", "[CH2]", false); // default: exactly 1
+  test_smarts_match("[*H]", "[CH]"); // default: exactly 1
+  test_smarts_match("[*H]", "[CH2]", false); // default: exactly 1
   test_smarts_match("[H4]", "C"); // all implicit
   test_smarts_match("[H3]", "C", false);
   test_smarts_match("[H4]", "C([H])([H])([H])[H]"); // all explicit
@@ -587,8 +591,8 @@ void test_simple_atom_match()
   test_smarts_match("[H3]", "[CH3-]"); // implicit
   test_smarts_match("[H2]", "[CH3-]", false);
   test_smarts_match("[H2]", "C=C"); // implicit
-  test_smarts_match("[H1]", "C=C", false);
-  test_smarts_match("[H1]", "C#C"); // implicit
+  test_smarts_match("[*H1]", "C=C", false);
+  test_smarts_match("[*H1]", "C#C"); // implicit
   test_smarts_match("[H0]", "C#C", false);
 
   // implicit H
@@ -1031,6 +1035,9 @@ void test_recursive()
 
 int main()
 {
+  // test special case: [H]
+  test_smarts_match("[H]", "[H]"); // 2O,5N
+
   //
   // Parsing
   //

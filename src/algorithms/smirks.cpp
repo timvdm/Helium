@@ -73,14 +73,14 @@ namespace Helium {
 
     // product may not contain OR
     for (std::size_t i = 0; i < num_atoms(m_product.query()); ++i)
-      if (exprContains(m_product.trees().atom(i), Smiley::OP_Or)) {
+      if (impl::smarts_expr_contains(m_product.trees().atom(i), Smiley::OP_Or)) {
         m_error = SmirksError(SmirksError::ProductContainsOr, "Product may not contain OR expression");
         return false;
       }
 
     // product may not contain NOT
     for (std::size_t i = 0; i < num_atoms(m_product.query()); ++i)
-      if (exprContains(m_product.trees().atom(i), Smiley::OP_Not)) {
+      if (impl::smarts_expr_contains(m_product.trees().atom(i), Smiley::OP_Not)) {
         m_error = SmirksError(SmirksError::ProductContainsNot, "Product may not contain NOT expression");
         return false;
       }

@@ -27,6 +27,7 @@
 #include "tool.h"
 
 #include <Helium/algorithms/smarts.h>
+#include <Helium/algorithms/cycles.h>
 #include <Helium/smiles.h>
 #include <Helium/fileio/molecules.h>
 
@@ -75,7 +76,14 @@ namespace Helium {
         std::vector<std::string> smiles;
         for (unsigned int i = 0; i < moleculeFile.numMolecules(); ++i) {
           moleculeFile.read_molecule(i, mol);
-          if (s.search(mol, RingSet<HeMol>(mol))) {
+
+          bool found = false;
+          if (s.hasCycleQuery())
+            found = s.search(mol, relevant_cycles(mol));
+          else
+            found = s.search(mol, RingSet<HeMol>(mol));
+
+          if (found) {
             result.push_back(i);
             if (writeSmiles)
               smiles.push_back(write_smiles(mol));

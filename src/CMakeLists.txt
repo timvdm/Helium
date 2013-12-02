@@ -76,6 +76,7 @@ set(Helium_SRCS
   fileio/file.cpp
   thirdparty/jsoncpp/jsoncpp.cpp
   algorithms/smarts.cpp
+  algorithms/smirks.cpp
 )
 
 # Helium library

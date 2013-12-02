@@ -424,20 +424,29 @@ namespace Helium {
        * @param mol The queried molecule.
        * @param mapping The mapping to store the result.
        * @param rings The ring set (needed for R<n>, r<n>, ...).
+       * @param uniqueComponents If true, an additional check will be performed
+       *        to ensure the resulting MappingList(s) contain only unique maps.
+       *        For example, SMARTS 'C.C' matched against 'C.C' will give 2
+       *        mappings with uniqueComponents set to false and only 1 with
+       *        uniqueComponents set to true. Similarly, SMARTS 'CO.CO.CC' will
+       *        result in 4 maps for SMILES 'OCCCCCO' with uniqueComponents set
+       *        to true and only 2 when set to false.
        *
        * @return True if the SMARTS matches the molecule.
        */
       template<typename MoleculeType, typename MappingType>
-      bool search(MoleculeType &mol, MappingType &mapping, const RingSet<MoleculeType> &rings);
+      bool search(const MoleculeType &mol, MappingType &mapping,
+          const RingSet<MoleculeType> &rings, bool uniqueComponents = false);
 
       /**
        * @overload
        */
       template<typename MoleculeType>
-      bool search(MoleculeType &mol, const RingSet<MoleculeType> &rings)
+      bool search(const MoleculeType &mol, const RingSet<MoleculeType> &rings,
+          bool uniqueComponents = false)
       {
         NoMapping mapping;
-        return search(mol, mapping, rings);
+        return search(mol, mapping, rings, uniqueComponents);
       }
 
     private:
@@ -463,9 +472,18 @@ namespace Helium {
     }
 
     template<typename MappingType>
+    bool is_mapping_unique(const MappingType &mapping, const IsomorphismMapping &map)
+    {
+      return true;
+    }
+
+    template<>
+    bool is_mapping_unique<MappingList>(const MappingList &mappings, const IsomorphismMapping &map);
+
+    template<typename MappingType>
     void enumerate_mappings(std::size_t fragment, const std::vector<MappingList> &mappings,
         const IsomorphismMapping &current, const std::vector<std::vector<Index> > atomMaps,
-        MappingType &output, bool &match)
+        MappingType &output, bool &match, bool uniqueComponents)
     {
       for (std::size_t i = 0; i < mappings[fragment].maps.size(); ++i) {
         // check for overlap
@@ -479,10 +497,14 @@ namespace Helium {
 
         if (fragment + 1 < mappings.size()) {
           // recursive call to consider next fragment
-          enumerate_mappings(fragment + 1, mappings, map, atomMaps, output, match);
+          enumerate_mappings(fragment + 1, mappings, map, atomMaps, output, match, uniqueComponents);
         } else {
           // last fragment done, add mapping to output
           assert(std::find(map.begin(), map.end(), -1) == map.end());
+
+          // check if mapping is unique
+          if (uniqueComponents && !is_mapping_unique(output, map))
+            continue;
           impl::add_mapping(output, map);
           match = true;
         }
@@ -492,7 +514,8 @@ namespace Helium {
   }
 
   template<typename MoleculeType, typename MappingType>
-  bool Smarts::search(MoleculeType &mol, MappingType &mapping, const RingSet<MoleculeType> &rings)
+  bool Smarts::search(const MoleculeType &mol, MappingType &mapping,
+      const RingSet<MoleculeType> &rings, bool uniqueComponents)
   {
     if (m_components.empty())
       return false;
@@ -518,7 +541,7 @@ namespace Helium {
 
       bool match = false;
       IsomorphismMapping map(numQueryAtoms, -1);
-      impl::enumerate_mappings(0, mappings, map, m_atomMaps, mapping, match);
+      impl::enumerate_mappings(0, mappings, map, m_atomMaps, mapping, match, uniqueComponents);
 
       return match;
     }

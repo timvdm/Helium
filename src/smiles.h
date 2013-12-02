@@ -146,6 +146,7 @@ namespace Helium {
      * @brief SMILES features to write.
      */
     enum Flags {
+      None = 0,
       Mass = 1,
       Charge = 2,
       Hydrogens = 4,
@@ -286,6 +287,26 @@ namespace Helium {
 
       void bond(const MoleculeType &mol, atom_type prev, bond_type bond)
       {
+        if (!(flags & WriteSmiles::Order))
+          return;
+
+        switch (get_order(mol, bond)) {
+          case 1:
+            if (!is_aromatic(mol, bond) && is_aromatic(mol, get_source(mol, bond)) && is_aromatic(mol, get_target(mol, bond)))
+              smiles << "-";
+            break;
+          case 2:
+            smiles << "=";
+            break;
+          case 3:
+            smiles << "#";
+            break;
+          case 4:
+            smiles << "$";
+            break;
+          default:
+            break;
+        }
       }
 
       void backtrack(const MoleculeType &mol, atom_type atom)

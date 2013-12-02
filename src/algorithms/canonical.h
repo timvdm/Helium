@@ -163,7 +163,8 @@ namespace Helium {
           //
           for (std::size_t i = 0; i < m_bonds.size(); ++i)
             //code.push_back(bond_invariant(m_mol, get_bond(m_mol, m_bonds[i])));
-            code.push_back(1);
+            //code.push_back(get_order(m_mol, get_bond(m_mol, m_bonds[i])));
+            code.push_back(1); // FIXME!!!!!!!!!!!!!
 
           // backtrack closure bonds
           for (unsigned int i = 0; i < numClosures; ++i) {

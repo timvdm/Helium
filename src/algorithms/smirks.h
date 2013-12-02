@@ -43,7 +43,8 @@ namespace Helium {
         ProductSmarts,
         AtomClassPairWise,
         ProductContainsOr,
-        ProductContainsNot
+        ProductContainsNot,
+        InvalidProductBond
       };
 
       SmirksError() : m_type(None)
@@ -71,87 +72,30 @@ namespace Helium {
 
   class Smirks
   {
-      struct AtomClass
+      // bond exists in both reactant and product
+      struct BondChange
       {
-        AtomClass(int component_, int index_, int atomClass_)
-          : component(component_), index(index_), atomClass(atomClass_)
+        enum Type {
+          Changed,
+          Added,
+          Removed
+        };
+
+        BondChange(int type_, int source_, int target_, impl::SmartsBondExpr *expr_)
+          : type(type_), source(source_), target(target_), expr(expr_)
         {
         }
 
-        int component;
-        int index;
-        int atomClass;
-      };
-
-      struct AtomExprMap
-      {
-        AtomExprMap(impl::SmartsAtomExpr *reactant_ = 0, impl::SmartsAtomExpr *product_ = 0)
-          : reactant(reactant_), product(product_)
-        {
-        }
-
-        impl::SmartsAtomExpr *reactant;
-        impl::SmartsAtomExpr *product;
+        int type;
+        int source; // reactant source index
+        int target; // reactant target index
+        impl::SmartsBondExpr *expr; // product bond expr
       };
 
     public:
-      bool init(const std::string &smirks)
-      {
-        std::size_t pos = smirks.find(">>");
-        if (pos == std::string::npos) {
-          m_error = SmirksError(SmirksError::NoReaction, "SMIRKS does not contain '>>'");
-          return false;
-        }
+      bool init(const std::string &smirks);
 
-        return init(smirks.substr(0, pos), smirks.substr(pos + 2));
-      }
-
-      bool init(const std::string &reactant, const std::string &product)
-      {
-        //std::cout << "Smirks::init(" << reactant << ">>" << product << ")" << std::endl;
-
-        m_error = SmirksError();
-
-        if (!m_reactant.init(reactant)) {
-          m_error = SmirksError(SmirksError::ReactantSmarts, m_reactant.error().what());
-          return false;
-        }
-        if (!m_product.init(product)) {
-          m_error = SmirksError(SmirksError::ReactantSmarts, m_product.error().what());
-          return false;
-        }
-
-        m_reactantExpr = atomClassToExpr(m_reactant);
-        m_productExpr = atomClassToExpr(m_product);
-
-        // atom mapping must be pair-wise
-        if (m_reactantExpr.size() != m_productExpr.size()) {
-          m_error = SmirksError(SmirksError::AtomClassPairWise, "Atom class mapping must be pairwise");
-          return false;
-        }
-
-        for (std::map<int, impl::SmartsAtomExpr*>::const_iterator i = m_reactantExpr.begin(); i != m_reactantExpr.end(); ++i)
-          if (m_productExpr.find(i->first) == m_productExpr.end()) {
-            m_error = SmirksError(SmirksError::AtomClassPairWise, "Atom class mapping must be pairwise");
-            return false;
-          }
-
-        // product may not contain OR
-        for (std::size_t i = 0; i < num_atoms(m_product.query()); ++i)
-          if (exprContains(m_product.trees().atom(i), Smiley::OP_Or)) {
-            m_error = SmirksError(SmirksError::ProductContainsOr, "Product may not contain OR expression");
-            return false;
-          }
-
-        // product may not contain NOT
-        for (std::size_t i = 0; i < num_atoms(m_product.query()); ++i)
-          if (exprContains(m_product.trees().atom(i), Smiley::OP_Not)) {
-            m_error = SmirksError(SmirksError::ProductContainsOr, "Product may not contain NOT expression");
-            return false;
-          }
-
-        return true;
-      }
+      bool init(const std::string &reactant, const std::string &product);
 
       const SmirksError& error() const
       {
@@ -162,9 +106,10 @@ namespace Helium {
       bool apply(EditableMoleculeType &mol, const RingSet<EditableMoleculeType> &rings)
       {
         MappingList mapping;
-        if (!m_reactant.search(mol, mapping, rings))
+        if (!m_reactant.search(mol, mapping, rings, true))
           return false;
 
+        // apply atom changes
         for (std::size_t i = 0; i < mapping.maps.size(); ++i) {
           const IsomorphismMapping &map = mapping.maps[i];
           for (std::size_t j = 0; j < map.size(); ++j) {
@@ -172,12 +117,53 @@ namespace Helium {
             if (atomClass == -1)
               continue;
 
-            //impl::SmartsAtomExpr *reactantExpr = m_reactantExpr[atomClass];
             impl::SmartsAtomExpr *productExpr = m_productExpr[atomClass];
 
             apply(mol, get_atom(mol, map[j]), productExpr);
           }
         }
+
+        // apply bond changes
+        std::vector<Index> removeBonds;
+        for (std::size_t i = 0; i < mapping.maps.size(); ++i) {
+          const IsomorphismMapping &map = mapping.maps[i];
+
+          for (std::size_t j = 0; j < m_bondChanges.size(); ++j) {
+            const BondChange &change = m_bondChanges[j];
+
+            switch (change.type) {
+              case BondChange::Changed:
+                {
+                  molecule_traits<HeMol>::atom_type source = get_atom(mol, map[change.source]);
+                  molecule_traits<HeMol>::atom_type target = get_atom(mol, map[change.target]);
+                  molecule_traits<HeMol>::bond_type bond = get_bond(mol, source, target);
+                  apply(mol, bond, change.expr);
+                }
+                break;
+              case BondChange::Removed:
+                {
+                  molecule_traits<HeMol>::atom_type source = get_atom(mol, map[change.source]);
+                  molecule_traits<HeMol>::atom_type target = get_atom(mol, map[change.target]);
+                  molecule_traits<HeMol>::bond_type bond = get_bond(mol, source, target);
+                  removeBonds.push_back(get_index(mol, bond));
+                }
+                break;
+              case BondChange::Added:
+                {
+                  molecule_traits<HeMol>::atom_type source = get_atom(mol, map[change.source]);
+                  molecule_traits<HeMol>::atom_type target = get_atom(mol, map[change.target]);
+                  molecule_traits<HeMol>::bond_type bond = add_bond(mol, source, target);
+                  apply(mol, bond, change.expr);
+                }
+                break;
+            }
+          }
+        }
+
+        // remove the planned bonds
+        std::sort(removeBonds.begin(), removeBonds.end(), std::greater<Index>());
+        for (std::size_t i = 0; i < removeBonds.size(); ++i)
+          remove_bond(mol, get_bond(mol, removeBonds[i]));
 
         return true;
       }
@@ -230,6 +216,36 @@ namespace Helium {
         }
       }
 
+      template<typename EditableMoleculeType, typename BondType>
+      void apply(EditableMoleculeType &mol, BondType bond, impl::SmartsBondExpr *expr)
+      {
+        switch (expr->type) {
+          case Smiley::BE_Single:
+            set_order(mol, bond, 1);
+            set_aromatic(mol, bond, false);
+            break;
+          case Smiley::BE_Double:
+            set_order(mol, bond, 2);
+            set_aromatic(mol, bond, false);
+            break;
+          case Smiley::BE_Triple:
+            set_order(mol, bond, 3);
+            set_aromatic(mol, bond, false);
+            break;
+          case Smiley::BE_Quadriple:
+            set_order(mol, bond, 4);
+            set_aromatic(mol, bond, false);
+            break;
+          case Smiley::BE_Aromatic:
+            set_order(mol, bond, 5);
+            set_aromatic(mol, bond, true);
+            break;
+          case Smiley::BE_Up:
+          case Smiley::BE_Down:
+            break;
+        }
+      }
+
       template<typename ExprType>
       bool exprContains(ExprType *expr, int type)
       {
@@ -257,24 +273,15 @@ namespace Helium {
         return false;
       }
 
-      std::map<int, impl::SmartsAtomExpr*> atomClassToExpr(const Smarts &smarts) const
-      {
-        std::map<int, impl::SmartsAtomExpr*> result;
+      std::map<int, impl::SmartsAtomExpr*> atomClassToExpr(const Smarts &smarts) const;
 
-        for (std::size_t i = 0; i < num_atoms(smarts.query()); ++i) {
-          int atomClass = smarts.atomClass(i);
-          if (atomClass != -1)
-            result[atomClass] = smarts.trees().atom(i);
-        }
-
-        return result;
-      }
-
+      molecule_traits<HeMol>::bond_type getBond(const Smarts &smarts, int sourceAtomClass, int targetAtomClass);
 
       Smarts m_reactant;
       Smarts m_product;
       std::map<int, impl::SmartsAtomExpr*> m_reactantExpr;
       std::map<int, impl::SmartsAtomExpr*> m_productExpr;
+      std::vector<BondChange> m_bondChanges;
       SmirksError m_error;
   };
 

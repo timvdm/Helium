@@ -595,7 +595,7 @@ namespace Helium {
   }
 
   template<typename MoleculeType>
-  bool get_order(const Substructure<MoleculeType> &mol,
+  int get_order(const Substructure<MoleculeType> &mol,
       typename molecule_traits<Substructure<MoleculeType> >::bond_type bond)
   {
     return get_order(mol.mol(), bond);

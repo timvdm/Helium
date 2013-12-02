@@ -592,4 +592,28 @@ namespace Helium {
     return impl::extract_atom_class(m_trees.atom(index));
   }
 
+  namespace impl {
+
+    template<>
+    bool is_mapping_unique<MappingList>(const MappingList &mappings, const IsomorphismMapping &map)
+    {
+      for (std::size_t i = 0; i < mappings.maps.size(); ++i) {
+        const IsomorphismMapping &ref = mappings.maps[i];
+
+        bool unique = false;
+        for (std::size_t j = 0; j < map.size(); ++j)
+          if (std::find(ref.begin(), ref.end(), map[j]) == ref.end()) {
+            unique = true;
+            break;
+          }
+
+        if (!unique)
+          return false;
+      }
+
+      return true;
+    }
+
+  }
+
 }

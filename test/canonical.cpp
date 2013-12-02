@@ -34,7 +34,7 @@ bool shuffle_test_mol(HeMol &mol)
 
   std::pair<std::vector<Index>, std::vector<unsigned long> > ref_canon = canonicalize(mol, extended_connectivities(mol), AtomElementAttribute(), BondOrderAttribute());
   const std::vector<unsigned long> &ref_code = ref_canon.second;
-  std::string ref_smiles = write_smiles(mol, ref_canon.first, WriteSmiles::Order);
+  std::string ref_smiles = write_smiles(mol, ref_canon.first, WriteSmiles::None);
 
   for (int i = 0; i < 10; ++i) {
     std::random_shuffle(atoms.begin(), atoms.end());
@@ -45,7 +45,7 @@ bool shuffle_test_mol(HeMol &mol)
     
     std::pair<std::vector<Index>, std::vector<unsigned long> > canon = canonicalize(mol, extended_connectivities(mol), AtomElementAttribute(), BondOrderAttribute());
     const std::vector<unsigned long> &code = canon.second;
-    std::string smiles = write_smiles(mol, canon.first, WriteSmiles::Order);
+    std::string smiles = write_smiles(mol, canon.first, WriteSmiles::None);
     
     COMPARE(ref_code, code);
     if (ref_code != code)

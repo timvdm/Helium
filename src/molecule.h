@@ -893,7 +893,7 @@ namespace Helium {
   template<typename MoleculeType>
   int get_connectivity(const MoleculeType &mol, typename molecule_traits<MoleculeType>::atom_type atom)
   {
-    return get_valence(mol, atom) + num_hydrogens(mol, atom);
+    return get_degree(mol, atom) + num_hydrogens(mol, atom);
   }
 
   //////////////////////////////////////////////////////////////////////////////

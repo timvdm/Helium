@@ -9,7 +9,7 @@ namespace Helium {
 
   //@cond dev
 
-  /**
+  /*
    * Strings
    */
   template<typename T1>
@@ -146,7 +146,7 @@ namespace Helium {
     return number;
   }
 
-  /**
+  /*
    * @param repeat The delimiter may be repeated. Only works for single
    *        character delimiter.
    */

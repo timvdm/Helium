@@ -31,21 +31,37 @@
 
 namespace Helium {
 
+  /**
+   * @brief Timeout exception.
+   */
   struct timeout_error : std::exception {};
 
+  /**
+   * @brief Class for handling timeouts.
+   */
   class Timeout
   {
     public:
+      /**
+       * @brief One millisecond in nanoseconds.
+       */
       static const boost::timer::nanosecond_type one_milisecond = 1000000L;
 
       /**
+       * @brief Constructor.
+       *
        * @param ms The number of miliseconds after which a timeout exception
-       * will be thrown.
+       *           will be thrown.
        */
       Timeout(unsigned int ms) : m_ns(ms * one_milisecond)
       {
       }
 
+      /**
+       * @brief Check if the timeout has elapsed.
+       *
+       * If the timeout has elapsed, the timeout_error exception will be thrown.
+       */
       void check()
       {
         boost::timer::cpu_times elapsed = timer.elapsed();
@@ -56,8 +72,8 @@ namespace Helium {
       }
 
     private:
-      boost::timer::cpu_timer timer;
-      unsigned long m_ns;
+      boost::timer::cpu_timer timer; //!< The timer.
+      unsigned long m_ns; //!< The timeout in nanoseconds.
   };
 
 }

@@ -399,6 +399,8 @@ namespace Helium {
    * @brief Add a bond to the molecule.
    *
    * @param mol The molecule.
+   * @param source The source atom.
+   * @param target The target atom.
    *
    * @return The newly created bond.
    */

@@ -531,17 +531,17 @@ namespace Helium {
  */
 
  /**
-  * @defgroup Production
+  * @defgroup Production Code in Production Phase
   * @brief Code in production phase.
   */
 
  /**
-  * @defgroup Alpha
+  * @defgroup Alpha Code in Alpha Phase
   * @brief Code in aplha phase.
   */
 
  /**
-  * @defgroup Beta
+  * @defgroup Beta Code in Beta Phase
   * @brief Code in beta phase.
   */
 

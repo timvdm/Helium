@@ -33,75 +33,179 @@
 
 namespace Helium {
 
+  /**
+   * @brief Class representing possible SMIRKS errors.
+   */
   class SmirksError
   {
     public:
+      /**
+       * @brief The error type.
+       */
       enum Type {
+        /**
+         * @brief No error.
+         */
         None,
+        /**
+         * @brief The SMIRKS does not contain '>>'.
+         */
         NoReaction,
+        /**
+         * @brief Parse error in reactant SMARTS.
+         */
         ReactantSmarts,
+        /**
+         * @brief Parse error in product SMARTS.
+         */
         ProductSmarts,
+        /**
+         * @brief The atom classes are not pair-wise.
+         */
         AtomClassPairWise,
+        /**
+         * @brief The product SMARTS contains an OR expression.
+         */
         ProductContainsOr,
+        /**
+         * @brief The product SMARTS contains a NOT expression.
+         */
         ProductContainsNot,
+        /**
+         * @brief The product contains a complex bond expression.
+         */
         InvalidProductBond
       };
 
+      /**
+       * @brief Default constructor.
+       *
+       * This constructor initializes the error to None.
+       */
       SmirksError() : m_type(None)
       {
       }
 
+      /**
+       * @brief Constructor.
+       *
+       * @param type The error type.
+       * @param what The error message.
+       */
       SmirksError(Type type, const std::string &what) : m_type(type), m_what(what)
       {
       }
 
+      /**
+       * @brief Get the error type.
+       *
+       * @return The error type.
+       */
       Type type() const
       {
         return m_type;
       }
 
+      /**
+       * @brief Get the error message.
+       *
+       * @return The error message.
+       */
       const std::string& what() const
       {
         return m_what;
       }
 
     private:
-      Type m_type;
-      std::string m_what;
+      Type m_type; //!< The error type.
+      std::string m_what; //!< The error message.
   };
 
+  /**
+   * @brief Class for applying SMIRKS transformations.
+   */
   class Smirks
   {
-      // bond exists in both reactant and product
+      /**
+       * @brief Class representing a change to a bond.
+       */
       struct BondChange
       {
+        /**
+         * @brief The type of change.
+         */
         enum Type {
+          /**
+           * @brief Bond is changed.
+           */
           Changed,
+          /**
+           * @brief Bond is added.
+           */
           Added,
+          /**
+           * @brief Bond is removed.
+           */
           Removed
         };
 
+        /**
+         * @brief Constructor.
+         *
+         * @param type_ The error type.
+         * @param source_ The reactant source index.
+         * @param target_ The reactant target index.
+         * @param expr_ The product SMARTS bond expression.
+         */
         BondChange(int type_, int source_, int target_, impl::SmartsBondExpr *expr_)
           : type(type_), source(source_), target(target_), expr(expr_)
         {
         }
 
-        int type;
-        int source; // reactant source index
-        int target; // reactant target index
-        impl::SmartsBondExpr *expr; // product bond expr
+        int type; //!< The type of change.
+        int source; //!< Reactant source index.
+        int target; //!< Reactant target index.
+        impl::SmartsBondExpr *expr; //!< Product SMARTS bond expression.
       };
 
     public:
+      /**
+       * @brief Initialize the SMIRKS.
+       *
+       * @param smirks The SMIRKS string.
+       *
+       * @return True if successful.
+       */
       bool init(const std::string &smirks);
 
+      /**
+       * @brief Initialize the SMIRKS.
+       *
+       * @param reactant The reactant SMARTS string.
+       * @param product The product SMARTS string.
+       *
+       * @return True if successful.
+       */
       bool init(const std::string &reactant, const std::string &product);
 
+      /**
+       * @brief Get the error from the last call to init().
+       *
+       * @return The SMIRKS erorr.
+       */
       const SmirksError& error() const
       {
         return m_error;
       }
 
+      /**
+       * @brief Apply the SMIRKS transformation to a molecule.
+       *
+       * @param mol The molecule.
+       * @param rings The molecule's rings (needed for cyclic queries).
+       *
+       * @return True if changes were made to the molecule.
+       */
       template<typename EditableMoleculeType>
       bool apply(EditableMoleculeType &mol, const RingSet<EditableMoleculeType> &rings)
       {
@@ -169,6 +273,13 @@ namespace Helium {
       }
 
     private:
+      /**
+       * @brief Apply changes to an atom.
+       *
+       * @param mol The molecule.
+       * @param atom The atom to change.
+       * @param expr The product SMARTS atom expression.
+       */
       template<typename EditableMoleculeType, typename AtomType>
       void apply(EditableMoleculeType &mol, AtomType atom, impl::SmartsAtomExpr *expr)
       {
@@ -216,6 +327,13 @@ namespace Helium {
         }
       }
 
+      /**
+       * @brief Apply changes to a bond.
+       *
+       * @param mol The molecule.
+       * @param bond The bond to change.
+       * @param expr The product SMARTS bond expression.
+       */
       template<typename EditableMoleculeType, typename BondType>
       void apply(EditableMoleculeType &mol, BondType bond, impl::SmartsBondExpr *expr)
       {
@@ -246,6 +364,14 @@ namespace Helium {
         }
       }
 
+      /**
+       * @brief Check if an expression tree contains a specific type.
+       *
+       * @param expr The SMARTS expression tree.
+       * @param type The type to search for.
+       *
+       * @return True if the @p type is found in the expression tree.
+       */
       template<typename ExprType>
       bool exprContains(ExprType *expr, int type)
       {
@@ -273,16 +399,32 @@ namespace Helium {
         return false;
       }
 
+      /**
+       * @brief Extract atom class to SMARTS expression mapping from SMARTS object.
+       *
+       * @param smarts The SMARTS object.
+       *
+       * @return The atom class to SMARTS expression mapping.
+       */
       std::map<int, impl::SmartsAtomExpr*> atomClassToExpr(const Smarts &smarts) const;
 
+      /**
+       * @brief Find a bond in a SMARTS between the specified atom classes.
+       *
+       * @param smarts The SMARTS object.
+       * @param sourceAtomClass The source atom class.
+       * @param targetAtomClass The target atom class.
+       *
+       * @return The found bond or molecule_traits<HeMol>::null_bond().
+       */
       molecule_traits<HeMol>::bond_type getBond(const Smarts &smarts, int sourceAtomClass, int targetAtomClass);
 
-      Smarts m_reactant;
-      Smarts m_product;
-      std::map<int, impl::SmartsAtomExpr*> m_reactantExpr;
-      std::map<int, impl::SmartsAtomExpr*> m_productExpr;
-      std::vector<BondChange> m_bondChanges;
-      SmirksError m_error;
+      Smarts m_reactant; //!< The reactant SMARTS.
+      Smarts m_product; //!< The product SMARTS.
+      std::map<int, impl::SmartsAtomExpr*> m_reactantExpr; //!< Reactant atom class to atom expr.
+      std::map<int, impl::SmartsAtomExpr*> m_productExpr; //!< Product atom class to atom expr.
+      std::vector<BondChange> m_bondChanges; //!< The bond changes.
+      SmirksError m_error; //!< Error from last call to init().
   };
 
 }

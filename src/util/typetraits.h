@@ -70,7 +70,6 @@ namespace Helium {
 
   template<typename T>
   struct IsInteger { enum { result = false }; };
-  /// @cond IMPL
   template<> struct IsInteger<char> { enum { result = true }; };
   template<> struct IsInteger<signed char> { enum { result = true }; };
   template<> struct IsInteger<unsigned char> { enum { result = true }; };
@@ -80,9 +79,8 @@ namespace Helium {
   template<> struct IsInteger<unsigned int> { enum { result = true }; };
   template<> struct IsInteger<signed long> { enum { result = true }; };
   template<> struct IsInteger<unsigned long> { enum { result = true }; };
-  /// @endcond
 
-  /**
+  /*
    * Integer to type template. This is used to turn an integer to type and is
    * mainly used to dispatch to helper functions.
    *
@@ -118,7 +116,7 @@ namespace Helium {
   struct SelectHelper { typedef IfTrueType result; };
   template<typename IfTrueType, typename IfFalseType>
   struct SelectHelper<IfTrueType, IfFalseType, false> { typedef IfFalseType result; };
-  /**
+  /*
    * Select a type based on an value of an expression. This works like the
    * expr ? true_value : false_value statement in C++ but operates on types
    * instead.

@@ -339,7 +339,6 @@ namespace Helium {
 
   /**
    * @brief Class for matching SMARTS.
-   *
    */
   class Smarts
   {

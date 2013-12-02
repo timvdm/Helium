@@ -16,6 +16,7 @@ set(helium_tool_SRCS
   similaritynxn.cpp
   sort.cpp
   substructure.cpp
+  smarts.cpp
 )
 
 if (OPENCL_FOUND)

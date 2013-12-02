@@ -11,8 +11,12 @@ int main(int argc, char**argv)
     std::cerr << "Usage: " << argv[0] << " <tool> [options]" << std::endl;
     std::cerr << std::endl;
     std::cerr << "Tools:" << std::endl;
-    for (std::size_t i = 0; i < factories.size(); ++i)
-      std::cerr << "    " << factories[i]->name() << "\t" << factories[i]->description() << std::endl;
+    for (std::size_t i = 0; i < factories.size(); ++i) {
+      std::cerr << "    " << factories[i]->name() << "\t";
+      if (factories[i]->name().size() < 12)
+        std::cerr << "\t";
+      std::cerr << factories[i]->description() << std::endl;
+    }
     std::cerr << std::endl;
     return 0;
   }

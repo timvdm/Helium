@@ -60,8 +60,6 @@ namespace Helium {
           return -1;
         }
 
-        std::cout << "smiles: " << writeSmiles << std::endl;
-
         // perform search
 
         MemoryMappedMoleculeFile moleculeFile;
@@ -86,6 +84,7 @@ namespace Helium {
 
         // print results
         Json::Value data;
+        data["num_hits"] = Json::Int(result.size());
         data["hits"] = Json::Value(Json::arrayValue);
         for (std::size_t i = 0; i < result.size(); ++i) {
           data["hits"][Json::ArrayIndex(i)] = Json::Value(Json::objectValue);

@@ -25,6 +25,9 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+/**
+ * @brief Helium namespace.
+ */
 namespace Helium {
 
 /**
@@ -76,50 +79,49 @@ namespace Helium {
  * To write generic functions, the following examples can be used as guidelines.
  * First a simple function with only a molecule as parameter is shown:
  *
- * @code
- * template<typename MoleculeType>
- * void print_num_atoms(const MoleculeType &mol)
- * {
- *   std::cout << num_atoms(mol) << std::endl;
- * }
- * @endcode
+ @code
+ template<typename MoleculeType>
+ void print_num_atoms(const MoleculeType &mol)
+ {
+   std::cout << num_atoms(mol) << std::endl;
+ }
+ @endcode
  *
  * When additional types are required inside the function, the molecule_traits
  * struct can be used to add typedefs:
  *
- * @code
- * template<typename MoleculeType>
- * void print_degree_of_first_atom(const MoleculeType &mol)
- * {
- *   // the "typename" is needed since molecule_traits is dependent on the
- *   // MoleculeType template parameter...
- *   typedef typename molecule_traits<MoleculeType>::atom_type atom_type;
- *
- *   atom_type atom = get_atom(mol, 0);
- *
- *   std::cout << get_degree(mol, atom) << std::endl;
- * }
- * @endcode
+ @code
+ template<typename MoleculeType>
+ void print_degree_of_first_atom(const MoleculeType &mol)
+ {
+   // the "typename" is needed since molecule_traits is dependent on the
+   // MoleculeType template parameter...
+   typedef typename molecule_traits<MoleculeType>::atom_type atom_type;
+
+   atom_type atom = get_atom(mol, 0);
+
+   std::cout << get_degree(mol, atom) << std::endl;
+ }
+ @endcode
  *
  * If a bond or atom needs to be passed as argument, there are two ways this can
  * be achieved. The first requires more typing so the second way is recommended:
  *
- * @code
- * // the first and long way
- * template<typename MoleculeType>
- * void print_atom_index(const MoleculeType &mol, typename molecule_traits<MoleculeType>::atom_type atom)
- * {
- *   std::cout << get_index(mol, atom) << std::endl;
- * }
- *
- * // the second and easier way
- * template<typename MoleculeType, typename AtomType>
- * void print_atom_index(const MoleculeType &mol, AtomType atom)
- * {
- *   std::cout << get_index(mol, atom) << std::endl;
- * }
- * @endcode
- *
+ @code
+ // the first and long way
+ template<typename MoleculeType>
+ void print_atom_index(const MoleculeType &mol, typename molecule_traits<MoleculeType>::atom_type atom)
+ {
+   std::cout << get_index(mol, atom) << std::endl;
+ }
+
+ // the second and easier way
+ template<typename MoleculeType, typename AtomType>
+ void print_atom_index(const MoleculeType &mol, AtomType atom)
+ {
+   std::cout << get_index(mol, atom) << std::endl;
+ }
+ @endcode
  *
  * @subsection mol_concept_api Molecule API
  *
@@ -131,160 +133,57 @@ namespace Helium {
  *
  * The functions in the list below operate on the @b molecule alone:
  *
- * @li num_atoms(const MoleculeType &mol): Get the number of atoms.
- * @li num_bonds(const MoleculeType &mol): Get the number of bonds.
- * @li get_atom(const MoleculeType &mol, Index index): Get the atom with the specified index.
- * @li get_bond(const MoleculeType &mol, Index index): Get the bond with the specified index.
- * @li get_atoms(const MoleculeType &mol): Get an iterator pair over all atoms in the molecule.
- * @li get_bonds(const MoleculeType &mol): Get an iterator pair over all atoms in the molecule.
- * @li get_bond(const MoleculeType &mol, typename molecule_traits<MoleculeType>::atom_type source, typename molecule_traits<MoleculeType>::atom_type target): Get the bond between source and target.
+ *
+ * @li @b num_atoms(mol): Get the number of atoms.
+ * @li @b num_bonds(mol): Get the number of bonds.
+ * @li @b get_atom(mol, index): Get the atom with the specified index.
+ * @li @b get_bond(mol, index): Get the bond with the specified index.
+ * @li @b get_atoms(mol): Get an iterator pair over all atoms in the molecule.
+ * @li @b get_bonds(mol): Get an iterator pair over all atoms in the molecule.
+ * @li @b get_bond(mol, source, target): Get the bond between source and target.
  *
  * The last two functions are used for iterating over the atoms/bonds. Although
  * these can be used directly, Helium also provides macros (i.e. FOREACH_ATOM()
  * and FOREACH_BOND() to make iteration easier. The usage of all the functions
  * above is illustrated in the simple example below:
  *
- * @code
- * // examples/molecule1.cpp
- * #include <Helium/molecule.h>
- * #include <Helium/hemol.h> // for HeMol and hemol_from_smiles()
- *
- * #include <iostream>
- *
- * using namespace Helium;
- *
- * template<typename MoleculeType>
- * void print_stuff(const MoleculeType &mol)
- * {
- *   // num_atoms() and num_bonds()
- *   std::cout << "# atoms: " << num_atoms(mol) << std::endl;
- *   std::cout << "# bonds: " << num_bonds(mol) << std::endl;
- *
- *   // get_atom() and get_bond()
- *   std::cout << "degree of 2nd atom: " << get_degree(mol, get_atom(mol, 1)) << std::endl;
- *   std::cout << "order of 3th bond: " << get_order(mol, get_bond(mol, 2)) << std::endl;
- *   std::cout << "the bond C=O has order: " << get_order(mol, get_bond(mol, get_atom(mol, 1), get_atom(mol, 2))) << std::endl;
- *
- *   // iterate over the atoms
- *   FOREACH_ATOM (atom, mol, MoleculeType) {
- *     std::cout << "atom " << get_index(mol, *atom) << " has element " << get_element(mol, *atom) << std::endl;
- *   }
- *
- *   // iterate over the bonds
- *   FOREACH_BOND (bond, mol, MoleculeType) {
- *     std::cout << "bond " << get_index(mol, *bond) << " has order " << get_order(mol, *bond) << std::endl;
- *   }
- * }
- *
- * int main()
- * {
- *   HeMol mol = hemol_from_smiles("CC(=O)C");
- *   print_stuff(mol);
- * }
- * @endcode
+ * @include molecule1.cpp
  *
  * Once an @b atom has been obtained (e.g. using get_atom(), FOREACH_ATOM(),
  * FOREACH_NBR(), ...), the following set of functions can be used to retrieve
  * information about the atom:
  *
- * @li get_index(const MoleculeType &mol, typename molecule_traits<MoleculeType>::atom_type atom): Get the atom's index.
- * @li get_element(const MoleculeType &mol, typename molecule_traits<MoleculeType>::atom_type atom): Get the atom's element.
- * @li get_mass(const MoleculeType &mol, typename molecule_traits<MoleculeType>::atom_type atom): Get the atom's mass.
- * @li get_degree(const MoleculeType &mol, typename molecule_traits<MoleculeType>::atom_type atom): Get the atom's degree.
- * @li get_charge(const MoleculeType &mol, typename molecule_traits<MoleculeType>::atom_type atom): Get the atom's charge.
- * @li num_hydrogens(const MoleculeType &mol, typename molecule_traits<MoleculeType>::atom_type atom): Get the number of hydrogens attached to this atom.
- * @li get_bonds(const MoleculeType &mol, typename molecule_traits<MoleculeType>::atom_type atom): Get an iterator pair over the atom's incident bonds.
- * @li get_nbrs(const MoleculeType &mol, typename molecule_traits<MoleculeType>::atom_type atom): Get an iterator pair over the atom's neighbor atoms.
+ * @li @b get_index(mol, atom): Get the atom's index.
+ * @li @b get_element(mol, atom): Get the atom's element.
+ * @li @b get_mass(mol, atom): Get the atom's mass.
+ * @li @b get_degree(mol, atom): Get the atom's degree.
+ * @li @b get_charge(mol, atom): Get the atom's charge.
+ * @li @b num_hydrogens(mol, atom): Get the number of hydrogens attached to this atom.
+ * @li @b get_bonds(mol, atom): Get an iterator pair over the atom's incident bonds.
+ * @li @b get_nbrs(mol, atom): Get an iterator pair over the atom's neighbor atoms.
  *
  * Again, the last two functions return iterator pairs. For these the FOREACH_NBR()
  * and FOREACH_INCIDENT() marcos provided.
  *
- * @code
- * // examples/molecule2.cpp
- * #include <Helium/molecule.h>
- * #include <Helium/hemol.h> // for HeMol and hemol_from_smiles()
- *
- * #include <iostream>
- *
- * using namespace Helium;
- *
- * template<typename MoleculeType>
- * void print_stuff(const MoleculeType &mol)
- * {
- *   // iterate over the atoms
- *   FOREACH_ATOM (atom, mol, MoleculeType) {
- *     std::cout << "atom " << get_index(mol, *atom) << ":" << std::endl;
- *     std::cout << "    element: " << get_element(mol, *atom) << std::endl;
- *     std::cout << "    mass: " << get_mass(mol, *atom) << std::endl;
- *     std::cout << "    charge: " << get_charge(mol, *atom) << std::endl;
- *     std::cout << "    degree: " << get_degree(mol, *atom) << std::endl;
- *     std::cout << "    number of hydrogens: " << num_hydrogens(mol, *atom) << std::endl;
- *   }
- *
- *   // print neighbor indices for atom 1
- *   std::cout << "neighbor indices for atom 1: ";
- *   FOREACH_NBR (nbr, get_atom(mol, 1), mol, MoleculeType)
- *     std::cout << get_index(mol, *nbr) << " ";
- *   std::cout << std::endl;
- *
- *   // print incident bond indices for atom 1
- *   std::cout << "incident bond indices for atom 1: ";
- *   FOREACH_INCIDENT (bond, get_atom(mol, 1), mol, MoleculeType)
- *     std::cout << get_index(mol, *bond) << " ";
- *   std::cout << std::endl;
- * }
- *
- * int main()
- * {
- *   HeMol mol = hemol_from_smiles("CC(=O)C");
- *   print_stuff(mol);
- * }
- * @endcode
+ * @include molecule2.cpp
  *
  * For @b bonds the following functions are provided.
  *
- * @li get_index(const MoleculeType &mol, typename molecule_traits<MoleculeType>::bond_type bond): Get the bond's index.
- * @li get_source(const MoleculeType &mol, typename molecule_traits<MoleculeType>::bond_type bond): Get the bond's source atom.
- * @li get_target(const MoleculeType &mol, typename molecule_traits<MoleculeType>::bond_type bond): Get the bond's target atom.
- * @li get_order(const MoleculeType &mol, typename molecule_traits<MoleculeType>::bond_type bond): Get the bond's order.
- * @li get_other(const MoleculeType &mol, typename molecule_traits<MoleculeType>::bond_type bond, typename molecule_traits<MoleculeType>::atom_type atom): Get the other bond atom.
+ * @li @b get_index(mol, bond): Get the bond's index.
+ * @li @b get_source(mol, bond): Get the bond's source atom.
+ * @li @b get_target(mol, bond): Get the bond's target atom.
+ * @li @b get_order(mol, bond): Get the bond's order.
+ * @li @b get_other(mol, bond, atom): Get the other bond atom.
  *
  * Simple example showing usage of the various bond functions:
  *
- * @code
- * // examples/molecule3.cpp
- * #include <Helium/molecule.h>
- * #include <Helium/hemol.h> // for HeMol and hemol_from_smiles()
- *
- * #include <iostream>
- *
- * using namespace Helium;
- *
- * template<typename MoleculeType>
- * void print_stuff(const MoleculeType &mol)
- * {
- *   // iterate over the bonds
- *   FOREACH_BOND (bond, mol, MoleculeType) {
- *     std::cout << "bond " << get_index(mol, *bond) << ":" << std::endl;
- *     std::cout << "    source atom index: " << get_index(mol, get_source(mol, *bond)) << std::endl;
- *     std::cout << "    target atom index: " << get_index(mol, get_target(mol, *bond)) << std::endl;
- *     std::cout << "    source atom index retrieved using get_other: "
- *               << get_index(mol, get_other(mol, *bond, get_target(mol, *bond))) << std::endl;
- *     std::cout << "    order: " << get_order(mol, *bond) << std::endl;
- *   }
- * }
- *
- * int main()
- * {
- *   HeMol mol = hemol_from_smiles("CC(=O)C");
- *   print_stuff(mol);
- * }
- * @endcode
+ * @include molecule3.cpp
  *
  * All of the functions above are primitive functions in the sense that each model
  * of the molecule concept has to implement them. Using these primitive functions,
  * a number of useful functions are defined.
  *
+ * @li is_hydrogen(): Check if an atom is a hydrogen atom.
  * @li is_carbon(): Check if an atom is a carbon atom.
  * @li is_nitrogen(): Check if an atom is a nitrogen atom.
  * @li is_oxygen(): Check if an atom is an oxygen atom.
@@ -437,58 +336,22 @@ namespace Helium {
  *
  * The example below illustrates the use of these functions:
  *
- * @code
- * // examples/components.cpp
- * #include <Helium/algorithms/components.h>
- * #include <Helium/hemol.h>
- *
- * using namespace Helium;
- *
- * int main()
- * {
- *   HeMol mol = hemol_from_smiles("CCC.CC.C");
- *
- *   Size numComponents = num_connected_components(mol);
- *
- *   std::cout << "# components: " << numComponents << std::endl;
- *
- *   std::vector<unsigned int> atomComponentIndices = connected_atom_components(mol);
- *   std::vector<unsigned int> bondComponentIndices = connected_bond_components(mol);
- *
- *   for (Size c = 0; c < numComponents; ++c) {
- *     std::cout << "component " << c << ":" << std::endl;
- *
- *     // print component atoms
- *     std::cout << "  atom indices: ";
- *     for (Index i = 0; i < num_atoms(mol); ++i)
- *       if (atomComponentIndices[i] == c)
- *         std::cout << i << " ";
- *     std::cout << std::endl;
- *
- *     // print component bonds
- *     std::cout << "  bond indices: ";
- *     for (Index i = 0; i < num_bonds(mol); ++i)
- *       if (bondComponentIndices[i] == c)
- *         std::cout << i << " ";
- *     std::cout << std::endl;
- *   }
- * }
- * @endcode
+ * @include components.cpp
  *
  * The output of the program above:
  *
- * @verbatim
-   # components: 3
-   component 0:
-     atom indices: 0 1 2
-     bond indices: 0 1
-   component 1:
-     atom indices: 3 4
-     bond indices: 2
-   component 2:
-     atom indices: 5
-     bond indices:
-   @endverbatim
+ @verbatim
+ # components: 3
+ component 0:
+   atom indices: 0 1 2
+   bond indices: 0 1
+ component 1:
+   atom indices: 3 4
+   bond indices: 2
+ component 2:
+   atom indices: 5
+   bond indices:
+ @endverbatim
  *
  * @section fingerprints Fingerprints
  *

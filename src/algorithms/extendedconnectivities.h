@@ -80,11 +80,11 @@ namespace Helium {
    *
    * @param mol The molecule.
    *
-@verbatim
-Morgan, H. L. The Generation of a Unique Machine Description for Chemical
-Structures - A Technique Developed at Chemical Abstracts Service. J. Chem.
-Doc. 1965, 5: 107-112.
-@endverbatim
+   @verbatim
+   Morgan, H. L. The Generation of a Unique Machine Description for Chemical
+   Structures - A Technique Developed at Chemical Abstracts Service. J. Chem.
+   Doc. 1965, 5: 107-112.
+   @endverbatim
    *
    * @return The extended connectivities.
    */

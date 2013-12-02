@@ -194,13 +194,14 @@ namespace Helium {
       typedef typename molecule_traits<MoleculeType>::bond_type bond_type;
 
       WriteSmilesVisitor(const std::map<atom_type, std::vector<int> > &ringNumbers_, int flags_)
-        : ringNumbers(ringNumbers_), flags(flags_)
+        : ringNumbers(ringNumbers_), explicitBond(0), flags(flags_)
       {
       }
 
       void initialize(const MoleculeType &mol)
       {
         degrees.resize(num_atoms(mol));
+        explicitBond = 0;
       }
 
       bool isOrganicSubset(int element) const
@@ -224,7 +225,6 @@ namespace Helium {
 
       void atom(const MoleculeType &mol, atom_type prev, atom_type atom)
       {
-
         if (prev != molecule_traits<MoleculeType>::null_atom()) {
           typename std::map<atom_type, std::vector<int> >::const_iterator rings = ringNumbers.find(prev);
           int numRings = rings == ringNumbers.end() ? 0 : rings->second.size();
@@ -235,6 +235,10 @@ namespace Helium {
             branches.push_back(get_index(mol, atom));
           }
         }
+
+        if (explicitBond)
+          smiles << explicitBond;
+        explicitBond = 0;
 
         std::string element = Element::symbol(get_element(mol, atom));
         if (is_aromatic(mol, atom))
@@ -290,19 +294,25 @@ namespace Helium {
         if (!(flags & WriteSmiles::Order))
           return;
 
+        explicitBond = 0;
+
         switch (get_order(mol, bond)) {
           case 1:
             if (!is_aromatic(mol, bond) && is_aromatic(mol, get_source(mol, bond)) && is_aromatic(mol, get_target(mol, bond)))
-              smiles << "-";
+              //smiles << "-";
+              explicitBond = '-';
             break;
           case 2:
-            smiles << "=";
+            //smiles << "=";
+            explicitBond = '=';
             break;
           case 3:
-            smiles << "#";
+            //smiles << "#";
+            explicitBond = '#';
             break;
           case 4:
-            smiles << "$";
+            //smiles << "$";
+            explicitBond = '$';
             break;
           default:
             break;
@@ -325,6 +335,7 @@ namespace Helium {
       std::vector<int> degrees;
       std::vector<Index> branches;
       std::stringstream smiles;
+      char explicitBond;
       int flags;
     };
 

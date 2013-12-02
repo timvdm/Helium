@@ -89,6 +89,17 @@ int main()
   // aromatic
   test_write_smiles("n1ccccc1");
 
+  // isotope
   test_write_smiles("[13C]");
+  // charge
   test_write_smiles("[C+]");
+  test_write_smiles("[C-]");
+
+  test_write_smiles("C=C");
+  test_write_smiles("C#C");
+  test_write_smiles("C$C");
+
+  test_write_smiles("CCC(=O)C");
+  test_write_smiles("CC(N(=O)=O)CC");
+  test_write_smiles("CC([N+](=O)[O-])CC");
 }

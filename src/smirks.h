@@ -243,9 +243,9 @@ namespace Helium {
             switch (change.type) {
               case BondChange::Changed:
                 {
-                  molecule_traits<HeMol>::atom_type source = get_atom(mol, map[change.source]);
-                  molecule_traits<HeMol>::atom_type target = get_atom(mol, map[change.target]);
-                  molecule_traits<HeMol>::bond_type bond = get_bond(mol, source, target);
+                  typename molecule_traits<EditableMoleculeType>::atom_type source = get_atom(mol, map[change.source]);
+                  typename molecule_traits<EditableMoleculeType>::atom_type target = get_atom(mol, map[change.target]);
+                  typename molecule_traits<EditableMoleculeType>::bond_type bond = get_bond(mol, source, target);
                   apply(mol, bond, change.expr);
 
                   if (DEBUG_SMIRKS)
@@ -254,9 +254,9 @@ namespace Helium {
                 break;
               case BondChange::Removed:
                 {
-                  molecule_traits<HeMol>::atom_type source = get_atom(mol, map[change.source]);
-                  molecule_traits<HeMol>::atom_type target = get_atom(mol, map[change.target]);
-                  molecule_traits<HeMol>::bond_type bond = get_bond(mol, source, target);
+                  typename molecule_traits<EditableMoleculeType>::atom_type source = get_atom(mol, map[change.source]);
+                  typename molecule_traits<EditableMoleculeType>::atom_type target = get_atom(mol, map[change.target]);
+                  typename molecule_traits<EditableMoleculeType>::bond_type bond = get_bond(mol, source, target);
                   removeBonds.push_back(get_index(mol, bond));
 
                   if (DEBUG_SMIRKS)
@@ -265,9 +265,9 @@ namespace Helium {
                 break;
               case BondChange::Added:
                 {
-                  molecule_traits<HeMol>::atom_type source = get_atom(mol, map[change.source]);
-                  molecule_traits<HeMol>::atom_type target = get_atom(mol, map[change.target]);
-                  molecule_traits<HeMol>::bond_type bond = add_bond(mol, source, target);
+                  typename molecule_traits<EditableMoleculeType>::atom_type source = get_atom(mol, map[change.source]);
+                  typename molecule_traits<EditableMoleculeType>::atom_type target = get_atom(mol, map[change.target]);
+                  typename molecule_traits<EditableMoleculeType>::bond_type bond = add_bond(mol, source, target);
                   apply(mol, bond, change.expr);
 
                   if (DEBUG_SMIRKS)

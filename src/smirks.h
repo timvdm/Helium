@@ -31,6 +31,8 @@
 
 #include <iostream>
 
+#define DEBUG_SMIRKS 0
+
 namespace Helium {
 
   /**
@@ -209,6 +211,9 @@ namespace Helium {
       template<typename EditableMoleculeType>
       bool apply(EditableMoleculeType &mol, const RingSet<EditableMoleculeType> &rings)
       {
+        if (DEBUG_SMIRKS)
+          std::cout << "Smirks::apply()" << std::endl;
+
         MappingList mapping;
         if (!m_reactant.search(mol, mapping, rings, true))
           return false;
@@ -242,6 +247,9 @@ namespace Helium {
                   molecule_traits<HeMol>::atom_type target = get_atom(mol, map[change.target]);
                   molecule_traits<HeMol>::bond_type bond = get_bond(mol, source, target);
                   apply(mol, bond, change.expr);
+
+                  if (DEBUG_SMIRKS)
+                    std::cout << "changed bond " << get_index(mol, bond) << ": " << get_index(mol, source) << "-" << get_index(mol, target) << std::endl;
                 }
                 break;
               case BondChange::Removed:
@@ -250,6 +258,9 @@ namespace Helium {
                   molecule_traits<HeMol>::atom_type target = get_atom(mol, map[change.target]);
                   molecule_traits<HeMol>::bond_type bond = get_bond(mol, source, target);
                   removeBonds.push_back(get_index(mol, bond));
+
+                  if (DEBUG_SMIRKS)
+                    std::cout << "removed bond " << get_index(mol, bond) << ": " << get_index(mol, source) << "-" << get_index(mol, target) << std::endl;
                 }
                 break;
               case BondChange::Added:
@@ -258,6 +269,9 @@ namespace Helium {
                   molecule_traits<HeMol>::atom_type target = get_atom(mol, map[change.target]);
                   molecule_traits<HeMol>::bond_type bond = add_bond(mol, source, target);
                   apply(mol, bond, change.expr);
+
+                  if (DEBUG_SMIRKS)
+                    std::cout << "added bond " << get_index(mol, bond) << ": " << get_index(mol, source) << "-" << get_index(mol, target) << std::endl;
                 }
                 break;
             }

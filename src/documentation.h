@@ -37,16 +37,19 @@ namespace Helium {
  *
  * @li @ref mol_concept
  * @li @ref depthfirst
+ * @li @ref breadthfirst
  * @li @ref components
+ * @li @ref cycles
+ * @li @ref smarts
+ * @li @ref smirks
  * @li @ref fingerprints
+ * @li @ref morganec
  * @li @ref canonical
  * @li @ref enumerate
- * @li @ref morganec
- * @li @ref cycles
  *
  * @section mol_concept The Molecule Concept
  *
- * Helium is C++ header only library and uses generic programming to achieve
+ * Helium is C++ library and uses generic programming to achieve
  * maximal compatibility with other cheminformatics libraries. Almost all
  * data structures that represent molecules can be used as input for the
  * algorithms in Helium. In order for this to work, the molecule concept is
@@ -158,9 +161,11 @@ namespace Helium {
  * @li @b get_mass(mol, atom): Get the atom's mass.
  * @li @b get_degree(mol, atom): Get the atom's degree.
  * @li @b get_charge(mol, atom): Get the atom's charge.
- * @li @b num_hydrogens(mol, atom): Get the number of hydrogens attached to this atom.
+ * @li @b num_hydrogens(mol, atom): Get the number of implicit hydrogens attached to this atom.
  * @li @b get_bonds(mol, atom): Get an iterator pair over the atom's incident bonds.
  * @li @b get_nbrs(mol, atom): Get an iterator pair over the atom's neighbor atoms.
+ * @li @b get_nbrs(mol, atom): Get an iterator pair over the atom's neighbor atoms.
+ * @li @b is_aromatic(mol, atom): Get the atom's aromaticity.
  *
  * Again, the last two functions return iterator pairs. For these the FOREACH_NBR()
  * and FOREACH_INCIDENT() marcos provided.
@@ -174,6 +179,7 @@ namespace Helium {
  * @li @b get_target(mol, bond): Get the bond's target atom.
  * @li @b get_order(mol, bond): Get the bond's order.
  * @li @b get_other(mol, bond, atom): Get the other bond atom.
+ * @li @b is_aromatic(mol, bond): Get the bond's aromaticity.
  *
  * Simple example showing usage of the various bond functions:
  *
@@ -190,9 +196,10 @@ namespace Helium {
  * @li is_phosphorus(): Check if an atom is an phosphorus atom.
  * @li is_sulfur(): Check if an atom is an sulfur atom.
  * @li get_heavy_degree(): Get the number of heavy atoms (i.e. not hydrogen) attached to an atom.
- * @li get_valence(): Get the valence (i.e. number of attached heavy atoms + implicit/explicit hydrogens) of an atom.
+ * @li get_valence(): Get the valence (i.e. the bond order sum) of an atom.
+ * @li get_connectivity(): Get the connectivity (i.e. the degree + the number of implicit hydrogens) of an atom.
  *
- * @subsection mol_predicates Atom & Bond Predicates
+ * @subsection mol_concept_predicates Atom & Bond Predicates
  *
  * Helium provides atom and bond predicates to make development easier.
  * A predicate in this context is a boolean values function that checks some
@@ -245,6 +252,43 @@ namespace Helium {
  * An instance of the Substructure class can be used anywhere a molecule argument is
  * expected.
  *
+ * In the example below, the SMILES for benzoic acid is read into a molecule and
+ * a SMARTS search is done for a benzene ring. Next, the found mapping is used to
+ * create a substructure from the molecule resuling in a benzene ring view of the
+ * molecule.
+ *
+ * @include substructure.cpp
+ *
+ * @subsection mol_concept_editable Editable Molecules
+ *
+ * The Molecule concept is further extended to the EditableMolecule concept to
+ * allow molecules to be edited. The following functions operate on the molecule
+ * to add/remove atoms and bonds or clear the molecule:
+ *
+ * @li @b add_atom(mol): Add an atom to the molecule.
+ * @li @b add_bond(mol, source, target): Add a bond to the molecule.
+ * @li @b clear_molecule(mol): Clear the molecule (i.e. remove all atoms/bonds).
+ *
+ * Once an atom is created (or obtained another way) several set functions can
+ * be used to change the atom properties:
+ *
+ * @li @b set_element(mol, atom, value): Set the atom's element.
+ * @li @b set_mass(mol, atom, value): Set the atom's mass.
+ * @li @b set_charge(mol, atom, value): Set the atom's charge.
+ * @li @b set_hydrogens(mol, atom, value): Set the number of implicit hydrogens attached to this atom.
+ * @li @b set_aromatic(mol, bond, value): Set the atom's aromaticity.
+ *
+ * Similar functions are provided for bonds:
+ *
+ * @li @b set_order(mol, bond, value): Set the bond's order.
+ * @li @b set_aromatic(mol, bond, value): Set the bond's aromaticity.
+ *
+ * The Element class provides several functions to obtain default properties for
+ * atoms that can be used to set the various atom properties. The example below
+ * illustrates how acetone can be created:
+ *
+ * @include molecule4.cpp
+ *
  * @section depthfirst Depth-First Search
  *
  * Helium provides the depth_first_search() and exhaustive_depth_first_search()
@@ -267,39 +311,11 @@ namespace Helium {
  * The example below reads a SMILES string and invokes the DFSDebugVisitor to
  * print the actions of the dfs algorithm to standard output.
  *
- * @code
- * // examples/dfs1.cpp
- * #include <Helium/algorithms/dfs.h>
- * #include <Helium/hemol.h>
- *
- * using namespace Helium;
- *
- * int main()
- * {
- *   HeMol mol = hemol_from_smiles("C1CCC(CC)CC1");
- *
- *   DFSDebugVisitor<HeMol> visitor;
- *   depth_first_search(mol, visitor);
- * }
- * @endcode
+ * @include dfs1.cpp
  *
  * The second example below is similar but uses the exhaustive_depth_first_search().
  *
- * @code
- * // examples/dfs2.cpp
- * #include <Helium/algorithms/dfs.h>
- * #include <Helium/hemol.h>
- *
- * using namespace Helium;
- *
- * int main()
- * {
- *   HeMol mol = hemol_from_smiles("C1CCC(CC)CC1");
- *
- *   DFSDebugVisitor<HeMol> visitor;
- *   exhaustive_depth_first_search(mol, get_atom(mol, 0), visitor);
- * }
- * @endcode
+ * @include dfs2.cpp
  *
  * @section breadthfirst Breadth-First Search
  *
@@ -310,21 +326,7 @@ namespace Helium {
  *
  * Example using breadth-first search:
  *
- * @code
- * // examples/bfs1.cpp
- * #include <Helium/algorithms/bfs.h>
- * #include <Helium/hemol.h>
- *
- * using namespace Helium;
- *
- * int main()
- * {
- *   HeMol mol = hemol_from_smiles("C1CCC(CC)CC1");
- *
- *   BFSDebugVisitor<HeMol> visitor;
- *   breadth_first_search(mol, visitor);
- * }
- * @endcode
+ * @include bfs1.cpp
  *
  * @section components Connected Components
  *
@@ -353,6 +355,64 @@ namespace Helium {
    bond indices:
  @endverbatim
  *
+ * @section cycles Cycles
+ *
+ * There are several algorithms available related to cycles:
+ *
+ * @li cyclomatic_number()
+ * @li cycle_membership()
+ * @li relevant_cycles()
+ *
+ * Although most cheminformatics provide the Smallest Set of Smallest Rings
+ * (SSSR) as the main ring set, Helium uses the set of relevant cycles.
+ * Vismara [1] described this set as the union of all the minimum cycles
+ * bases of a graph. Definition 1 and lemma 1 from the paper further describe
+ * what the relevant cycles are:
+ *
+ * @li @b Definition @b 1: A cycle is said to be @b relevant if it belongs to at
+ *     leat one minimum cycle basis.
+ * @li @b Lemma @b 1: @f$C \in C_{all}@f$ is relevant @f$\iff@f$ no elementary cycles
+ *     @f$C_1, ..., C_k@f$ exist such that @f$C = C_1 + ... + C_k@f$ and
+ *     @f$\forall i \in [1,k], w(C_i) < w(C)@f$. Here, @f$C@f$ is the candidate ring,
+ *     @f$C_{all}@f$ is the set of all cycles and @f$w(C)@f$ is the weight (i.e. size)
+ *     of the ring @f$C@f$.
+ *
+ * The reason(s) why the relevant cycles were chosen as ring set is best illustrated
+ * in the Berger paper [2]. The relevant cylces have the following properties:
+ *
+ * @li Works for general graphs (i.e. no restricted to planar graphs).
+ * @li The relevant cycles are @b unique.
+ * @li The relevant cycles contain the minimum cycle bases (@b MCB).
+ *
+ * Although the size of the relevant cycles ring set is exponential in theory,
+ * this is not a problem since this behavior is not observed for molecular
+ * graphs.
+ *
+ @verbatim
+ [1] P. Vismara, Union of all the minimum cycle bases of a graph, The electronic
+     Journal of Combinatorics, 1997, Volume 4, Issue 1.
+ [2] F. Berger, C. Flamm, P. M. Gleiss, J. Leydold, P. F. Stadler, Counterexamples
+     in Chemical Ring Perception, J. Chem. Inf. Comput. Sci., 2004, Volume 44,
+     Issue 2: 323-331.
+ @endverbatim
+ *
+ * @section smarts SMARTS
+ *
+ * @section smirks SMIRKS
+ *
+ * Using the Smirks class it is possible to apply SMIRKS transformations to
+ * editable molecules. In the example below an amine is reacted with an
+ * acylchloride to form an amide.
+ *
+ * @include smirks.cpp
+ *
+ * The output is:
+ *
+ @verbatim
+ CCN + CCC(=O)Cl -> CCNC(CC)=O.Cl
+ CCN + c1ccccc1CC(=O)Cl -> CCNC(Cc1ccccc1)=O.Cl
+ @endverbatim
+ *
  * @section fingerprints Fingerprints
  *
  * The fingerprint functions are defined in the fingerprints.h header file.
@@ -362,6 +422,12 @@ namespace Helium {
  * @li subgraph_fingerprint()
  *
  * There are also various classes and functions for @ref fingerprints_page "storing and indexing fingerprints".
+ *
+ * @section morganec Morgan's Extended Connectivities
+ *
+ * The Morgan extended connectivities can be computed using the
+ * extended_connectivities() function defined in the
+ * extendedconnectivities.h header file.
  *
  * @section canonical Canonicalization
  *
@@ -378,19 +444,10 @@ namespace Helium {
  * enumerate_subgraphs() function defined in the enumeratesubgraphs.h header
  * file.
  *
- * @section morganec Morgan's Extended Connectivities
+ * The example below enumerates all subgraphs up to size 7 and prints out the
+ * unique subgraphs with their associated counts:
  *
- * The Morgan extended connectivities can be computed using the
- * extended_connectivities() function defined in the
- * extendedconnectivities.h header file.
- *
- * @section cycles Cycles
- *
- * There are several algorithms available related to cycles:
- *
- * @li cyclomatic_number()
- * @li cycle_membership()
- * @li relevant_cycles()
+ * @include enumeratesubgraphs.cpp
  */
 
  /**

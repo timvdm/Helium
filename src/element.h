@@ -1,3 +1,6 @@
+#ifndef HELIUM_ELEMENT_H
+#define HELIUM_ELEMENT_H
+
 namespace Helium {
 
   /**
@@ -2647,3 +2650,5 @@ namespace Helium {
   };
 
 }
+
+#endif

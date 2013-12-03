@@ -266,8 +266,8 @@ namespace Helium {
    * functor can be implemented by inheriting the DFSVisitor struct and
    * reimplementing the required functions.
    *
+   * @note Complexity: @f$O(n)@f$
    * @ingroup Production
-   * @note Complexity: O(n)
    * @note Phase: Production
    *
    * @param mol The molecule.
@@ -303,8 +303,8 @@ namespace Helium {
    * functor can be implemented by inheriting the DFSVisitor struct and
    * reimplementing the required functions.
    *
+   * @note Complexity: @f$O(n)@f$
    * @ingroup Production
-   * @note Complexity: O(n)
    * @note Phase: Production
    *
    * @param mol The molecule.
@@ -340,8 +340,8 @@ namespace Helium {
    * functor can be implemented by inheriting the DFSVisitor struct and
    * reimplementing the required functions.
    *
+   * @note Complexity: @f$O(2^n)@f$
    * @ingroup Production
-   * @note Complexity: O(2^n)
    * @note Phase: Production
    *
    * @param mol The molecule.

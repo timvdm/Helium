@@ -244,6 +244,9 @@ namespace Helium {
 
   //@endcond
 
+  /**
+   * @brief Class for creating a substructure view of a molecule.
+   */
   template<typename MoleculeType>
   class Substructure
   {
@@ -263,6 +266,15 @@ namespace Helium {
       typedef impl::substructure_atom_iterator<Substructure> const_atom_iter;
       typedef impl::substructure_bond_iterator<Substructure> const_bond_iter;
 
+      //@endcond
+
+      /**
+       * @brief Constructor.
+       *
+       * @param mol The molecule.
+       * @param atoms The atoms that are to be included in the substructure.
+       * @param bonds The bonds that are to be included in the substructure.
+       */
       Substructure(const molecule_type &mol, const std::vector<bool> &atoms,
           const std::vector<bool> &bonds) : m_mol(mol),
           m_atoms(atoms), m_bonds(bonds)
@@ -289,6 +301,8 @@ namespace Helium {
         assert(m_atomIndices.size() == num_atoms(mol));
         assert(m_bondIndices.size() == num_bonds(mol));
       }
+
+      //@cond dev
 
       Size numAtoms() const
       {

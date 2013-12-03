@@ -6,6 +6,8 @@ set(examples
   molecule1
   molecule2
   molecule3
+  molecule4
+  substructure
 
   enumeratesubgraphs
   )

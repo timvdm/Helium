@@ -28,6 +28,9 @@ for line in lines:
     
 #print elements
 
+print '#ifndef HELIUM_ELEMENT_H'
+print '#define HELIUM_ELEMENT_H'
+print ''
 print 'namespace Helium {'
 print ''
 print '  /**'
@@ -145,3 +148,5 @@ print '      }'
 print '  };'
 print ''
 print '}'
+print ''
+print '#endif'

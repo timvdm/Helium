@@ -515,6 +515,14 @@ namespace Helium {
   }
 
 
+  /**
+   * @brief Enumerate subgraphs of a molecule.
+   *
+   * @param mol The molecule.
+   * @param callback The callback functor for reporting the subgraphs.
+   * @param maxSize The maximum size of the subgraphs.
+   * @param trees When true, only trees (i.e. non-cyclic subgraphs) are enumerated.
+   */
   template<typename MoleculeType, typename CallbackType>
   void enumerate_subgraphs(MoleculeType &mol, CallbackType &callback, int maxSize, bool trees = false)
   {

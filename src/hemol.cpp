@@ -151,6 +151,12 @@ namespace Helium {
     m_target.erase(m_target.begin() + index);
     m_bondAromatic.erase(m_bondAromatic.begin() + index);
     m_order.erase(m_order.begin() + index);
+
+    // update m_adjList
+    for (std::size_t i = 0; i < m_adjList.size(); ++i)
+      for (std::size_t j = 0; j < m_adjList[i].size(); ++j)
+        if (m_adjList[i][j].index() > index)
+          m_adjList[i][j] = bond_type(this, m_adjList[i][j].index() - 1);
   }
 
   void HeMol::clear()

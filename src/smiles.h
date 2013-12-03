@@ -234,7 +234,9 @@ namespace Helium {
             smiles << "(";
             branches.push_back(get_index(mol, atom));
           }
-        }
+        } else if (smiles.str().size())
+          smiles << ".";
+
 
         if (explicitBond)
           smiles << explicitBond;

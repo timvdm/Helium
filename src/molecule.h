@@ -857,8 +857,7 @@ namespace Helium {
   /**
    * @brief Get the valence atom.
    *
-   * The valence is the bond order sum of the explicit bonds + the number of
-   * implicit/explicit hydrogens.
+   * The valence is the bond order sum of the explicit bonds.
    *
    * @param mol The molecule.
    * @param atom The atom to check.
@@ -882,8 +881,8 @@ namespace Helium {
   /**
    * @brief Get the atom connectivity.
    *
-   * The connectivity is the number of attached heavy atoms + the number of
-   * implicit/explicit hydrogens.
+   * The connectivity is the number of attached atoms (i.e. degree) + the number of
+   * implicit hydrogens.
    *
    * @param mol The molecule.
    * @param atom The atom to check.

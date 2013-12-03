@@ -153,10 +153,17 @@ namespace Helium {
     m_order.erase(m_order.begin() + index);
 
     // update m_adjList
-    for (std::size_t i = 0; i < m_adjList.size(); ++i)
-      for (std::size_t j = 0; j < m_adjList[i].size(); ++j)
-        if (m_adjList[i][j].index() > index)
+    for (std::size_t i = 0; i < m_adjList.size(); ++i) {
+      int remove = -1;
+      for (std::size_t j = 0; j < m_adjList[i].size(); ++j) {
+        if (m_adjList[i][j].index() == index)
+          remove = j;
+        else if (m_adjList[i][j].index() > index)
           m_adjList[i][j] = bond_type(this, m_adjList[i][j].index() - 1);
+      }
+      if (remove != -1)
+        m_adjList[i].erase(m_adjList[i].begin() + remove);
+    }
   }
 
   void HeMol::clear()

@@ -230,12 +230,18 @@ namespace Helium {
           int numRings = rings == ringNumbers.end() ? 0 : rings->second.size();
           degrees[get_index(mol, prev)]++;
 
+          // the -1 comes from the previous atom of prev
+          // (this is compensated below if prev is a first atom in it's component)
           if (degrees[get_index(mol, prev)] < get_degree(mol, prev) - 1 - numRings) {
             smiles << "(";
             branches.push_back(get_index(mol, atom));
           }
-        } else if (smiles.str().size())
-          smiles << ".";
+        } else {
+          degrees[get_index(mol, atom)] = -1; // compensate for -1 above
+
+          if (smiles.str().size())
+            smiles << ".";
+        }
 
 
         if (explicitBond)

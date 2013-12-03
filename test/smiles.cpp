@@ -102,4 +102,9 @@ int main()
   test_write_smiles("CCC(=O)C");
   test_write_smiles("CC(N(=O)=O)CC");
   test_write_smiles("CC([N+](=O)[O-])CC");
+
+
+  test_write_smiles("C(C)(C)(C)C");
+  test_write_smiles("CC(C)(C)(C)C");
+
 }

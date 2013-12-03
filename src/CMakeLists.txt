@@ -20,6 +20,7 @@ set(Helium_HDRS
   ring.h
   smarts.h
   smirks.h
+  diagram.h
   # algorithms
   algorithms/bfs.h
   algorithms/canonical.h
@@ -44,6 +45,7 @@ set(Helium_HDRS
   fileio/fingerprints.h
   fileio/fps.h
   fileio/molecules.h
+  fileio/cml.h
   # fingerprints
   fingerprints/fingerprints.h
   fingerprints/similarity.h

@@ -61,6 +61,7 @@ endif()
 set(tools
   #  opencl
   fps2hel
+  gen2d
 )
 
 foreach(tool ${tools})

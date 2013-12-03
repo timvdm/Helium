@@ -155,7 +155,7 @@ namespace Helium {
   class MoleculeFile
   {
     public:
-      MoleculeFile() : m_numMolecules(0)
+      MoleculeFile() : m_numMolecules(0), m_positionsPos(0)
       {
       }
 
@@ -186,11 +186,11 @@ namespace Helium {
 
         // extract needed attributes
         m_numMolecules = data["num_molecules"].asUInt();
-        Json::UInt64 positionsPos = data["molecule_indexes"].asUInt64();
+        m_positionsPos = data["molecule_indexes"].asUInt64();
 
         // read the molecule indexes
         m_positions.resize(m_numMolecules);
-        m_file.stream().seekg(positionsPos);
+        m_file.stream().seekg(m_positionsPos);
         m_file.read(&m_positions[0], m_positions.size() * sizeof(uint64_t));
 
         // reset stream position to read first molecule
@@ -236,11 +236,29 @@ namespace Helium {
         return m_file.stream();
       }
 
+      std::vector<uint64_t> positions() const
+      {
+        return m_positions;
+      }
+
+      Json::UInt64 positionsPos() const
+      {
+        return m_positionsPos;
+      }
+
+      void close()
+      {
+        m_file.close();
+        m_positions.clear();
+        m_numMolecules = 0;
+        m_positionsPos = 0;
+      }
 
     private:
       BinaryInputFile m_file;
       std::vector<uint64_t> m_positions;
       unsigned int m_numMolecules;
+      Json::UInt64 m_positionsPos;
   };
 
   class MemoryMappedMoleculeFile
@@ -313,19 +331,6 @@ namespace Helium {
       std::vector<uint64_t> m_positions; //!< The positions of the molecules in the file.
       unsigned int m_numMolecules; //!< The number of molecules in the file.
   };
-
-  template<typename MoleculeType>
-  void write_sdf(std::ostream &os, MoleculeType &mol)
-  {
-    //std::streamsize width = os.width();
-    os << std::endl;
-    os << " Helium 0.0.1" << std::endl;
-    os << std::endl;
-    os.width(3);
-    os << num_atoms(mol);
-    os.width(3);
-    os << num_bonds(mol) << "  0  0  0  0  0  0  0  0999 V2000" << std::endl;
-  }
 
 }
 

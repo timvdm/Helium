@@ -33,6 +33,7 @@
 #include <set>
 #include <algorithm>
 #include <cassert>
+#include <cmath>
 
 #include <iostream>
 
@@ -201,6 +202,16 @@ namespace Helium {
     }
     std::rotate(first,k,last);
     return false;
+  }
+
+  inline double deg2rad(double value)
+  {
+    return M_PI * value / 180.0;
+  }
+
+  inline double rad2deg(double value)
+  {
+    return 180.0 * value / M_PI;
   }
 
 }

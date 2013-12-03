@@ -94,7 +94,7 @@ namespace Helium {
 
 
   template<typename MoleculeType>
-  bool is_cyclic(MoleculeType &mol, typename molecule_traits<MoleculeType>::atom_type atom,
+  bool is_cyclic(const MoleculeType &mol, typename molecule_traits<MoleculeType>::atom_type atom,
       std::vector<bool> &visitedAtoms, std::vector<bool> &visitedBonds)
   {
     typedef typename molecule_traits<MoleculeType>::incident_iter incident_iter;
@@ -119,7 +119,7 @@ namespace Helium {
 
   // replace with check for cyclomatic number????
   template<typename MoleculeType>
-  bool is_cyclic(MoleculeType &mol)
+  bool is_cyclic(const MoleculeType &mol)
   {
     typedef typename molecule_traits<MoleculeType>::atom_iter atom_iter;
 
@@ -143,7 +143,7 @@ namespace Helium {
    * Brute force subgraph enumeration for testing purposes.
    */
   template<typename MoleculeType, typename CallbackType>
-  void enumerate_subgraphs_correct(MoleculeType &mol, CallbackType &callback, int maxSize, bool trees = false)
+  void enumerate_subgraphs_correct(const MoleculeType &mol, CallbackType &callback, int maxSize, bool trees = false)
   {
     typedef typename molecule_traits<MoleculeType>::bond_iter bond_iter;
 
@@ -389,7 +389,7 @@ namespace Helium {
   } // namespace impl
 
   template<typename MoleculeType, typename CallbackType>
-  void enumerate_subgraphs_slow(MoleculeType &mol, CallbackType &callback, int maxSize, bool trees = false)
+  void enumerate_subgraphs_slow(const MoleculeType &mol, CallbackType &callback, int maxSize, bool trees = false)
   {
     impl::EnumerateSubgraphsSlow es;
     es.find_subgraphs(mol, callback, maxSize, trees);
@@ -524,7 +524,7 @@ namespace Helium {
    * @param trees When true, only trees (i.e. non-cyclic subgraphs) are enumerated.
    */
   template<typename MoleculeType, typename CallbackType>
-  void enumerate_subgraphs(MoleculeType &mol, CallbackType &callback, int maxSize, bool trees = false)
+  void enumerate_subgraphs(const MoleculeType &mol, CallbackType &callback, int maxSize, bool trees = false)
   {
     typedef typename molecule_traits<MoleculeType>::bond_iter bond_iter;
 

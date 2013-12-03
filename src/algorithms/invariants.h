@@ -7,7 +7,7 @@
 namespace Helium {
 
   template<typename MoleculeType>
-  unsigned int atom_invariant(MoleculeType &mol, typename molecule_traits<MoleculeType>::atom_type atom)
+  unsigned int atom_invariant(const MoleculeType &mol, typename molecule_traits<MoleculeType>::atom_type atom)
   {
     unsigned int invariant = 0;
     // bit 0: aromatic
@@ -29,7 +29,7 @@ namespace Helium {
   }
 
   template<typename MoleculeType>
-  unsigned int bond_invariant(MoleculeType &mol, typename molecule_traits<MoleculeType>::bond_type bond)
+  unsigned int bond_invariant(const MoleculeType &mol, typename molecule_traits<MoleculeType>::bond_type bond)
   {
     unsigned int invariant = 0;
     // bit 0: aromatic

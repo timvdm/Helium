@@ -50,7 +50,7 @@ namespace Helium {
    * @return The cyclomatic number.
    */
   template<typename MoleculeType>
-  Size cyclomatic_number(MoleculeType &mol, Size numComponents)
+  Size cyclomatic_number(const MoleculeType &mol, Size numComponents)
   {
     return num_bonds(mol) - num_atoms(mol) + numComponents;
   }
@@ -68,7 +68,7 @@ namespace Helium {
    * @return The cyclomatic number.
    */
   template<typename MoleculeType>
-  Size cyclomatic_number(MoleculeType &mol)
+  Size cyclomatic_number(const MoleculeType &mol)
   {
     return cyclomatic_number(mol, num_connected_components(mol));
   }

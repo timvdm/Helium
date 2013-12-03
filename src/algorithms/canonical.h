@@ -69,7 +69,7 @@ namespace Helium {
         typedef typename molecule_traits<MoleculeType>::incident_iter incident_iter;
 
       public:
-        Canonicalize(MoleculeType &mol, const std::vector<unsigned long> &symmetry,
+        Canonicalize(const MoleculeType &mol, const std::vector<unsigned long> &symmetry,
             const AtomAttribute &atomAttribute, const BondAttribute &bondAttribute)
           : m_mol(mol), m_symmetry(symmetry), m_visited(num_bonds(mol)),
             m_atomAttribute(atomAttribute), m_bondAttribute(bondAttribute)
@@ -268,7 +268,7 @@ namespace Helium {
           }
         }
 
-        MoleculeType &m_mol;
+        const MoleculeType &m_mol;
         const std::vector<unsigned long> &m_symmetry;
         std::vector<Index> m_atoms; // canonical atom order
         std::vector<Index> m_bonds; // canonical bond order
@@ -356,7 +356,7 @@ namespace Helium {
    * @return The canonical atom order and canonical code.
    */
   template<typename MoleculeType, typename T, typename AtomAttribute, typename BondAttribute>
-  std::pair<std::vector<Index>, std::vector<unsigned long> > canonicalize(MoleculeType &mol,
+  std::pair<std::vector<Index>, std::vector<unsigned long> > canonicalize(const MoleculeType &mol,
       const std::vector<T> &symmetry, const AtomAttribute &atomAttribute,
       const BondAttribute &bondAttribute)
   {

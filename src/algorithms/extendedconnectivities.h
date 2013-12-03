@@ -37,7 +37,7 @@ namespace Helium {
      * Perform a single Extended Connectivities (EC) iteration.
      */
     template<typename MoleculeType>
-    void extended_connectivities_iterate(MoleculeType &mol, std::vector<unsigned long> &ec)
+    void extended_connectivities_iterate(const MoleculeType &mol, std::vector<unsigned long> &ec)
     {
       typedef typename molecule_traits<MoleculeType>::atom_iter atom_iter;
       typedef typename molecule_traits<MoleculeType>::nbr_iter nbr_iter;
@@ -89,7 +89,7 @@ namespace Helium {
    * @return The extended connectivities.
    */
   template<typename MoleculeType>
-  std::vector<unsigned long> extended_connectivities(MoleculeType &mol)
+  std::vector<unsigned long> extended_connectivities(const MoleculeType &mol)
   {
     typedef typename molecule_traits<MoleculeType>::atom_iter atom_iter;
 

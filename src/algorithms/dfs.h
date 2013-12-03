@@ -281,7 +281,7 @@ namespace Helium {
    * @param visitor The DFS visitor functor.
    */
   template<typename MoleculeType, typename DFSVisitorType>
-  void depth_first_search(MoleculeType &mol, DFSVisitorType &visitor)
+  void depth_first_search(const MoleculeType &mol, DFSVisitorType &visitor)
   {
     typedef typename molecule_traits<MoleculeType>::atom_type atom_type;
     typedef typename molecule_traits<MoleculeType>::atom_iter atom_iter;
@@ -322,7 +322,7 @@ namespace Helium {
    * @param visitor The DFS visitor functor.
    */
   template<typename MoleculeType, typename DFSVisitorType>
-  void depth_first_search(MoleculeType &mol, const std::vector<Index> &order, DFSVisitorType &visitor)
+  void depth_first_search(const MoleculeType &mol, const std::vector<Index> &order, DFSVisitorType &visitor)
   {
     typedef typename molecule_traits<MoleculeType>::atom_type atom_type;
     typedef typename molecule_traits<MoleculeType>::atom_iter atom_iter;
@@ -362,7 +362,7 @@ namespace Helium {
    * @param visitor The DFS visitor functor.
    */
   template<typename MoleculeType, typename AtomType, typename DFSVisitorType>
-  void exhaustive_depth_first_search(MoleculeType &mol, AtomType atom, DFSVisitorType &visitor)
+  void exhaustive_depth_first_search(const MoleculeType &mol, AtomType atom, DFSVisitorType &visitor)
   {
     typedef typename molecule_traits<MoleculeType>::atom_type atom_type;
     typedef typename molecule_traits<MoleculeType>::atom_iter atom_iter;

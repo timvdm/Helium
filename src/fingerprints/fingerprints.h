@@ -58,7 +58,7 @@ namespace Helium {
    *        bits in the fingerprint is ideal.
    */
   template<typename MoleculeType>
-  void path_fingerprint(MoleculeType &mol, Word *fingerprint, int size = 7, int numWords = 16, int hashPrime = 1021)
+  void path_fingerprint(const MoleculeType &mol, Word *fingerprint, int size = 7, int numWords = 16, int hashPrime = 1021)
   {
     assert(hashPrime <= numWords * sizeof(Word) * 8);
     boost::hash<std::vector<unsigned long> > hash;
@@ -111,7 +111,7 @@ namespace Helium {
          * @param prime The prime to use for taking the modulo (e.g. the largest
          *              prime smaller than the number of bits in the fingerprint.
          */
-        EnumerateSubgraphsCallback(MoleculeType &mol_, Word *fp, int words, int prime)
+        EnumerateSubgraphsCallback(const MoleculeType &mol_, Word *fp, int words, int prime)
             : mol(mol_), fingerprint(fp), numWords(words), hashPrime(prime)
         {
           bitvec_zero(fingerprint, numWords);
@@ -132,14 +132,14 @@ namespace Helium {
           bitvec_set(m_hash(code) % hashPrime, fingerprint);
         }
 
-        MoleculeType &mol; //!< The molecule
+        const MoleculeType &mol; //!< The molecule
         Word *fingerprint; //!< The fingerprint bit vector
         boost::hash<std::vector<unsigned long> > m_hash; //!< The hash function
         int numWords; //!< The number of words for the fingerprint bit vector
         int hashPrime; //!< The modulo prime number
       };
 
-      SubgraphsFingerprint(MoleculeType &mol, Word *fp, int size, bool trees, int numWords, int hashPrime)
+      SubgraphsFingerprint(const MoleculeType &mol, Word *fp, int size, bool trees, int numWords, int hashPrime)
           : callback(mol, fp, numWords, hashPrime)
       {
         // enumerate subgraphs
@@ -169,7 +169,7 @@ namespace Helium {
    *        bits in the fingerprint is ideal.
    */
   template<typename MoleculeType>
-  void tree_fingerprint(MoleculeType &mol, Word *fingerprint, int size = 7, int numWords = 16, int hashPrime = 1021)
+  void tree_fingerprint(const MoleculeType &mol, Word *fingerprint, int size = 7, int numWords = 16, int hashPrime = 1021)
   {
     assert(hashPrime <= numWords * sizeof(Word) * 8);
     impl::SubgraphsFingerprint<MoleculeType>(mol, fingerprint, size, true, numWords, hashPrime);
@@ -193,7 +193,7 @@ namespace Helium {
    *        bits in the fingerprint is ideal.
    */
   template<typename MoleculeType>
-  void subgraph_fingerprint(MoleculeType &mol, Word *fingerprint, int size = 7, int numWords = 16, int hashPrime = 1021)
+  void subgraph_fingerprint(const MoleculeType &mol, Word *fingerprint, int size = 7, int numWords = 16, int hashPrime = 1021)
   {
     assert(hashPrime <= numWords * sizeof(Word) * 8);
     impl::SubgraphsFingerprint<MoleculeType>(mol, fingerprint, size, false, numWords, hashPrime);

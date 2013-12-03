@@ -54,7 +54,7 @@ namespace Helium {
          * @param mol The molecule.
          * @param size The maximum path size (i.e. number of atoms in the path).
          */
-        EnumeratePaths(MoleculeType &mol, int size) : m_mol(mol), m_size(size)
+        EnumeratePaths(const MoleculeType &mol, int size) : m_mol(mol), m_size(size)
         {
           m_paths.resize(size);
         }
@@ -146,7 +146,7 @@ namespace Helium {
           paths.push_back(path);
         }
 
-        MoleculeType &m_mol; //!< The molecule
+        const MoleculeType &m_mol; //!< The molecule
         std::vector<std::vector<std::vector<unsigned int> > > m_paths; //!< List of unique found paths, ordered by path size
         int m_size; //!< Maximum path size
     };
@@ -164,7 +164,7 @@ namespace Helium {
    *         path are between the (i,i+1) atom pairs from the path list.
    */
   template<typename MoleculeType>
-  std::vector<std::vector<unsigned int> > enumerate_paths(MoleculeType &mol, int size)
+  std::vector<std::vector<unsigned int> > enumerate_paths(const MoleculeType &mol, int size)
   {
     // enumerate the paths
     impl::EnumeratePaths<MoleculeType> ep(mol, size);

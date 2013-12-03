@@ -481,7 +481,7 @@ namespace Helium {
    * @return True if the query is a substructure of @p mol.
    */
   template<typename MoleculeType, typename AtomType, typename QueryType, typename MappingType, typename AtomMatcher, typename BondMatcher>
-  bool isomorphism_search(MoleculeType &mol, AtomType atom, QueryType &query, MappingType &mapping,
+  bool isomorphism_search(const MoleculeType &mol, AtomType atom, QueryType &query, MappingType &mapping,
       const AtomMatcher &atomMatcher, const BondMatcher &bondMatcher)
   {
     impl::clear_mappig(mapping);

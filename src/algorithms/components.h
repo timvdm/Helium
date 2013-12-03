@@ -41,7 +41,7 @@ namespace Helium {
      * Find all bond belonging to the same component using a recursive DFS search.
      */
     template<typename MoleculeType>
-    void connected_bond_components(MoleculeType &mol, typename molecule_traits<MoleculeType>::atom_type atom,
+    void connected_bond_components(const MoleculeType &mol, typename molecule_traits<MoleculeType>::atom_type atom,
         unsigned int number, std::vector<unsigned int> &components)
     {
       typedef typename molecule_traits<MoleculeType>::incident_iter incident_iter;
@@ -76,7 +76,7 @@ namespace Helium {
    * @return A std::vector containing the component number for each bond.
    */
   template<typename MoleculeType>
-  std::vector<unsigned int> connected_bond_components(MoleculeType &mol)
+  std::vector<unsigned int> connected_bond_components(const MoleculeType &mol)
   {
     typedef typename molecule_traits<MoleculeType>::bond_iter bond_iter;
 
@@ -110,7 +110,7 @@ namespace Helium {
    * @return A std::vector containing the component number for each atom.
    */
   template<typename MoleculeType>
-  std::vector<unsigned int> connected_atom_components(MoleculeType &mol)
+  std::vector<unsigned int> connected_atom_components(const MoleculeType &mol)
   {
     typedef typename molecule_traits<MoleculeType>::bond_iter bond_iter;
     typedef typename molecule_traits<MoleculeType>::atom_iter atom_iter;
@@ -150,7 +150,7 @@ namespace Helium {
    * @return The number of connected components.
    */
   template<typename MoleculeType>
-  Size num_connected_components(MoleculeType &mol)
+  Size num_connected_components(const MoleculeType &mol)
   {
     return unique_elements(connected_atom_components(mol));
   }

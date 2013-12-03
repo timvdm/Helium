@@ -116,7 +116,7 @@ namespace Helium {
    * @param visitor The BFS visitor functor.
    */
   template<typename MoleculeType, typename BFSVisitorType>
-  void breadth_first_search(MoleculeType &mol, BFSVisitorType &visitor)
+  void breadth_first_search(const MoleculeType &mol, BFSVisitorType &visitor)
   {
     typedef typename molecule_traits<MoleculeType>::atom_type atom_type;
     typedef typename molecule_traits<MoleculeType>::bond_type bond_type;

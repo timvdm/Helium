@@ -63,6 +63,13 @@ namespace Helium {
     void initialize(const MoleculeType &mol) {}
 
     /**
+     * @brief A new component starts. Not called for exhaustive_depth_first_search().
+     *
+     * @param i The component (i.e. [0,n])
+     */
+    void component(int i) {}
+
+    /**
      * @brief Visit an atom.
      *
      * This function is called every time a new atom is traversed.
@@ -283,9 +290,12 @@ namespace Helium {
 
     std::vector<bool> visited(num_atoms(mol) + num_bonds(mol));
 
+    int c = 0;
     FOREACH_ATOM (atom, mol, MoleculeType) {
-      if (!visited[get_index(mol, *atom)])
+      if (!visited[get_index(mol, *atom)]) {
+        visitor.component(c++);
         impl::dfs_visit(mol, *atom, visitor, visited);
+      }
     }
   }
 
@@ -321,9 +331,12 @@ namespace Helium {
 
     std::vector<bool> visited(num_atoms(mol) + num_bonds(mol));
 
+    int c = 0;
     for (std::size_t i = 0; i < order.size(); ++i) {
-      if (!visited[order[i]])
+      if (!visited[order[i]]) {
+        visitor.component(c);
         impl::dfs_visit(mol, get_atom(mol, order[i]), order, visitor, visited);
+      }
     }
   }
 
@@ -479,6 +492,22 @@ namespace Helium {
      */
     DFSDebugVisitor(std::ostream &os_ = std::cout) : os(os_)
     {
+    }
+
+    /**
+     * @brief Print initialize().
+     */
+    void initialize(const MoleculeType &mol)
+    {
+      std::cout << "initialize()" << std::endl;
+    }
+
+    /**
+     * @brief Print component(i).
+     */
+    void component(int i)
+    {
+      std::cout << "component(" << i << ")" << std::endl;
     }
 
     /**

@@ -27,53 +27,57 @@
 #ifndef HELIUM_MOLECULE_H
 #define HELIUM_MOLECULE_H
 
+#include <Helium/tie.h>
+#include <Helium/element.h>
+
 #include <utility>
 #include <vector>
 #include <sstream>
 
-/**
- * @brief Iterate over all the atoms in a molecule.
- *
- * @param atom The atom.
- * @param mol The molecule.
- * @param MoleculeType The type of the molecule.
- */
+
+namespace Helium {
+
+  /**
+   * @brief Iterate over all the atoms in a molecule.
+   *
+   * @param atom The atom.
+   * @param mol The molecule.
+   * @param MoleculeType The type of the molecule.
+   */
 #define FOREACH_ATOM(atom, mol, MoleculeType) \
   for (typename Helium::impl::ForeachAtom<MoleculeType> atom(mol); atom.begin != atom.end; ++atom.begin)
 
-/**
- * @brief Iterate over all the bonds in a molecule.
- *
- * @param bond The bond.
- * @param mol The molecule.
- * @param MoleculeType The type of the molecule.
- */
+  /**
+   * @brief Iterate over all the bonds in a molecule.
+   *
+   * @param bond The bond.
+   * @param mol The molecule.
+   * @param MoleculeType The type of the molecule.
+   */
 #define FOREACH_BOND(bond, mol, MoleculeType) \
   for (typename Helium::impl::ForeachBond<MoleculeType> bond(mol); bond.begin != bond.end; ++bond.begin)
 
-/**
- * @brief Iterate over all the neighbors of an atom.
- *
- * @param nbr The neighbor atom.
- * @param atom The center atom.
- * @param mol The molecule.
- * @param MoleculeType The type of the molecule.
- */
+  /**
+   * @brief Iterate over all the neighbors of an atom.
+   *
+   * @param nbr The neighbor atom.
+   * @param atom The center atom.
+   * @param mol The molecule.
+   * @param MoleculeType The type of the molecule.
+   */
 #define FOREACH_NBR(nbr, atom, mol, MoleculeType) \
   for (typename Helium::impl::ForeachNbr<MoleculeType> nbr(mol, atom); nbr.begin != nbr.end; ++nbr.begin)
 
-/**
- * @brief Iterate over all the incident bonds of an atom.
- *
- * @param bond The incident bond.
- * @param atom The center atom.
- * @param mol The molecule.
- * @param MoleculeType The type of the molecule.
- */
+  /**
+   * @brief Iterate over all the incident bonds of an atom.
+   *
+   * @param bond The incident bond.
+   * @param atom The center atom.
+   * @param mol The molecule.
+   * @param MoleculeType The type of the molecule.
+   */
 #define FOREACH_INCIDENT(bond, atom, mol, MoleculeType) \
   for (typename Helium::impl::ForeachIncident<MoleculeType> bond(mol, atom); bond.begin != bond.end; ++bond.begin)
-
-namespace Helium {
 
   /**
    * @defgroup molecule_group Molecule Concept
@@ -187,73 +191,6 @@ namespace Helium {
     }
   };
 
-  namespace impl {
-
-    template<typename MoleculeType>
-    struct ForeachAtom
-    {
-      ForeachAtom(const MoleculeType &mol)
-      {
-        TIE(begin, end) = get_atoms(mol);
-      }
-
-      typename molecule_traits<MoleculeType>::atom_type operator*()
-      {
-        return *begin;
-      }
-
-      typename molecule_traits<MoleculeType>::atom_iter begin, end;
-    };
-
-    template<typename MoleculeType>
-    struct ForeachBond
-    {
-      ForeachBond(const MoleculeType &mol)
-      {
-        TIE(begin, end) = get_bonds(mol);
-      }
-
-      typename molecule_traits<MoleculeType>::bond_type operator*()
-      {
-        return *begin;
-      }
-
-      typename molecule_traits<MoleculeType>::bond_iter begin, end;
-    };
-
-    template<typename MoleculeType>
-    struct ForeachNbr
-    {
-      ForeachNbr(const MoleculeType &mol, typename molecule_traits<MoleculeType>::atom_type atom)
-      {
-        TIE(begin, end) = get_nbrs(mol, atom);
-      }
-
-      typename molecule_traits<MoleculeType>::atom_type operator*()
-      {
-        return *begin;
-      }
-
-      typename molecule_traits<MoleculeType>::nbr_iter begin, end;
-    };
-
-    template<typename MoleculeType>
-    struct ForeachIncident
-    {
-      ForeachIncident(const MoleculeType &mol, typename molecule_traits<MoleculeType>::atom_type atom)
-      {
-        TIE(begin, end) = get_bonds(mol, atom);
-      }
-
-      typename molecule_traits<MoleculeType>::bond_type operator*()
-      {
-        return *begin;
-      }
-
-      typename molecule_traits<MoleculeType>::incident_iter begin, end;
-    };
-
-  }
 
   //////////////////////////////////////////////////////////////////////////////
   //
@@ -746,6 +683,80 @@ namespace Helium {
 
   //////////////////////////////////////////////////////////////////////////////
   //
+  // Iterator helpers Functions
+  //
+  //////////////////////////////////////////////////////////////////////////////
+
+  namespace impl {
+
+    template<typename MoleculeType>
+    struct ForeachAtom
+    {
+      ForeachAtom(const MoleculeType &mol)
+      {
+        TIE(begin, end) = get_atoms(mol);
+      }
+
+      typename molecule_traits<MoleculeType>::atom_type operator*()
+      {
+        return *begin;
+      }
+
+      typename molecule_traits<MoleculeType>::atom_iter begin, end;
+    };
+
+    template<typename MoleculeType>
+    struct ForeachBond
+    {
+      ForeachBond(const MoleculeType &mol)
+      {
+        TIE(begin, end) = get_bonds(mol);
+      }
+
+      typename molecule_traits<MoleculeType>::bond_type operator*()
+      {
+        return *begin;
+      }
+
+      typename molecule_traits<MoleculeType>::bond_iter begin, end;
+    };
+
+    template<typename MoleculeType>
+    struct ForeachNbr
+    {
+      ForeachNbr(const MoleculeType &mol, typename molecule_traits<MoleculeType>::atom_type atom)
+      {
+        TIE(begin, end) = get_nbrs(mol, atom);
+      }
+
+      typename molecule_traits<MoleculeType>::atom_type operator*()
+      {
+        return *begin;
+      }
+
+      typename molecule_traits<MoleculeType>::nbr_iter begin, end;
+    };
+
+    template<typename MoleculeType>
+    struct ForeachIncident
+    {
+      ForeachIncident(const MoleculeType &mol, typename molecule_traits<MoleculeType>::atom_type atom)
+      {
+        TIE(begin, end) = get_bonds(mol, atom);
+      }
+
+      typename molecule_traits<MoleculeType>::bond_type operator*()
+      {
+        return *begin;
+      }
+
+      typename molecule_traits<MoleculeType>::incident_iter begin, end;
+    };
+
+  }
+
+  //////////////////////////////////////////////////////////////////////////////
+  //
   // Utility Functions
   //
   //////////////////////////////////////////////////////////////////////////////
@@ -893,6 +904,34 @@ namespace Helium {
   int get_connectivity(const MoleculeType &mol, typename molecule_traits<MoleculeType>::atom_type atom)
   {
     return get_degree(mol, atom) + num_hydrogens(mol, atom);
+  }
+
+  /**
+   * @brief Make all hydrogens explicit.
+   *
+   * @param mol The molecule.
+   */
+  template<typename EditableMoleculeType>
+  void make_hydrogens_explicit(EditableMoleculeType &mol)
+  {
+    typedef typename molecule_traits<EditableMoleculeType>::atom_type atom_type;
+
+    // create a list of atoms that need hydrogens to be added
+    std::vector<std::pair<atom_type, int> > hydrogens;
+    FOREACH_ATOM (atom, mol, EditableMoleculeType)
+      if (num_hydrogens(mol, *atom))
+        hydrogens.push_back(std::make_pair(*atom, num_hydrogens(mol, *atom)));
+
+    // add the hydrogens
+    for (std::size_t i = 0; i < hydrogens.size(); ++i) {
+      for (int j = 0; j < hydrogens[i].second; ++j) {
+        atom_type H = add_atom(mol);
+        set_element(mol, H, 1);
+        set_mass(mol, H, Element::averageMass(1));
+        add_bond(mol, hydrogens[i].first, H);
+      }
+      set_hydrogens(mol, hydrogens[i].first, 0);
+    }
   }
 
   //////////////////////////////////////////////////////////////////////////////

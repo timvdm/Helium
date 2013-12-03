@@ -106,13 +106,12 @@ namespace Helium {
     unsigned short numAtoms = *reinterpret_cast<const unsigned short*>(data);
     unsigned short numBonds = *reinterpret_cast<const unsigned short*>(data + sizeof(unsigned short));
 
-    unsigned char element, cyclic, aromatic, mass, hydrogens;
+    unsigned char element, aromatic, mass, hydrogens;
     signed char charge;
     for (int i = 0; i < numAtoms; ++i) {
       unsigned int offset = 2 * sizeof(unsigned short) + 6 * i;
       // read the element
       element = *reinterpret_cast<const unsigned char*>(data + offset);
-      cyclic = *reinterpret_cast<const unsigned char*>(data + offset + 1);
       aromatic = *reinterpret_cast<const unsigned char*>(data + offset + 2);
       mass = *reinterpret_cast<const unsigned char*>(data + offset + 3);
       hydrogens = *reinterpret_cast<const unsigned char*>(data + offset + 4);

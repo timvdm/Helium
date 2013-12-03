@@ -31,6 +31,8 @@ for line in lines:
 print '#ifndef HELIUM_ELEMENT_H'
 print '#define HELIUM_ELEMENT_H'
 print ''
+print '#include <string>'
+print ''
 print 'namespace Helium {'
 print ''
 print '  /**'

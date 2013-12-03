@@ -8,6 +8,7 @@ set(examples
   molecule3
   molecule4
   substructure
+  smirks
 
   enumeratesubgraphs
   )

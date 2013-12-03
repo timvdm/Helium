@@ -11,7 +11,7 @@ using namespace Helium;
 template<typename MoleculeType>
 struct SubgraphsCallback
 {
-  SubgraphsCallback(MoleculeType &mol_) //FIXME make const
+  SubgraphsCallback(const MoleculeType &mol_)
     : mol(mol_)
   {
   }
@@ -25,7 +25,7 @@ struct SubgraphsCallback
     // canonicalize the subgraph
     std::vector<Index> canon = canonicalize(substruct, symmetry, AtomElementAttribute(), BondOrderAttribute()).first;
     // write subgraph SMILES
-    std::string smiles = write_smiles(substruct, canon, 0);
+    std::string smiles = write_smiles(substruct, canon);
     // add to features
     std::map<std::string, int>::iterator feature = features.find(smiles);
     if (feature == features.end())
@@ -34,7 +34,7 @@ struct SubgraphsCallback
       feature->second++;
   }
 
-  MoleculeType &mol; //!< The molecule
+  const MoleculeType &mol; //!< The molecule
   std::map<std::string, int> features;
 };
 
@@ -42,32 +42,16 @@ struct SubgraphsCallback
 int main(int argc, char **argv)
 {
   if (argc < 2) {
-    std::cerr << "Usage: " << argv[0] << " <filename>" << std::endl;
+    std::cerr << "Usage: " << argv[0] << " <SMILES>" << std::endl;
     return -1;
   }
 
-  MemoryMappedMoleculeFile moleculeFile;
-  try {
-    moleculeFile.load(argv[1]);
-  } catch (const std::exception &e) {
-    std::cerr << e.what() << std::endl;
-    return -1;
-  }
+  HeMol mol = hemol_from_smiles(argv[1]);
 
-  HeMol mol;
-  for (unsigned int i = 0; i < moleculeFile.numMolecules(); ++i) {
-    unknown_progress("Enumerating subgraphs", i, 100);
+  SubgraphsCallback<HeMol> callback(mol);
+  enumerate_subgraphs(mol, callback, 7, false);
 
-    moleculeFile.read_molecule(i, mol);
-
-    SubgraphsCallback<HeMol> callback(mol);
-    enumerate_subgraphs(mol, callback, 7, false);
-
-    for (std::map<std::string, int>::iterator i = callback.features.begin(); i != callback.features.end(); ++i)
-      std::cout << i->first << " " << i->second << " ";
-    std::cout << std::endl;
-
-
-  }
-
+  for (std::map<std::string, int>::iterator i = callback.features.begin(); i != callback.features.end(); ++i)
+    std::cout << i->first << " " << i->second << " ";
+  std::cout << std::endl;
 }

@@ -50,6 +50,8 @@ set(Helium_HDRS
   # stereo
   stereo/stereounit.h
   stereo/razinger.h
+  # toolkits
+  toolkits/openbabel.h
 )
 
 # Set up the include directory and symlink/copy all headers to it.
@@ -60,6 +62,7 @@ make_directory("${CMAKE_BINARY_DIR}/include/Helium/stereo")
 make_directory("${CMAKE_BINARY_DIR}/include/Helium/fileio")
 make_directory("${CMAKE_BINARY_DIR}/include/Helium/fingerprints")
 make_directory("${CMAKE_BINARY_DIR}/include/Helium/algorithms")
+make_directory("${CMAKE_BINARY_DIR}/include/Helium/toolkits")
 if(UNIX)
   set(header_cmd "create_symlink")
 else()

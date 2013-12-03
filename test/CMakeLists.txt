@@ -31,4 +31,11 @@ foreach(test ${tests})
     FAIL_REGULAR_EXPRESSION "FAIL")
 endforeach(test ${tests})
 
+find_package(OpenBabel2)
+if (OPENBABEL2_FOUND)
+  message(STATUS "OpenBabel found: building openbabel example")
+  include_directories(${OPENBABEL2_INCLUDE_DIR})
+  add_executable(test_openbabel openbabel.cpp)
+  target_link_libraries(test_openbabel ${Helium_LIBRARIES} ${OPENBABEL2_LIBRARIES})
+endif()
 

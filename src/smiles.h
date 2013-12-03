@@ -252,16 +252,17 @@ namespace Helium {
         if (is_aromatic(mol, atom))
           std::transform(element.begin(), element.end(), element.begin(), ::tolower);
 
+        // ignore mass 0
         bool needBrackets = !isOrganicSubset(get_element(mol, atom));
         if (get_charge(mol, atom) && (flags & WriteSmiles::Charge))
           needBrackets = true;
-        if (get_mass(mol, atom) != Element::averageMass(get_element(mol, atom)) && (flags & WriteSmiles::Mass))
+        if (get_mass(mol, atom) && get_mass(mol, atom) != Element::averageMass(get_element(mol, atom)) && (flags & WriteSmiles::Mass))
           needBrackets = true;
 
         if (needBrackets)
           smiles << "[";
 
-        if (get_mass(mol, atom) != Element::averageMass(get_element(mol, atom)) && (flags & WriteSmiles::Mass))
+        if (get_mass(mol, atom) && get_mass(mol, atom) != Element::averageMass(get_element(mol, atom)) && (flags & WriteSmiles::Mass))
           smiles << get_mass(mol, atom);
 
         smiles << element;
@@ -307,19 +308,16 @@ namespace Helium {
         switch (get_order(mol, bond)) {
           case 1:
             if (!is_aromatic(mol, bond) && is_aromatic(mol, get_source(mol, bond)) && is_aromatic(mol, get_target(mol, bond)))
-              //smiles << "-";
               explicitBond = '-';
             break;
           case 2:
-            //smiles << "=";
-            explicitBond = '=';
+            if (!is_aromatic(mol, bond))
+              explicitBond = '=';
             break;
           case 3:
-            //smiles << "#";
             explicitBond = '#';
             break;
           case 4:
-            //smiles << "$";
             explicitBond = '$';
             break;
           default:

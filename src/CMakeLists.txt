@@ -4,7 +4,7 @@
 #
 ############################################################
 
-set(Helium_HDRS
+set(HELIUM_HDRS
   bitvec.h
   contract.h
   concurrent.h
@@ -20,8 +20,9 @@ set(Helium_HDRS
   ring.h
   smarts.h
   smirks.h
-  diagram.h
-  # algorithms
+)
+
+set(HELIUM_ALGORITHMS_HDRS
   algorithms/bfs.h
   algorithms/canonical.h
   algorithms/components.h
@@ -34,26 +35,46 @@ set(Helium_HDRS
   algorithms/isomorphism.h
   algorithms/dijkstra.h
   algorithms/floydwarshall.h
-  # util
+)
+
+set(HELIUM_UTIL_HDRS
   util/fileio.h
   util/functor.h
   util/string.h
   util/typetraits.h
   util/vector.h
-  # fileio
+)
+
+set(HELIUM_FILEIO_HDRS
   fileio/file.h
   fileio/fingerprints.h
   fileio/fps.h
   fileio/molecules.h
   fileio/cml.h
-  # fingerprints
+)
+
+set(HELIUM_FINGERPRINTS_HDRS
   fingerprints/fingerprints.h
   fingerprints/similarity.h
-  # stereo
+)
+
+set(HELIUM_STEREO_HDRS
   stereo/stereounit.h
   stereo/razinger.h
-  # toolkits
+)
+
+set(HELIUM_TOOLKITS_HDRS
   toolkits/openbabel.h
+)
+
+set(HELIUM_ALL_HDRS
+  ${HELIUM_HDRS}
+  ${HELIUM_ALGORITHMS_HDRS}
+  ${HELIUM_UTIL_HDRS}
+  ${HELIUM_FILEIO_HDRS}
+  ${HELIUM_FINGERPRINTS_HDRS}
+  ${HELIUM_STEREO_HDRS}
+  ${HELIUM_TOOLKITS_HDRS}
 )
 
 # Set up the include directory and symlink/copy all headers to it.
@@ -70,13 +91,13 @@ if(UNIX)
 else()
   set(header_cmd "copy_if_different")
 endif()
-foreach(headerFile ${Helium_HDRS})
+foreach(headerFile ${HELIUM_ALL_HDRS})
   set(from "${CMAKE_CURRENT_SOURCE_DIR}/${headerFile}")
   set(to "${CMAKE_BINARY_DIR}/include/Helium/${headerFile}")
   execute_process(COMMAND ${CMAKE_COMMAND} -E ${header_cmd} "${from}" "${to}")
 endforeach()
 
-set(Helium_SRCS
+set(HELIUM_SRCS
   hemol.cpp
   fileio/file.cpp
   smarts.cpp
@@ -85,12 +106,21 @@ set(Helium_SRCS
 )
 
 # Helium library
-add_library(helium STATIC ${Helium_SRCS})
+add_library(helium STATIC ${HELIUM_SRCS})
 target_link_libraries(helium ${Boost_LIBRARIES})
+install(TARGETS helium
+        RUNTIME DESTINATION bin
+        LIBRARY DESTINATION lib
+        ARCHIVE DESTINATION lib)
 
 
 # install target for header files
 set(INCLUDE_INSTALL_DIR  "include" CACHE STRING "Install dir for include files")
-install(FILES ${Helium_HDRS} DESTINATION "${INCLUDE_INSTALL_DIR}/Helium")
-install(FILES ${Helium_util_HDRS} DESTINATION "${INCLUDE_INSTALL_DIR}/Helium/util")
-install(FILES ${Helium_fileio_HDRS} DESTINATION "${INCLUDE_INSTALL_DIR}/Helium/fileio")
+install(FILES ${HELIUM_HDRS} DESTINATION "${INCLUDE_INSTALL_DIR}/Helium")
+install(FILES ${HELIUM_ALGORITHMS_HDRS} DESTINATION "${INCLUDE_INSTALL_DIR}/Helium/algorithms")
+install(FILES ${HELIUM_UTIL_HDRS} DESTINATION "${INCLUDE_INSTALL_DIR}/Helium/util")
+install(FILES ${HELIUM_FILEIO_HDRS} DESTINATION "${INCLUDE_INSTALL_DIR}/Helium/fileio")
+install(FILES ${HELIUM_FINGERPRINTS_HDRS} DESTINATION "${INCLUDE_INSTALL_DIR}/Helium/fingerprints")
+install(FILES ${HELIUM_STEREO_HDRS} DESTINATION "${INCLUDE_INSTALL_DIR}/Helium/stereo")
+install(FILES ${HELIUM_TOOLKITS_HDRS} DESTINATION "${INCLUDE_INSTALL_DIR}/Helium/toolkits")
+install(FILES ${CMAKE_BINARY_DIR}/include/Helium/config.h DESTINATION "${INCLUDE_INSTALL_DIR}/Helium")

@@ -13,6 +13,8 @@ set(HEDATADIR "${CMAKE_SOURCE_DIR}/data/")
 #
 ############################################################
 
+include_directories(${CMAKE_BINARY_DIR}/include)
+
 # Setup 3th party packages (included with source)
 include_directories(${CMAKE_SOURCE_DIR}/src/thirdparty)
 include_directories(${CMAKE_SOURCE_DIR}/src/thirdparty/jsoncpp)
@@ -94,7 +96,6 @@ endif()
 configure_file(${CMAKE_SOURCE_DIR}/src/config.h.cmake
   ${CMAKE_BINARY_DIR}/include/Helium/config.h)
 
-include_directories(${CMAKE_BINARY_DIR}/include)
 add_subdirectory(src)
 
 set(Helium_LIBRARIES
@@ -148,10 +149,10 @@ endif()
 ############################################################
 
 # Python
-option(ENABLE_PYTHON "Enable python bindings" OFF)
-if (ENABLE_PYTHON)
-  add_subdirectory(bindings/python)
-endif()
+#option(ENABLE_PYTHON "Enable python bindings" OFF)
+#if (ENABLE_PYTHON)
+#  add_subdirectory(bindings/python)
+#endif()
 
 # Build service
 option(ENABLE_SERVICE "Enable the RESTful service" OFF)

@@ -28,7 +28,7 @@ endif()
 add_executable(helium_tool ${helium_tool_SRCS})
 target_link_libraries(helium_tool ${Helium_LIBRARIES})
 set_target_properties(helium_tool PROPERTIES OUTPUT_NAME helium)
-install(TARGETS ${tool}
+install(TARGETS helium_tool
         RUNTIME DESTINATION bin
         LIBRARY DESTINATION lib
         ARCHIVE DESTINATION lib)

@@ -19,9 +19,9 @@ void test_canonicalize(const std::string &smiles)
   catch (Smiley::Exception &e) {
     std::cerr << e.what();
   }
-  std::vector<unsigned long> symmetry = extended_connectivities(mol);
+  std::vector<unsigned long> symmetry = extended_connectivities(mol, AtomInvariant(AtomInvariant::Element));
   std::cout << "symmetry: " << symmetry << std::endl;
-  canonicalize(mol, symmetry, AtomElementAttribute(), BondOrderAttribute());
+  canonicalize(mol, symmetry, AtomInvariant(AtomInvariant::Element), BondInvariant(BondInvariant::Order));
 }
 
 bool shuffle_test_mol(HeMol &mol)
@@ -32,7 +32,9 @@ bool shuffle_test_mol(HeMol &mol)
     atoms.push_back(i);
 
 
-  std::pair<std::vector<Index>, std::vector<unsigned long> > ref_canon = canonicalize(mol, extended_connectivities(mol), AtomElementAttribute(), BondOrderAttribute());
+  std::pair<std::vector<Index>, std::vector<unsigned long> > ref_canon = canonicalize(mol,
+      extended_connectivities(mol, AtomInvariant(AtomInvariant::Element)),
+      AtomInvariant(AtomInvariant::Element), BondInvariant(BondInvariant::Order));
   const std::vector<unsigned long> &ref_code = ref_canon.second;
   std::string ref_smiles = write_smiles(mol, ref_canon.first, WriteSmiles::None);
 
@@ -42,11 +44,13 @@ bool shuffle_test_mol(HeMol &mol)
     //std::cout << mol << std::endl;
     mol.renumberAtoms(atoms);
     //std::cout << mol << std::endl;
-    
-    std::pair<std::vector<Index>, std::vector<unsigned long> > canon = canonicalize(mol, extended_connectivities(mol), AtomElementAttribute(), BondOrderAttribute());
+
+    std::pair<std::vector<Index>, std::vector<unsigned long> > canon = canonicalize(mol,
+        extended_connectivities(mol, AtomInvariant(AtomInvariant::Element)),
+        AtomInvariant(AtomInvariant::Element), BondInvariant(BondInvariant::Order));
     const std::vector<unsigned long> &code = canon.second;
     std::string smiles = write_smiles(mol, canon.first, WriteSmiles::None);
-    
+
     COMPARE(ref_code, code);
     if (ref_code != code)
       pass = false;
@@ -102,7 +106,7 @@ int main()
   shuffle_test_smiles("Clc1ccc(cc1)Cc1c(C)nc(N)[nH]c1=O");
   shuffle_test_smiles("COc1cc(C)nc(Cl)n1");
   shuffle_test_smiles("C1CN1");
-  
+
   shuffle_test_smiles("CCOC(C)OCC");
 
   shuffle_test(datadir() + "1K.hel");

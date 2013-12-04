@@ -88,8 +88,9 @@ namespace Helium {
    *
    * @return The extended connectivities.
    */
-  template<typename MoleculeType>
-  std::vector<unsigned long> extended_connectivities(const MoleculeType &mol)
+  template<typename MoleculeType, typename AtomInvariant>
+  std::vector<unsigned long> extended_connectivities(const MoleculeType &mol,
+      const AtomInvariant &atomInvariant)
   {
     typedef typename molecule_traits<MoleculeType>::atom_iter atom_iter;
 
@@ -98,7 +99,7 @@ namespace Helium {
     atom_iter atom, end_atoms;
     TIE(atom, end_atoms) = get_atoms(mol);
     for (; atom != end_atoms; ++atom)
-      ec.push_back(atom_invariant(mol, *atom));
+      ec.push_back(atomInvariant(mol, *atom));
 
     // iterate
     unsigned int numClasses = unique_elements(ec);

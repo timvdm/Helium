@@ -21,9 +21,10 @@ struct SubgraphsCallback
     // create the subgraph molecule
     Substructure<MoleculeType> substruct(mol, subgraph.atoms, subgraph.bonds);
     // compute symmetry classes
-    std::vector<unsigned long> symmetry = extended_connectivities(substruct);
+    std::vector<unsigned long> symmetry = extended_connectivities(substruct, AtomInvariant(AtomInvariant::Element));
     // canonicalize the subgraph
-    std::vector<Index> canon = canonicalize(substruct, symmetry, AtomElementAttribute(), BondOrderAttribute()).first;
+    std::vector<Index> canon = canonicalize(substruct, symmetry,
+        AtomInvariant(AtomInvariant::Element), BondInvariant(BondInvariant::Order)).first;
     // write subgraph SMILES
     std::string smiles = write_smiles(substruct, canon);
     // add to features

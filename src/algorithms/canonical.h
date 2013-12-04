@@ -60,7 +60,7 @@ namespace Helium {
       Index target; // canonical target index
     };
 
-    template<typename MoleculeType, typename AtomAttribute, typename BondAttribute>
+    template<typename MoleculeType, typename AtomInvariant, typename BondInvariant>
     class Canonicalize
     {
         typedef typename molecule_traits<MoleculeType>::atom_type atom_type;
@@ -70,9 +70,9 @@ namespace Helium {
 
       public:
         Canonicalize(const MoleculeType &mol, const std::vector<unsigned long> &symmetry,
-            const AtomAttribute &atomAttribute, const BondAttribute &bondAttribute)
+            const AtomInvariant &atomInvariant, const BondInvariant &bondInvariant)
           : m_mol(mol), m_symmetry(symmetry), m_visited(num_bonds(mol)),
-            m_atomAttribute(atomAttribute), m_bondAttribute(bondAttribute)
+            m_atomInvariant(atomInvariant), m_bondInvariant(bondInvariant)
         {
         }
 
@@ -152,19 +152,17 @@ namespace Helium {
           }
 
           //
-          // encode ATOM attributes
+          // encode ATOM invariants
           //
           for (std::size_t i = 0; i < m_atoms.size(); ++i)
-            //code.push_back(atom_invariant(m_mol, get_atom(m_mol, m_atoms[i])));
-            code.push_back(get_element(m_mol, get_atom(m_mol, m_atoms[i])));
+            code.push_back(m_atomInvariant(m_mol, get_atom(m_mol, m_atoms[i])));
 
           //
-          // encode BOND attributes
+          // encode BOND invariants
           //
           for (std::size_t i = 0; i < m_bonds.size(); ++i)
-            //code.push_back(bond_invariant(m_mol, get_bond(m_mol, m_bonds[i])));
-            //code.push_back(get_order(m_mol, get_bond(m_mol, m_bonds[i])));
-            code.push_back(1); // FIXME!!!!!!!!!!!!!
+            code.push_back(m_bondInvariant(m_mol, get_bond(m_mol, m_bonds[i])));
+
 
           // backtrack closure bonds
           for (unsigned int i = 0; i < numClosures; ++i) {
@@ -278,59 +276,11 @@ namespace Helium {
         std::vector<Index> m_labels; // currently lowest canonical labels
         std::vector<unsigned long> m_code; // currently lowest canonical code
 
-        const AtomAttribute &m_atomAttribute;
-        const BondAttribute &m_bondAttribute;
+        const AtomInvariant &m_atomInvariant;
+        const BondInvariant &m_bondInvariant;
     };
 
   }
-
-  /**
-   * @brief Atom attribute to be used for canonical coding.
-   */
-  class AtomElementAttribute
-  {
-    public:
-      /**
-       * @brief Get an attribute label classifying the atom.
-       *
-       * This attribute label is used for generating and comparing canonical
-       * codes.
-       *
-       * @param mol The molecule.
-       * @param atom The atom.
-       *
-       * @return The attribute label.
-       */
-      template<typename MoleculeType, typename AtomType>
-      unsigned long operator()(const MoleculeType &mol, AtomType atom) const
-      {
-        return get_element(mol, atom);
-      }
-  };
-
-  /**
-   * @brief Bond attribute to be used for canonical coding.
-   */
-  class BondOrderAttribute
-  {
-    public:
-      /**
-       * @brief Get an attribute label classifying the bond.
-       *
-       * This attribute label is used for generating and comparing canonical
-       * codes.
-       *
-       * @param mol The molecule.
-       * @param bond The bond.
-       *
-       * @return The attribute label.
-       */
-      template<typename MoleculeType, typename BondType>
-      unsigned long operator()(const MoleculeType &mol, BondType bond) const
-      {
-        return get_order(mol, bond);
-      }
-  };
 
   /**
    * @brief Canonicalize a molecule.
@@ -346,19 +296,19 @@ namespace Helium {
    *
    * @param mol The molecule.
    * @param symmetry The extended connectivities (see extended_connectivities()).
-   * @param atomAttribute The atom attributes to use for the canonical code
-   *        (e.g. AtomElementAttribute). The used attributes determine what kind
+   * @param atomInvariant The atom invariants to use for the canonical code
+   *        (e.g. AtomElementInvariant). The used invariants determine what kind
    *        of information is considered for making the molecule canonical.
-   * @param bondAttribute The bond attributes to use for the canonical code
-   *        (e.g. BondOrderAttribute). The used attributes determine what kind
+   * @param bondInvariant The bond invariants to use for the canonical code
+   *        (e.g. BondOrderInvariant). The used invariants determine what kind
    *        of information is considered for making the molecule canonical.
    *
    * @return The canonical atom order and canonical code.
    */
-  template<typename MoleculeType, typename T, typename AtomAttribute, typename BondAttribute>
+  template<typename MoleculeType, typename T, typename AtomInvariant, typename BondInvariant>
   std::pair<std::vector<Index>, std::vector<unsigned long> > canonicalize(const MoleculeType &mol,
-      const std::vector<T> &symmetry, const AtomAttribute &atomAttribute,
-      const BondAttribute &bondAttribute)
+      const std::vector<T> &symmetry, const AtomInvariant &atomInvariant,
+      const BondInvariant &bondInvariant)
   {
     if (DEBUG_CANON) {
       std::cout << "+---------------------------+" << std::endl;
@@ -366,7 +316,7 @@ namespace Helium {
       std::cout << "+---------------------------+" << std::endl;
       std::cout << "symmetry: " << symmetry << std::endl;
     }
-    impl::Canonicalize<MoleculeType, AtomAttribute, BondAttribute> can(mol, symmetry, atomAttribute, bondAttribute);
+    impl::Canonicalize<MoleculeType, AtomInvariant, BondInvariant> can(mol, symmetry, atomInvariant, bondInvariant);
     can.canonicalize();
     if (DEBUG_CANON) {
       std::cout << "labels: " << can.labels() << ", code: " << can.code() << std::endl;

@@ -97,6 +97,9 @@ namespace Helium {
       int sourceAtomClass = m_reactant.atomClass(get_index(m_reactant.query(), source));
       int targetAtomClass = m_reactant.atomClass(get_index(m_reactant.query(), target));
 
+      if (sourceAtomClass == -1 || targetAtomClass == -1)
+        continue;
+
       // find matching bond in product
       molecule_traits<HeMol>::bond_type productBond = getBond(m_product, sourceAtomClass, targetAtomClass);
 
@@ -136,6 +139,9 @@ namespace Helium {
       molecule_traits<HeMol>::atom_type target = get_target(m_product.query(), bond);
       int sourceAtomClass = m_product.atomClass(get_index(m_product.query(), source));
       int targetAtomClass = m_product.atomClass(get_index(m_product.query(), target));
+
+      if (sourceAtomClass == -1 || targetAtomClass == -1)
+        continue;
 
       // find matching bond in reactant
       molecule_traits<HeMol>::bond_type reactantBond = getBond(m_reactant, sourceAtomClass, targetAtomClass);

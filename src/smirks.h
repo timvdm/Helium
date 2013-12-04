@@ -230,7 +230,9 @@ namespace Helium {
         if (!m_reactant.search(mol, mapping, rings, true))
           return false;
 
-        // apply atom changes
+        //
+        // apply atom changes (atom's with atom class)
+        //
         for (std::size_t i = 0; i < mapping.maps.size(); ++i) {
           const IsomorphismMapping &map = mapping.maps[i];
           for (std::size_t j = 0; j < map.size(); ++j) {
@@ -244,8 +246,11 @@ namespace Helium {
           }
         }
 
-        // apply bond changes
-        std::vector<Index> removeBonds;
+        std::vector<Index> remove;
+
+        //
+        // apply bond changes (bonds between atoms with atom class)
+        //
         for (std::size_t i = 0; i < mapping.maps.size(); ++i) {
           const IsomorphismMapping &map = mapping.maps[i];
 
@@ -269,7 +274,7 @@ namespace Helium {
                   typename molecule_traits<EditableMoleculeType>::atom_type source = get_atom(mol, map[change.source]);
                   typename molecule_traits<EditableMoleculeType>::atom_type target = get_atom(mol, map[change.target]);
                   typename molecule_traits<EditableMoleculeType>::bond_type bond = get_bond(mol, source, target);
-                  removeBonds.push_back(get_index(mol, bond));
+                  remove.push_back(get_index(mol, bond));
 
                   if (DEBUG_SMIRKS)
                     std::cout << "removed bond " << get_index(mol, bond) << ": " << get_index(mol, source) << "-" << get_index(mol, target) << std::endl;
@@ -291,9 +296,93 @@ namespace Helium {
         }
 
         // remove the planned bonds
-        std::sort(removeBonds.begin(), removeBonds.end(), std::greater<Index>());
-        for (std::size_t i = 0; i < removeBonds.size(); ++i)
-          remove_bond(mol, get_bond(mol, removeBonds[i]));
+        std::sort(remove.begin(), remove.end(), std::greater<Index>());
+        for (std::size_t i = 0; i < remove.size(); ++i)
+          remove_bond(mol, get_bond(mol, remove[i]));
+
+        //
+        // Remove reactant atoms that do not have atom classes
+        //
+        remove.clear();
+        for (std::size_t i = 0; i < mapping.maps.size(); ++i) {
+          const IsomorphismMapping &map = mapping.maps[i];
+          for (std::size_t j = 0; j < map.size(); ++j) {
+            int atomClass = m_reactant.atomClass(j);
+            if (atomClass == -1)
+              remove.push_back(mapping.maps[i][j]);
+          }
+        }
+
+        //
+        // Add product atoms that do not have atom classes
+        //
+        std::map<Index, std::vector<Index> > product2mol; // unmapped product atom index -> added atom index in mol
+        for (std::size_t i = 0; i < mapping.maps.size(); ++i)
+          for (std::size_t j = 0; j < num_atoms(m_product.query()); ++j) {
+            int atomClass = m_product.atomClass(j);
+            if (atomClass != -1)
+              continue;
+
+            if (product2mol.find(j) == product2mol.end())
+              product2mol[j] = std::vector<Index>();
+
+            typename molecule_traits<EditableMoleculeType>::atom_type atom = add_atom(mol);
+            apply(mol, atom, m_product.trees().atom(j));
+            product2mol[j].push_back(get_index(mol, atom));
+          }
+
+        // make a map of reactant & reactant atom index to atom class
+        std::map<Index, Index> reactantAtomClass2index;
+        for (std::size_t i = 0; i < num_atoms(m_reactant.query()); ++i) {
+          int atomClass = m_reactant.atomClass(i);
+          if (atomClass == -1)
+            continue;
+          reactantAtomClass2index[atomClass] = i;
+        }
+
+        //
+        // Add product bonds that do not have atom clases
+        //
+        for (std::size_t i = 0; i < mapping.maps.size(); ++i)
+          for (std::size_t j = 0; j < num_bonds(m_product.query()); ++j) {
+            molecule_traits<HeMol>::bond_type bond = get_bond(m_product.query(), j);
+            molecule_traits<HeMol>::atom_type source = get_source(m_product.query(), bond);
+            molecule_traits<HeMol>::atom_type target = get_target(m_product.query(), bond);
+            int sourceIndex = get_index(m_product.query(), source);
+            int targetIndex = get_index(m_product.query(), target);
+            int sourceAtomClass = m_product.atomClass(sourceIndex);
+            int targetAtomClass = m_product.atomClass(targetIndex);
+
+
+            // both atoms have atom class: ignore bond
+            if (sourceAtomClass != -1 && targetAtomClass != -1)
+              continue;
+
+
+            // both atoms do not have atom class: use product2mol
+            if (sourceAtomClass == -1 && targetAtomClass == -1) {
+              typename molecule_traits<EditableMoleculeType>::atom_type molSource = get_atom(mol, product2mol[sourceIndex][i]);
+              typename molecule_traits<EditableMoleculeType>::atom_type molTarget = get_atom(mol, product2mol[targetIndex][i]);
+              typename molecule_traits<EditableMoleculeType>::bond_type molBond = add_bond(mol, molSource, molTarget);
+              apply(mol, molBond, m_product.trees().bond(j));
+              continue;
+            }
+
+
+            // one atom has atom class: use product2mol + reactantAtomClass2index -> mapping
+            Index index = sourceAtomClass == -1 ? sourceIndex : targetIndex;
+            int atomClass = sourceAtomClass == -1 ? targetAtomClass : sourceAtomClass;
+
+            typename molecule_traits<EditableMoleculeType>::atom_type molSource = get_atom(mol, product2mol[index][i]);
+            typename molecule_traits<EditableMoleculeType>::atom_type molTarget = get_atom(mol, mapping.maps[i][reactantAtomClass2index[atomClass]]);
+            typename molecule_traits<EditableMoleculeType>::bond_type molBond = add_bond(mol, molSource, molTarget);
+            apply(mol, molBond, m_product.trees().bond(j));
+          }
+
+        // remove the planned atoms
+        std::sort(remove.begin(), remove.end(), std::greater<Index>());
+        for (std::size_t i = 0; i < remove.size(); ++i)
+          remove_atom(mol, get_atom(mol, remove[i]));
 
         return true;
       }

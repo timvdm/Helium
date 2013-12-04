@@ -119,6 +119,14 @@ namespace Helium {
     // sort bonds by decreasing bond index so they can be correctly removed
     std::sort(bonds.begin(), bonds.end(), impl::SortBondsByDecreasingIndex());
 
+    // update m_source & m_target
+    for (std::size_t i = 0; i < m_source.size(); ++i)
+      if (m_source[i] > index)
+        --m_source[i];
+    for (std::size_t i = 0; i < m_target.size(); ++i)
+      if (m_target[i] > index)
+        --m_target[i];
+
     // remove bonds to removed atom
     for (std::size_t i = 0; i < bonds.size(); ++i)
       removeBond(bonds[i]);

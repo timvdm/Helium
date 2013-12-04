@@ -282,6 +282,16 @@ void test_complex()
   test_smirks("[*:1][N:2](=[O:3])=[O:4]>>[*:1][N+:2](=[O:3])[O-:4]",
       "CCCN(=O)=O", "CN(=O)-[O-]");
 
+  // test adding/ removing atoms w/o atom class
+  test_smirks("CC[C:1]>>[N:1]", "CCC", "[ND0]");
+  test_smirks("CC[C:1]>>[N:1].OO", "CCC", "N.OO");
+
+  test_smirks("[C:1]>>[N:1].O", "C.C", "N.O.N.O");
+
+  test_smirks("[C:1]>>[N:1]O", "C.C", "NO.NO");
+
+  test_smirks("[C:1]>>[C:1]1CCC1", "C.C", "C1CCC1.C1CCC1");
+
 
 }
 

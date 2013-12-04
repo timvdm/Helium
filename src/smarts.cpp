@@ -569,7 +569,7 @@ namespace Helium {
     return true;
   }
 
-  bool Smarts::hasCycleQuery() const
+  bool Smarts::requiresCycles() const
   {
     for (std::size_t i = 0; i < m_trees.atoms().size(); ++i) {
       if (impl::smarts_expr_contains(m_trees.atom(i), Smiley::AE_Cyclic))

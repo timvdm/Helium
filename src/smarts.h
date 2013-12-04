@@ -453,13 +453,13 @@ namespace Helium {
       int atomClass(Index index) const;
 
       /**
-       * @brief Check if the SMARTS has cycle query elements.
+       * @brief Check if the SMARTS has cycle atom/bond primitives elements.
        *
        * Examples are [R3], [r5], [x2], *@*.
        *
-       * @return True if the SMARTS has cycle query elements.
+       * @return True if the SMARTS has cylce atom/bond primitives.
        */
-      bool hasCycleQuery() const;
+      bool requiresCycles() const;
 
       /**
        * @brief Perform a SMARTS search on the specified molecule.

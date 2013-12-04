@@ -201,6 +201,18 @@ namespace Helium {
       }
 
       /**
+       * @brief Check if the reactant SMARTS has cycle atom/bond primitives elements.
+       *
+       * Examples are [R3], [r5], [x2], *@*.
+       *
+       * @return True if the reactant SMARTS has cylce atom/bond primitives.
+       */
+      bool requiresCycles()
+      {
+        return m_reactant.requiresCycles();
+      }
+
+      /**
        * @brief Apply the SMIRKS transformation to a molecule.
        *
        * @param mol The molecule.

@@ -35,6 +35,7 @@ namespace Helium {
  *
  * @section Helium
  *
+ * @li @ref design
  * @li @ref mol_concept
  * @li @ref depthfirst
  * @li @ref breadthfirst
@@ -46,6 +47,116 @@ namespace Helium {
  * @li @ref morganec
  * @li @ref canonical
  * @li @ref enumerate
+ *
+ * @section design Design Philosophy
+ *
+ * @note This section can be skipped when in a hurry. It gives more details
+ * on my personal experiences with working on cheminformatics projects.
+ *
+ * For several years, I have been working on OpenBabel [1] and I still find it
+ * a very useful cheminformatics toolkit. Especially the capability to convert
+ * between a large number of file formats is impressive. However, while working
+ * on OpenBabel several limitations arose that I try to address with the Helium
+ * project.
+ *
+ * OpenBabel was developed by multiple people over many years. This
+ * often resulted in suboptimal design choices for which API/ABI compatibility
+ * has to be maintained. For some of these I am myself responsible. For example,
+ * the forcefield code's design isn't great since it was my first large piece
+ * of code I wrote. The same is true for the OBMol class, it contains far too
+ * many functions that should not be there. Both the OBForceField and OBMol
+ * class do their work but they are far from elegant. The remaining sections
+ * will address more issues in detail.
+ *
+ * @subsection design_modular Modularity
+ *
+ * This probably doesn't require much explanation since most developers will
+ * know that this is a good practise.
+ * Classes in Helium are as small as possible. For example, the molecule concept
+ * explained in detail below contains as few functions as possible. This makes
+ * the code more modular and also results in easier to maintain code.
+ *
+ * @subsection design_just_ask Data and Behaviour: Just Ask...
+ *
+ * OpenBabel heavily relies on lazy-perception for various properties (e.g.
+ * ring perception, aromaticity, ...) which is great if you just want to get
+ * work done quickly (i.e. you don't have to worry about all of this). On the
+ * other hand, adding a new ring perception algorithm to OpenBabel and
+ * benchmarking it's performance is far from straightforward. For users this
+ * might not be so important but better performance or quality should also
+ * benefit users who only use the programs based on a cheminformatics toolkit.
+ *
+ * The main idea used in Helium was already mentioned in this section's title:
+ * "Just Ask...". To clarify, when a function or a class needs some @b data, it
+ * should simply accept this as a parameter. Functions can be overloaded to
+ * provide some sensible defaults to make their use easier but hard coded
+ * defaults should be avoided as much as possible. For example the functions
+ * to perform a SMARTS search on a molecule are given below:
+ *
+ @code
+ // provide previously computed ring set (needed for queries such as [R], [r6], ...)
+ template<typename MoleculeType>
+ bool search(const MoleculeType &mol, const RingSet<MoleculeType> &rings)
+
+ // compute ring set in function, slower but faster for prototyping
+ template<typename MoleculeType>
+ bool search(const MoleculeType &mol)
+ @endcode
+ *
+ * This idea is used everywhere in Helium to allow maximum flexibility. For
+ * example, SMARTS originally used the SSSR ring set which doesn't return
+ * unique results (i.e. these depend on the SSSR, a minimum cycle basis,
+ * chosen). Helium mainly uses the relevant cycles but users might prefer
+ * to still perform the search using a SSSR ring set.
+ *
+ * The "Just Ask..." idea can be further extended to specify @b behaviour. This
+ * technique is used very successfully in the STL. Many of the STL algorithms
+ * accept functors to change the behaviour of the underlying algorithm (e.g.
+ * Compare, ...). An example can be found in the code for doing isomorphism
+ * searches on molecules (i.e. substructure search). The code for matching
+ * query atoms against atoms in the queried target is a functor that is
+ * provided by the user (default are provided). This separates the logic for
+ * performing the isomorphism search from the query language (e.g. SMARTS)
+ * used for matching atoms and bonds. This is illustrated below where the
+ * AtomMatcher and BondMatcher are used for matching atoms and bond.
+ *
+ @code
+ template<typename MoleculeType, typename AtomType, typename QueryType, typename MappingType, typename AtomMatcher, typename BondMatcher>
+ bool isomorphism_search(const MoleculeType &mol, AtomType atom, QueryType &query, MappingType &mapping,
+     const AtomMatcher &atomMatcher, const BondMatcher &bondMatcher) // <------
+ @endcode
+ *
+ * @subsection design_toolkits One Toolkit to Rule Them All?
+ *
+ * Helium does not try (yet :) ) to be the only toolkit. Instead, it provides
+ * building blocks that other toolkits can use. This is achieved without a
+ * significant loss of performance (i.e. making copies of molecules each time)
+ * by the use of @b generic @b programming. Although @b concepts are not part
+ * of the C++11 standard, the idea can still be used albeit many beginning C++
+ * programmers might suffer from panic attacks while debugging their code.
+ * The isomorphism_search function with all the template parameters already
+ * showed that @b templates are used extensively to program generically in C++.
+ *
+ * To motivate new users, the example/openbabel.cpp (@ref mol_toolkits) file
+ * illustrates how Helium's SMIRKS implementation (a feature which isn't
+ * really working in OpenBabel) to be used with OBMol objects that are read
+ * using OpenBabel.
+ *
+ * @subsection design_license License
+ *
+ * The 3-clause BSD license (http://en.wikipedia.org/wiki/BSD_licenses) is used
+ * since it allows the code to be used, modified and distributed without to much
+ * restrictions (i.e. also for commercial use). Due to the origins of OpenBabel
+ * it is currently stuck with the GPLv2 license. For most users (e.g. academia)
+ * this isn't a big issue but for others this might hold them back from spending
+ * their precious time on a project which they might not be able to use eventually
+ * due to licensing issues.
+ *
+ @verbatim
+ [1] N. M. O'Boyle, M. Banck, C. A. James, C. Morley, T. Vandermeersch, G. Hutchison,
+     OpenBabel: An open chemical toolbox, Journal of Cheminformatics, 2001, 3:33
+     http://www.jcheminf.com/content/3/1/33
+ @endverbatim
  *
  * @section mol_concept The Molecule Concept
  *
@@ -289,6 +400,15 @@ namespace Helium {
  *
  * @include molecule4.cpp
  *
+ * @subsection mol_toolkits Other Toolkits
+ *
+ * The toolkits/openbabel.h header can be included to make an OBMol a model
+ * of the Molecule concept. This is illustrated in the example below which
+ * is identical to the SMIRKS example apart from the molecule class used and
+ * the way this molecule is first constructed.
+ *
+ * @include openbabel.cpp
+ *
  * @section depthfirst Depth-First Search
  *
  * Helium provides the depth_first_search() and exhaustive_depth_first_search()
@@ -388,6 +508,10 @@ namespace Helium {
  * this is not a problem since this behavior is not observed for molecular
  * graphs.
  *
+ * The example below shows how these functions can be used.
+ *
+ * @include cycles.cpp
+ *
  @verbatim
  [1] P. Vismara, Union of all the minimum cycle bases of a graph, The electronic
      Journal of Combinatorics, 1997, Volume 4, Issue 1.
@@ -398,9 +522,27 @@ namespace Helium {
  *
  * @section smarts SMARTS
  *
+ * Using the Smarts class SMARTS (http://www.daylight.com/dayhtml/doc/theory/theory.smarts.html) queries can be perofmed on molecules. There
+ * are various types of mappings that can be obtained:
+ *
+ * @li NoMapping: Just check if the SMARTS matches the molecule.
+ * @li CountMapping: Count the number of matches, do not retrieve the actual mappings.
+ * @li SingleMapping: Get a single mapping.
+ * @li MappingList: Get all the (unique) mappings of the SMARTS query to the molecule.
+ *
+ * A simple example using a single mapping is given below:
+ *
+ * @include smarts.cpp
+ *
+ * The example also illustrates the usage of the Smarts::requiresCycles()
+ * function. This function returns true if the SMARTS query contains atom or
+ * bond primitives tht requires knowledge of cylces (e.g. [R], [r6], *@*, ...).
+ * If this is not the case, an empty ring set can be used to obtain better
+ * performance.
+ *
  * @section smirks SMIRKS
  *
- * Using the Smirks class it is possible to apply SMIRKS transformations to
+ * Using the Smirks class it is possible to apply SMIRKS (http://www.daylight.com/dayhtml/doc/theory/theory.smirks.html) transformations to
  * editable molecules. In the example below an amine is reacted with an
  * acylchloride to form an amide.
  *
@@ -425,9 +567,15 @@ namespace Helium {
  *
  * @section morganec Morgan's Extended Connectivities
  *
- * The Morgan extended connectivities can be computed using the
+ * The Morgan extended connectivities [1] can be computed using the
  * extended_connectivities() function defined in the
  * extendedconnectivities.h header file.
+ *
+ @verbatim
+ [1] Morgan, H. L. The Generation of a Unique Machine Description for Chemical
+     Structures - A Technique Developed at Chemical Abstracts Service. J. Chem.
+     Doc. 1965, 5: 107-112.
+ @endverbatim
  *
  * @section canonical Canonicalization
  *

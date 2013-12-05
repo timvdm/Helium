@@ -93,6 +93,7 @@ void test_simple_atoms()
   {
     HeMol mol = hemol_from_smiles("C");
     Smirks smirks;
+    smirks.setFixHydrogens(false);
     smirks.init("[C:1]>>[Ch2:1]");
     smirks.apply(mol, RingSet<HeMol>(mol));
     COMPARE(6, get_element(mol, get_atom(mol, 0)));
@@ -102,6 +103,7 @@ void test_simple_atoms()
   {
     HeMol mol = hemol_from_smiles("C");
     Smirks smirks;
+    smirks.setFixHydrogens(false);
     ASSERT(smirks.init("[C:1]>>[CH3:1]"));
     smirks.apply(mol, RingSet<HeMol>(mol));
     COMPARE(6, get_element(mol, get_atom(mol, 0)));
@@ -235,6 +237,14 @@ bool smarts_match(const HeMol &mol, const std::string &smarts)
   return s.search(mol, RingSet<HeMol>(mol));
 }
 
+bool smarts_match(const std::string &smiles, const std::string &smarts)
+{
+  Smarts s;
+  ASSERT(s.init(smarts));
+  HeMol mol = hemol_from_smiles(smiles);
+  return s.search(mol, RingSet<HeMol>(mol));
+}
+
 void test_smirks(const std::string &smirks, const std::string smiles,
     const std::string &smarts1 = std::string(),
     const std::string &smarts2 = std::string(),
@@ -245,8 +255,13 @@ void test_smirks(const std::string &smirks, const std::string smiles,
   std::cout << "Tesing: " << smirks << " on " << smiles << std::endl;
   HeMol mol = hemol_from_smiles(smiles);
   Smirks s;
-  ASSERT(s.init(smirks));
-  s.apply(mol, RingSet<HeMol>(mol));
+  if (!s.init(smirks)) {
+    std::cout << "Error: " << s.error().what() << std::endl;
+    return;
+  }
+
+  if (!s.apply(mol, RingSet<HeMol>(mol)))
+    std::cout << "    reactant SMARTS did not match molecule!" << std::endl;
 
   std::cout << "    transformed molecule: " << write_smiles(mol) << std::endl;
 
@@ -285,14 +300,18 @@ void test_complex()
   // test adding/ removing atoms w/o atom class
   test_smirks("CC[C:1]>>[N:1]", "CCC", "[ND0]");
   test_smirks("CC[C:1]>>[N:1].OO", "CCC", "N.OO");
-
   test_smirks("[C:1]>>[N:1].O", "C.C", "N.O.N.O");
-
   test_smirks("[C:1]>>[N:1]O", "C.C", "NO.NO");
-
   test_smirks("[C:1]>>[C:1]1CCC1", "C.C", "C1CCC1.C1CCC1");
 
 
+  test_smirks("[C:1]=[C:2][C:3]=[C:4].[C:5]=[C:6]>>[C:1]1[C:2]=[C:3][C:4][C:5][C:6]1",
+      "C=CC=C.C=C", "C1=CCCCC1");
+  test_smirks("[*;Br,I:3][C:2].[*+0;n,N,S,O:1]>>[*-:3].[*+:1][C:2]", "CBr.CCOCC", "CC[O+](C)CC.[Br-]");
+  test_smirks("Cl[C:1]=[O:2]>>N[C:1]=[O:2]", "CCC(=O)Cl", "CCC(=O)N");
+  test_smirks("[C:1]=O>>[C:1]1OCCO1", "C1CCCCC1=O", "C1CCCCC12OCCO2");
+
+  //test_smirks("", "", "");
 }
 
 int main()

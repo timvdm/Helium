@@ -564,7 +564,7 @@ namespace Helium {
               case -1:
                 return 0;
               case 0:
-                if (degree < 1)
+                if (degree <= 1)
                   return 1;
                 return 0;
               case 1:
@@ -581,7 +581,7 @@ namespace Helium {
               case -1:
                 return 0;
               case 0:
-                if (degree < 1)
+                if (degree <= 1)
                   return 1;
                 return 0;
               case 1:
@@ -596,11 +596,11 @@ namespace Helium {
               case -1:
                 return 0;
               case 0:
-                if (degree < 2)
+                if (degree <= 2)
                   return 2;
                 return 0;
               case 1:
-                if (degree < 1)
+                if (degree <= 1)
                   return 1;
                 return 0;
               case 2:
@@ -609,69 +609,69 @@ namespace Helium {
           case 5:
             switch (charge) {
               case -2:
-                if (degree < 3)
+                if (degree <= 3)
                   return 3;
                 return 0;
               case -1:
-                if (degree < 4)
+                if (degree <= 4)
                   return 4;
                 return 0;
               case 0:
-                if (degree < 3)
+                if (degree <= 3)
                   return 3;
                 return 0;
               case 1:
-                if (degree < 2)
+                if (degree <= 2)
                   return 2;
                 return 0;
               case 2:
-                if (degree < 1)
+                if (degree <= 1)
                   return 1;
                 return 0;
             }
           case 6:
             switch (charge) {
               case -2:
-                if (degree < 2)
+                if (degree <= 2)
                   return 2;
                 return 0;
               case -1:
-                if (degree < 3)
+                if (degree <= 3)
                   return 3;
                 return 0;
               case 0:
-                if (degree < 4)
+                if (degree <= 4)
                   return 4;
                 return 0;
               case 1:
-                if (degree < 3)
+                if (degree <= 3)
                   return 3;
                 return 0;
               case 2:
-                if (degree < 2)
+                if (degree <= 2)
                   return 2;
                 return 0;
             }
           case 7:
             switch (charge) {
               case -2:
-                if (degree < 1)
+                if (degree <= 1)
                   return 1;
                 return 0;
               case -1:
-                if (degree < 2)
+                if (degree <= 2)
                   return 2;
                 return 0;
               case 0:
-                if (degree < 3)
+                if (degree <= 3)
                   return 3;
                 return 0;
               case 1:
-                if (degree < 4)
+                if (degree <= 4)
                   return 4;
                 return 0;
               case 2:
-                if (degree < 3)
+                if (degree <= 3)
                   return 3;
                 return 0;
             }
@@ -680,21 +680,21 @@ namespace Helium {
               case -2:
                 return 0;
               case -1:
-                if (degree < 1)
+                if (degree <= 1)
                   return 1;
                 return 0;
               case 0:
-                if (degree < 2)
+                if (degree <= 2)
                   return 2;
                 return 0;
               case 1:
-                if (degree < 3)
+                if (degree <= 3)
                   return 3;
-                if (degree < 5)
+                if (degree <= 5)
                   return 5;
                 return 0;
               case 2:
-                if (degree < 4)
+                if (degree <= 4)
                   return 4;
                 return 0;
             }
@@ -705,17 +705,17 @@ namespace Helium {
               case -1:
                 return 0;
               case 0:
-                if (degree < 1)
+                if (degree <= 1)
                   return 1;
                 return 0;
               case 1:
-                if (degree < 2)
+                if (degree <= 2)
                   return 2;
                 return 0;
               case 2:
-                if (degree < 3)
+                if (degree <= 3)
                   return 3;
-                if (degree < 5)
+                if (degree <= 5)
                   return 5;
                 return 0;
             }
@@ -728,7 +728,7 @@ namespace Helium {
               case -1:
                 return 0;
               case 0:
-                if (degree < 1)
+                if (degree <= 1)
                   return 1;
                 return 0;
               case 1:
@@ -743,11 +743,11 @@ namespace Helium {
               case -1:
                 return 0;
               case 0:
-                if (degree < 2)
+                if (degree <= 2)
                   return 2;
                 return 0;
               case 1:
-                if (degree < 1)
+                if (degree <= 1)
                   return 1;
                 return 0;
               case 2:
@@ -756,85 +756,85 @@ namespace Helium {
           case 13:
             switch (charge) {
               case -2:
-                if (degree < 3)
+                if (degree <= 3)
                   return 3;
-                if (degree < 5)
+                if (degree <= 5)
                   return 5;
                 return 0;
               case -1:
-                if (degree < 4)
+                if (degree <= 4)
                   return 4;
                 return 0;
               case 0:
-                if (degree < 3)
+                if (degree <= 3)
                   return 3;
                 return 0;
               case 1:
-                if (degree < 2)
+                if (degree <= 2)
                   return 2;
                 return 0;
               case 2:
-                if (degree < 1)
+                if (degree <= 1)
                   return 1;
                 return 0;
             }
           case 14:
             switch (charge) {
               case -2:
-                if (degree < 2)
+                if (degree <= 2)
                   return 2;
                 return 0;
               case -1:
-                if (degree < 3)
+                if (degree <= 3)
                   return 3;
-                if (degree < 5)
+                if (degree <= 5)
                   return 5;
                 return 0;
               case 0:
-                if (degree < 4)
+                if (degree <= 4)
                   return 4;
                 return 0;
               case 1:
-                if (degree < 3)
+                if (degree <= 3)
                   return 3;
                 return 0;
               case 2:
-                if (degree < 2)
+                if (degree <= 2)
                   return 2;
                 return 0;
             }
           case 15:
             switch (charge) {
               case -2:
-                if (degree < 1)
+                if (degree <= 1)
                   return 1;
-                if (degree < 3)
+                if (degree <= 3)
                   return 3;
-                if (degree < 5)
+                if (degree <= 5)
                   return 5;
-                if (degree < 7)
+                if (degree <= 7)
                   return 7;
                 return 0;
               case -1:
-                if (degree < 2)
+                if (degree <= 2)
                   return 2;
-                if (degree < 4)
+                if (degree <= 4)
                   return 4;
-                if (degree < 6)
+                if (degree <= 6)
                   return 6;
                 return 0;
               case 0:
-                if (degree < 3)
+                if (degree <= 3)
                   return 3;
-                if (degree < 5)
+                if (degree <= 5)
                   return 5;
                 return 0;
               case 1:
-                if (degree < 4)
+                if (degree <= 4)
                   return 4;
                 return 0;
               case 2:
-                if (degree < 3)
+                if (degree <= 3)
                   return 3;
                 return 0;
             }
@@ -843,29 +843,29 @@ namespace Helium {
               case -2:
                 return 0;
               case -1:
-                if (degree < 1)
+                if (degree <= 1)
                   return 1;
-                if (degree < 3)
+                if (degree <= 3)
                   return 3;
-                if (degree < 5)
+                if (degree <= 5)
                   return 5;
-                if (degree < 7)
+                if (degree <= 7)
                   return 7;
                 return 0;
               case 0:
-                if (degree < 2)
+                if (degree <= 2)
                   return 2;
-                if (degree < 6)
+                if (degree <= 6)
                   return 6;
                 return 0;
               case 1:
-                if (degree < 3)
+                if (degree <= 3)
                   return 3;
-                if (degree < 5)
+                if (degree <= 5)
                   return 5;
                 return 0;
               case 2:
-                if (degree < 4)
+                if (degree <= 4)
                   return 4;
                 return 0;
             }
@@ -876,27 +876,27 @@ namespace Helium {
               case -1:
                 return 0;
               case 0:
-                if (degree < 1)
+                if (degree <= 1)
                   return 1;
-                if (degree < 3)
+                if (degree <= 3)
                   return 3;
-                if (degree < 5)
+                if (degree <= 5)
                   return 5;
-                if (degree < 7)
+                if (degree <= 7)
                   return 7;
                 return 0;
               case 1:
-                if (degree < 2)
+                if (degree <= 2)
                   return 2;
-                if (degree < 4)
+                if (degree <= 4)
                   return 4;
-                if (degree < 6)
+                if (degree <= 6)
                   return 6;
                 return 0;
               case 2:
-                if (degree < 3)
+                if (degree <= 3)
                   return 3;
-                if (degree < 5)
+                if (degree <= 5)
                   return 5;
                 return 0;
             }
@@ -909,7 +909,7 @@ namespace Helium {
               case -1:
                 return 0;
               case 0:
-                if (degree < 1)
+                if (degree <= 1)
                   return 1;
                 return 0;
               case 1:
@@ -924,11 +924,11 @@ namespace Helium {
               case -1:
                 return 0;
               case 0:
-                if (degree < 2)
+                if (degree <= 2)
                   return 2;
                 return 0;
               case 1:
-                if (degree < 1)
+                if (degree <= 1)
                   return 1;
                 return 0;
               case 2:
@@ -941,7 +941,7 @@ namespace Helium {
               case -1:
                 return 0;
               case 0:
-                if (degree < 3)
+                if (degree <= 3)
                   return 3;
                 return 0;
               case 1:
@@ -956,9 +956,9 @@ namespace Helium {
               case -1:
                 return 0;
               case 0:
-                if (degree < 3)
+                if (degree <= 3)
                   return 3;
-                if (degree < 4)
+                if (degree <= 4)
                   return 4;
                 return 0;
               case 1:
@@ -973,13 +973,13 @@ namespace Helium {
               case -1:
                 return 0;
               case 0:
-                if (degree < 2)
+                if (degree <= 2)
                   return 2;
-                if (degree < 3)
+                if (degree <= 3)
                   return 3;
-                if (degree < 4)
+                if (degree <= 4)
                   return 4;
-                if (degree < 5)
+                if (degree <= 5)
                   return 5;
                 return 0;
               case 1:
@@ -994,11 +994,11 @@ namespace Helium {
               case -1:
                 return 0;
               case 0:
-                if (degree < 2)
+                if (degree <= 2)
                   return 2;
-                if (degree < 3)
+                if (degree <= 3)
                   return 3;
-                if (degree < 6)
+                if (degree <= 6)
                   return 6;
                 return 0;
               case 1:
@@ -1013,13 +1013,13 @@ namespace Helium {
               case -1:
                 return 0;
               case 0:
-                if (degree < 2)
+                if (degree <= 2)
                   return 2;
-                if (degree < 3)
+                if (degree <= 3)
                   return 3;
-                if (degree < 4)
+                if (degree <= 4)
                   return 4;
-                if (degree < 6)
+                if (degree <= 6)
                   return 6;
                 return 0;
               case 1:
@@ -1034,13 +1034,13 @@ namespace Helium {
               case -1:
                 return 0;
               case 0:
-                if (degree < 2)
+                if (degree <= 2)
                   return 2;
-                if (degree < 3)
+                if (degree <= 3)
                   return 3;
-                if (degree < 4)
+                if (degree <= 4)
                   return 4;
-                if (degree < 6)
+                if (degree <= 6)
                   return 6;
                 return 0;
               case 1:
@@ -1055,9 +1055,9 @@ namespace Helium {
               case -1:
                 return 0;
               case 0:
-                if (degree < 2)
+                if (degree <= 2)
                   return 2;
-                if (degree < 3)
+                if (degree <= 3)
                   return 3;
                 return 0;
               case 1:
@@ -1072,9 +1072,9 @@ namespace Helium {
               case -1:
                 return 0;
               case 0:
-                if (degree < 2)
+                if (degree <= 2)
                   return 2;
-                if (degree < 3)
+                if (degree <= 3)
                   return 3;
                 return 0;
               case 1:
@@ -1089,9 +1089,9 @@ namespace Helium {
               case -1:
                 return 0;
               case 0:
-                if (degree < 1)
+                if (degree <= 1)
                   return 1;
-                if (degree < 2)
+                if (degree <= 2)
                   return 2;
                 return 0;
               case 1:
@@ -1106,7 +1106,7 @@ namespace Helium {
               case -1:
                 return 0;
               case 0:
-                if (degree < 2)
+                if (degree <= 2)
                   return 2;
                 return 0;
               case 1:
@@ -1117,48 +1117,48 @@ namespace Helium {
           case 31:
             switch (charge) {
               case -2:
-                if (degree < 3)
+                if (degree <= 3)
                   return 3;
-                if (degree < 5)
+                if (degree <= 5)
                   return 5;
                 return 0;
               case -1:
-                if (degree < 4)
+                if (degree <= 4)
                   return 4;
                 return 0;
               case 0:
-                if (degree < 3)
+                if (degree <= 3)
                   return 3;
                 return 0;
               case 1:
                 return 0;
               case 2:
-                if (degree < 1)
+                if (degree <= 1)
                   return 1;
                 return 0;
             }
           case 32:
             switch (charge) {
               case -2:
-                if (degree < 2)
+                if (degree <= 2)
                   return 2;
-                if (degree < 4)
+                if (degree <= 4)
                   return 4;
-                if (degree < 6)
+                if (degree <= 6)
                   return 6;
                 return 0;
               case -1:
-                if (degree < 3)
+                if (degree <= 3)
                   return 3;
-                if (degree < 5)
+                if (degree <= 5)
                   return 5;
                 return 0;
               case 0:
-                if (degree < 4)
+                if (degree <= 4)
                   return 4;
                 return 0;
               case 1:
-                if (degree < 3)
+                if (degree <= 3)
                   return 3;
                 return 0;
               case 2:
@@ -1167,35 +1167,35 @@ namespace Helium {
           case 33:
             switch (charge) {
               case -2:
-                if (degree < 1)
+                if (degree <= 1)
                   return 1;
-                if (degree < 3)
+                if (degree <= 3)
                   return 3;
-                if (degree < 5)
+                if (degree <= 5)
                   return 5;
-                if (degree < 7)
+                if (degree <= 7)
                   return 7;
                 return 0;
               case -1:
-                if (degree < 2)
+                if (degree <= 2)
                   return 2;
-                if (degree < 4)
+                if (degree <= 4)
                   return 4;
-                if (degree < 6)
+                if (degree <= 6)
                   return 6;
                 return 0;
               case 0:
-                if (degree < 3)
+                if (degree <= 3)
                   return 3;
-                if (degree < 5)
+                if (degree <= 5)
                   return 5;
                 return 0;
               case 1:
-                if (degree < 4)
+                if (degree <= 4)
                   return 4;
                 return 0;
               case 2:
-                if (degree < 3)
+                if (degree <= 3)
                   return 3;
                 return 0;
             }
@@ -1204,31 +1204,31 @@ namespace Helium {
               case -2:
                 return 0;
               case -1:
-                if (degree < 1)
+                if (degree <= 1)
                   return 1;
-                if (degree < 3)
+                if (degree <= 3)
                   return 3;
-                if (degree < 5)
+                if (degree <= 5)
                   return 5;
-                if (degree < 7)
+                if (degree <= 7)
                   return 7;
                 return 0;
               case 0:
-                if (degree < 2)
+                if (degree <= 2)
                   return 2;
-                if (degree < 4)
+                if (degree <= 4)
                   return 4;
-                if (degree < 6)
+                if (degree <= 6)
                   return 6;
                 return 0;
               case 1:
-                if (degree < 3)
+                if (degree <= 3)
                   return 3;
-                if (degree < 5)
+                if (degree <= 5)
                   return 5;
                 return 0;
               case 2:
-                if (degree < 4)
+                if (degree <= 4)
                   return 4;
                 return 0;
             }
@@ -1239,27 +1239,27 @@ namespace Helium {
               case -1:
                 return 0;
               case 0:
-                if (degree < 1)
+                if (degree <= 1)
                   return 1;
-                if (degree < 3)
+                if (degree <= 3)
                   return 3;
-                if (degree < 5)
+                if (degree <= 5)
                   return 5;
-                if (degree < 7)
+                if (degree <= 7)
                   return 7;
                 return 0;
               case 1:
-                if (degree < 2)
+                if (degree <= 2)
                   return 2;
-                if (degree < 4)
+                if (degree <= 4)
                   return 4;
-                if (degree < 6)
+                if (degree <= 6)
                   return 6;
                 return 0;
               case 2:
-                if (degree < 3)
+                if (degree <= 3)
                   return 3;
-                if (degree < 5)
+                if (degree <= 5)
                   return 5;
                 return 0;
             }
@@ -1272,7 +1272,7 @@ namespace Helium {
               case -1:
                 return 0;
               case 0:
-                if (degree < 1)
+                if (degree <= 1)
                   return 1;
                 return 0;
               case 1:
@@ -1287,11 +1287,11 @@ namespace Helium {
               case -1:
                 return 0;
               case 0:
-                if (degree < 2)
+                if (degree <= 2)
                   return 2;
                 return 0;
               case 1:
-                if (degree < 1)
+                if (degree <= 1)
                   return 1;
                 return 0;
               case 2:
@@ -1304,7 +1304,7 @@ namespace Helium {
               case -1:
                 return 0;
               case 0:
-                if (degree < 3)
+                if (degree <= 3)
                   return 3;
                 return 0;
               case 1:
@@ -1319,7 +1319,7 @@ namespace Helium {
               case -1:
                 return 0;
               case 0:
-                if (degree < 4)
+                if (degree <= 4)
                   return 4;
                 return 0;
               case 1:
@@ -1334,9 +1334,9 @@ namespace Helium {
               case -1:
                 return 0;
               case 0:
-                if (degree < 3)
+                if (degree <= 3)
                   return 3;
-                if (degree < 5)
+                if (degree <= 5)
                   return 5;
                 return 0;
               case 1:
@@ -1351,13 +1351,13 @@ namespace Helium {
               case -1:
                 return 0;
               case 0:
-                if (degree < 3)
+                if (degree <= 3)
                   return 3;
-                if (degree < 4)
+                if (degree <= 4)
                   return 4;
-                if (degree < 5)
+                if (degree <= 5)
                   return 5;
-                if (degree < 6)
+                if (degree <= 6)
                   return 6;
                 return 0;
               case 1:
@@ -1372,7 +1372,7 @@ namespace Helium {
               case -1:
                 return 0;
               case 0:
-                if (degree < 7)
+                if (degree <= 7)
                   return 7;
                 return 0;
               case 1:
@@ -1387,13 +1387,13 @@ namespace Helium {
               case -1:
                 return 0;
               case 0:
-                if (degree < 2)
+                if (degree <= 2)
                   return 2;
-                if (degree < 3)
+                if (degree <= 3)
                   return 3;
-                if (degree < 4)
+                if (degree <= 4)
                   return 4;
-                if (degree < 6)
+                if (degree <= 6)
                   return 6;
                 return 0;
               case 1:
@@ -1408,11 +1408,11 @@ namespace Helium {
               case -1:
                 return 0;
               case 0:
-                if (degree < 2)
+                if (degree <= 2)
                   return 2;
-                if (degree < 3)
+                if (degree <= 3)
                   return 3;
-                if (degree < 4)
+                if (degree <= 4)
                   return 4;
                 return 0;
               case 1:
@@ -1427,9 +1427,9 @@ namespace Helium {
               case -1:
                 return 0;
               case 0:
-                if (degree < 2)
+                if (degree <= 2)
                   return 2;
-                if (degree < 4)
+                if (degree <= 4)
                   return 4;
                 return 0;
               case 1:
@@ -1444,7 +1444,7 @@ namespace Helium {
               case -1:
                 return 0;
               case 0:
-                if (degree < 1)
+                if (degree <= 1)
                   return 1;
                 return 0;
               case 1:
@@ -1459,7 +1459,7 @@ namespace Helium {
               case -1:
                 return 0;
               case 0:
-                if (degree < 2)
+                if (degree <= 2)
                   return 2;
                 return 0;
               case 1:
@@ -1470,52 +1470,52 @@ namespace Helium {
           case 49:
             switch (charge) {
               case -2:
-                if (degree < 3)
+                if (degree <= 3)
                   return 3;
-                if (degree < 5)
+                if (degree <= 5)
                   return 5;
                 return 0;
               case -1:
-                if (degree < 2)
+                if (degree <= 2)
                   return 2;
-                if (degree < 4)
+                if (degree <= 4)
                   return 4;
                 return 0;
               case 0:
-                if (degree < 3)
+                if (degree <= 3)
                   return 3;
                 return 0;
               case 1:
                 return 0;
               case 2:
-                if (degree < 1)
+                if (degree <= 1)
                   return 1;
                 return 0;
             }
           case 50:
             switch (charge) {
               case -2:
-                if (degree < 2)
+                if (degree <= 2)
                   return 2;
-                if (degree < 4)
+                if (degree <= 4)
                   return 4;
-                if (degree < 6)
+                if (degree <= 6)
                   return 6;
                 return 0;
               case -1:
-                if (degree < 3)
+                if (degree <= 3)
                   return 3;
-                if (degree < 5)
+                if (degree <= 5)
                   return 5;
                 return 0;
               case 0:
-                if (degree < 2)
+                if (degree <= 2)
                   return 2;
-                if (degree < 4)
+                if (degree <= 4)
                   return 4;
                 return 0;
               case 1:
-                if (degree < 3)
+                if (degree <= 3)
                   return 3;
                 return 0;
               case 2:
@@ -1524,37 +1524,37 @@ namespace Helium {
           case 51:
             switch (charge) {
               case -2:
-                if (degree < 1)
+                if (degree <= 1)
                   return 1;
-                if (degree < 3)
+                if (degree <= 3)
                   return 3;
-                if (degree < 5)
+                if (degree <= 5)
                   return 5;
-                if (degree < 7)
+                if (degree <= 7)
                   return 7;
                 return 0;
               case -1:
-                if (degree < 2)
+                if (degree <= 2)
                   return 2;
-                if (degree < 4)
+                if (degree <= 4)
                   return 4;
-                if (degree < 6)
+                if (degree <= 6)
                   return 6;
                 return 0;
               case 0:
-                if (degree < 3)
+                if (degree <= 3)
                   return 3;
-                if (degree < 5)
+                if (degree <= 5)
                   return 5;
                 return 0;
               case 1:
-                if (degree < 2)
+                if (degree <= 2)
                   return 2;
-                if (degree < 4)
+                if (degree <= 4)
                   return 4;
                 return 0;
               case 2:
-                if (degree < 3)
+                if (degree <= 3)
                   return 3;
                 return 0;
             }
@@ -1563,33 +1563,33 @@ namespace Helium {
               case -2:
                 return 0;
               case -1:
-                if (degree < 1)
+                if (degree <= 1)
                   return 1;
-                if (degree < 3)
+                if (degree <= 3)
                   return 3;
-                if (degree < 5)
+                if (degree <= 5)
                   return 5;
-                if (degree < 7)
+                if (degree <= 7)
                   return 7;
                 return 0;
               case 0:
-                if (degree < 2)
+                if (degree <= 2)
                   return 2;
-                if (degree < 4)
+                if (degree <= 4)
                   return 4;
-                if (degree < 6)
+                if (degree <= 6)
                   return 6;
                 return 0;
               case 1:
-                if (degree < 3)
+                if (degree <= 3)
                   return 3;
-                if (degree < 5)
+                if (degree <= 5)
                   return 5;
                 return 0;
               case 2:
-                if (degree < 2)
+                if (degree <= 2)
                   return 2;
-                if (degree < 4)
+                if (degree <= 4)
                   return 4;
                 return 0;
             }
@@ -1600,27 +1600,27 @@ namespace Helium {
               case -1:
                 return 0;
               case 0:
-                if (degree < 1)
+                if (degree <= 1)
                   return 1;
-                if (degree < 3)
+                if (degree <= 3)
                   return 3;
-                if (degree < 5)
+                if (degree <= 5)
                   return 5;
-                if (degree < 7)
+                if (degree <= 7)
                   return 7;
                 return 0;
               case 1:
-                if (degree < 2)
+                if (degree <= 2)
                   return 2;
-                if (degree < 4)
+                if (degree <= 4)
                   return 4;
-                if (degree < 6)
+                if (degree <= 6)
                   return 6;
                 return 0;
               case 2:
-                if (degree < 3)
+                if (degree <= 3)
                   return 3;
-                if (degree < 5)
+                if (degree <= 5)
                   return 5;
                 return 0;
             }
@@ -1633,7 +1633,7 @@ namespace Helium {
               case -1:
                 return 0;
               case 0:
-                if (degree < 1)
+                if (degree <= 1)
                   return 1;
                 return 0;
               case 1:
@@ -1648,11 +1648,11 @@ namespace Helium {
               case -1:
                 return 0;
               case 0:
-                if (degree < 2)
+                if (degree <= 2)
                   return 2;
                 return 0;
               case 1:
-                if (degree < 1)
+                if (degree <= 1)
                   return 1;
                 return 0;
               case 2:
@@ -1665,7 +1665,7 @@ namespace Helium {
               case -1:
                 return 0;
               case 0:
-                if (degree < 3)
+                if (degree <= 3)
                   return 3;
                 return 0;
               case 1:
@@ -1680,9 +1680,9 @@ namespace Helium {
               case -1:
                 return 0;
               case 0:
-                if (degree < 3)
+                if (degree <= 3)
                   return 3;
-                if (degree < 4)
+                if (degree <= 4)
                   return 4;
                 return 0;
               case 1:
@@ -1697,9 +1697,9 @@ namespace Helium {
               case -1:
                 return 0;
               case 0:
-                if (degree < 3)
+                if (degree <= 3)
                   return 3;
-                if (degree < 4)
+                if (degree <= 4)
                   return 4;
                 return 0;
               case 1:
@@ -1714,7 +1714,7 @@ namespace Helium {
               case -1:
                 return 0;
               case 0:
-                if (degree < 3)
+                if (degree <= 3)
                   return 3;
                 return 0;
               case 1:
@@ -1729,7 +1729,7 @@ namespace Helium {
               case -1:
                 return 0;
               case 0:
-                if (degree < 3)
+                if (degree <= 3)
                   return 3;
                 return 0;
               case 1:
@@ -1744,9 +1744,9 @@ namespace Helium {
               case -1:
                 return 0;
               case 0:
-                if (degree < 2)
+                if (degree <= 2)
                   return 2;
-                if (degree < 3)
+                if (degree <= 3)
                   return 3;
                 return 0;
               case 1:
@@ -1761,9 +1761,9 @@ namespace Helium {
               case -1:
                 return 0;
               case 0:
-                if (degree < 2)
+                if (degree <= 2)
                   return 2;
-                if (degree < 3)
+                if (degree <= 3)
                   return 3;
                 return 0;
               case 1:
@@ -1778,7 +1778,7 @@ namespace Helium {
               case -1:
                 return 0;
               case 0:
-                if (degree < 3)
+                if (degree <= 3)
                   return 3;
                 return 0;
               case 1:
@@ -1793,9 +1793,9 @@ namespace Helium {
               case -1:
                 return 0;
               case 0:
-                if (degree < 3)
+                if (degree <= 3)
                   return 3;
-                if (degree < 4)
+                if (degree <= 4)
                   return 4;
                 return 0;
               case 1:
@@ -1810,7 +1810,7 @@ namespace Helium {
               case -1:
                 return 0;
               case 0:
-                if (degree < 3)
+                if (degree <= 3)
                   return 3;
                 return 0;
               case 1:
@@ -1825,7 +1825,7 @@ namespace Helium {
               case -1:
                 return 0;
               case 0:
-                if (degree < 3)
+                if (degree <= 3)
                   return 3;
                 return 0;
               case 1:
@@ -1840,7 +1840,7 @@ namespace Helium {
               case -1:
                 return 0;
               case 0:
-                if (degree < 3)
+                if (degree <= 3)
                   return 3;
                 return 0;
               case 1:
@@ -1855,9 +1855,9 @@ namespace Helium {
               case -1:
                 return 0;
               case 0:
-                if (degree < 2)
+                if (degree <= 2)
                   return 2;
-                if (degree < 3)
+                if (degree <= 3)
                   return 3;
                 return 0;
               case 1:
@@ -1872,9 +1872,9 @@ namespace Helium {
               case -1:
                 return 0;
               case 0:
-                if (degree < 2)
+                if (degree <= 2)
                   return 2;
-                if (degree < 3)
+                if (degree <= 3)
                   return 3;
                 return 0;
               case 1:
@@ -1889,7 +1889,7 @@ namespace Helium {
               case -1:
                 return 0;
               case 0:
-                if (degree < 3)
+                if (degree <= 3)
                   return 3;
                 return 0;
               case 1:
@@ -1904,7 +1904,7 @@ namespace Helium {
               case -1:
                 return 0;
               case 0:
-                if (degree < 4)
+                if (degree <= 4)
                   return 4;
                 return 0;
               case 1:
@@ -1919,7 +1919,7 @@ namespace Helium {
               case -1:
                 return 0;
               case 0:
-                if (degree < 5)
+                if (degree <= 5)
                   return 5;
                 return 0;
               case 1:
@@ -1934,13 +1934,13 @@ namespace Helium {
               case -1:
                 return 0;
               case 0:
-                if (degree < 3)
+                if (degree <= 3)
                   return 3;
-                if (degree < 4)
+                if (degree <= 4)
                   return 4;
-                if (degree < 5)
+                if (degree <= 5)
                   return 5;
-                if (degree < 6)
+                if (degree <= 6)
                   return 6;
                 return 0;
               case 1:
@@ -1955,13 +1955,13 @@ namespace Helium {
               case -1:
                 return 0;
               case 0:
-                if (degree < 2)
+                if (degree <= 2)
                   return 2;
-                if (degree < 4)
+                if (degree <= 4)
                   return 4;
-                if (degree < 6)
+                if (degree <= 6)
                   return 6;
-                if (degree < 7)
+                if (degree <= 7)
                   return 7;
                 return 0;
               case 1:
@@ -1976,13 +1976,13 @@ namespace Helium {
               case -1:
                 return 0;
               case 0:
-                if (degree < 2)
+                if (degree <= 2)
                   return 2;
-                if (degree < 3)
+                if (degree <= 3)
                   return 3;
-                if (degree < 4)
+                if (degree <= 4)
                   return 4;
-                if (degree < 6)
+                if (degree <= 6)
                   return 6;
                 return 0;
               case 1:
@@ -1997,13 +1997,13 @@ namespace Helium {
               case -1:
                 return 0;
               case 0:
-                if (degree < 2)
+                if (degree <= 2)
                   return 2;
-                if (degree < 3)
+                if (degree <= 3)
                   return 3;
-                if (degree < 4)
+                if (degree <= 4)
                   return 4;
-                if (degree < 6)
+                if (degree <= 6)
                   return 6;
                 return 0;
               case 1:
@@ -2018,9 +2018,9 @@ namespace Helium {
               case -1:
                 return 0;
               case 0:
-                if (degree < 2)
+                if (degree <= 2)
                   return 2;
-                if (degree < 4)
+                if (degree <= 4)
                   return 4;
                 return 0;
               case 1:
@@ -2035,9 +2035,9 @@ namespace Helium {
               case -1:
                 return 0;
               case 0:
-                if (degree < 1)
+                if (degree <= 1)
                   return 1;
-                if (degree < 3)
+                if (degree <= 3)
                   return 3;
                 return 0;
               case 1:
@@ -2052,9 +2052,9 @@ namespace Helium {
               case -1:
                 return 0;
               case 0:
-                if (degree < 1)
+                if (degree <= 1)
                   return 1;
-                if (degree < 2)
+                if (degree <= 2)
                   return 2;
                 return 0;
               case 1:
@@ -2065,21 +2065,21 @@ namespace Helium {
           case 81:
             switch (charge) {
               case -2:
-                if (degree < 3)
+                if (degree <= 3)
                   return 3;
-                if (degree < 5)
+                if (degree <= 5)
                   return 5;
                 return 0;
               case -1:
-                if (degree < 2)
+                if (degree <= 2)
                   return 2;
-                if (degree < 4)
+                if (degree <= 4)
                   return 4;
                 return 0;
               case 0:
-                if (degree < 1)
+                if (degree <= 1)
                   return 1;
-                if (degree < 3)
+                if (degree <= 3)
                   return 3;
                 return 0;
               case 1:
@@ -2090,27 +2090,27 @@ namespace Helium {
           case 82:
             switch (charge) {
               case -2:
-                if (degree < 2)
+                if (degree <= 2)
                   return 2;
-                if (degree < 4)
+                if (degree <= 4)
                   return 4;
-                if (degree < 6)
+                if (degree <= 6)
                   return 6;
                 return 0;
               case -1:
-                if (degree < 3)
+                if (degree <= 3)
                   return 3;
-                if (degree < 5)
+                if (degree <= 5)
                   return 5;
                 return 0;
               case 0:
-                if (degree < 2)
+                if (degree <= 2)
                   return 2;
-                if (degree < 4)
+                if (degree <= 4)
                   return 4;
                 return 0;
               case 1:
-                if (degree < 3)
+                if (degree <= 3)
                   return 3;
                 return 0;
               case 2:
@@ -2119,37 +2119,37 @@ namespace Helium {
           case 83:
             switch (charge) {
               case -2:
-                if (degree < 1)
+                if (degree <= 1)
                   return 1;
-                if (degree < 3)
+                if (degree <= 3)
                   return 3;
-                if (degree < 5)
+                if (degree <= 5)
                   return 5;
-                if (degree < 7)
+                if (degree <= 7)
                   return 7;
                 return 0;
               case -1:
-                if (degree < 2)
+                if (degree <= 2)
                   return 2;
-                if (degree < 4)
+                if (degree <= 4)
                   return 4;
-                if (degree < 6)
+                if (degree <= 6)
                   return 6;
                 return 0;
               case 0:
-                if (degree < 3)
+                if (degree <= 3)
                   return 3;
-                if (degree < 5)
+                if (degree <= 5)
                   return 5;
                 return 0;
               case 1:
-                if (degree < 2)
+                if (degree <= 2)
                   return 2;
-                if (degree < 4)
+                if (degree <= 4)
                   return 4;
                 return 0;
               case 2:
-                if (degree < 3)
+                if (degree <= 3)
                   return 3;
                 return 0;
             }
@@ -2158,33 +2158,33 @@ namespace Helium {
               case -2:
                 return 0;
               case -1:
-                if (degree < 1)
+                if (degree <= 1)
                   return 1;
-                if (degree < 3)
+                if (degree <= 3)
                   return 3;
-                if (degree < 5)
+                if (degree <= 5)
                   return 5;
-                if (degree < 7)
+                if (degree <= 7)
                   return 7;
                 return 0;
               case 0:
-                if (degree < 2)
+                if (degree <= 2)
                   return 2;
-                if (degree < 4)
+                if (degree <= 4)
                   return 4;
-                if (degree < 6)
+                if (degree <= 6)
                   return 6;
                 return 0;
               case 1:
-                if (degree < 3)
+                if (degree <= 3)
                   return 3;
-                if (degree < 5)
+                if (degree <= 5)
                   return 5;
                 return 0;
               case 2:
-                if (degree < 2)
+                if (degree <= 2)
                   return 2;
-                if (degree < 4)
+                if (degree <= 4)
                   return 4;
                 return 0;
             }
@@ -2195,27 +2195,27 @@ namespace Helium {
               case -1:
                 return 0;
               case 0:
-                if (degree < 1)
+                if (degree <= 1)
                   return 1;
-                if (degree < 3)
+                if (degree <= 3)
                   return 3;
-                if (degree < 5)
+                if (degree <= 5)
                   return 5;
-                if (degree < 7)
+                if (degree <= 7)
                   return 7;
                 return 0;
               case 1:
-                if (degree < 2)
+                if (degree <= 2)
                   return 2;
-                if (degree < 4)
+                if (degree <= 4)
                   return 4;
-                if (degree < 6)
+                if (degree <= 6)
                   return 6;
                 return 0;
               case 2:
-                if (degree < 3)
+                if (degree <= 3)
                   return 3;
-                if (degree < 5)
+                if (degree <= 5)
                   return 5;
                 return 0;
             }
@@ -2228,7 +2228,7 @@ namespace Helium {
               case -1:
                 return 0;
               case 0:
-                if (degree < 1)
+                if (degree <= 1)
                   return 1;
                 return 0;
               case 1:
@@ -2243,11 +2243,11 @@ namespace Helium {
               case -1:
                 return 0;
               case 0:
-                if (degree < 2)
+                if (degree <= 2)
                   return 2;
                 return 0;
               case 1:
-                if (degree < 1)
+                if (degree <= 1)
                   return 1;
                 return 0;
               case 2:
@@ -2260,7 +2260,7 @@ namespace Helium {
               case -1:
                 return 0;
               case 0:
-                if (degree < 3)
+                if (degree <= 3)
                   return 3;
                 return 0;
               case 1:
@@ -2275,9 +2275,9 @@ namespace Helium {
               case -1:
                 return 0;
               case 0:
-                if (degree < 3)
+                if (degree <= 3)
                   return 3;
-                if (degree < 4)
+                if (degree <= 4)
                   return 4;
                 return 0;
               case 1:
@@ -2292,11 +2292,11 @@ namespace Helium {
               case -1:
                 return 0;
               case 0:
-                if (degree < 3)
+                if (degree <= 3)
                   return 3;
-                if (degree < 4)
+                if (degree <= 4)
                   return 4;
-                if (degree < 5)
+                if (degree <= 5)
                   return 5;
                 return 0;
               case 1:
@@ -2311,13 +2311,13 @@ namespace Helium {
               case -1:
                 return 0;
               case 0:
-                if (degree < 3)
+                if (degree <= 3)
                   return 3;
-                if (degree < 4)
+                if (degree <= 4)
                   return 4;
-                if (degree < 5)
+                if (degree <= 5)
                   return 5;
-                if (degree < 6)
+                if (degree <= 6)
                   return 6;
                 return 0;
               case 1:
@@ -2332,13 +2332,13 @@ namespace Helium {
               case -1:
                 return 0;
               case 0:
-                if (degree < 3)
+                if (degree <= 3)
                   return 3;
-                if (degree < 4)
+                if (degree <= 4)
                   return 4;
-                if (degree < 5)
+                if (degree <= 5)
                   return 5;
-                if (degree < 6)
+                if (degree <= 6)
                   return 6;
                 return 0;
               case 1:
@@ -2353,13 +2353,13 @@ namespace Helium {
               case -1:
                 return 0;
               case 0:
-                if (degree < 3)
+                if (degree <= 3)
                   return 3;
-                if (degree < 4)
+                if (degree <= 4)
                   return 4;
-                if (degree < 5)
+                if (degree <= 5)
                   return 5;
-                if (degree < 6)
+                if (degree <= 6)
                   return 6;
                 return 0;
               case 1:
@@ -2374,13 +2374,13 @@ namespace Helium {
               case -1:
                 return 0;
               case 0:
-                if (degree < 3)
+                if (degree <= 3)
                   return 3;
-                if (degree < 4)
+                if (degree <= 4)
                   return 4;
-                if (degree < 5)
+                if (degree <= 5)
                   return 5;
-                if (degree < 6)
+                if (degree <= 6)
                   return 6;
                 return 0;
               case 1:
@@ -2395,7 +2395,7 @@ namespace Helium {
               case -1:
                 return 0;
               case 0:
-                if (degree < 3)
+                if (degree <= 3)
                   return 3;
                 return 0;
               case 1:
@@ -2410,9 +2410,9 @@ namespace Helium {
               case -1:
                 return 0;
               case 0:
-                if (degree < 3)
+                if (degree <= 3)
                   return 3;
-                if (degree < 4)
+                if (degree <= 4)
                   return 4;
                 return 0;
               case 1:
@@ -2427,7 +2427,7 @@ namespace Helium {
               case -1:
                 return 0;
               case 0:
-                if (degree < 3)
+                if (degree <= 3)
                   return 3;
                 return 0;
               case 1:
@@ -2442,7 +2442,7 @@ namespace Helium {
               case -1:
                 return 0;
               case 0:
-                if (degree < 3)
+                if (degree <= 3)
                   return 3;
                 return 0;
               case 1:
@@ -2457,7 +2457,7 @@ namespace Helium {
               case -1:
                 return 0;
               case 0:
-                if (degree < 3)
+                if (degree <= 3)
                   return 3;
                 return 0;
               case 1:
@@ -2472,7 +2472,7 @@ namespace Helium {
               case -1:
                 return 0;
               case 0:
-                if (degree < 3)
+                if (degree <= 3)
                   return 3;
                 return 0;
               case 1:
@@ -2487,7 +2487,7 @@ namespace Helium {
               case -1:
                 return 0;
               case 0:
-                if (degree < 2)
+                if (degree <= 2)
                   return 2;
                 return 0;
               case 1:
@@ -2502,7 +2502,7 @@ namespace Helium {
               case -1:
                 return 0;
               case 0:
-                if (degree < 3)
+                if (degree <= 3)
                   return 3;
                 return 0;
               case 1:
@@ -2517,7 +2517,7 @@ namespace Helium {
               case -1:
                 return 0;
               case 0:
-                if (degree < 4)
+                if (degree <= 4)
                   return 4;
                 return 0;
               case 1:
@@ -2532,7 +2532,7 @@ namespace Helium {
               case -1:
                 return 0;
               case 0:
-                if (degree < 5)
+                if (degree <= 5)
                   return 5;
                 return 0;
               case 1:
@@ -2547,7 +2547,7 @@ namespace Helium {
               case -1:
                 return 0;
               case 0:
-                if (degree < 6)
+                if (degree <= 6)
                   return 6;
                 return 0;
               case 1:
@@ -2562,7 +2562,7 @@ namespace Helium {
               case -1:
                 return 0;
               case 0:
-                if (degree < 7)
+                if (degree <= 7)
                   return 7;
                 return 0;
               case 1:
@@ -2577,7 +2577,7 @@ namespace Helium {
               case -1:
                 return 0;
               case 0:
-                if (degree < 1)
+                if (degree <= 1)
                   return 1;
                 return 0;
               case 1:
@@ -2592,7 +2592,7 @@ namespace Helium {
               case -1:
                 return 0;
               case 0:
-                if (degree < 1)
+                if (degree <= 1)
                   return 1;
                 return 0;
               case 1:
@@ -2607,7 +2607,7 @@ namespace Helium {
               case -1:
                 return 0;
               case 0:
-                if (degree < 1)
+                if (degree <= 1)
                   return 1;
                 return 0;
               case 1:
@@ -2622,7 +2622,7 @@ namespace Helium {
               case -1:
                 return 0;
               case 0:
-                if (degree < 1)
+                if (degree <= 1)
                   return 1;
                 return 0;
               case 1:
@@ -2637,7 +2637,7 @@ namespace Helium {
               case -1:
                 return 0;
               case 0:
-                if (degree < 1)
+                if (degree <= 1)
                   return 1;
                 return 0;
               case 1:

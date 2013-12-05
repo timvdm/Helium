@@ -137,7 +137,7 @@ for element in elements.keys():
             for valence in valences:
                 if len(valence) == 2:
                     continue
-                print '                if (degree < ' + valence + ')'
+                print '                if (degree <= ' + valence + ')'
                 print '                  return ' + valence + ';'
             print '                return 0;'
     print '            }'

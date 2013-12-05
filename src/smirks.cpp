@@ -86,6 +86,20 @@ namespace Helium {
       }
 
     //
+    // Product conflicts
+    //
+    for (std::size_t i = 0; i < num_atoms(m_product.query()); ++i) {
+      bool containsAtomicNumber = impl::smarts_expr_contains(m_product.trees().atom(i), Smiley::AE_AtomicNumber);
+      bool containsAromaticElement = impl::smarts_expr_contains(m_product.trees().atom(i), Smiley::AE_AromaticElement);
+      bool containsAliphaticElement = impl::smarts_expr_contains(m_product.trees().atom(i), Smiley::AE_AliphaticElement);
+
+      if (containsAtomicNumber + containsAromaticElement + containsAliphaticElement > 1) {
+        m_error = SmirksError(SmirksError::ProductConflict, "Product may not contain multiple elements for an atom");
+        return false;
+      }
+    }
+
+    //
     // Detect bond changes
     //
 

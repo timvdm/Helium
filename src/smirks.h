@@ -76,7 +76,11 @@ namespace Helium {
         /**
          * @brief The product contains a complex bond expression.
          */
-        InvalidProductBond
+        InvalidProductBond,
+        /**
+         * @brief The product contains a conflict (e.g. [CN]).
+         */
+        ProductConflict
       };
 
       /**
@@ -122,6 +126,36 @@ namespace Helium {
       Type m_type; //!< The error type.
       std::string m_what; //!< The error message.
   };
+
+  namespace impl {
+
+    template<typename ExprType>
+    int smarts_get_element(ExprType *expr)
+    {
+      int value;
+      switch (expr->type) {
+        case Smiley::OP_AndHi:
+        case Smiley::OP_AndLo:
+        case Smiley::OP_And:
+          value = smarts_get_element(expr->left);
+          if (value != -1)
+            return value;
+          value = smarts_get_element(expr->right);
+          if (value != -1)
+            return value;
+          break;
+        case Smiley::AE_AtomicNumber:
+        case Smiley::AE_AromaticElement:
+        case Smiley::AE_AliphaticElement:
+          return expr->value;
+        default:
+          break;
+      }
+
+      return -1;
+    }
+
+  }
 
   /**
    * @brief Class for applying SMIRKS transformations.
@@ -171,6 +205,33 @@ namespace Helium {
       };
 
     public:
+      /**
+       * @brief Constructor.
+       */
+      Smirks() : m_fixMass(true), m_fixHydrogens(true)
+      {
+      }
+
+      /**
+       * @brief Enable/diable fixing of mass.
+       *
+       * @param value True for enable, false for diable
+       */
+      void setFixMass(bool value)
+      {
+        m_fixMass = value;
+      }
+
+      /**
+       * @brief Enable/diable fixing of hydrogens.
+       *
+       * @param value True for enable, false for diable
+       */
+      void setFixHydrogens(bool value)
+      {
+        m_fixHydrogens = value;
+      }
+
       /**
        * @brief Initialize the SMIRKS.
        *
@@ -384,10 +445,25 @@ namespace Helium {
         for (std::size_t i = 0; i < remove.size(); ++i)
           remove_atom(mol, get_atom(mol, remove[i]));
 
+        if (m_fixHydrogens)
+          reset_implicit_hydrogens(mol);
+
         return true;
       }
 
     private:
+      template<typename EditableMoleculeType, typename AtomType>
+      void apply(EditableMoleculeType &mol, AtomType atom, impl::SmartsAtomExpr *expr)
+      {
+        int oldElement = get_element(mol, atom);
+        applyRecursive(mol, atom, expr);
+        if (m_fixMass) {
+          int newElement = impl::smarts_get_element(expr);
+          if (newElement != -1 && newElement != oldElement)
+            set_mass(mol, atom, Element::averageMass(newElement));
+        }
+      }
+
       /**
        * @brief Apply changes to an atom.
        *
@@ -396,15 +472,15 @@ namespace Helium {
        * @param expr The product SMARTS atom expression.
        */
       template<typename EditableMoleculeType, typename AtomType>
-      void apply(EditableMoleculeType &mol, AtomType atom, impl::SmartsAtomExpr *expr)
+      void applyRecursive(EditableMoleculeType &mol, AtomType atom, impl::SmartsAtomExpr *expr)
       {
         switch (expr->type) {
           case Smiley::OP_AndHi:
           case Smiley::OP_AndLo:
           case Smiley::OP_And:
           case Smiley::OP_Or:
-            apply(mol, atom, expr->left);
-            apply(mol, atom, expr->right);
+            applyRecursive(mol, atom, expr->left);
+            applyRecursive(mol, atom, expr->right);
             break;
           case Smiley::AE_Isotope:
             set_mass(mol, atom, expr->value);
@@ -505,6 +581,8 @@ namespace Helium {
       std::map<int, impl::SmartsAtomExpr*> m_productExpr; //!< Product atom class to atom expr.
       std::vector<BondChange> m_bondChanges; //!< The bond changes.
       SmirksError m_error; //!< Error from last call to init().
+      bool m_fixMass;
+      bool m_fixHydrogens;
   };
 
 }

@@ -34,7 +34,6 @@
 #include <vector>
 #include <sstream>
 
-
 namespace Helium {
 
   /**
@@ -933,6 +932,31 @@ namespace Helium {
       set_hydrogens(mol, hydrogens[i].first, 0);
     }
   }
+
+  template<typename EditableMoleculeType>
+  void reset_implicit_hydrogens(EditableMoleculeType &mol)
+  {
+    // add hydrogens
+    FOREACH_ATOM (atom, mol, EditableMoleculeType) {
+      if (!Element::addHydrogens(get_element(mol, *atom)))
+        continue;
+
+      set_hydrogens(mol, *atom, 0);
+
+      int explicitH = 0;
+      FOREACH_NBR (nbr, *atom, mol, EditableMoleculeType)
+        if (get_element(mol, *nbr) == 1)
+          ++explicitH;
+
+      int valence = get_valence(mol, *atom);
+      int expValence = Element::valence(get_element(mol, *atom), get_charge(mol, *atom), valence);
+      if (expValence > valence - explicitH)
+        set_hydrogens(mol, *atom, expValence - valence);
+      else
+        set_hydrogens(mol, *atom, 0);
+    }
+  }
+
 
   //////////////////////////////////////////////////////////////////////////////
   //

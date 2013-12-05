@@ -1268,6 +1268,8 @@ namespace Smiley {
        */
       std::pair<int, bool> parseSymbol(bool ignoreHydrogen = false)
       {
+        m_aromatic = false;
+
         switch (m_str()[m_pos()]) {
           case 'H':
             if (checkNextChar('e'))

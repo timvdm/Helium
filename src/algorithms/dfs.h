@@ -302,6 +302,40 @@ namespace Helium {
   /**
    * @brief Perform a depth-first search (DFS).
    *
+   * This depth-first search function considers a single fragments and walks a
+   * single spanning tree starting at @p atom.
+   *
+   * This function makes use of a visitor functor to allow actions to be
+   * performed. A number of visitors are available (e.g. DFSAtomOrderVisitor,
+   * DFSBondOrderVisitor, DFSClosureRecorderVisitor, DFSDebugVisitor). Custom
+   * functor can be implemented by inheriting the DFSVisitor struct and
+   * reimplementing the required functions.
+   *
+   * @note Complexity: @f$O(n)@f$
+   * @ingroup Production
+   * @note Phase: Production
+   *
+   * @param mol The molecule.
+   * @param atom The start atom (i.e. root of the spanning tree).
+   * @param visitor The DFS visitor functor.
+   */
+  template<typename MoleculeType, typename AtomType, typename DFSVisitorType>
+  void depth_first_search(const MoleculeType &mol, AtomType atom, DFSVisitorType &visitor)
+  {
+    typedef typename molecule_traits<MoleculeType>::atom_type atom_type;
+    typedef typename molecule_traits<MoleculeType>::atom_iter atom_iter;
+
+    visitor.initialize(mol);
+
+    std::vector<bool> visited(num_atoms(mol) + num_bonds(mol));
+
+    visitor.component(0);
+    impl::dfs_visit(mol, atom, visitor, visited);
+  }
+
+  /**
+   * @brief Perform a depth-first search (DFS).
+   *
    * This depth-first search function considers all fragments and walks a single
    * spanning tree for each fragment. The atom with the lowest index from each
    * fragment is used as root of the resulting spanning tree to start the

@@ -15,6 +15,7 @@ set(tests
   bitvec
   distancematrix
   dijkstra
+  floydwarshall
   razinger
   dfs
   bfs

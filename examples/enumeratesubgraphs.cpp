@@ -3,8 +3,6 @@
 #include <Helium/algorithms/canonical.h>
 #include <Helium/smiles.h>
 
-#include "../tools/progress.h"
-
 using namespace Helium;
 
 template<typename MoleculeType>

@@ -104,7 +104,7 @@ namespace Helium {
 
         // process molecules
         for (unsigned int i = 0; i < file.numMolecules(); ++i) {
-          file.read_molecule(mol);
+          file.readMolecule(mol);
           if ((i % 100) == 0)
             std::cout << i << std::endl;
 

@@ -91,53 +91,54 @@ namespace Helium {
     std::vector<bool> bonds; //!< The bonds.
   };
 
+  namespace impl {
 
+    template<typename MoleculeType>
+    bool is_cyclic(const MoleculeType &mol, typename molecule_traits<MoleculeType>::atom_type atom,
+        std::vector<bool> &visitedAtoms, std::vector<bool> &visitedBonds)
+    {
+      typedef typename molecule_traits<MoleculeType>::incident_iter incident_iter;
 
-  template<typename MoleculeType>
-  bool is_cyclic(const MoleculeType &mol, typename molecule_traits<MoleculeType>::atom_type atom,
-      std::vector<bool> &visitedAtoms, std::vector<bool> &visitedBonds)
-  {
-    typedef typename molecule_traits<MoleculeType>::incident_iter incident_iter;
+      visitedAtoms[get_index(mol, atom)] = true;
 
-    visitedAtoms[get_index(mol, atom)] = true;
+      incident_iter bond, end_bonds;
+      TIE(bond, end_bonds) = get_bonds(mol, atom);
+      for (; bond != end_bonds; ++bond) {
+        if (visitedBonds[get_index(mol, *bond)])
+          continue;
+        visitedBonds[get_index(mol, *bond)] = true;
 
-    incident_iter bond, end_bonds;
-    TIE(bond, end_bonds) = get_bonds(mol, atom);
-    for (; bond != end_bonds; ++bond) {
-      if (visitedBonds[get_index(mol, *bond)])
-        continue;
-      visitedBonds[get_index(mol, *bond)] = true;
-
-      if (visitedAtoms[get_index(mol, get_other(mol, *bond, atom))])
-        return true;
-      if (is_cyclic(mol, get_other(mol, *bond, atom), visitedAtoms, visitedBonds))
-        return true;
-    }
-    return false;
-  }
-
-
-  // replace with check for cyclomatic number????
-  template<typename MoleculeType>
-  bool is_cyclic(const MoleculeType &mol)
-  {
-    typedef typename molecule_traits<MoleculeType>::atom_iter atom_iter;
-
-    std::vector<bool> visitedAtoms(num_atoms(mol));
-    std::vector<bool> visitedBonds(num_bonds(mol));
-
-    atom_iter atom, end_atoms;
-    TIE(atom, end_atoms) = get_atoms(mol);
-    for (; atom != end_atoms; ++atom) {
-      if (visitedAtoms[get_index(mol, *atom)])
-        continue;
-      if (is_cyclic(mol, *atom, visitedAtoms, visitedBonds))
-        return true;
+        if (visitedAtoms[get_index(mol, get_other(mol, *bond, atom))])
+          return true;
+        if (is_cyclic(mol, get_other(mol, *bond, atom), visitedAtoms, visitedBonds))
+          return true;
+      }
+      return false;
     }
 
-    return false;
-  }
 
+    // replace with check for cyclomatic number????
+    template<typename MoleculeType>
+    bool is_cyclic(const MoleculeType &mol)
+    {
+      typedef typename molecule_traits<MoleculeType>::atom_iter atom_iter;
+
+      std::vector<bool> visitedAtoms(num_atoms(mol));
+      std::vector<bool> visitedBonds(num_bonds(mol));
+
+      atom_iter atom, end_atoms;
+      TIE(atom, end_atoms) = get_atoms(mol);
+      for (; atom != end_atoms; ++atom) {
+        if (visitedAtoms[get_index(mol, *atom)])
+          continue;
+        if (is_cyclic(mol, *atom, visitedAtoms, visitedBonds))
+          return true;
+      }
+
+      return false;
+    }
+
+  }
 
   /**
    * Brute force subgraph enumeration for testing purposes.
@@ -215,7 +216,7 @@ namespace Helium {
         if (size > 1) {
           Substructure<MoleculeType> substruct(mol, atoms, bonds);
           // don't allow cyclic subgraphs when enumerating trees
-          if (trees && is_cyclic(substruct))
+          if (trees && impl::is_cyclic(substruct))
             continue;
           // make sure the all subgraph bonds are connected
           std::vector<unsigned int> subcomponents = connected_bond_components(substruct);
@@ -618,7 +619,7 @@ namespace Helium {
 
 
         Substructure<MoleculeType> substruct(mol, atoms, bonds);
-        if (trees && is_cyclic(substruct))
+        if (trees && impl::is_cyclic(substruct))
           continue;
 
         callback(subgraph);

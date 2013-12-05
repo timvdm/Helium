@@ -375,35 +375,66 @@ namespace Helium {
       Word *m_data; //!< Pointer to all fingerprint bits.
   };
 
+  /**
+   * @brief Class for accessing row-major order fingerprints file from memory.
+   */
   class InMemoryRowMajorFingerprintStorage
   {
     public:
+      /**
+       * @brief Constructor.
+       */
       InMemoryRowMajorFingerprintStorage() : m_fingerprints(0), m_numBits(0),
           m_numFingerprints(0), m_init(false)
       {
       }
 
+      /**
+       * @brief Destructor.
+       */
       ~InMemoryRowMajorFingerprintStorage()
       {
         if (m_fingerprints)
           delete [] m_fingerprints;
       }
 
+      /**
+       * @brief Get the JSON file header.
+       *
+       * @return The JSON file header.
+       */
       std::string header() const
       {
         return m_json;
       }
 
+      /**
+       * @brief Get the number of fingerprint bits.
+       *
+       * @return The number of fingerprint bits.
+       */
       unsigned int numBits() const
       {
         return m_numBits;
       }
 
+      /**
+       * @brief Get the number of fingerprints.
+       *
+       * @return The number of fingerprints.
+       */
       unsigned int numFingerprints() const
       {
         return m_numFingerprints;
       }
 
+      /**
+       * @brief Get the fingerprint with the specified index.
+       *
+       * @param index The index of the molecule for which to get the fingerprints.
+       *
+       * @return The fingerprint with the specified index.
+       */
       Word* fingerprint(unsigned int index) const
       {
         if (!m_init)
@@ -411,6 +442,13 @@ namespace Helium {
         return m_fingerprints + bitvec_num_words_for_bits(m_numBits) * index;
       }
 
+      /**
+       * @brief Load the fingerprints from a file in memory.
+       *
+       * An exception is thrown when an error occurs.
+       *
+       * @param filename The filename.
+       */
       void load(const std::string &filename)
       {
         TIMER("InMemoryRowMajorFingerprintStorage::load():");
@@ -454,40 +492,71 @@ namespace Helium {
 
     private:
       std::string m_json; //!< JSON header
-      Word *m_fingerprints;
-      unsigned int m_numBits;
-      unsigned int m_numFingerprints;
-      bool m_init;
+      Word *m_fingerprints; //!< The fingerprint data.
+      unsigned int m_numBits; //!< The number of fingerprint bits.
+      unsigned int m_numFingerprints; //!< The number of fingerprints.
+      bool m_init; //!< Flag to check for initialization.
   };
 
+  /**
+   * @brief Class for accessing column-major order fingerprints file from memory.
+   */
   class InMemoryColumnMajorFingerprintStorage
   {
     public:
+      /**
+       * @brief Constructor.
+       */
       InMemoryColumnMajorFingerprintStorage() : m_fingerprints(0), m_numBits(0),
           m_numFingerprints(0), m_init(false)
       {
       }
 
+      /**
+       * @brief Destructor.
+       */
       ~InMemoryColumnMajorFingerprintStorage()
       {
         delete [] m_fingerprints;
       }
 
+      /**
+       * @brief Get the JSON file header.
+       *
+       * @return The JSON file header.
+       */
       std::string header() const
       {
         return m_json;
       }
 
+      /**
+       * @brief Get the number of fingerprint bits.
+       *
+       * @return The number of fingerprint bits.
+       */
       unsigned int numBits() const
       {
         return m_numBits;
       }
 
+      /**
+       * @brief Get the number of fingerprints.
+       *
+       * @return The number of fingerprints.
+       */
       unsigned int numFingerprints() const
       {
         return m_numFingerprints;
       }
 
+      /**
+       * @brief Get the column with the specified index.
+       *
+       * @param index The index of the fingerprint bit.
+       *
+       * @return The column with the specified index.
+       */
       Word* bit(unsigned int index) const
       {
         if (!m_init)
@@ -495,6 +564,13 @@ namespace Helium {
         return m_fingerprints + bitvec_num_words_for_bits(m_numFingerprints) * index;
       }
 
+      /**
+       * @brief Load the fingerprints from a file in memory.
+       *
+       * An exception is thrown when an error occurs.
+       *
+       * @param filename The filename.
+       */
       void load(const std::string &filename)
       {
         TIMER("InMemoryColumnMajorFingerprintStorage::load():");
@@ -538,10 +614,10 @@ namespace Helium {
 
     private:
       std::string m_json; //!< JSON header
-      Word *m_fingerprints;
-      unsigned int m_numBits;
-      unsigned int m_numFingerprints;
-      bool m_init;
+      Word *m_fingerprints; //!< The fingerprint data.
+      unsigned int m_numBits; //!< The number of fingerprint bits.
+      unsigned int m_numFingerprints; //!< The number of fingerprints.
+      bool m_init; //!< Flag to check for initialization.
   };
 
 }

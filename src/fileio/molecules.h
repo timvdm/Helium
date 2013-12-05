@@ -27,7 +27,7 @@
 #ifndef HELIUM_FILEIO_MOLECULES_H
 #define HELIUM_FILEIO_MOLECULES_H
 
-#include <Helium/hemol.h>
+#include <Helium/molecule.h>
 #include <Helium/util.h>
 #include <Helium/fileio/file.h>
 
@@ -37,10 +37,21 @@
 
 namespace Helium {
 
-  template<typename MoleculeType>
-  bool read_molecule(std::istream &is, MoleculeType &mol)
+  /**
+   * @brief Read a molecule from a STL input stream.
+   *
+   * @param is The input stream.
+   * @param mol The molecule.
+   *
+   * @return True if successful.
+   */
+  template<typename EditableMoleculeType>
+  bool read_molecule(std::istream &is, EditableMoleculeType &mol)
   {
-    mol.clear();
+    typedef typename molecule_traits<EditableMoleculeType>::atom_type atom_type;
+    typedef typename molecule_traits<EditableMoleculeType>::bond_type bond_type;
+
+    clear_molecule(mol);
 
     if (!is)
       return false;
@@ -65,13 +76,13 @@ namespace Helium {
       read8(is, charge);
 
       // create the atom
-      HeAtom atom = mol.addAtom();
+      atom_type atom = add_atom(mol);
       // set the atom properties
-      atom.setAromatic(aromatic);
-      atom.setElement(element);
-      atom.setMass(mass);
-      atom.setHydrogens(hydrogens);
-      atom.setCharge(charge);
+      set_aromatic(mol, atom, aromatic);
+      set_element(mol, atom, element);
+      set_mass(mol, atom, mass);
+      set_hydrogens(mol, atom, hydrogens);
+      set_charge(mol, atom, charge);
     }
 
     unsigned short source, target;
@@ -84,23 +95,34 @@ namespace Helium {
       read8(is, props);
 
       // get the atoms
-      HeAtom s = mol.atom(source);
-      HeAtom t = mol.atom(target);
+      atom_type s = get_atom(mol, source);
+      atom_type t = get_atom(mol, target);
 
       // create the bond
-      HeBond bond = mol.addBond(s, t);
+      bond_type bond = add_bond(mol, s, t);
       // set the bond properties
-      bond.setAromatic(props & 128);
-      bond.setOrder(props & 63);
+      set_aromatic(mol, bond, props & 128);
+      set_order(mol, bond, props & 63);
     }
 
-    return (bool)is;
+    return true;
   }
 
-  template<typename MoleculeType>
-  bool read_molecule(const char *data, MoleculeType &mol)
+  /**
+   * @brief Read a molecule from a memory location.
+   *
+   * @param data Pointer to the memory.
+   * @param mol The molecule.
+   *
+   * @return True if successful.
+   */
+  template<typename EditableMoleculeType>
+  bool read_molecule(const char *data, EditableMoleculeType &mol)
   {
-    mol.clear();
+    typedef typename molecule_traits<EditableMoleculeType>::atom_type atom_type;
+    typedef typename molecule_traits<EditableMoleculeType>::bond_type bond_type;
+
+    clear_molecule(mol);
 
     // read number of atoms and bonds
     unsigned short numAtoms = *reinterpret_cast<const unsigned short*>(data);
@@ -118,13 +140,13 @@ namespace Helium {
       charge = *reinterpret_cast<const signed char*>(data + offset + 5);
 
       // create the atom
-      HeAtom atom = mol.addAtom();
+      atom_type atom = add_atom(mol);
       // set the atom properties
-      atom.setAromatic(aromatic);
-      atom.setElement(element);
-      atom.setMass(mass);
-      atom.setHydrogens(hydrogens);
-      atom.setCharge(charge);
+      set_aromatic(mol, atom, aromatic);
+      set_element(mol, atom, element);
+      set_mass(mol, atom, mass);
+      set_hydrogens(mol, atom, hydrogens);
+      set_charge(mol, atom, charge);
     }
 
     unsigned short source, target;
@@ -138,31 +160,52 @@ namespace Helium {
       props = *reinterpret_cast<const unsigned char*>(data + offset + 2 * sizeof(unsigned short));
 
       // get the atoms
-      HeAtom s = mol.atom(source);
-      HeAtom t = mol.atom(target);
+      atom_type s = get_atom(mol, source);
+      atom_type t = get_atom(mol, target);
 
       // create the bond
-      HeBond bond = mol.addBond(s, t);
+      bond_type bond = add_bond(mol, s, t);
       // set the bond properties
-      bond.setAromatic(props & 128);
-      bond.setOrder(props & 63);
+      set_aromatic(mol, bond, props & 128);
+      set_order(mol, bond, props & 63);
     }
 
     return true;
   }
 
+  /**
+   * @brief Class for reading molecules from Helium binary file.
+   *
+   * When load() is called, this class reads the file header and loads the
+   * position index for fast random access to molecules.
+   */
   class MoleculeFile
   {
     public:
+      /**
+       * @brief Constructor.
+       */
       MoleculeFile() : m_numMolecules(0), m_positionsPos(0)
       {
       }
 
+      /**
+       * @brief Constructor.
+       *
+       * @param filename The filename.
+       */
       MoleculeFile(const std::string &filename)
       {
         load(filename);
       }
 
+      /**
+       * @brief Load a file.
+       *
+       * This function reads the file header and prepares the file for use.
+       *
+       * @param filename The filename.
+       */
       void load(const std::string &filename)
       {
         TIMER("MoleculeFile::load():");
@@ -196,6 +239,11 @@ namespace Helium {
         m_file.seek(0);
       }
 
+      /**
+       * @brief Get the number of molecules.
+       *
+       * @return The number of molecules.
+       */
       unsigned int numMolecules() const
       {
         return m_numMolecules;
@@ -206,13 +254,12 @@ namespace Helium {
        *
        * @return True if successfull.
        */
-      template<typename MoleculeType>
-      bool read_molecule(MoleculeType &mol)
+      template<typename EditableMoleculeType>
+      bool readMolecule(EditableMoleculeType &mol)
       {
         if (!(bool)m_file)
           return false;
-        Helium::read_molecule(m_file.stream(), mol);
-        return true;
+        return Helium::read_molecule(m_file.stream(), mol);
       }
 
       /**
@@ -220,31 +267,48 @@ namespace Helium {
        *
        * @return True if successfull.
        */
-      template<typename MoleculeType>
-      bool read_molecule(unsigned int index, MoleculeType &mol)
+      template<typename EditableMoleculeType>
+      bool readMolecule(unsigned int index, EditableMoleculeType &mol)
       {
         if (!(bool)m_file)
           return false;
         m_file.stream().seekg(m_positions[index]);
-        Helium::read_molecule(m_file.stream(), mol);
-        return true;
+        return Helium::read_molecule(m_file.stream(), mol);
       }
 
+      /**
+       * @brief Get the STL input stream.
+       *
+       * @return The STL input stream.
+       */
       std::ifstream& stream()
       {
         return m_file.stream();
       }
 
+      /**
+       * @brief Get the stream positions of the molecules.
+       *
+       * @return The stream positions of the molecules.
+       */
       std::vector<uint64_t> positions() const
       {
         return m_positions;
       }
 
+      /**
+       * @brief Get the stream position of the molecule position index.
+       *
+       * @return The stream position of the molecule position index.
+       */
       Json::UInt64 positionsPos() const
       {
         return m_positionsPos;
       }
 
+      /**
+       * @brief Close the file.
+       */
       void close()
       {
         m_file.close();
@@ -254,24 +318,42 @@ namespace Helium {
       }
 
     private:
-      BinaryInputFile m_file;
-      std::vector<uint64_t> m_positions;
-      unsigned int m_numMolecules;
-      Json::UInt64 m_positionsPos;
+      BinaryInputFile m_file; //!< The binary file.
+      std::vector<uint64_t> m_positions; //!< The molecule positions.
+      unsigned int m_numMolecules; //!< The number of molecules.
+      Json::UInt64 m_positionsPos; //!< Position of molecule positions index.
   };
 
+  /**
+   * @brief Class for reading molecules from Helium binary file.
+   */
   class MemoryMappedMoleculeFile
   {
     public:
+      /**
+       * @brief Constructor.
+       */
       MemoryMappedMoleculeFile() : m_numMolecules(0)
       {
       }
 
+      /**
+       * @brief Constructor.
+       *
+       * @param filename The filename.
+       */
       MemoryMappedMoleculeFile(const std::string &filename)
       {
         load(filename);
       }
 
+      /**
+       * @brief Load a file.
+       *
+       * This function reads the file header and prepares the file for use.
+       *
+       * @param filename The filename.
+       */
       void load(const std::string &filename)
       {
         TIMER("MemoryMappedMoleculeFile::load():");
@@ -308,6 +390,11 @@ namespace Helium {
           m_positions[i] = *reinterpret_cast<const uint64_t*>(m_mappedFile.data() + positionsPos + i * sizeof(uint64_t));
       }
 
+      /**
+       * @brief Get the number of molecules.
+       *
+       * @return The number of molecules.
+       */
       unsigned int numMolecules() const
       {
         return m_numMolecules;
@@ -319,14 +406,14 @@ namespace Helium {
        * @return True if successfull.
        */
       template<typename MoleculeType>
-      bool read_molecule(unsigned int index, MoleculeType &mol)
+      bool readMolecule(unsigned int index, MoleculeType &mol)
       {
         Helium::read_molecule(m_mappedFile.data() + m_positions[index], mol);
         return true;
       }
 
     private:
-      boost::iostreams::mapped_file_source m_mappedFile;
+      boost::iostreams::mapped_file_source m_mappedFile; //!< The memory mapped file.
       std::vector<uint64_t> m_positions; //!< The positions of the molecules in the file.
       unsigned int m_numMolecules; //!< The number of molecules in the file.
   };

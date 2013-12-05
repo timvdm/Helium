@@ -38,7 +38,7 @@ int main(int argc, char**argv)
   std::map<int, std::vector<unsigned int> > sizes;
 
   // process molecules
-  while (file.read_molecule(mol)) {
+  while (file.readMolecule(mol)) {
     sizes[num_atoms(mol)].push_back(file.current());
   }
 

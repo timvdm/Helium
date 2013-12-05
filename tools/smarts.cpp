@@ -75,7 +75,7 @@ namespace Helium {
         std::vector<Index> result;
         std::vector<std::string> smiles;
         for (unsigned int i = 0; i < moleculeFile.numMolecules(); ++i) {
-          moleculeFile.read_molecule(i, mol);
+          moleculeFile.readMolecule(i, mol);
 
           bool found = false;
           if (s.requiresCycles())

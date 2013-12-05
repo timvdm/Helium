@@ -53,7 +53,7 @@ void test_cycle_membership(const std::string &filename)
 
   HeMol mol;
   for (unsigned int i = 0; i < file.numMolecules(); ++i) {
-    file.read_molecule(mol);
+    file.readMolecule(mol);
     test_cycle_membership(mol);
   }
 }

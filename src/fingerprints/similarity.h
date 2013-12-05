@@ -50,7 +50,6 @@ namespace Helium {
    * @param query The query fingerprint.
    * @param storage The fingerprints to search.
    * @param Tmin The minimum tanimoto score, must be in the range [0,1].
-   * @param k When non-zero, this limits the number of requested results.
    *
    * @return The lists of hits as std::pair objects. The first element is the
    *         index of the fingerprint in the storage and the second element in
@@ -382,6 +381,15 @@ namespace Helium {
       SimilaritySearchIndex<FingerprintStorageType>& operator=(const SimilaritySearchIndex<FingerprintStorageType> &other) = delete;
 #endif
 
+      /**
+       * @brief Perform a similarity search.
+       *
+       * @param fingerprint The query fingerprints.
+       * @param threshold The tanimoto similarity threshold.
+       * @param maxResults The maximum number of results (0 means no limit).
+       *
+       * @return A list of (index, similarity) pairs.
+       */
       std::vector<std::pair<unsigned int, double> > search(const Word *fingerprint, double threshold, unsigned int maxResults = 0) const
       {
         TIMER("SimilaritySearchIndex::search():");

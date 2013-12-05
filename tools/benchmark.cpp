@@ -96,7 +96,7 @@ void benchmark_read(const std::string &filename)
   HeMol mol;
 
   // read molecules
-  while (file.read_molecule(mol));
+  while (file.readMolecule(mol));
 
   boost::timer::cpu_times elapsed = timer.elapsed();
   int ms = (elapsed.system + elapsed.user) / one_milisecond;
@@ -127,7 +127,7 @@ void benchmark_enumerate_subgraphs(const std::string &filename, int size = 7)
   HeMol mol;
 
   // read molecules
-  while (file.read_molecule(mol)) {
+  while (file.readMolecule(mol)) {
     EnumerateSubgraphsCallback<HeMol> callback;
     enumerate_subgraphs(mol, callback, size);
   }
@@ -147,7 +147,7 @@ void benchmark_canonicalize(const std::string &filename)
   HeMol mol;
 
   // read molecules
-  while (file.read_molecule(mol)) {
+  while (file.readMolecule(mol)) {
     canonicalize(mol, extended_connectivities(mol));
   }
 

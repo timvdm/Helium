@@ -1,5 +1,6 @@
 #include "../src/fileio/molecules.h"
 #include "../src/fileio/file.h"
+#include "../src/hemol.h"
 
 #include "test.h"
 
@@ -44,8 +45,8 @@ void test_molecule_file()
   for (unsigned int i = 0; i < molFile1.numMolecules(); ++i) {
     COMPARE(molFile1.stream().tellg(), molFile2.stream().tellg());
 
-    molFile1.read_molecule(mol1);
-    molFile2.read_molecule(i, mol2);
+    molFile1.readMolecule(mol1);
+    molFile2.readMolecule(i, mol2);
   }
 
 }

@@ -360,6 +360,8 @@ namespace Helium {
    *
    * @param mol The molecule.
    * @param cyclomaticNumber The cyclomatic number.
+   * @param cyclicAtoms Atom cycle membership.
+   * @param cyclicBonds Bond cycle membership.
    *
    * @return The set of relevant cycles.
    */

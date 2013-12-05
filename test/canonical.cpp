@@ -78,7 +78,7 @@ void shuffle_test(const std::string &filename)
 
   HeMol mol;
   for (unsigned int i = 0; i < file.numMolecules(); ++i) {
-    file.read_molecule(mol);
+    file.readMolecule(mol);
     if (unique_elements(connected_bond_components(mol)) > 1)
       continue;
     if ((i % 1000) == 0)

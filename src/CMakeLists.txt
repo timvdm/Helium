@@ -34,7 +34,6 @@ set(HELIUM_ALGORITHMS_HDRS
   algorithms/invariants.h
   algorithms/isomorphism.h
   algorithms/dijkstra.h
-  algorithms/floydwarshall.h
 )
 
 set(HELIUM_UTIL_HDRS

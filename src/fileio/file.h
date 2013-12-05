@@ -60,10 +60,18 @@ namespace Helium {
   class BinaryInputFile
   {
     public:
+      /**
+       * @brief Constructor.
+       */
       BinaryInputFile()
       {
       }
 
+      /**
+       * @brief Constructor.
+       *
+       * @param filename The filename.
+       */
       BinaryInputFile(const std::string &filename)
       {
         open(filename);
@@ -145,6 +153,14 @@ namespace Helium {
         return (bool)m_ifs.read(data, size);
       }
 
+      /**
+       * @brief Read data from the file.
+       *
+       * The @p data pointer must be allocated to store the read data.
+       *
+       * @param data Pointer to memory to store the read data.
+       * @param size The number of bytes to read.
+       */
       template<typename T>
       bool read(T *data, std::size_t size)
       {
@@ -176,10 +192,18 @@ namespace Helium {
   class BinaryOutputFile
   {
     public:
+      /**
+       * @brief Constructor.
+       */
       BinaryOutputFile()
       {
       }
 
+      /**
+       * @brief Constructor.
+       *
+       * @param filename The filename.
+       */
       BinaryOutputFile(const std::string &filename)
       {
         open(filename);
@@ -246,6 +270,9 @@ namespace Helium {
         return (bool)m_ofs.write(data, size);
       }
 
+      /**
+       * @overload
+       */
       template<typename T>
       bool write(const T *data, std::size_t size)
       {

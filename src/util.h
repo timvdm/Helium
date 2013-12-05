@@ -204,11 +204,25 @@ namespace Helium {
     return false;
   }
 
+  /**
+   * @brief Convert degrees to radians.
+   *
+   * @param value The angle in degrees.
+   *
+   * @return The angle in radians.
+   */
   inline double deg2rad(double value)
   {
     return M_PI * value / 180.0;
   }
 
+  /**
+   * @brief Convert radians to degrees.
+   *
+   * @param value The angle in radians.
+   *
+   * @return The angle in degrees.
+   */
   inline double rad2deg(double value)
   {
     return 180.0 * value / M_PI;

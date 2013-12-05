@@ -79,6 +79,7 @@ namespace Helium {
    * Calculate the Morgan's Extended Connectivities for the specified molecule.
    *
    * @param mol The molecule.
+   * @param atomInvariant The atom invariant to use.
    *
    @verbatim
    Morgan, H. L. The Generation of a Unique Machine Description for Chemical

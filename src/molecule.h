@@ -939,7 +939,7 @@ namespace Helium {
   }
 
   /**
-   * @brief Make all hydrogens implciit.
+   * @brief Make all hydrogens implicit.
    *
    * @param mol The molecule.
    */
@@ -968,6 +968,14 @@ namespace Helium {
       remove_atom(mol, get_atom(mol, hydrogens[i]));
   }
 
+  /**
+   * @brief Reset implicit hydrogens.
+   *
+   * This function removes all implicit hydrogens and adds then adds implicit
+   * hydrogens to match the expected valence.
+   *
+   * @param mol The molecule.
+   */
   template<typename EditableMoleculeType>
   void reset_implicit_hydrogens(EditableMoleculeType &mol)
   {

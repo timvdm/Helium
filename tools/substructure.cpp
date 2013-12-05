@@ -155,7 +155,7 @@ namespace Helium {
         std::vector<Index> result;
         for (unsigned int i = 0; i < moleculeFile.numMolecules(); ++i) {
           if (bitvec_get(i, candidates)) {
-            moleculeFile.read_molecule(i, mol);
+            moleculeFile.readMolecule(i, mol);
             DefaultAtomMatcher<HeMol, HeMol> atomMatcher;
             DefaultBondMatcher<HeMol, HeMol> bondMatcher;
             if (isomorphism_search(mol, query, atomMatcher, bondMatcher))

@@ -294,6 +294,10 @@ namespace Helium {
    * investigated and a code is generated for each one. The unique code is
    * selected and the associated atom order is the canonical atom order.
    *
+   * @note Complexity: @f$O(2^n)@f$
+   * @ingroup Production
+   * @note Phase: Production
+   *
    * @param mol The molecule.
    * @param symmetry The extended connectivities (see extended_connectivities()).
    * @param atomInvariant The atom invariants to use for the canonical code

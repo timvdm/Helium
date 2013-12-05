@@ -110,7 +110,9 @@ namespace Helium {
    * functor can be implemented by inheriting the BFSVisitor struct and
    * reimplementing the required functions.
    *
-   * @note Complexity: O(n)
+   * @note Complexity: @f$O(n)@f$
+   * @ingroup Beta
+   * @note Phase: Beta
    *
    * @param mol The molecule.
    * @param visitor The BFS visitor functor.

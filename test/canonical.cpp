@@ -1,5 +1,5 @@
 #include <Helium/algorithms/canonical.h>
-#include <Helium/fileio/molecules.h>
+#include <Helium/fileio/moleculefile.h>
 #include <Helium/algorithms/extendedconnectivities.h>
 #include <Helium/algorithms/components.h>
 #include <Helium/smiles.h>

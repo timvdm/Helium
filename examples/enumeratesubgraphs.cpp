@@ -1,4 +1,3 @@
-#include <Helium/fileio/molecules.h>
 #include <Helium/algorithms/enumeratesubgraphs.h>
 #include <Helium/algorithms/extendedconnectivities.h>
 #include <Helium/algorithms/canonical.h>

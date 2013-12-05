@@ -1,6 +1,6 @@
 #include <Helium/algorithms/cycles.h>
 #include <Helium/smiles.h>
-#include <Helium/fileio/molecules.h>
+#include <Helium/fileio/moleculefile.h>
 
 #include "cycles.h"
 

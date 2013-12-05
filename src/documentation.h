@@ -37,6 +37,7 @@ namespace Helium {
  *
  * @li @ref design
  * @li @ref mol_concept
+ * @li @ref molecule_file
  * @li @ref depthfirst
  * @li @ref breadthfirst
  * @li @ref components
@@ -408,6 +409,16 @@ namespace Helium {
  * the way this molecule is first constructed.
  *
  * @include openbabel.cpp
+ *
+ * @section molecule_file Molecule Files
+ *
+ * Helium uses binary molecule files for optimal performance. These allow random
+ * access to molecules and provide other useful features. Consult the @ref user_guide
+ * for more information on how to create these files from common cheminformatics
+ * file formats. The MoleculeFile class can be used to read these files and it's
+ * usage is illustarted in the example below.
+ *
+ * @include moleculefile.cpp
  *
  * @section depthfirst Depth-First Search
  *

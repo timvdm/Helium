@@ -1,7 +1,7 @@
-#include "../src/molecule.h"
-#include "../src/fileio.h"
+#include <Helium/molecule.h>
+#include <Helium/fileio.h>
 
-#include "../src/fingerprints.h"
+#include <Helium/fingerprints.h>
 
 #include <numeric>
 #include <boost/functional/hash.hpp>

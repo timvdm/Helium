@@ -156,6 +156,9 @@ namespace Helium {
   /**
    * Enumerate all paths in a molecule upto a given @p size.
    *
+   * @ingroup Production
+   * @note Phase: Production
+   *
    * @param mol The molecule.
    * @param size The maximum size of the paths (i.e. number of atoms).
    *

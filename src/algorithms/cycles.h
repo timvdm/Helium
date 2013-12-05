@@ -44,6 +44,10 @@ namespace Helium {
    * connected components. This formula is known as Cauchy's formula. The
    * cyclomatic number is the same as the nullity or first Betti's number.
    *
+   * @note Complexity: @f$O(1)@f$
+   * @ingroup Production
+   * @note Phase: Production
+   *
    * @param mol The molecule.
    * @param numComponents The number of connected components.
    *
@@ -62,6 +66,10 @@ namespace Helium {
    * number of atoms, \f$m\f$ the number of bonds and \f$c\f$ the number of
    * connected components. This formula is known as Cauchy's formula. The
    * cyclomatic number is the same as the nullity or first Betti's number.
+   *
+   * @note Complexity: @f$O(1)@f$
+   * @ingroup Production
+   * @note Phase: Production
    *
    * @param mol The molecule.
    *
@@ -132,7 +140,9 @@ namespace Helium {
   /**
    * @brief Determine atom and bond cycle membership.
    *
-   * @note Complexity: O(n)
+   * @note Complexity: @f$O(n)@f$
+   * @ingroup Production
+   * @note Phase: Production
    *
    * @param mol The molecule.
    * @param cycle_atoms cyclic atoms output parameter.
@@ -357,6 +367,10 @@ namespace Helium {
    *
    * This function returns the set of relevant cycles listing the atom
    * indices in sequence.
+   *
+   * @note Complexity: @f$O(2^n)@f$
+   * @ingroup Production
+   * @note Phase: Production
    *
    * @param mol The molecule.
    * @param cyclomaticNumber The cyclomatic number.

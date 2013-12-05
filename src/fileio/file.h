@@ -46,9 +46,10 @@ namespace Helium {
    * The first 4 bytes are a magic number (0x48650001). The next 4 bytes contain
    * the length (in bytes) of the JSON header including zero termination
    * character. The JSON header starts at position 8 and ends at 8 plus the
-   * number of bytes contained in the second 4 byte field. What follows after
-   * the JSON header is binary data and the format depends on the specific file
-   * format.
+   * number of bytes contained in the second 4 byte field. The first 128000
+   * bytes are always reserved for the header in case it needs more space in
+   * the future. What follows after the JSON header is binary data and the
+   * format depends on the specific file format.
    */
 
   /**

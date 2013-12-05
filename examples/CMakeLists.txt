@@ -7,11 +7,11 @@ set(examples
   molecule2
   molecule3
   molecule4
+  moleculefile
   substructure
   smarts
   smirks
   cycles
-
   enumeratesubgraphs
   )
 

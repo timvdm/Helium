@@ -65,7 +65,9 @@ namespace Helium {
    * constructor is executed. Later, the distances and paths can be retrieved
    * using the distance() and path() member functions.
    *
-   * @note Complexity: O(n^2)
+   * @note Complexity: @f$O(n^2)@f$
+   * @ingroup Beta
+   * @note Phase: Beta
    */
   template<typename MoleculeType>
   class Dijkstra

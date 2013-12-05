@@ -1,6 +1,6 @@
-#include "../src/fileio/molecules.h"
-#include "../src/fileio/file.h"
-#include "../src/hemol.h"
+#include <Helium/fileio/moleculefile.h>
+#include <Helium/fileio/file.h>
+#include <Helium/hemol.h>
 
 #include "test.h"
 

@@ -34,6 +34,10 @@ namespace Helium {
 
   /**
    * @brief Atom invariant to be used for canonical coding.
+   *
+   * @note Complexity: @f$O(1)@f$
+   * @ingroup Production
+   * @note Phase: Production
    */
   class AtomInvariant
   {
@@ -115,6 +119,10 @@ namespace Helium {
 
   /**
    * @brief Bond invariant to be used for canonical coding.
+   *
+   * @note Complexity: @f$O(1)@f$
+   * @ingroup Production
+   * @note Phase: Production
    */
   class BondInvariant
   {

@@ -27,7 +27,7 @@
 #include "tool.h"
 
 #include <Helium/molecule.h>
-#include <Helium/fileio/molecules.h>
+#include <Helium/fileio/moleculefile.h>
 #include <Helium/fileio/fingerprints.h>
 #include <Helium/fingerprints/fingerprints.h>
 

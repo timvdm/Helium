@@ -48,7 +48,7 @@ set(HELIUM_FILEIO_HDRS
   fileio/file.h
   fileio/fingerprints.h
   fileio/fps.h
-  fileio/molecules.h
+  fileio/moleculefile.h
   fileio/cml.h
 )
 

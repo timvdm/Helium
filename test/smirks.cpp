@@ -328,6 +328,15 @@ void test_complex()
   test_smirks("[*:1][CH:2]([OH:3])[*:4].[I:5][SiH2:6][I:7]>>[*:1][CH:2]([I:5])[*:4].[OH:3][SiH2:6][I:7]",
       "I[SiH2]I.CCCCC(O)CCC", "CCCCC(I)CCC.O[SiH2]I");
 
+  test_smirks("[H][N:4]([H])[C:5].[C:1](=[O:2])[Cl]>>[C:1](=[O:2])[N:4]([H])[C:5].[Cl][H]",
+      "CCCN.CCC(=O)Cl", "CCCNC(=O)CC.Cl");
+  test_smirks("[H][N:4]([H])[C:5].[C:1](=[O:2])[Cl]>>[C:1](=[O:2])[N:4]([H])[C:5].[Cl][H]",
+      "CCCN.c1ccccc1CC(=O)Cl", "CCCNC(=O)Cc1ccccc1.Cl");
+  test_smirks("[H][N:4]([H])[C:5].[C:1](=[O:2])[Cl]>>[C:1](=[O:2])[N:4]([H])[C:5].[Cl][H]",
+      "CCN.CCC(=O)Cl", "CCNC(=O)CC.Cl");
+  test_smirks("[H][N:4]([H])[C:5].[C:1](=[O:2])[Cl]>>[C:1](=[O:2])[N:4]([H])[C:5].[Cl][H]",
+      "CCN.c1ccccc1CC(=O)Cl", "CCNC(=O)Cc1ccccc1.Cl");
+
   //test_smirks("", "", "");
 }
 

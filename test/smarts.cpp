@@ -481,6 +481,9 @@ void test_smarts_match(const std::string &smarts, const std::string &smiles, boo
   HeMol mol = hemol_from_smiles(smiles);
   RingSet<HeMol> rings = relevant_cycles(mol);
 
+  if (s.requiresExplicitHydrogens())
+    make_hydrogens_explicit(mol);
+
   COMPARE(expected, s.search(mol, rings));
 }
 
@@ -1036,7 +1039,14 @@ void test_recursive()
 int main()
 {
   // test special case: [H]
-  test_smarts_match("[H]", "[H]"); // 2O,5N
+  test_smarts_match("[H]", "[H]");
+  test_smarts_match("[C:1][H:2]", "C[H]");
+  test_smarts_match("[C:10](=[O:11])[O:12][H:88]", "C1CC=NC1.[C-]#[N+]CCC.c1cc(Cl)ccc1C(=O)O");
+  test_smarts_match("[O:12][H:88]", "C1CC=NC1.[C-]#[N+]CCC.c1cc(Cl)ccc1C(=O)O");
+  test_smarts_match("[O:12][H:88]", "O[H]");
+  test_smarts_match("[O:12][H:88]", "O");
+
+  //print_smarts("[O:12][H:88]");
 
   //
   // Parsing

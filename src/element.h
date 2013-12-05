@@ -558,20 +558,7 @@ namespace Helium {
           return 0;
         switch (element) {
           case 1:
-            switch (charge) {
-              case -2:
-                return 0;
-              case -1:
-                return 0;
-              case 0:
-                if (degree <= 1)
-                  return 1;
-                return 0;
-              case 1:
-                return 0;
-              case 2:
-                return 0;
-            }
+            return 0;
           case 2:
             return 0;
           case 3:

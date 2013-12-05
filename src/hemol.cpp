@@ -140,7 +140,7 @@ namespace Helium {
     m_source.push_back(source.index());
     m_target.push_back(target.index());
     m_bondAromatic.resize(m_bondAromatic.size() + 1);
-    m_order.resize(m_order.size() + 1);
+    m_order.resize(m_order.size() + 1, 1);
 
     bond_type bond(this, index);
 

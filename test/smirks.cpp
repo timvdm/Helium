@@ -260,8 +260,14 @@ void test_smirks(const std::string &smirks, const std::string smiles,
     return;
   }
 
+  if (s.requiresExplicitHydrogens())
+    make_hydrogens_explicit(mol);
+
   if (!s.apply(mol, RingSet<HeMol>(mol)))
     std::cout << "    reactant SMARTS did not match molecule!" << std::endl;
+
+  if (s.requiresExplicitHydrogens())
+    make_hydrogens_implicit(mol);
 
   std::cout << "    transformed molecule: " << write_smiles(mol) << std::endl;
 
@@ -310,6 +316,17 @@ void test_complex()
   test_smirks("[*;Br,I:3][C:2].[*+0;n,N,S,O:1]>>[*-:3].[*+:1][C:2]", "CBr.CCOCC", "CC[O+](C)CC.[Br-]");
   test_smirks("Cl[C:1]=[O:2]>>N[C:1]=[O:2]", "CCC(=O)Cl", "CCC(=O)N");
   test_smirks("[C:1]=O>>[C:1]1OCCO1", "C1CCCCC1=O", "C1CCCCC12OCCO2");
+  test_smirks("[C:1]=[O:2]>>[C:1][O:2]", "O=CCCC(C)C=O", "OCCCC(C)CO");
+  test_smirks("[C:2]1[C:3][CH:4]=[N:5][C:6]1.[N+:7]#[C-:8].[C:10](=[O:11])[O:12][H:88]>>[H:88][N:7][C:8](=[O:12])[CH:4]([C:3][C:2]1)[N:5]([C:10]=[O:11])[C:6]1",
+      "C1CC=NC1.[C-]#[N+]CCC.c1cc(Cl)ccc1C(=O)O", "CCCNC(=O)C1CCCN1C(=O)c2ccc(Cl)cc2");
+  test_smirks("[C:1](=[O:2])[Cl:3].[H:99][N:4]([H:100])[C:5]>>[C:1](=[O:2])[N:4]([H:100])[C:5].[Cl:3][H:99]",
+      "CCCCN.CCCC(=O)Cl", "CCCCNC(=O)CCC.Cl");
+  test_smirks("[C:1](=[O:2])[Cl:3].[H:99][N:4]([H:100])[C:0]>>[C:1](=[O:2])[N:4]([H:100])[C:0].[Cl:3][H:99]",
+      "CCCCN.CCCC(=O)Cl", "CCCCNC(=O)CCC.Cl");
+  test_smirks("[*:1][C:2]([H:3])([O:4][H:5])[C:6]([H:7])([O:8][H:9])[*:10]>>[*:1][C:2](=[O:4])[C:6](=[O:8])[*:10].[H:3][H:5].[H:7][H:9]",
+      "C1CC(O)C(O)CC1", "O=C1CCCCC1=O");
+  test_smirks("[*:1][CH:2]([OH:3])[*:4].[I:5][SiH2:6][I:7]>>[*:1][CH:2]([I:5])[*:4].[OH:3][SiH2:6][I:7]",
+      "I[SiH2]I.CCCCC(O)CCC", "CCCCC(I)CCC.O[SiH2]I");
 
   //test_smirks("", "", "");
 }

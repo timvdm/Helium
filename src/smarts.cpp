@@ -366,12 +366,6 @@ namespace Helium {
 
         void endAtom()
         {
-          // special case:
-          //   [H]      hydrogen
-          //   [*H]     atom with 1 hydrogen attached
-          if (atomPostfix().size() == 1 && atomPostfix()[0]->type == Smiley::AE_TotalH && atomPostfix()[0]->value == 1)
-            atomPostfix()[0]->type = Smiley::AE_AliphaticElement;
-
           // pop stack
           while (!atomStack().empty()) {
             atomPostfix().push_back(atomStack().back());
@@ -401,6 +395,22 @@ namespace Helium {
           }
 
           assert(atomStack().size() == 1);
+
+          // special case:
+          //   [H]      hydrogen
+          //   [*H]     atom with 1 hydrogen attached
+          impl::SmartsAtomExpr *expr = atomStack().back();
+          if (impl::smarts_expr_contains(expr, Smiley::AE_TotalH, 1) &&
+              !impl::smarts_expr_contains(expr, Smiley::AE_True) &&
+              !impl::smarts_expr_contains(expr, Smiley::AE_Aromatic) &&
+              !impl::smarts_expr_contains(expr, Smiley::AE_Aliphatic) &&
+              !impl::smarts_expr_contains(expr, Smiley::AE_AtomicNumber) &&
+              !impl::smarts_expr_contains(expr, Smiley::AE_AromaticElement) &&
+              !impl::smarts_expr_contains(expr, Smiley::AE_AliphaticElement) &&
+              !impl::smarts_expr_contains(expr, Smiley::AE_ImplicitH)) {
+            impl::smarts_expr_change(expr, Smiley::AE_TotalH, 1, Smiley::AE_AliphaticElement, 1);
+            assert(impl::smarts_expr_contains(expr, Smiley::AE_AliphaticElement, 1));
+          }
 
           trees().addAtom(atomStack().back());
           atomStack().clear();
@@ -606,6 +616,20 @@ namespace Helium {
     for (std::size_t i = 0; i < m_recursiveTrees.size(); ++i)
       for (std::size_t j = 0; j < m_recursiveTrees[i].bonds().size(); ++j)
         if (impl::smarts_expr_contains(m_recursiveTrees[i].bond(j), Smiley::BE_Ring))
+          return true;
+
+    return false;
+  }
+
+  bool Smarts::requiresExplicitHydrogens() const
+  {
+    for (std::size_t i = 0; i < m_trees.atoms().size(); ++i)
+      if (impl::smarts_expr_contains(m_trees.atom(i), Smiley::AE_AliphaticElement, 1))
+        return true;
+
+    for (std::size_t i = 0; i < m_recursiveTrees.size(); ++i)
+      for (std::size_t j = 0; j < m_recursiveTrees[i].atoms().size(); ++j)
+        if (impl::smarts_expr_contains(m_recursiveTrees[i].atom(j), Smiley::AE_AliphaticElement, 1))
           return true;
 
     return false;

@@ -274,6 +274,16 @@ namespace Helium {
       }
 
       /**
+       * @brief Check if the reactant SMARTS has explicit hydrogens.
+       *
+       * @return True if the reactant SMARTS has explicit hydrogens.
+       */
+      bool requiresExplicitHydrogens()
+      {
+        return m_reactant.requiresExplicitHydrogens();
+      }
+
+      /**
        * @brief Apply the SMIRKS transformation to a molecule.
        *
        * @param mol The molecule.

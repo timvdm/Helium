@@ -914,12 +914,16 @@ namespace Helium {
   void make_hydrogens_explicit(EditableMoleculeType &mol)
   {
     typedef typename molecule_traits<EditableMoleculeType>::atom_type atom_type;
+    typedef typename molecule_traits<EditableMoleculeType>::bond_type bond_type;
 
     // create a list of atoms that need hydrogens to be added
     std::vector<std::pair<atom_type, int> > hydrogens;
-    FOREACH_ATOM (atom, mol, EditableMoleculeType)
+    FOREACH_ATOM (atom, mol, EditableMoleculeType) {
+      if (is_hydrogen(mol, *atom))
+        continue;
       if (num_hydrogens(mol, *atom))
         hydrogens.push_back(std::make_pair(*atom, num_hydrogens(mol, *atom)));
+    }
 
     // add the hydrogens
     for (std::size_t i = 0; i < hydrogens.size(); ++i) {
@@ -927,10 +931,41 @@ namespace Helium {
         atom_type H = add_atom(mol);
         set_element(mol, H, 1);
         set_mass(mol, H, Element::averageMass(1));
-        add_bond(mol, hydrogens[i].first, H);
+        bond_type bond = add_bond(mol, hydrogens[i].first, H);
+        set_order(mol, bond, 1);
       }
       set_hydrogens(mol, hydrogens[i].first, 0);
     }
+  }
+
+  /**
+   * @brief Make all hydrogens implciit.
+   *
+   * @param mol The molecule.
+   */
+  template<typename EditableMoleculeType>
+  void make_hydrogens_implicit(EditableMoleculeType &mol)
+  {
+    std::vector<Index> hydrogens;
+
+    FOREACH_ATOM (atom, mol, EditableMoleculeType) {
+      if (is_hydrogen(mol, *atom)) {
+        hydrogens.push_back(get_index(mol, *atom));
+        continue;
+      }
+
+      int explicitH = 0;
+      FOREACH_NBR (nbr, *atom, mol, EditableMoleculeType) {
+        if (is_hydrogen(mol, *nbr))
+          ++explicitH;
+      }
+
+      set_hydrogens(mol, *atom, num_hydrogens(mol, *atom) + explicitH);
+    }
+
+    std::sort(hydrogens.begin(), hydrogens.end(), std::greater<Index>());
+    for (std::size_t i = 0; i < hydrogens.size(); ++i)
+      remove_atom(mol, get_atom(mol, hydrogens[i]));
   }
 
   template<typename EditableMoleculeType>
@@ -945,7 +980,7 @@ namespace Helium {
 
       int explicitH = 0;
       FOREACH_NBR (nbr, *atom, mol, EditableMoleculeType)
-        if (get_element(mol, *nbr) == 1)
+        if (is_hydrogen(mol, *nbr))
           ++explicitH;
 
       int valence = get_valence(mol, *atom);

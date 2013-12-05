@@ -1,7 +1,7 @@
 # ele-  ave.    metal   add H   standard  for charges from -2 to +2
 # ment  mass                    -2      -1      0       +1      +2
 #------------------------------------------------------------------
-H       1       -       Yes     -       -       1       -       -
+H       1       -       Yes     -       -       -       -       -
 He      4       -       -       -       -       -       -       -
 Li      7       M1      Yes     -       -       1       -       -
 Be      9       M1      Yes     -       -       2       1       -

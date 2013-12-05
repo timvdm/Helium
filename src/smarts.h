@@ -200,6 +200,75 @@ namespace Helium {
       return false;
     }
 
+    /**
+     * @brief Check if an expression tree contains a specific type and value.
+     *
+     * @param expr The SMARTS expression tree.
+     * @param type The type to search for.
+     * @param value The value to search for.
+     *
+     * @return True if the @p type and @p value is found in the expression tree.
+     */
+    template<typename ExprType>
+    bool smarts_expr_contains(ExprType *expr, int type, int value)
+    {
+      if (expr->type == type && expr->value == value)
+        return true;
+
+      switch (expr->type) {
+        case Smiley::OP_AndHi:
+        case Smiley::OP_AndLo:
+        case Smiley::OP_And:
+        case Smiley::OP_Or:
+          if (smarts_expr_contains(expr->left, type, value))
+            return true;
+          if (smarts_expr_contains(expr->right, type, value))
+            return true;
+          break;
+        case Smiley::OP_Not:
+          if (smarts_expr_contains(expr->arg, type, value))
+            return false;
+          break;
+        default:
+          break;
+      }
+
+      return false;
+    }
+    /**
+     * @brief Change all occurences of type and value with the new type and value.
+     *
+     * @param expr The SMARTS expression tree.
+     * @param type The type to search for.
+     * @param value The value to search for.
+     * @param newType The new type.
+     * @param newValue The new value.
+     */
+    template<typename ExprType>
+    void smarts_expr_change(ExprType *expr, int type, int value, int newType, int newValue)
+    {
+      if (expr->type == type && expr->value == value) {
+        expr->type = newType;
+        expr->value = newValue;
+        return;
+      }
+
+      switch (expr->type) {
+        case Smiley::OP_AndHi:
+        case Smiley::OP_AndLo:
+        case Smiley::OP_And:
+        case Smiley::OP_Or:
+          smarts_expr_change(expr->left, type, value, newType, newValue);
+          smarts_expr_change(expr->right, type, value, newType, newValue);
+          break;
+        case Smiley::OP_Not:
+          smarts_expr_change(expr->arg, type, value, newType, newValue);
+          break;
+        default:
+          break;
+      }
+    }
+
     template<typename QueryType, typename MoleculeType>
     class SmartsBondMatcher;
 
@@ -460,6 +529,13 @@ namespace Helium {
        * @return True if the SMARTS has cylce atom/bond primitives.
        */
       bool requiresCycles() const;
+
+      /**
+       * @brief Check if the SMARTS has explicit hydrogens.
+       *
+       * @return True if the SMARTS has explicit hydrogens.
+       */
+      bool requiresExplicitHydrogens() const;
 
       /**
        * @brief Perform a SMARTS search on the specified molecule.

@@ -31,12 +31,12 @@ int main()
   DistanceMatrix D = floyd_warshall(mol);
 
   COMPARE(0, D(0, 0));
-  COMPARE(0, D(0, 1));
-  COMPARE(0, D(0, 2));
-  COMPARE(0, D(0, 3));
-  COMPARE(0, D(0, 4));
-  COMPARE(0, D(0, 5));
-  COMPARE(0, D(0, 6));
+  COMPARE(1, D(0, 1));
+  COMPARE(2, D(0, 2));
+  COMPARE(3, D(0, 3));
+  COMPARE(4, D(0, 4));
+  COMPARE(2, D(0, 5));
+  COMPARE(3, D(0, 6));
 
   std::cout << D << std::endl;
 }

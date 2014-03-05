@@ -41,6 +41,15 @@ namespace Helium {
     std::cerr << "\r" << label << ": " << current << " " << bars[(current / stride) % sizeof(bars)];
   }
 
+  inline void known_progress(const std::string &label, std::size_t current, std::size_t last, std::size_t stride = 1000)
+  {
+    if ((current % stride) != 0)
+      return;
+    std::cerr << std::flush;
+    const char *bars = "-\\|/";
+    std::cerr << "\r" << label << ": " << current << "/" << last << " " << bars[(current / stride) % sizeof(bars)];
+  }
+
 }
 
 #endif

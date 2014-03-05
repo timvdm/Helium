@@ -34,6 +34,7 @@
 #include <numeric> // std::accumulate
 
 #include "args.h"
+#include "progress.h"
 
 namespace Helium {
 
@@ -105,8 +106,7 @@ namespace Helium {
         // process molecules
         for (unsigned int i = 0; i < file.numMolecules(); ++i) {
           file.readMolecule(mol);
-          if ((i % 100) == 0)
-            std::cout << i << std::endl;
+          known_progress("indexing", i + 1, file.numMolecules());
 
           // compute the fingerprint
           switch (method) {

@@ -146,8 +146,6 @@ namespace Helium {
   template<typename MoleculeType, typename CallbackType>
   void enumerate_subgraphs_correct(const MoleculeType &mol, CallbackType &callback, int maxSize, bool trees = false)
   {
-    typedef typename molecule_traits<MoleculeType>::bond_iter bond_iter;
-
     assert(maxSize >= 0);
     if (maxSize == 0)
       return;

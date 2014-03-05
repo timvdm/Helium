@@ -121,8 +121,6 @@ namespace Helium {
         AtomType prev = molecule_traits<MoleculeType>::null_atom())
     {
       typedef AtomType atom_type;
-      typedef typename molecule_traits<MoleculeType>::bond_type bond_type;
-      typedef typename molecule_traits<MoleculeType>::incident_iter incident_iter;
 
       // mark atom as visited
       visited[get_index(mol, atom)] = true;
@@ -161,7 +159,6 @@ namespace Helium {
     {
       typedef AtomType atom_type;
       typedef typename molecule_traits<MoleculeType>::bond_type bond_type;
-      typedef typename molecule_traits<MoleculeType>::incident_iter incident_iter;
 
       // mark atom as visited
       visited[get_index(mol, atom)] = true;
@@ -208,7 +205,6 @@ namespace Helium {
     {
       typedef AtomType atom_type;
       typedef typename molecule_traits<MoleculeType>::bond_type bond_type;
-      typedef typename molecule_traits<MoleculeType>::incident_iter incident_iter;
 
       // mark atom as visited
       visited[get_index(mol, atom)] = true;
@@ -283,9 +279,6 @@ namespace Helium {
   template<typename MoleculeType, typename DFSVisitorType>
   void depth_first_search(const MoleculeType &mol, DFSVisitorType &visitor)
   {
-    typedef typename molecule_traits<MoleculeType>::atom_type atom_type;
-    typedef typename molecule_traits<MoleculeType>::atom_iter atom_iter;
-
     visitor.initialize(mol);
 
     std::vector<bool> visited(num_atoms(mol) + num_bonds(mol));
@@ -322,9 +315,6 @@ namespace Helium {
   template<typename MoleculeType, typename AtomType, typename DFSVisitorType>
   void depth_first_search(const MoleculeType &mol, AtomType atom, DFSVisitorType &visitor)
   {
-    typedef typename molecule_traits<MoleculeType>::atom_type atom_type;
-    typedef typename molecule_traits<MoleculeType>::atom_iter atom_iter;
-
     visitor.initialize(mol);
 
     std::vector<bool> visited(num_atoms(mol) + num_bonds(mol));
@@ -358,9 +348,6 @@ namespace Helium {
   template<typename MoleculeType, typename DFSVisitorType>
   void depth_first_search(const MoleculeType &mol, const std::vector<Index> &order, DFSVisitorType &visitor)
   {
-    typedef typename molecule_traits<MoleculeType>::atom_type atom_type;
-    typedef typename molecule_traits<MoleculeType>::atom_iter atom_iter;
-
     visitor.initialize(mol);
 
     std::vector<bool> visited(num_atoms(mol) + num_bonds(mol));
@@ -398,9 +385,6 @@ namespace Helium {
   template<typename MoleculeType, typename AtomType, typename DFSVisitorType>
   void exhaustive_depth_first_search(const MoleculeType &mol, AtomType atom, DFSVisitorType &visitor)
   {
-    typedef typename molecule_traits<MoleculeType>::atom_type atom_type;
-    typedef typename molecule_traits<MoleculeType>::atom_iter atom_iter;
-
     visitor.initialize(mol);
 
     std::vector<bool> visited(num_atoms(mol) + num_bonds(mol));

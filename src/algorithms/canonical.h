@@ -31,11 +31,61 @@
 #include <Helium/algorithms/invariants.h>
 #include <Helium/util.h>
 
+#include <map>
+#include <limits>
+
 #define DEBUG_CANON 0
 
 namespace Helium {
 
   namespace impl {
+
+    template<typename ItemType, typename ClassType>
+    class Permutations
+    {
+      public:
+        Permutations(const std::vector<ItemType> &items, const std::vector<ClassType> &classes)
+          : m_items(items), m_classes(classes)
+        {
+          // find the unique classes
+          std::set<ClassType> uniqueClasses;
+          for (std::size_t i = 0; i < m_classes.size(); ++i)
+            uniqueClasses.insert(classes[i]);
+
+          // create the groups vector (all items with the same class are placed in the same group)
+          for (typename std::set<ClassType>::iterator i = uniqueClasses.begin(); i != uniqueClasses.end(); ++i) {
+            m_groups.resize(m_groups.size() + 1);
+            for (std::size_t j = 0; j < m_classes.size(); ++j)
+              if (*i == m_classes[j])
+                m_groups.back().push_back(j);
+            std::sort(m_groups.back().begin(), m_groups.back().end());
+          }
+        }
+
+        bool next(std::size_t i = 0)
+        {
+          if (i >= m_groups.size())
+            return false;
+          bool more = std::next_permutation(m_groups[i].begin(), m_groups[i].end());
+          if (!more)
+            return next(i + 1);
+          return true;
+        }
+
+        std::vector<ItemType> items() const
+        {
+          std::vector<ItemType> result;
+          for (std::size_t i = 0; i < m_groups.size(); ++i)
+            for (std::size_t j = 0; j < m_groups[i].size(); ++j)
+              result.push_back(m_items[m_groups[i][j]]);
+          return result;
+        }
+
+      private:
+        const std::vector<ItemType> &m_items;
+        const std::vector<ClassType> &m_classes;
+        std::vector<std::vector<std::size_t> > m_groups; // indices of items with same class
+    };
 
     struct Closure
     {
@@ -78,11 +128,31 @@ namespace Helium {
 
         void canonicalize()
         {
+          std::map<unsigned long, std::size_t> symClassCounts;
+          for (std::size_t i = 0; i < m_symmetry.size(); ++i)
+            symClassCounts[m_symmetry[i]]++;
+
+          std::size_t count = std::numeric_limits<std::size_t>::max();
+          unsigned long symClass = 0;
+          for (std::map<unsigned long, std::size_t>::iterator i = symClassCounts.begin(); i != symClassCounts.end(); ++i)
+            if (i->second == count && i->first < symClass) {
+              symClass = i->first;
+            } else if (i->second < count) {
+              count = i->second;
+              symClass = i->first;
+            }
+
+          std::cout << "symClass: " << symClass << ", count: " << count << std::endl;
+
           // select atom(s) with lowest symmetry class
           atom_iter atom, end_atoms;
           TIE(atom, end_atoms) = get_atoms(m_mol);
           for (; atom != end_atoms; ++atom) {
+            /*
             if (m_symmetry[get_index(m_mol, *atom)])
+              continue;
+            */
+            if (m_symmetry[get_index(m_mol, *atom)] != symClass)
               continue;
 
             assert(m_atoms.empty());
@@ -197,10 +267,23 @@ namespace Helium {
           if (DEBUG_CANON)
             std::cout << "next(" << get_index(m_mol, atom) << ")" << std::endl;
 
+          // check if the atom is already labeled
           if (std::find(m_atoms.begin(), m_atoms.end(), get_index(m_mol, atom)) != m_atoms.end())
             return;
 
           assert(std::find(m_atoms.begin(), m_atoms.end(), get_index(m_mol, atom)) == m_atoms.end());
+
+          /*
+          if (fromBond != molecule_traits<MoleculeType>::null_bond()) {
+            Index fromAtom = std::find(m_atoms.begin(), m_atoms.end(), get_index(m_mol, get_other(m_mol, fromBond, atom))) - m_atoms.begin();
+
+            if (m_code.size() > m_from.size()) {
+              if (fromAtom > m_code[m_from.size()])
+                return;
+            }
+          }
+          */
+
 
           // map the atom
           m_atoms.push_back(get_index(m_mol, atom));
@@ -237,16 +320,45 @@ namespace Helium {
             }
 
 
+
+            std::vector<unsigned long> classes;
+            for (std::size_t i = 0; i < bonds.size(); ++i)
+              classes.push_back(m_symmetry[get_index(m_mol, bonds[i].second)]);
+
+            Permutations<std::pair<bond_type, atom_type>, unsigned long> perms(bonds, classes);
+            do {
+              // restore stack
+              stack = stackCopy;
+              // append the new bonds
+              std::vector<std::pair<bond_type, atom_type> > orderedBonds = perms.items();
+              std::copy(orderedBonds.begin(), orderedBonds.end(), std::back_inserter(stack));
+              // recursive call...
+              next(stack);
+            } while (perms.next());
+
+
+
+
+
+
+
+
+            /*
             // sort the new bonds
             std::sort(bonds.begin(), bonds.end(), compare_first<bond_type, atom_type>());
 
             // recursive call for each permutation of the new bonds
             bool last = false;
             do {
+              // restore stack
               stack = stackCopy;
+              // append the new bonds
               std::copy(bonds.begin(), bonds.end(), std::back_inserter(stack));
+              // recursive call...
               next(stack);
             } while (!last && (last = std::next_permutation(bonds.begin(), bonds.end(), compare_first<bond_type, atom_type>())));
+             */
+
 
             // process stack
             while (!stack.empty())

@@ -15,13 +15,12 @@ void test_canonicalize(const std::string &smiles)
   HeMol mol;
   try {
     parse_smiles(smiles, mol);
-  }
-  catch (Smiley::Exception &e) {
+  } catch (Smiley::Exception &e) {
     std::cerr << e.what();
   }
-  std::vector<unsigned long> symmetry = extended_connectivities(mol, AtomInvariant(AtomInvariant::Element));
+  std::vector<unsigned long> symmetry = extended_connectivities(mol, AtomInvariant());
   std::cout << "symmetry: " << symmetry << std::endl;
-  canonicalize(mol, symmetry, AtomInvariant(AtomInvariant::Element), BondInvariant(BondInvariant::Order));
+  canonicalize(mol, symmetry, AtomInvariant(), BondInvariant());
 }
 
 bool shuffle_test_mol(HeMol &mol)
@@ -33,10 +32,18 @@ bool shuffle_test_mol(HeMol &mol)
 
 
   std::pair<std::vector<Index>, std::vector<unsigned long> > ref_canon = canonicalize(mol,
-      extended_connectivities(mol, AtomInvariant(AtomInvariant::Element)),
-      AtomInvariant(AtomInvariant::Element), BondInvariant(BondInvariant::Order));
+        extended_connectivities(mol, AtomInvariant()), AtomInvariant(), BondInvariant());
   const std::vector<unsigned long> &ref_code = ref_canon.second;
-  std::string ref_smiles = write_smiles(mol, ref_canon.first, WriteSmiles::None);
+  std::string ref_smiles = write_smiles(mol, ref_canon.first, WriteSmiles::All);
+
+  // make sure the canonical SMILES is valid and can be read
+  try {
+  } catch (const Smiley::Exception &e) {
+    std::cout << "invalid canonical SMILES:" << std::endl;
+    std::cout << e.what() << std::endl;
+    ASSERT(0);
+    return false;
+  }
 
   for (int i = 0; i < 10; ++i) {
     std::random_shuffle(atoms.begin(), atoms.end());
@@ -46,10 +53,11 @@ bool shuffle_test_mol(HeMol &mol)
     //std::cout << mol << std::endl;
 
     std::pair<std::vector<Index>, std::vector<unsigned long> > canon = canonicalize(mol,
-        extended_connectivities(mol, AtomInvariant(AtomInvariant::Element)),
-        AtomInvariant(AtomInvariant::Element), BondInvariant(BondInvariant::Order));
+        extended_connectivities(mol, AtomInvariant()), AtomInvariant(), BondInvariant());
     const std::vector<unsigned long> &code = canon.second;
-    std::string smiles = write_smiles(mol, canon.first, WriteSmiles::None);
+    std::string smiles = write_smiles(mol, canon.first, WriteSmiles::All);
+
+    std::cout << smiles << std::endl;
 
     COMPARE(ref_code, code);
     if (ref_code != code)
@@ -71,28 +79,39 @@ void shuffle_test_smiles(const std::string &smiles)
 
 void shuffle_test(const std::string &filename)
 {
-  std::cout << "Shuffle test..." << std::endl;
+  std::cout << "Shuffle test: " << filename << std::endl;
   MoleculeFile file(filename);
 
-  unsigned int idx, numAtoms = -1;
+  bool failed = false;
+  unsigned int idx = -1, numAtoms = -1;
 
   HeMol mol;
   for (unsigned int i = 0; i < file.numMolecules(); ++i) {
     file.readMolecule(mol);
-    if (unique_elements(connected_bond_components(mol)) > 1)
-      continue;
-    if ((i % 1000) == 0)
-      std::cout << "Testing molecule " << i << "..." << std::endl;
+    //if (unique_elements(connected_bond_components(mol)) > 1)
+    //  continue;
+    //if ((i % 1000) == 0)
+    //  std::cout << "Testing molecule " << i << "..." << std::endl;
+
+    std::cout << "  testing: " << write_smiles(mol) << std::endl;
+
     if (!shuffle_test_mol(mol) && num_atoms(mol) < numAtoms) {
       numAtoms = num_atoms(mol);
       idx = i;
+      failed = true;
     }
   }
-  std::cout << "smallest: " << idx << std::endl;
+
+  if (failed)
+    std::cout << "index of smallest molecule that failed: " << idx << std::endl;
 }
 
-int main()
+int main(int argc, char **argv)
 {
+  bool validate = false;
+  if (argc == 2)
+    validate = (std::string("-validate") == argv[1]);
+
   shuffle_test_smiles("Clc1ccc2c(CCN2C(=O)C)c1");
 
   test_canonicalize("CCC(C)C");
@@ -106,8 +125,12 @@ int main()
   shuffle_test_smiles("Clc1ccc(cc1)Cc1c(C)nc(N)[nH]c1=O");
   shuffle_test_smiles("COc1cc(C)nc(Cl)n1");
   shuffle_test_smiles("C1CN1");
-
   shuffle_test_smiles("CCOC(C)OCC");
 
   shuffle_test(datadir() + "1K.hel");
+
+  if (validate) {
+    shuffle_test(datadir() + "canonmulti.hel");
+    //shuffle_test(datadir() + "1M.hel");
+  }
 }

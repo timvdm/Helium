@@ -142,8 +142,6 @@ namespace Helium {
               symClass = i->first;
             }
 
-          std::cout << "symClass: " << symClass << ", count: " << count << std::endl;
-
           // select atom(s) with lowest symmetry class
           atom_iter atom, end_atoms;
           TIE(atom, end_atoms) = get_atoms(m_mol);

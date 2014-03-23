@@ -329,7 +329,7 @@ namespace Helium {
         int m_cols;
     };
 
-    std::ostream& operator<<(std::ostream &os, const CycleBitMatrix &m)
+    inline std::ostream& operator<<(std::ostream &os, const CycleBitMatrix &m)
     {
       for (int i = 0; i < m.rows(); ++i) {
         os << "[ ";
@@ -340,7 +340,7 @@ namespace Helium {
       return os;
     }
 
-    bool is_relevant(const CycleBitMatrix &matrix, const IsomorphismCycle &cycle)
+    inline bool is_relevant(const CycleBitMatrix &matrix, const IsomorphismCycle &cycle)
     {
       CycleBitMatrix m(matrix);
 

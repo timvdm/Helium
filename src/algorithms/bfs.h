@@ -145,13 +145,15 @@ namespace Helium {
           // mark atom as visited
           visited[get_index(mol, next.second)] = true;
           // mark bond as visited
-          if (next.first != molecule_traits<MoleculeType>::null_bond())
+          if (next.first != molecule_traits<MoleculeType>::null_bond()) {
             visited[num_atoms(mol) + get_index(mol, next.first)] = true;
-          // invoke visitor on bond and atom
-          atom_type prev = get_other(mol, next.first, next.second);
-          if (next.first != molecule_traits<MoleculeType>::null_bond())
+            // invoke visitor on bond and atom
+            atom_type prev = get_other(mol, next.first, next.second);
             visitor.bond(mol, prev, next.first);
-          visitor.atom(mol, prev, next.second);
+            visitor.atom(mol, prev, next.second);
+          } else {
+            visitor.atom(mol, molecule_traits<MoleculeType>::null_atom(), next.second);
+          }
 
           // add unvisited neighbors to queue
           FOREACH_INCIDENT (bond, next.second, mol, MoleculeType) {

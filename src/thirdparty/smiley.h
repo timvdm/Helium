@@ -1868,17 +1868,16 @@ namespace Smiley {
         if (chr == 'X' && m_str()[m_pos() + 1] == 'e')
           return false;
 
-        //++m_pos();
+        ++m_pos();
         bool found_number = false;
         // parse NUMBER
         int value = 0;
-        while (std::isdigit(m_str()[m_pos() + 1])) {
+        while (std::isdigit(m_str()[m_pos()]) && value < 1000) {
           value *= 10;
-          value += m_str()[m_pos() + 1] - '0';
+          value += m_str()[m_pos()] - '0';
           ++m_pos();
           found_number = true;
         }
-        ++m_pos();
 
         //
         // handle defaults

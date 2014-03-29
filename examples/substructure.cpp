@@ -29,7 +29,7 @@ void print_stuff(const MoleculeType &mol)
     atoms[mapping.map[i]] = true;
 
   std::vector<bool> bonds(num_atoms(mol));
-  FOREACH_BOND (bond, mol, MoleculeType)
+  FOREACH_BOND_T (bond, mol, MoleculeType)
     if (atoms[get_index(mol, get_source(mol, *bond))] &&
         atoms[get_index(mol, get_target(mol, *bond))])
       bonds[get_index(mol, *bond)] = true;
@@ -41,12 +41,12 @@ void print_stuff(const MoleculeType &mol)
   std::cout << "# bonds: " << num_bonds(substruct) << std::endl;
 
   // iterate over substruct's atoms
-  FOREACH_ATOM (atom, substruct, Substructure<MoleculeType>) {
+  FOREACH_ATOM_T (atom, substruct, Substructure<MoleculeType>) {
     std::cout << "atom " << get_index(substruct, *atom) << " has element " << get_element(substruct, *atom) << std::endl;
   }
 
   // iterate over substruct's bonds
-  FOREACH_BOND (bond, substruct, Substructure<MoleculeType>) {
+  FOREACH_BOND_T (bond, substruct, Substructure<MoleculeType>) {
     std::cout << "bond " << get_index(substruct, get_source(substruct, *bond)) << "-" <<
       get_index(substruct, get_target(substruct, *bond)) << " has order " << get_order(substruct, *bond) << std::endl;
   }

@@ -1,0 +1,62 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+<head>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+<title>~/Cheminformatics/Helium/examples/molecule1.cpp.html</title>
+<meta name="Generator" content="Vim/7.3">
+<meta name="plugin-version" content="vim7.3_v6">
+<meta name="syntax" content="cpp">
+<meta name="settings" content="use_css">
+<style type="text/css">
+<!--
+pre { font-family: monospace; color: #ffffff; background-color: #000000; }
+body { font-family: monospace; color: #ffffff; background-color: #000000; }
+.Type { color: #87ffaf; }
+.Statement { color: #ffff00; }
+.Constant { color: #ff40ff; }
+.PreProc { color: #5fd7ff; }
+.Comment { color: #00ffff; }
+-->
+</style>
+</head>
+<body>
+<pre>
+<span class="Comment">// examples/molecule1.cpp</span>
+<span class="PreProc">#include </span><span class="Constant">&lt;Helium/molecule.h&gt;</span>
+<span class="PreProc">#include </span><span class="Constant">&lt;Helium/hemol.h&gt;</span> <span class="Comment">// for HeMol and hemol_from_smiles()</span>
+
+<span class="PreProc">#include </span><span class="Constant">&lt;iostream&gt;</span>
+
+<span class="Statement">using</span> <span class="Type">namespace</span> Helium;
+
+<span class="Type">template</span>&lt;<span class="Type">typename</span> MoleculeType&gt;
+<span class="Type">void</span> print_stuff(<span class="Type">const</span> MoleculeType &amp;mol)
+{
+  <span class="Comment">// num_atoms() and num_bonds()</span>
+  std::cout &lt;&lt; <span class="Constant">&quot;# atoms: &quot;</span> &lt;&lt; num_atoms(mol) &lt;&lt; std::endl;
+  std::cout &lt;&lt; <span class="Constant">&quot;# bonds: &quot;</span> &lt;&lt; num_bonds(mol) &lt;&lt; std::endl;
+
+  <span class="Comment">// get_atom() and get_bond()</span>
+  std::cout &lt;&lt; <span class="Constant">&quot;degree of 2nd atom: &quot;</span> &lt;&lt; get_degree(mol, get_atom(mol, <span class="Constant">1</span>)) &lt;&lt; std::endl;
+  std::cout &lt;&lt; <span class="Constant">&quot;order of 1st bond: &quot;</span> &lt;&lt; get_order(mol, get_bond(mol, <span class="Constant">0</span>)) &lt;&lt; std::endl;
+  std::cout &lt;&lt; <span class="Constant">&quot;the bond C=O has order: &quot;</span> &lt;&lt; get_order(mol, get_bond(mol, get_atom(mol, <span class="Constant">1</span>), get_atom(mol, <span class="Constant">2</span>))) &lt;&lt; std::endl;
+
+  <span class="Comment">// iterate over the atoms</span>
+  FOREACH_ATOM (atom, mol, MoleculeType) {
+    std::cout &lt;&lt; <span class="Constant">&quot;atom &quot;</span> &lt;&lt; get_index(mol, *atom) &lt;&lt; <span class="Constant">&quot; has element &quot;</span> &lt;&lt; get_element(mol, *atom) &lt;&lt; std::endl;
+  }
+
+  <span class="Comment">// iterate over the bonds</span>
+  FOREACH_BOND (bond, mol, MoleculeType) {
+    std::cout &lt;&lt; <span class="Constant">&quot;bond &quot;</span> &lt;&lt; get_index(mol, *bond) &lt;&lt; <span class="Constant">&quot; has order &quot;</span> &lt;&lt; get_order(mol, *bond) &lt;&lt; std::endl;
+  }
+}
+
+<span class="Type">int</span> main()
+{
+  HeMol mol = hemol_from_smiles(<span class="Constant">&quot;CC(=O)C&quot;</span>);
+  print_stuff(mol);
+}
+</pre>
+</body>
+</html>

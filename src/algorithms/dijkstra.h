@@ -90,7 +90,7 @@ namespace Helium {
       {
         // add all atoms in mol to Q
         std::vector<AtomType> Q;
-        FOREACH_ATOM (atom, mol, MoleculeType)
+        FOREACH_ATOM_T (atom, mol, MoleculeType)
           Q.push_back(*atom);
 
         dijkstra(mol, source, Q, preferSmallerIndexPaths);
@@ -181,7 +181,7 @@ namespace Helium {
             // all remaining atoms are inaccessible from source
             break;
 
-          FOREACH_NBR (v, u, mol, MoleculeType) {
+          FOREACH_NBR_T (v, u, mol, MoleculeType) {
             Size alt = m_dist[get_index(mol, u)] + 1;
 
             if (alt < m_dist[get_index(mol, *v)]) {

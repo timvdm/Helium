@@ -358,7 +358,7 @@ namespace Helium {
       int numRingBonds(atom_type atom) const
       {
         int result = 0;
-        FOREACH_INCIDENT (bond, atom, m_mol, MoleculeType)
+        FOREACH_INCIDENT_T (bond, atom, m_mol, MoleculeType)
           if (isBondInRing(*bond))
             ++result;
         return result;
@@ -374,7 +374,7 @@ namespace Helium {
       int numRingNbrs(atom_type atom) const
       {
         int result = 0;
-        FOREACH_NBR (nbr, atom, m_mol, MoleculeType)
+        FOREACH_NBR_T (nbr, atom, m_mol, MoleculeType)
           if (isAtomInRing(*nbr))
             ++result;
         return result;

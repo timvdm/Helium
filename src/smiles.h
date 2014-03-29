@@ -119,14 +119,14 @@ namespace Helium {
     }
 
     // add hydrogens
-    FOREACH_ATOM (atom, mol, EditableMoleculeType) {
+    FOREACH_ATOM_T (atom, mol, EditableMoleculeType) {
       if (num_hydrogens(mol, *atom) != 99)
         continue;
       if (!Element::addHydrogens(get_element(mol, *atom)))
         continue;
 
       int explicitH = 0;
-      FOREACH_NBR (nbr, *atom, mol, EditableMoleculeType)
+      FOREACH_NBR_T (nbr, *atom, mol, EditableMoleculeType)
         if (get_element(mol, *nbr) == 1)
           ++explicitH;
 

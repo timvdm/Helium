@@ -14,7 +14,7 @@ namespace Helium {
   {
     DistanceMatrix dist(num_atoms(mol), 0, DistanceMatrix::infinity());
 
-    FOREACH_BOND (bond, mol, MoleculeType)
+    FOREACH_BOND_T (bond, mol, MoleculeType)
       dist(get_index(mol, get_source(mol, *bond)), get_index(mol, get_target(mol, *bond))) = 1;
 
     for (Size k = 0; k < num_atoms(mol); ++k)

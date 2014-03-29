@@ -509,7 +509,7 @@ namespace Helium {
           case Smiley::AE_TotalH:
             {
               int explicitH = 0;
-              FOREACH_NBR (nbr, atom, mol, EditableMoleculeType)
+              FOREACH_NBR_T (nbr, atom, mol, EditableMoleculeType)
                 if (is_hydrogen(mol, *nbr))
                   ++explicitH;
               set_hydrogens(mol, atom, expr->value - explicitH);

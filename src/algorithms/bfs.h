@@ -128,7 +128,7 @@ namespace Helium {
     std::queue<std::pair<bond_type, atom_type> > queue;
     std::vector<bool> visited(num_atoms(mol) + num_bonds(mol));
 
-    FOREACH_ATOM (atom, mol, MoleculeType) {
+    FOREACH_ATOM_T (atom, mol, MoleculeType) {
       if (!visited[get_index(mol, *atom)]) {
         // push initial component atom to stack
         queue.push(std::make_pair(molecule_traits<MoleculeType>::null_bond(), *atom));
@@ -156,7 +156,7 @@ namespace Helium {
           }
 
           // add unvisited neighbors to queue
-          FOREACH_INCIDENT (bond, next.second, mol, MoleculeType) {
+          FOREACH_INCIDENT_T (bond, next.second, mol, MoleculeType) {
             atom_type nbr = get_other(mol, *bond, next.second);
 
             // is the neighbor atom already visited?

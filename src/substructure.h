@@ -285,14 +285,14 @@ namespace Helium {
         m_numBonds = std::count(bonds.begin(), bonds.end(), true);
 
         Index index = 0;
-        FOREACH_ATOM (atom, mol, MoleculeType)
+        FOREACH_ATOM_T (atom, mol, MoleculeType)
           if (m_atoms[get_index(mol, *atom)])
             m_atomIndices.push_back(index++);
           else
             m_atomIndices.push_back(-1);
 
         index = 0;
-        FOREACH_BOND (bond, mol, MoleculeType)
+        FOREACH_BOND_T (bond, mol, MoleculeType)
           if (m_bonds[get_index(mol, *bond)])
             m_bondIndices.push_back(index++);
           else

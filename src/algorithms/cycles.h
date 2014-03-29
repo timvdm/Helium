@@ -398,12 +398,12 @@ namespace Helium {
       if (rings.size() >= cyclomaticNumber && lastSize < size) {
         // check if all cyclic atoms/bonds are convered
         bool done = true;
-        FOREACH_ATOM (atom, mol, MoleculeType)
+        FOREACH_ATOM_T (atom, mol, MoleculeType)
           if (cyclicAtoms[get_index(mol, *atom)] && !rings.isAtomInRing(*atom)) {
             done = false;
             break;
           }
-        FOREACH_BOND (bond, mol, MoleculeType)
+        FOREACH_BOND_T (bond, mol, MoleculeType)
           if (cyclicBonds[get_index(mol, *bond)] && !rings.isBondInRing(*bond)) {
             done = false;
             break;
@@ -423,7 +423,7 @@ namespace Helium {
       // find all cycles of size
       MappingList mappings;
       impl::CycleBondMatcher<MoleculeType, HeMol> bondMatcher;
-      FOREACH_ATOM (atom, mol, MoleculeType) {
+      FOREACH_ATOM_T (atom, mol, MoleculeType) {
         impl::CycleAtomMatcher<MoleculeType, HeMol> atomMatcher(get_index(mol, *atom));
 
         if (isomorphism_search(mol, *atom, cycleMol, mappings, atomMatcher, bondMatcher)) {
@@ -495,7 +495,7 @@ namespace Helium {
       std::vector<bool> atoms(num_atoms(mol));
       std::vector<bool> bonds(num_bonds(mol));
 
-      FOREACH_BOND (bond, substructure, Substructure<MoleculeType>) {
+      FOREACH_BOND_T (bond, substructure, Substructure<MoleculeType>) {
         if (i == components[get_index(substructure, *bond)]) {
           bonds[substructure.oldBondIndex(*bond)] = true;
           atoms[substructure.oldAtomIndex(get_source(substructure, *bond))] = true;

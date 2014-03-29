@@ -13,6 +13,7 @@ set(examples
   smirks
   cycles
   enumeratesubgraphs
+  smartmol
   )
 
 foreach(example ${examples})

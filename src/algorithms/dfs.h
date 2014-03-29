@@ -17,7 +17,7 @@
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
  * DISCLAIMED. IN NO EVENT SHALL <COPYRIGHT HOLDER> BE LIABLE FOR ANY
- * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * DIRECT, INDIRECT, INCIDENT_TAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
  * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
  * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
  * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
@@ -55,7 +55,7 @@ namespace Helium {
       return false;
 
     // if a bond should be considered, both atoms should also be considered
-    FOREACH_BOND (bond, mol, MoleculeType) {
+    FOREACH_BOND_T (bond, mol, MoleculeType) {
       if (!bondMask[get_index(mol, *bond)])
         continue;
       atom_type source = get_source(mol, *bond);
@@ -192,7 +192,7 @@ namespace Helium {
       visitor.atom(mol, prev, atom);
 
       // call dfs_visit for all unvisited neighbors of v
-      FOREACH_INCIDENT (bond, atom, mol, MoleculeType) {
+      FOREACH_INCIDENT_T (bond, atom, mol, MoleculeType) {
         if (visitor.stop())
           return;
 
@@ -254,7 +254,7 @@ namespace Helium {
     std::vector<bool> visited(num_atoms(mol) + num_bonds(mol));
 
     int c = 0;
-    FOREACH_ATOM (atom, mol, MoleculeType) {
+    FOREACH_ATOM_T (atom, mol, MoleculeType) {
       if (visitor.stop())
         return;
 
@@ -311,12 +311,12 @@ namespace Helium {
         visited[i] = true;
         // mark bonds around atom as visited
         atom_type atom = get_atom(mol, i);
-        FOREACH_INCIDENT(bond, atom, mol, MoleculeType)
+        FOREACH_INCIDENT_T(bond, atom, mol, MoleculeType)
           visited[num_atoms(mol) + get_index(mol, *bond)] = true;
       }
 
     int c = 0;
-    FOREACH_ATOM (atom, mol, MoleculeType) {
+    FOREACH_ATOM_T (atom, mol, MoleculeType) {
       if (visitor.stop())
         return;
 
@@ -378,7 +378,7 @@ namespace Helium {
         visited[num_atoms(mol) + i] = true;
 
     int c = 0;
-    FOREACH_ATOM (atom, mol, MoleculeType) {
+    FOREACH_ATOM_T (atom, mol, MoleculeType) {
       if (visitor.stop())
         return;
 
@@ -470,7 +470,7 @@ namespace Helium {
         visited[i] = true;
         // mark bonds around atom as visited
         atom_type atom = get_atom(mol, i);
-        FOREACH_INCIDENT(bond, atom, mol, MoleculeType)
+        FOREACH_INCIDENT_T(bond, atom, mol, MoleculeType)
           visited[num_atoms(mol) + get_index(mol, *bond)] = true;
       }
 
@@ -554,7 +554,7 @@ namespace Helium {
       visitor.atom(mol, prev, atom);
 
       std::vector<std::pair<std::size_t, bond_type> > bonds;
-      FOREACH_INCIDENT (bond, atom, mol, MoleculeType) {
+      FOREACH_INCIDENT_T (bond, atom, mol, MoleculeType) {
         atom_type nbr = get_other(mol, *bond, atom);
         bonds.push_back(std::make_pair(std::find(order.begin(), order.end(),
                 get_index(mol, nbr)) - order.begin(), *bond));
@@ -660,7 +660,7 @@ namespace Helium {
 
       // create list of bonds to visit next
       std::vector<bond_type> bonds;
-      FOREACH_INCIDENT (bond, atom, mol, MoleculeType) {
+      FOREACH_INCIDENT_T (bond, atom, mol, MoleculeType) {
         if (!visited[num_atoms(mol) + get_index(mol, *bond)])
           bonds.push_back(*bond);
       }

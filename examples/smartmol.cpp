@@ -1,6 +1,5 @@
 // examples/molecule1.cpp
-#include <Helium/molecule.h>
-#include <Helium/hemol.h> // for HeMol and hemol_from_smiles()
+#include <Helium/smartmol.h> // for HeMol and hemol_from_smiles()
 
 #include <iostream>
 
@@ -31,6 +30,9 @@ void print_stuff(const MoleculeType &mol)
 
 int main()
 {
-  HeMol mol = hemol_from_smiles("CC(=O)C");
-  print_stuff(mol);
+  SmartMol mol;
+
+  for (auto atom : mol.atoms()) {
+  }
+  //print_stuff(mol);
 }

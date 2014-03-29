@@ -34,6 +34,47 @@
 
 namespace Helium {
 
+  template<typename MoleculeType>
+  bool is_valid_atom_mask(const MoleculeType &mol, const std::vector<bool> &atomMask)
+  {
+    if (num_atoms(mol) != atomMask.size())
+      return false;
+
+    return true;
+  }
+
+  template<typename MoleculeType>
+  bool is_valid_bond_mask(const MoleculeType &mol, const std::vector<bool> &atomMask,
+      const std::vector<bool> &bondMask)
+  {
+    typedef typename molecule_traits<MoleculeType>::atom_type atom_type;
+
+    if (!is_valid_atom_mask(mol, atomMask))
+      return false;
+    if (num_bonds(mol) != bondMask.size())
+      return false;
+
+    // if a bond should be considered, both atoms should also be considered
+    FOREACH_BOND (bond, mol, MoleculeType) {
+      if (!bondMask[get_index(mol, *bond)])
+        continue;
+      atom_type source = get_source(mol, *bond);
+      if (!atomMask[get_index(mol, source)])
+        return false;
+      atom_type target = get_target(mol, *bond);
+      if (!atomMask[get_index(mol, target)])
+        return false;
+    }
+
+    return true;
+  }
+
+  //////////////////////////////////////////////////////////////////////////////
+  //
+  // DFSVisitor base class
+  //
+  //////////////////////////////////////////////////////////////////////////////
+
   /**
    * @brief Base class for DFS functors.
    */
@@ -112,15 +153,38 @@ namespace Helium {
      * @param bond The "back" bond.
      */
     void back_bond(const MoleculeType &mol, bond_type bond) {}
+
+    /**
+     * @brief Check if the search should be stopped.
+     *
+     * By overloading this function it is possible to abort the search before
+     * it is complete (e.g. when some goal is achieved).
+     *
+     * @return True if the search should be stopped.
+     */
+    bool stop() const
+    {
+      return false;
+    }
   };
+
+  //////////////////////////////////////////////////////////////////////////////
+  //
+  // basic depth first search
+  //
+  //////////////////////////////////////////////////////////////////////////////
 
   namespace impl {
 
+    // basic dfs recursive function
     template<typename MoleculeType, typename AtomType, typename DFSVisitorType>
     void dfs_visit(const MoleculeType &mol, AtomType atom, DFSVisitorType &visitor, std::vector<bool> &visited,
         AtomType prev = molecule_traits<MoleculeType>::null_atom())
     {
       typedef AtomType atom_type;
+
+      if (visitor.stop())
+        return;
 
       // mark atom as visited
       visited[get_index(mol, atom)] = true;
@@ -129,14 +193,21 @@ namespace Helium {
 
       // call dfs_visit for all unvisited neighbors of v
       FOREACH_INCIDENT (bond, atom, mol, MoleculeType) {
+        if (visitor.stop())
+          return;
+
+        if (visited[num_atoms(mol) + get_index(mol, *bond)])
+          continue;
+
         atom_type nbr = get_other(mol, *bond, atom);
 
         if (visited[get_index(mol, nbr)]) {
           // if this bond has not been visited before, a back_bond has been found
-          if (!visited[num_atoms(mol) + get_index(mol, *bond)])
+          if (!visited[num_atoms(mol) + get_index(mol, *bond)]) {
             visitor.back_bond(mol, *bond);
-          // mark bond as visited
-          visited[num_atoms(mol) + get_index(mol, *bond)] = true;
+            // mark bond as visited
+            visited[num_atoms(mol) + get_index(mol, *bond)] = true;
+          }
           continue;
         }
 
@@ -152,6 +223,320 @@ namespace Helium {
       visitor.backtrack(mol, atom);
     }
 
+  } // namespace impl
+
+  /**
+   * @brief Perform a depth-first search (DFS).
+   *
+   * This depth-first search function considers all components and walks a single
+   * spanning tree for each component. The atom with the lowest index from each
+   * component is used as root of the resulting spanning tree to start the
+   * search.
+   *
+   * This function makes use of a visitor functor to allow actions to be
+   * performed. A number of visitors are available (e.g. DFSAtomOrderVisitor,
+   * DFSBondOrderVisitor, DFSClosureRecorderVisitor, DFSDebugVisitor). Custom
+   * functor can be implemented by inheriting the DFSVisitor struct and
+   * reimplementing the required functions.
+   *
+   * @note Complexity: @f$O(n)@f$
+   * @ingroup Production
+   * @note Phase: Production
+   *
+   * @param mol The molecule.
+   * @param visitor The DFS visitor functor.
+   */
+  template<typename MoleculeType, typename DFSVisitorType>
+  void depth_first_search(const MoleculeType &mol, DFSVisitorType &visitor)
+  {
+    visitor.initialize(mol);
+
+    std::vector<bool> visited(num_atoms(mol) + num_bonds(mol));
+
+    int c = 0;
+    FOREACH_ATOM (atom, mol, MoleculeType) {
+      if (visitor.stop())
+        return;
+
+      if (!visited[get_index(mol, *atom)]) {
+        visitor.component(c++);
+        impl::dfs_visit(mol, *atom, visitor, visited);
+      }
+    }
+  }
+
+  /**
+   * @brief Perform a depth-first search (DFS).
+   *
+   * This depth-first search function considers all components and walks a single
+   * spanning tree for each component. The atom with the lowest index from each
+   * component is used as root of the resulting spanning tree to start the
+   * search.
+   *
+   * This function makes use of a visitor functor to allow actions to be
+   * performed. A number of visitors are available (e.g. DFSAtomOrderVisitor,
+   * DFSBondOrderVisitor, DFSClosureRecorderVisitor, DFSDebugVisitor). Custom
+   * functor can be implemented by inheriting the DFSVisitor struct and
+   * reimplementing the required functions.
+   *
+   * The @p atomMask specifies the atoms and bonds that will be considered.
+   * The element in the @p atomMask that correspond with atoms to be included
+   * in the search should be set to true. If an atom is not included in the
+   * search, all bonds around the atom are also excluded.
+   *
+   * @note Complexity: @f$O(n)@f$
+   * @ingroup Production
+   * @note Phase: Production
+   *
+   * @param mol The molecule.
+   * @param visitor The DFS visitor functor.
+   * @param atomMask The atom mask.
+   */
+  template<typename MoleculeType, typename DFSVisitorType>
+  void depth_first_search_mask(const MoleculeType &mol, DFSVisitorType &visitor,
+      const std::vector<bool> &atomMask)
+  {
+    typedef typename molecule_traits<MoleculeType>::atom_type atom_type;
+
+    // initialize the visitor
+    visitor.initialize(mol);
+
+    // keep track of visited atoms and bonds
+    std::vector<bool> visited(num_atoms(mol) + num_bonds(mol));
+
+    // initialize visited to take mask into account
+    for (std::size_t i = 0; i < num_atoms(mol); ++i)
+      if (!atomMask[i]) {
+        // mark masked atoms as visited
+        visited[i] = true;
+        // mark bonds around atom as visited
+        atom_type atom = get_atom(mol, i);
+        FOREACH_INCIDENT(bond, atom, mol, MoleculeType)
+          visited[num_atoms(mol) + get_index(mol, *bond)] = true;
+      }
+
+    int c = 0;
+    FOREACH_ATOM (atom, mol, MoleculeType) {
+      if (visitor.stop())
+        return;
+
+      if (!visited[get_index(mol, *atom)]) {
+        // let the visitor know a new component (i.e. tree) starts
+        visitor.component(c++);
+        // initiate recursive search
+        impl::dfs_visit(mol, *atom, visitor, visited);
+      }
+    }
+  }
+
+  /**
+   * @brief Perform a depth-first search (DFS).
+   *
+   * This depth-first search function considers all components and walks a single
+   * spanning tree for each component. The atom with the lowest index from each
+   * component is used as root of the resulting spanning tree to start the
+   * search.
+   *
+   * This function makes use of a visitor functor to allow actions to be
+   * performed. A number of visitors are available (e.g. DFSAtomOrderVisitor,
+   * DFSBondOrderVisitor, DFSClosureRecorderVisitor, DFSDebugVisitor). Custom
+   * functor can be implemented by inheriting the DFSVisitor struct and
+   * reimplementing the required functions.
+   *
+   * The @p atomMask specifies the atoms that will be considered.
+   * The element in the @p atomMask that correspond with atoms to be included
+   * in the search should be set to true. The @p bondMask works in the same way
+   * but specifies the bonds that should be considered.
+   *
+   * @note Complexity: @f$O(n)@f$
+   * @ingroup Production
+   * @note Phase: Production
+   *
+   * @param mol The molecule.
+   * @param visitor The DFS visitor functor.
+   * @param atomMask The atom mask.
+   * @param bondMask The bond mask.
+   */
+  template<typename MoleculeType, typename DFSVisitorType>
+  void depth_first_search_mask(const MoleculeType &mol, DFSVisitorType &visitor,
+      const std::vector<bool> &atomMask, const std::vector<bool> &bondMask)
+  {
+    typedef typename molecule_traits<MoleculeType>::atom_type atom_type;
+
+    // initialize the visitor
+    visitor.initialize(mol);
+
+    // keep track of visited atoms and bonds
+    std::vector<bool> visited(num_atoms(mol) + num_bonds(mol));
+
+    // initialize visited to take masks into account
+    for (std::size_t i = 0; i < num_atoms(mol); ++i)
+      if (!atomMask[i])
+        visited[i] = true;
+    for (std::size_t i = 0; i < num_bonds(mol); ++i)
+      if (!bondMask[i])
+        visited[num_atoms(mol) + i] = true;
+
+    int c = 0;
+    FOREACH_ATOM (atom, mol, MoleculeType) {
+      if (visitor.stop())
+        return;
+
+      if (!visited[get_index(mol, *atom)]) {
+        // let the visitor know a new component (i.e. tree) starts
+        visitor.component(c++);
+        // initiate recursive search
+        impl::dfs_visit(mol, *atom, visitor, visited);
+      }
+    }
+  }
+
+  /**
+   * @brief Perform a depth-first search (DFS).
+   *
+   * This depth-first search function considers a single component and walks a
+   * single spanning tree starting at @p atom.
+   *
+   * This function makes use of a visitor functor to allow actions to be
+   * performed. A number of visitors are available (e.g. DFSAtomOrderVisitor,
+   * DFSBondOrderVisitor, DFSClosureRecorderVisitor, DFSDebugVisitor). Custom
+   * functor can be implemented by inheriting the DFSVisitor struct and
+   * reimplementing the required functions.
+   *
+   * @note Complexity: @f$O(n)@f$
+   * @ingroup Production
+   * @note Phase: Production
+   *
+   * @param mol The molecule.
+   * @param atom The start atom (i.e. root of the spanning tree).
+   * @param visitor The DFS visitor functor.
+   */
+  template<typename MoleculeType, typename DFSVisitorType>
+  void depth_first_search(const MoleculeType &mol,
+      typename molecule_traits<MoleculeType>::atom_type atom, DFSVisitorType &visitor)
+  {
+    // initialize the visitor
+    visitor.initialize(mol);
+
+    // keep track of visited atoms and bonds
+    std::vector<bool> visited(num_atoms(mol) + num_bonds(mol));
+
+    visitor.component(0);
+    impl::dfs_visit(mol, atom, visitor, visited);
+  }
+
+  /**
+   * @brief Perform a depth-first search (DFS).
+   *
+   * This depth-first search function considers a single component and walks a
+   * single spanning tree starting at @p atom.
+   *
+   * This function makes use of a visitor functor to allow actions to be
+   * performed. A number of visitors are available (e.g. DFSAtomOrderVisitor,
+   * DFSBondOrderVisitor, DFSClosureRecorderVisitor, DFSDebugVisitor). Custom
+   * functor can be implemented by inheriting the DFSVisitor struct and
+   * reimplementing the required functions.
+   *
+   * The @p atomMask specifies the atoms and bonds that will be considered.
+   * The element in the @p atomMask that correspond with atoms to be included
+   * in the search should be set to true. If an atom is not included in the
+   * search, all bonds around the atom are also excluded.
+   *
+   * @note Complexity: @f$O(n)@f$
+   * @ingroup Production
+   * @note Phase: Production
+   *
+   * @param mol The molecule.
+   * @param atom The start atom (i.e. root of the spanning tree).
+   * @param visitor The DFS visitor functor.
+   */
+  template<typename MoleculeType, typename DFSVisitorType>
+  void depth_first_search_mask(const MoleculeType &mol,
+      typename molecule_traits<MoleculeType>::atom_type atom, DFSVisitorType &visitor,
+      const std::vector<bool> &atomMask)
+  {
+    typedef typename molecule_traits<MoleculeType>::atom_type atom_type;
+
+    // initialize the visitor
+    visitor.initialize(mol);
+
+    // keep track of visited atoms and bonds
+    std::vector<bool> visited(num_atoms(mol) + num_bonds(mol));
+
+    // initialize visited to take mask into account
+    for (std::size_t i = 0; i < num_atoms(mol); ++i)
+      if (!atomMask[i]) {
+        // mark masked atoms as visited
+        visited[i] = true;
+        // mark bonds around atom as visited
+        atom_type atom = get_atom(mol, i);
+        FOREACH_INCIDENT(bond, atom, mol, MoleculeType)
+          visited[num_atoms(mol) + get_index(mol, *bond)] = true;
+      }
+
+    visitor.component(0);
+    impl::dfs_visit(mol, atom, visitor, visited);
+  }
+
+  /**
+   * @brief Perform a depth-first search (DFS).
+   *
+   * This depth-first search function considers a single component and walks a
+   * single spanning tree starting at @p atom.
+   *
+   * This function makes use of a visitor functor to allow actions to be
+   * performed. A number of visitors are available (e.g. DFSAtomOrderVisitor,
+   * DFSBondOrderVisitor, DFSClosureRecorderVisitor, DFSDebugVisitor). Custom
+   * functor can be implemented by inheriting the DFSVisitor struct and
+   * reimplementing the required functions.
+   *
+   * The @p atomMask specifies the atoms that will be considered.
+   * The element in the @p atomMask that correspond with atoms to be included
+   * in the search should be set to true. The @p bondMask works in the same way
+   * but specifies the bonds that should be considered.
+   *
+   * @note Complexity: @f$O(n)@f$
+   * @ingroup Production
+   * @note Phase: Production
+   *
+   * @param mol The molecule.
+   * @param atom The start atom (i.e. root of the spanning tree).
+   * @param visitor The DFS visitor functor.
+   */
+  template<typename MoleculeType, typename DFSVisitorType>
+  void depth_first_search_mask(const MoleculeType &mol,
+      typename molecule_traits<MoleculeType>::atom_type atom, DFSVisitorType &visitor,
+      const std::vector<bool> &atomMask, const std::vector<bool> &bondMask)
+  {
+    typedef typename molecule_traits<MoleculeType>::atom_type atom_type;
+
+    // initialize the visitor
+    visitor.initialize(mol);
+
+    // keep track of visited atoms and bonds
+    std::vector<bool> visited(num_atoms(mol) + num_bonds(mol));
+
+    // initialize visited to take masks into account
+    for (std::size_t i = 0; i < num_atoms(mol); ++i)
+      if (!atomMask[i])
+        visited[i] = true;
+    for (std::size_t i = 0; i < num_bonds(mol); ++i)
+      if (!bondMask[i])
+        visited[num_atoms(mol) + i] = true;
+
+    visitor.component(0);
+    impl::dfs_visit(mol, atom, visitor, visited);
+  }
+
+  //////////////////////////////////////////////////////////////////////////////
+  //
+  // depth first search with specified atom order
+  //
+  //////////////////////////////////////////////////////////////////////////////
+
+  namespace impl {
+
+    // dfs recursive function taking specified order into account
     template<typename MoleculeType, typename AtomType, typename DFSVisitorType>
     void dfs_visit(const MoleculeType &mol, AtomType atom, const std::vector<Index> &order,
         DFSVisitorType &visitor, std::vector<bool> &visited,
@@ -159,6 +544,9 @@ namespace Helium {
     {
       typedef AtomType atom_type;
       typedef typename molecule_traits<MoleculeType>::bond_type bond_type;
+
+      if (visitor.stop())
+        return;
 
       // mark atom as visited
       visited[get_index(mol, atom)] = true;
@@ -168,13 +556,17 @@ namespace Helium {
       std::vector<std::pair<std::size_t, bond_type> > bonds;
       FOREACH_INCIDENT (bond, atom, mol, MoleculeType) {
         atom_type nbr = get_other(mol, *bond, atom);
-        bonds.push_back(std::make_pair(std::find(order.begin(), order.end(), get_index(mol, nbr)) - order.begin(), *bond));
+        bonds.push_back(std::make_pair(std::find(order.begin(), order.end(),
+                get_index(mol, nbr)) - order.begin(), *bond));
       }
 
       std::sort(bonds.begin(), bonds.end(), compare_first<std::size_t, bond_type>());
 
       // call dfs_visit for all unvisited neighbors of v
       for (std::size_t i = 0; i < bonds.size(); ++i) {
+        if (visitor.stop())
+          return;
+
         bond_type bond = bonds[i].second;
         atom_type nbr = get_other(mol, bond, atom);
 
@@ -199,12 +591,67 @@ namespace Helium {
       visitor.backtrack(mol, atom);
     }
 
+  } // namespace impl
+
+  /**
+   * @brief Perform a depth-first search (DFS).
+   *
+   * This depth-first search function considers all components and walks a single
+   * spanning tree for each component. The atom that comes first in @p order from
+   * each component is used as root of the resulting spanning tree to start the
+   * search. If an atom has multiple neighbors the specified @p order is also used
+   * to determine the order in which these are visited.
+   *
+   * This function makes use of a visitor functor to allow actions to be
+   * performed. A number of visitors are available (e.g. DFSAtomOrderVisitor,
+   * DFSBondOrderVisitor, DFSClosureRecorderVisitor, DFSDebugVisitor). Custom
+   * functor can be implemented by inheriting the DFSVisitor struct and
+   * reimplementing the required functions.
+   *
+   * @note Complexity: @f$O(n)@f$
+   * @ingroup Production
+   * @note Phase: Production
+   *
+   * @param mol The molecule.
+   * @param order The order for visiting atoms.
+   * @param visitor The DFS visitor functor.
+   */
+  template<typename MoleculeType, typename DFSVisitorType>
+  void depth_first_search(const MoleculeType &mol, const std::vector<Index> &order, DFSVisitorType &visitor)
+  {
+    visitor.initialize(mol);
+
+    std::vector<bool> visited(num_atoms(mol) + num_bonds(mol));
+
+    int c = 0;
+    for (std::size_t i = 0; i < order.size(); ++i) {
+      if (visitor.stop())
+        return;
+
+      if (!visited[order[i]]) {
+        visitor.component(c);
+        impl::dfs_visit(mol, get_atom(mol, order[i]), order, visitor, visited);
+      }
+    }
+  }
+
+  //////////////////////////////////////////////////////////////////////////////
+  //
+  // exhaustive depth first search
+  //
+  //////////////////////////////////////////////////////////////////////////////
+
+  namespace impl {
+
     template<typename MoleculeType, typename AtomType, typename DFSVisitorType>
-    void exhaustive_dfs_visit(const MoleculeType &mol, AtomType atom, DFSVisitorType &visitor, std::vector<bool> &visited,
-        AtomType prev = molecule_traits<MoleculeType>::null_atom())
+    void exhaustive_dfs_visit(const MoleculeType &mol, AtomType atom, DFSVisitorType &visitor,
+        std::vector<bool> &visited, AtomType prev = molecule_traits<MoleculeType>::null_atom())
     {
       typedef AtomType atom_type;
       typedef typename molecule_traits<MoleculeType>::bond_type bond_type;
+
+      if (visitor.stop())
+        return;
 
       // mark atom as visited
       visited[get_index(mol, atom)] = true;
@@ -228,6 +675,9 @@ namespace Helium {
 
         // call dfs_visit for all unvisited neighbors of v
         for (typename std::vector<bond_type>::iterator bond = bonds.begin(); bond != bonds.end(); ++bond) {
+          if (visitor.stop())
+            return;
+
           atom_type nbr = get_other(mol, *bond, atom);
 
           if (visited[get_index(mol, nbr)]) {
@@ -253,118 +703,12 @@ namespace Helium {
       visitor.backtrack(mol, atom);
     }
 
-  }
-
-  /**
-   * @brief Perform a depth-first search (DFS).
-   *
-   * This depth-first search function considers all fragments and walks a single
-   * spanning tree for each fragment. The atom with the lowest index from each
-   * fragment is used as root of the resulting spanning tree to start the
-   * search.
-   *
-   * This function makes use of a visitor functor to allow actions to be
-   * performed. A number of visitors are available (e.g. DFSAtomOrderVisitor,
-   * DFSBondOrderVisitor, DFSClosureRecorderVisitor, DFSDebugVisitor). Custom
-   * functor can be implemented by inheriting the DFSVisitor struct and
-   * reimplementing the required functions.
-   *
-   * @note Complexity: @f$O(n)@f$
-   * @ingroup Production
-   * @note Phase: Production
-   *
-   * @param mol The molecule.
-   * @param visitor The DFS visitor functor.
-   */
-  template<typename MoleculeType, typename DFSVisitorType>
-  void depth_first_search(const MoleculeType &mol, DFSVisitorType &visitor)
-  {
-    visitor.initialize(mol);
-
-    std::vector<bool> visited(num_atoms(mol) + num_bonds(mol));
-
-    int c = 0;
-    FOREACH_ATOM (atom, mol, MoleculeType) {
-      if (!visited[get_index(mol, *atom)]) {
-        visitor.component(c++);
-        impl::dfs_visit(mol, *atom, visitor, visited);
-      }
-    }
-  }
-
-  /**
-   * @brief Perform a depth-first search (DFS).
-   *
-   * This depth-first search function considers a single fragments and walks a
-   * single spanning tree starting at @p atom.
-   *
-   * This function makes use of a visitor functor to allow actions to be
-   * performed. A number of visitors are available (e.g. DFSAtomOrderVisitor,
-   * DFSBondOrderVisitor, DFSClosureRecorderVisitor, DFSDebugVisitor). Custom
-   * functor can be implemented by inheriting the DFSVisitor struct and
-   * reimplementing the required functions.
-   *
-   * @note Complexity: @f$O(n)@f$
-   * @ingroup Production
-   * @note Phase: Production
-   *
-   * @param mol The molecule.
-   * @param atom The start atom (i.e. root of the spanning tree).
-   * @param visitor The DFS visitor functor.
-   */
-  template<typename MoleculeType, typename AtomType, typename DFSVisitorType>
-  void depth_first_search(const MoleculeType &mol, AtomType atom, DFSVisitorType &visitor)
-  {
-    visitor.initialize(mol);
-
-    std::vector<bool> visited(num_atoms(mol) + num_bonds(mol));
-
-    visitor.component(0);
-    impl::dfs_visit(mol, atom, visitor, visited);
-  }
-
-  /**
-   * @brief Perform a depth-first search (DFS).
-   *
-   * This depth-first search function considers all fragments and walks a single
-   * spanning tree for each fragment. The atom with the lowest index from each
-   * fragment is used as root of the resulting spanning tree to start the
-   * search.
-   *
-   * This function makes use of a visitor functor to allow actions to be
-   * performed. A number of visitors are available (e.g. DFSAtomOrderVisitor,
-   * DFSBondOrderVisitor, DFSClosureRecorderVisitor, DFSDebugVisitor). Custom
-   * functor can be implemented by inheriting the DFSVisitor struct and
-   * reimplementing the required functions.
-   *
-   * @note Complexity: @f$O(n)@f$
-   * @ingroup Production
-   * @note Phase: Production
-   *
-   * @param mol The molecule.
-   * @param order An order for visiting atoms.
-   * @param visitor The DFS visitor functor.
-   */
-  template<typename MoleculeType, typename DFSVisitorType>
-  void depth_first_search(const MoleculeType &mol, const std::vector<Index> &order, DFSVisitorType &visitor)
-  {
-    visitor.initialize(mol);
-
-    std::vector<bool> visited(num_atoms(mol) + num_bonds(mol));
-
-    int c = 0;
-    for (std::size_t i = 0; i < order.size(); ++i) {
-      if (!visited[order[i]]) {
-        visitor.component(c);
-        impl::dfs_visit(mol, get_atom(mol, order[i]), order, visitor, visited);
-      }
-    }
-  }
+  } // namespace impl
 
   /**
    * @brief Perform an exhaustive depth-first search (DFS).
    *
-   * This depth-first search function considers a single fragment and starts
+   * This depth-first search function considers a single component and starts
    * walking from the specified atom. If there are multiple neighbors to visit
    * next, all permutations are tried making this an exhaustive search.
    *
@@ -389,8 +733,15 @@ namespace Helium {
 
     std::vector<bool> visited(num_atoms(mol) + num_bonds(mol));
 
+    visitor.component(0);
     impl::exhaustive_dfs_visit(mol, atom, visitor, visited);
   }
+
+  //////////////////////////////////////////////////////////////////////////////
+  //
+  // Depth first search visitors
+  //
+  //////////////////////////////////////////////////////////////////////////////
 
   /**
    * @brief A DFS visitor that records the order in which the atoms are visited.
@@ -517,7 +868,7 @@ namespace Helium {
      */
     void initialize(const MoleculeType &mol)
     {
-      std::cout << "initialize()" << std::endl;
+      os << "initialize()" << std::endl;
     }
 
     /**
@@ -525,7 +876,7 @@ namespace Helium {
      */
     void component(int i)
     {
-      std::cout << "component(" << i << ")" << std::endl;
+      os << "component(" << i << ")" << std::endl;
     }
 
     /**

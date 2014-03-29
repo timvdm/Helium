@@ -7,6 +7,7 @@
 set(HELIUM_HDRS
   bitvec.h
   contract.h
+  concepts.h
   concurrent.h
   element.h
   molecule.h
@@ -20,6 +21,7 @@ set(HELIUM_HDRS
   ring.h
   smarts.h
   smirks.h
+  smartmol.h
 )
 
 set(HELIUM_ALGORITHMS_HDRS
@@ -35,6 +37,7 @@ set(HELIUM_ALGORITHMS_HDRS
   algorithms/isomorphism.h
   algorithms/dijkstra.h
   algorithms/floydwarshall.h
+  algorithms/smartcomponents.h
 )
 
 set(HELIUM_UTIL_HDRS
@@ -67,6 +70,10 @@ set(HELIUM_TOOLKITS_HDRS
   toolkits/openbabel.h
 )
 
+set(HELIUM_CHEMIST_HDRS
+  chemist/molecule.h
+)
+
 set(HELIUM_ALL_HDRS
   ${HELIUM_HDRS}
   ${HELIUM_ALGORITHMS_HDRS}
@@ -75,6 +82,7 @@ set(HELIUM_ALL_HDRS
   ${HELIUM_FINGERPRINTS_HDRS}
   ${HELIUM_STEREO_HDRS}
   ${HELIUM_TOOLKITS_HDRS}
+  ${HELIUM_CHEMIST_HDRS}
 )
 
 # Set up the include directory and symlink/copy all headers to it.
@@ -86,6 +94,7 @@ make_directory("${CMAKE_BINARY_DIR}/include/Helium/fileio")
 make_directory("${CMAKE_BINARY_DIR}/include/Helium/fingerprints")
 make_directory("${CMAKE_BINARY_DIR}/include/Helium/algorithms")
 make_directory("${CMAKE_BINARY_DIR}/include/Helium/toolkits")
+make_directory("${CMAKE_BINARY_DIR}/include/Helium/chemist")
 if(UNIX)
   set(header_cmd "create_symlink")
 else()

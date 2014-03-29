@@ -125,6 +125,7 @@ add_subdirectory(test)
 
 add_subdirectory(tools)
 add_subdirectory(examples)
+add_subdirectory(benchmark)
 
 ############################################################
 #
@@ -149,10 +150,10 @@ endif()
 ############################################################
 
 # Python
-#option(ENABLE_PYTHON "Enable python bindings" OFF)
-#if (ENABLE_PYTHON)
-#  add_subdirectory(bindings/python)
-#endif()
+option(ENABLE_PYTHON "Enable python bindings" OFF)
+if (ENABLE_PYTHON)
+  add_subdirectory(bindings/python)
+endif()
 
 # Build service
 option(ENABLE_SERVICE "Enable the RESTful service" OFF)

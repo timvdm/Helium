@@ -21,6 +21,7 @@ set(tests
   bfs
   smarts
   smirks
+  smartcomponents
   )
 
 foreach(test ${tests})

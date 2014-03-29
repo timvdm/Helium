@@ -1,4 +1,8 @@
+#include <iterator>
 #include <Helium/hemol.h>
+#include <Helium/smartmol.h>
+#include <Helium/concepts.h>
+
 
 #include "test.h"
 
@@ -124,11 +128,12 @@ void test_molecule_has_atom()
   ASSERT(!molecule_has_atom(methane, ElementPredicate<HeMol>(7)));
 }
 
+template<typename MoleculeType>
 void test_editable_molecule()
 {
-  typedef molecule_traits<HeMol>::atom_type atom_type;
-  typedef molecule_traits<HeMol>::bond_type bond_type;
-  HeMol mol;
+  typedef typename molecule_traits<MoleculeType>::atom_type atom_type;
+  typedef typename molecule_traits<MoleculeType>::bond_type bond_type;
+  MoleculeType mol;
 
   // create 4 atoms
   atom_type atom1 = add_atom(mol);
@@ -235,5 +240,9 @@ int main()
   test_atom_predicates();
   test_molecule_has_atom();
 
-  test_editable_molecule();
+  test_editable_molecule<HeMol>();
+  test_editable_molecule<SmartMol>();
+
+  check_editable_molecule_concept<HeMol>();
+  check_editable_molecule_concept<SmartMol>();
 }

@@ -191,6 +191,46 @@ namespace Helium {
     }
   };
 
+  template<typename IteratorType>
+  class iterator_pair
+  {
+    public:
+      iterator_pair(const IteratorType &begin, const IteratorType &end)
+        : m_begin(begin), m_end(end)
+      {
+      }
+
+      const IteratorType& begin() const
+      {
+        return m_begin;
+      }
+
+      IteratorType& begin()
+      {
+        return m_begin;
+      }
+
+      const IteratorType& end() const
+      {
+        return m_end;
+      }
+
+      IteratorType& end()
+      {
+        return m_end;
+      }
+
+    private:
+      IteratorType m_begin;
+      IteratorType m_end;
+  };
+
+  template<typename IteratorType>
+  iterator_pair<IteratorType> make_iterator_pair(const IteratorType &begin,
+      const IteratorType &end)
+  {
+    return iterator_pair<IteratorType>(begin, end);
+  }
 
   //////////////////////////////////////////////////////////////////////////////
   //
@@ -230,8 +270,7 @@ namespace Helium {
    * @return The iterator pair to iterate over the atoms inside a molecule.
    */
   template<typename MoleculeType>
-  std::pair<typename molecule_traits<MoleculeType>::atom_iter,
-    typename molecule_traits<MoleculeType>::atom_iter>
+  iterator_pair<typename molecule_traits<MoleculeType>::atom_iter>
   get_atoms(const MoleculeType &mol);
 
   /**
@@ -294,8 +333,7 @@ namespace Helium {
    * @return The iterator pair to iterate over the bonds inside a molecule.
    */
   template<typename MoleculeType>
-  std::pair<typename molecule_traits<MoleculeType>::bond_iter,
-            typename molecule_traits<MoleculeType>::bond_iter>
+  iterator_pair<typename molecule_traits<MoleculeType>::bond_iter>
   get_bonds(const MoleculeType &mol);
 
   /**
@@ -388,8 +426,7 @@ namespace Helium {
    * @return The iterator pair to iterate over an atom's incident bonds.
    */
   template<typename MoleculeType>
-  std::pair<typename molecule_traits<MoleculeType>::incident_iter,
-            typename molecule_traits<MoleculeType>::incident_iter>
+  iterator_pair<typename molecule_traits<MoleculeType>::incident_iter>
   get_bonds(const MoleculeType &mol,
       typename molecule_traits<MoleculeType>::atom_type atom);
 
@@ -404,8 +441,7 @@ namespace Helium {
    * @return The iterator pair to iterate over an atom's neighboring atoms.
    */
   template<typename MoleculeType>
-  std::pair<typename molecule_traits<MoleculeType>::nbr_iter,
-    typename molecule_traits<MoleculeType>::nbr_iter>
+  iterator_pair<typename molecule_traits<MoleculeType>::nbr_iter>
   get_nbrs(const MoleculeType &mol,
       typename molecule_traits<MoleculeType>::atom_type atom);
 

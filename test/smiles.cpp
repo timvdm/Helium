@@ -1,4 +1,5 @@
 #include <Helium/smiles.h>
+#include <Helium/hemol.h>
 #include <Helium/fileio/moleculefile.h>
 #include <Helium/algorithms/components.h>
 

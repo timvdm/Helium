@@ -1,5 +1,5 @@
-#ifndef HELIUM_OPENBAEL_H
-#define HELIUM_OPENABEL_H
+#ifndef HELIUM_OPENBABEL_H
+#define HELIUM_OPENBABEL_H
 
 #include <Helium/molecule.h>
 #include <openbabel/mol.h>
@@ -88,12 +88,11 @@ namespace Helium {
   }
 
   template<>
-  std::pair<typename molecule_traits<OpenBabel::OBMol>::atom_iter,
-            typename molecule_traits<OpenBabel::OBMol>::atom_iter>
+  iterator_pair<typename molecule_traits<OpenBabel::OBMol>::atom_iter>
   get_atoms(const OpenBabel::OBMol &mol)
   {
-    return std::make_pair(const_cast<OpenBabel::OBMol&>(mol).BeginAtoms(),
-                          const_cast<OpenBabel::OBMol&>(mol).EndAtoms());
+    return make_iterator_pair(const_cast<OpenBabel::OBMol&>(mol).BeginAtoms(),
+                              const_cast<OpenBabel::OBMol&>(mol).EndAtoms());
   }
 
   template<>
@@ -124,12 +123,11 @@ namespace Helium {
   }
 
   template<>
-  std::pair<typename molecule_traits<OpenBabel::OBMol>::bond_iter,
-            typename molecule_traits<OpenBabel::OBMol>::bond_iter>
+  iterator_pair<typename molecule_traits<OpenBabel::OBMol>::bond_iter>
   get_bonds(const OpenBabel::OBMol &mol)
   {
-    return std::make_pair(const_cast<OpenBabel::OBMol&>(mol).BeginBonds(),
-                          const_cast<OpenBabel::OBMol&>(mol).EndBonds());
+    return make_iterator_pair(const_cast<OpenBabel::OBMol&>(mol).BeginBonds(),
+                              const_cast<OpenBabel::OBMol&>(mol).EndBonds());
   }
 
   template<>
@@ -173,22 +171,20 @@ namespace Helium {
   }
 
   template<>
-  std::pair<typename molecule_traits<OpenBabel::OBMol>::incident_iter,
-            typename molecule_traits<OpenBabel::OBMol>::incident_iter>
+  iterator_pair<typename molecule_traits<OpenBabel::OBMol>::incident_iter>
   get_bonds(const OpenBabel::OBMol &mol,
       typename molecule_traits<OpenBabel::OBMol>::atom_type atom)
   {
-    return std::make_pair(atom->BeginBonds(), atom->EndBonds());
+    return make_iterator_pair(atom->BeginBonds(), atom->EndBonds());
   }
 
   template<>
-  std::pair<typename molecule_traits<OpenBabel::OBMol>::nbr_iter,
-    typename molecule_traits<OpenBabel::OBMol>::nbr_iter>
+  iterator_pair<typename molecule_traits<OpenBabel::OBMol>::nbr_iter>
   get_nbrs(const OpenBabel::OBMol &mol,
       typename molecule_traits<OpenBabel::OBMol>::atom_type atom)
   {
-    return std::make_pair(impl::openbabel_nbr_iterator(atom),
-                          impl::openbabel_nbr_iterator());
+    return make_iterator_pair(impl::openbabel_nbr_iterator(atom),
+                              impl::openbabel_nbr_iterator());
   }
 
   template<>

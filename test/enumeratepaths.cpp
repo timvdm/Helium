@@ -1,4 +1,5 @@
 #include <Helium/algorithms/enumeratepaths.h>
+#include <Helium/hemol.h>
 #include <Helium/smiles.h>
 
 #include "test.h"

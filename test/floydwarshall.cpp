@@ -1,4 +1,5 @@
 #include <Helium/algorithms/floydwarshall.h>
+#include <Helium/hemol.h>
 #include <Helium/smiles.h>
 #include <Helium/fileio/moleculefile.h>
 

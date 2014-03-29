@@ -27,7 +27,7 @@
 #ifndef HELIUM_SMILES_H
 #define HELIUM_SMILES_H
 
-#include <Helium/hemol.h>
+#include <Helium/molecule.h>
 #include <Helium/algorithms/dfs.h>
 #include <Helium/element.h>
 

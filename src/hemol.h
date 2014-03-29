@@ -43,70 +43,82 @@ namespace Helium {
 
   namespace impl {
 
-    template<typename HeAtomType, typename HeBondType>
-    class nbr_iterator
+    template<typename MoleculeType>
+    class nbr_iterator : public std::iterator<std::forward_iterator_tag,
+        typename molecule_traits<MoleculeType>::atom_type>
     {
       public:
+        typedef typename molecule_traits<MoleculeType>::atom_type atom_type;
+        typedef typename molecule_traits<MoleculeType>::bond_type bond_type;
+
         nbr_iterator()
         {
         }
 
-        nbr_iterator(HeAtomType atom, typename std::vector<HeBondType>::iterator iter) : m_atom(atom), m_iter(iter)
+        nbr_iterator(const atom_type &atom, typename std::vector<bond_type>::iterator iter)
+          : m_atom(atom), m_iter(iter)
         {
         }
 
-        HeAtomType operator*() const
+        atom_type& operator*() const
         {
-          return (*m_iter).other(m_atom);
+          m_nbr = (*m_iter).other(m_atom);
+          return m_nbr;
         }
 
-        nbr_iterator<HeAtomType, HeBondType>& operator++()
+        nbr_iterator<MoleculeType>& operator++()
         {
           ++m_iter;
           return *this;
         }
 
-        nbr_iterator<HeAtomType, HeBondType> operator++(int)
+        nbr_iterator<MoleculeType> operator++(int)
         {
-          nbr_iterator<HeAtomType, HeBondType> tmp = *this;
+          nbr_iterator<MoleculeType> tmp = *this;
           ++m_iter;
           return tmp;
         }
 
-        bool operator!=(const nbr_iterator<HeAtomType, HeBondType> &other)
+        bool operator==(const nbr_iterator<MoleculeType> &other) const
+        {
+          return m_iter == other.m_iter;
+        }
+
+        bool operator!=(const nbr_iterator<MoleculeType> &other) const
         {
           return m_iter != other.m_iter;
         }
 
       private:
-        HeAtomType m_atom;
-        typename std::vector<HeBondType>::iterator m_iter;
+        atom_type m_atom;
+        typename std::vector<bond_type>::iterator m_iter;
+        mutable atom_type m_nbr;
     };
 
 
     /**
      * @brief Class representing an atom in an HeMol.
      */
-    template<typename HeMolType>
-    class HeAtom
+    template<typename MoleculeType>
+    class AtomImpl
     {
       public:
-        typedef typename molecule_traits<HeMolType>::atom_type atom_type;
-        typedef typename molecule_traits<HeMolType>::bond_type bond_type;
+        typedef typename molecule_traits<MoleculeType>::atom_type atom_type;
+        typedef typename molecule_traits<MoleculeType>::bond_type bond_type;
 
-        HeAtom(HeMolType *mol = 0, Index index = -1) : m_mol(mol), m_index(index)
+        AtomImpl(MoleculeType *mol = 0, Index index = -1) : m_mol(mol), m_index(index)
         {
         }
 
-        std::pair<typename std::vector<bond_type>::iterator, typename std::vector<bond_type>::iterator> bonds()
+        iterator_pair<typename std::vector<bond_type>::iterator> bonds()
         {
-          return std::make_pair(m_mol->m_adjList[m_index].begin(), m_mol->m_adjList[m_index].end());
+          return make_iterator_pair(m_mol->m_adjList[m_index].begin(), m_mol->m_adjList[m_index].end());
         }
 
-        std::pair<impl::nbr_iterator<atom_type, bond_type>, impl::nbr_iterator<atom_type, bond_type> > nbrs()
+        iterator_pair<impl::nbr_iterator<MoleculeType> > nbrs()
         {
-          return std::make_pair(impl::nbr_iterator<atom_type, bond_type>(*this, m_mol->m_adjList[m_index].begin()),
-                                impl::nbr_iterator<atom_type, bond_type>(*this, m_mol->m_adjList[m_index].end()));
+          return make_iterator_pair(impl::nbr_iterator<MoleculeType>(*this, m_mol->m_adjList[m_index].begin()),
+                                    impl::nbr_iterator<MoleculeType>(*this, m_mol->m_adjList[m_index].end()));
         }
 
         Index index() const
@@ -190,18 +202,18 @@ namespace Helium {
         }
 
       private:
-        HeMolType *m_mol;
+        MoleculeType *m_mol;
         Index m_index;
     };
 
-    template<typename HeMolType>
-    class HeBond
+    template<typename MoleculeType>
+    class BondImpl
     {
       public:
-        typedef typename molecule_traits<HeMolType>::atom_type atom_type;
-        typedef typename molecule_traits<HeMolType>::bond_type bond_type;
+        typedef typename molecule_traits<MoleculeType>::atom_type atom_type;
+        typedef typename molecule_traits<MoleculeType>::bond_type bond_type;
 
-        HeBond(HeMolType *mol = 0, Index index = -1) : m_mol(mol), m_index(index)
+        BondImpl(MoleculeType *mol = 0, Index index = -1) : m_mol(mol), m_index(index)
         {
         }
 
@@ -268,88 +280,106 @@ namespace Helium {
         }
 
       private:
-        HeMolType *m_mol;
+        MoleculeType *m_mol;
         Index m_index;
     };
 
-    template<typename HeMolType>
-    class atom_iterator
+    template<typename MoleculeType>
+    class atom_iterator : public std::iterator<std::forward_iterator_tag,
+        typename molecule_traits<MoleculeType>::atom_type>
     {
       public:
         atom_iterator()
         {
         }
 
-        atom_iterator(const HeMolType *mol, Index index = 0) : m_mol(mol), m_index(index)
+        atom_iterator(const MoleculeType *mol, Index index = 0) : m_mol(mol), m_index(index)
         {
         }
 
-        HeAtom<HeMolType> operator*() const
+        typename molecule_traits<MoleculeType>::atom_type& operator*() const
         {
-          return HeAtom<HeMolType>(const_cast<HeMolType*>(m_mol), m_index);
+          typedef typename molecule_traits<MoleculeType>::atom_type atom_type;
+          m_atom = atom_type(const_cast<MoleculeType*>(m_mol), m_index);
+          return m_atom;
         }
 
-        atom_iterator<HeMolType>& operator++()
+        atom_iterator<MoleculeType>& operator++()
         {
           ++m_index;
           return *this;
         }
 
-        atom_iterator<HeMolType> operator++(int)
+        atom_iterator<MoleculeType> operator++(int)
         {
-          atom_iterator<HeMolType> tmp = *this;
+          atom_iterator<MoleculeType> tmp = *this;
           ++m_index;
           return tmp;
         }
 
-        bool operator!=(const atom_iterator<HeMolType> &other)
+        bool operator==(const atom_iterator<MoleculeType> &other) const
+        {
+          return m_index == other.m_index;
+        }
+
+        bool operator!=(const atom_iterator<MoleculeType> &other) const
         {
           return m_index != other.m_index;
         }
 
       private:
-        const HeMolType *m_mol;
+        const MoleculeType *m_mol;
         Index m_index;
+        mutable typename molecule_traits<MoleculeType>::atom_type m_atom;
     };
 
-    template<typename HeMolType>
-    class bond_iterator
+    template<typename MoleculeType>
+    class bond_iterator : public std::iterator<std::forward_iterator_tag,
+        typename molecule_traits<MoleculeType>::bond_type>
     {
       public:
         bond_iterator()
         {
         }
 
-        bond_iterator(const HeMolType *mol, Index index = 0) : m_mol(mol), m_index(index)
+        bond_iterator(const MoleculeType *mol, Index index = 0) : m_mol(mol), m_index(index)
         {
         }
 
-        HeBond<HeMolType> operator*() const
+        typename molecule_traits<MoleculeType>::bond_type& operator*() const
         {
-          return HeBond<HeMolType>(const_cast<HeMolType*>(m_mol), m_index);
+          typedef typename molecule_traits<MoleculeType>::bond_type bond_type;
+          m_bond = bond_type(const_cast<MoleculeType*>(m_mol), m_index);
+          return m_bond;
         }
 
-        bond_iterator<HeMolType>& operator++()
+        bond_iterator<MoleculeType>& operator++()
         {
           ++m_index;
           return *this;
         }
 
-        bond_iterator<HeMolType> operator++(int)
+        bond_iterator<MoleculeType> operator++(int)
         {
-          bond_iterator<HeMolType> tmp = *this;
+          bond_iterator<MoleculeType> tmp = *this;
           ++m_index;
           return tmp;
         }
 
-        bool operator!=(const bond_iterator<HeMolType> &other)
+        bool operator==(const bond_iterator<MoleculeType> &other) const
+        {
+          return m_index == other.m_index;
+        }
+
+        bool operator!=(const bond_iterator<MoleculeType> &other) const
         {
           return m_index != other.m_index;
         }
 
       private:
-        const HeMolType *m_mol;
+        const MoleculeType *m_mol;
         Index m_index;
+        mutable typename molecule_traits<MoleculeType>::bond_type m_bond;
     };
 
     template<typename T>
@@ -361,111 +391,302 @@ namespace Helium {
         elements = copy;
     }
 
+    /**
+     * @brief Class representing a molecule.
+     */
+    template<template<typename> class AtomType, template<typename> class BondType>
+    class MolImpl
+    {
+      public:
+        typedef AtomType<MolImpl<AtomType, BondType> > atom_type;
+        typedef BondType<MolImpl<AtomType, BondType> > bond_type;
+
+        // iterators
+        typedef impl::atom_iterator<MolImpl<AtomType, BondType> > atom_iter;
+        typedef impl::bond_iterator<MolImpl<AtomType, BondType> > bond_iter;
+        typedef typename std::vector<bond_type>::iterator incident_iter;
+        typedef impl::nbr_iterator<MolImpl<AtomType, BondType> > nbr_iter;
+
+        MolImpl()
+        {
+        }
+
+        MolImpl(const MolImpl &other);
+
+        MolImpl& operator=(const MolImpl &other);
+
+        ~MolImpl()
+        {
+        }
+
+        Size numAtoms() const
+        {
+          return m_element.size();
+        }
+
+        Size numBonds() const
+        {
+          return m_order.size();
+        }
+
+        iterator_pair<atom_iter> atoms() const
+        {
+          return make_iterator_pair(atom_iter(this, 0), atom_iter(this, m_element.size()));
+        }
+
+        iterator_pair<bond_iter> bonds() const
+        {
+          return make_iterator_pair(bond_iter(this, 0), bond_iter(this, m_order.size()));
+        }
+
+        atom_type atom(Index index) const
+        {
+          return atom_type(const_cast<MolImpl*>(this), index);
+        }
+
+        bond_type bond(Index index) const
+        {
+          return bond_type(const_cast<MolImpl*>(this), index);
+        }
+
+        static Index null_index()
+        {
+          return -1;
+        }
+
+        static atom_type null_atom()
+        {
+          return atom_type(0, -1);
+        }
+
+        static bond_type null_bond()
+        {
+          return bond_type(0, -1);
+        }
+
+        //atom_type addAtom();
+        typename molecule_traits<MolImpl<AtomType, BondType> >::atom_type addAtom();
+        void removeAtom(const atom_type &atom);
+
+        //bond_type addBond(const atom_type &source, const atom_type &target);
+        typename molecule_traits<MolImpl<AtomType, BondType> >::bond_type
+          addBond(const atom_type &source, const atom_type &target);
+
+        void removeBond(const bond_type &bond);
+
+        void clear();
+
+        void renumberAtoms(const std::vector<Index> &permutation);
+
+      private:
+        template<typename> friend class impl::AtomImpl;
+        template<typename> friend class impl::BondImpl;
+
+        // atoms
+        std::vector<std::vector<bond_type> > m_adjList;
+        std::vector<bool> m_atomAromatic;
+        std::vector<unsigned char> m_element;
+        std::vector<unsigned char> m_mass;
+        std::vector<unsigned char> m_hydrogens;
+        std::vector<signed char> m_charge;
+
+        // bonds
+        std::vector<Index> m_source;
+        std::vector<Index> m_target;
+        std::vector<bool> m_bondAromatic;
+        std::vector<unsigned char> m_order;
+    };
+
+    template<template<typename> class AtomType, template<typename> class BondType>
+    MolImpl<AtomType, BondType>::MolImpl(const MolImpl &other)
+    {
+      // copy m_adjList
+      m_adjList.resize(other.m_adjList.size());
+      for (std::size_t i = 0; i < other.m_adjList.size(); ++i)
+        for (std::size_t j = 0; j < other.m_adjList[i].size(); ++j)
+          m_adjList[i].push_back(bond_type(this, other.m_adjList[i][j].index()));
+
+      // copy atom properties
+      m_atomAromatic = other.m_atomAromatic;
+      m_element = other.m_element;
+      m_mass = other.m_mass;
+      m_hydrogens = other.m_hydrogens;
+      m_charge = other.m_charge;
+
+      // copy bond properties
+      m_source = other.m_source;
+      m_target = other.m_target;
+      m_bondAromatic = other.m_bondAromatic;
+      m_order = other.m_order;
+    }
+
+    template<template<typename> class AtomType, template<typename> class BondType>
+    MolImpl<AtomType, BondType>& MolImpl<AtomType, BondType>::operator=(const MolImpl &other)
+    {
+      // copy m_adjList
+      m_adjList.clear();
+      m_adjList.resize(other.m_adjList.size());
+      for (std::size_t i = 0; i < other.m_adjList.size(); ++i)
+        for (std::size_t j = 0; j < other.m_adjList[i].size(); ++j)
+          m_adjList[i].push_back(bond_type(this, other.m_adjList[i][j].index()));
+
+      // copy atom properties
+      m_atomAromatic = other.m_atomAromatic;
+      m_element = other.m_element;
+      m_mass = other.m_mass;
+      m_hydrogens = other.m_hydrogens;
+      m_charge = other.m_charge;
+
+      // copy bond properties
+      m_source = other.m_source;
+      m_target = other.m_target;
+      m_bondAromatic = other.m_bondAromatic;
+      m_order = other.m_order;
+
+      return *this;
+    }
+
+    template<template<typename> class AtomType, template<typename> class BondType>
+    typename molecule_traits<MolImpl<AtomType, BondType> >::atom_type MolImpl<AtomType, BondType>::addAtom()
+    {
+      Index index = m_element.size();
+      m_adjList.resize(m_adjList.size() + 1);
+      m_atomAromatic.resize(m_atomAromatic.size() + 1);
+      m_element.resize(m_element.size() + 1);
+      m_mass.resize(m_mass.size() + 1);
+      m_hydrogens.resize(m_hydrogens.size() + 1);
+      m_charge.resize(m_charge.size() + 1);
+
+      return atom_type(this, index);
+    }
+
+    struct SortBondsByDecreasingIndex
+    {
+      template<typename BondType>
+      bool operator()(const BondType &bond1, const BondType &bond2) const
+      {
+        return bond1.index() > bond2.index();
+      }
+    };
+
+    template<template<typename> class AtomType, template<typename> class BondType>
+    void MolImpl<AtomType, BondType>::removeAtom(const atom_type &atom)
+    {
+      Index index = atom.index();
+      std::vector<bond_type> bonds = m_adjList[index];
+
+      // remove properties
+      m_adjList.erase(m_adjList.begin() + index);
+      m_atomAromatic.erase(m_atomAromatic.begin() + index);
+      m_element.erase(m_element.begin() + index);
+      m_mass.erase(m_mass.begin() + index);
+      m_hydrogens.erase(m_hydrogens.begin() + index);
+      m_charge.erase(m_charge.begin() + index);
+
+      // sort bonds by decreasing bond index so they can be correctly removed
+      std::sort(bonds.begin(), bonds.end(), impl::SortBondsByDecreasingIndex());
+
+      // update m_source & m_target
+      for (std::size_t i = 0; i < m_source.size(); ++i)
+        if (m_source[i] > index)
+          --m_source[i];
+      for (std::size_t i = 0; i < m_target.size(); ++i)
+        if (m_target[i] > index)
+          --m_target[i];
+
+      // remove bonds to removed atom
+      for (std::size_t i = 0; i < bonds.size(); ++i)
+        removeBond(bonds[i]);
+    }
+
+    template<template<typename> class AtomType, template<typename> class BondType>
+    typename molecule_traits<MolImpl<AtomType, BondType> >::bond_type
+    MolImpl<AtomType, BondType>::addBond(const atom_type &source,
+                                         const atom_type &target)
+    {
+      Index index = m_order.size();
+
+      m_source.push_back(source.index());
+      m_target.push_back(target.index());
+      m_bondAromatic.resize(m_bondAromatic.size() + 1);
+      m_order.resize(m_order.size() + 1, 1);
+
+      bond_type bond(this, index);
+
+      m_adjList[source.index()].push_back(bond);
+      m_adjList[target.index()].push_back(bond);
+
+      return bond;
+    }
+
+    template<template<typename> class AtomType, template<typename> class BondType>
+    void MolImpl<AtomType, BondType>::removeBond(const bond_type &bond)
+    {
+      Index index = bond.index();
+
+      // remove properties
+      m_source.erase(m_source.begin() + index);
+      m_target.erase(m_target.begin() + index);
+      m_bondAromatic.erase(m_bondAromatic.begin() + index);
+      m_order.erase(m_order.begin() + index);
+
+      // update m_adjList
+      for (std::size_t i = 0; i < m_adjList.size(); ++i) {
+        int remove = -1;
+        for (std::size_t j = 0; j < m_adjList[i].size(); ++j) {
+          if (m_adjList[i][j].index() == index)
+            remove = j;
+          else if (m_adjList[i][j].index() > index)
+            m_adjList[i][j] = bond_type(this, m_adjList[i][j].index() - 1);
+        }
+        if (remove != -1)
+          m_adjList[i].erase(m_adjList[i].begin() + remove);
+      }
+    }
+
+    template<template<typename> class AtomType, template<typename> class BondType>
+    void MolImpl<AtomType, BondType>::clear()
+    {
+      m_adjList.clear();
+      m_atomAromatic.clear();
+      m_element.clear();
+      m_mass.clear();
+      m_hydrogens.clear();
+      m_charge.clear();
+
+      m_source.clear();
+      m_target.clear();
+      m_bondAromatic.clear();
+      m_order.clear();
+    }
+
+    template<template<typename> class AtomType, template<typename> class BondType>
+    void MolImpl<AtomType, BondType>::renumberAtoms(const std::vector<Index> &permutation)
+    {
+      assert(permutation.size() == m_adjList.size());
+      impl::apply_permutation(m_adjList, permutation);
+      impl::apply_permutation(m_atomAromatic, permutation);
+      impl::apply_permutation(m_element, permutation);
+      impl::apply_permutation(m_mass, permutation);
+      impl::apply_permutation(m_hydrogens, permutation);
+      impl::apply_permutation(m_charge, permutation);
+
+      std::vector<Index> copy;
+      for (std::size_t i = 0; i < m_source.size(); ++i)
+        copy.push_back(index_of(permutation, m_source[i]));
+      m_source = copy;
+
+      copy.clear();
+      for (std::size_t i = 0; i < m_target.size(); ++i)
+        copy.push_back(index_of(permutation, m_target[i]));
+      m_target = copy;
+    }
+
   }
 
-  /**
-   * @brief Class representing a molecule.
-   */
-  class HeMol
-  {
-    public:
-      typedef impl::HeAtom<HeMol> atom_type;
-      typedef impl::HeBond<HeMol> bond_type;
-
-      // iterators
-      typedef impl::atom_iterator<HeMol> atom_iter;
-      typedef impl::bond_iterator<HeMol> bond_iter;
-      typedef std::vector<bond_type>::iterator incident_iter;
-      typedef impl::nbr_iterator<atom_type, bond_type> nbr_iter;
-
-      HeMol()
-      {
-      }
-
-      HeMol(const HeMol &other);
-
-      HeMol& operator=(const HeMol &other);
-
-      ~HeMol()
-      {
-      }
-
-      Size numAtoms() const
-      {
-        return m_element.size();
-      }
-
-      Size numBonds() const
-      {
-        return m_order.size();
-      }
-
-      std::pair<atom_iter, atom_iter> atoms() const
-      {
-        return std::make_pair(atom_iter(this, 0), atom_iter(this, m_element.size()));
-      }
-
-      std::pair<bond_iter, bond_iter> bonds() const
-      {
-        return std::make_pair(bond_iter(this, 0), bond_iter(this, m_order.size()));
-      }
-
-      atom_type atom(Index index) const
-      {
-        return atom_type(const_cast<HeMol*>(this), index);
-      }
-
-      bond_type bond(Index index) const
-      {
-        return bond_type(const_cast<HeMol*>(this), index);
-      }
-
-      static Index null_index()
-      {
-        return -1;
-      }
-
-      static atom_type null_atom()
-      {
-        return atom_type(0, -1);
-      }
-
-      static bond_type null_bond()
-      {
-        return bond_type(0, -1);
-      }
-
-      atom_type addAtom();
-      void removeAtom(const atom_type &atom);
-
-      bond_type addBond(const atom_type &source, const atom_type &target);
-      void removeBond(const bond_type &bond);
-
-      void clear();
-
-      void renumberAtoms(const std::vector<Index> &permutation);
-
-     private:
-      template<typename> friend class impl::HeAtom;
-      template<typename> friend class impl::HeBond;
-
-      // atoms
-      std::vector<std::vector<bond_type> > m_adjList;
-      std::vector<bool> m_atomAromatic;
-      std::vector<unsigned char> m_element;
-      std::vector<unsigned char> m_mass;
-      std::vector<unsigned char> m_hydrogens;
-      std::vector<signed char> m_charge;
-
-      // bonds
-      std::vector<Index> m_source;
-      std::vector<Index> m_target;
-      std::vector<bool> m_bondAromatic;
-      std::vector<unsigned char> m_order;
-  };
-
-  typedef impl::HeAtom<HeMol> HeAtom;
-  typedef impl::HeBond<HeMol> HeBond;
+  typedef impl::MolImpl<impl::AtomImpl, impl::BondImpl> HeMol;
+  typedef impl::AtomImpl<HeMol> HeAtom;
+  typedef impl::BondImpl<HeMol> HeBond;
 
   //////////////////////////////////////////////////////////////////////////////
   //
@@ -492,8 +713,7 @@ namespace Helium {
   }
 
   template<>
-  inline std::pair<molecule_traits<HeMol>::atom_iter,
-                   molecule_traits<HeMol>::atom_iter>
+  inline iterator_pair<molecule_traits<HeMol>::atom_iter>
   get_atoms<HeMol>(const HeMol &mol)
   {
     return mol.atoms();
@@ -531,8 +751,7 @@ namespace Helium {
   }
 
   template<>
-  inline std::pair<molecule_traits<HeMol>::bond_iter,
-                   molecule_traits<HeMol>::bond_iter>
+  inline iterator_pair<molecule_traits<HeMol>::bond_iter>
   get_bonds<HeMol>(const HeMol &mol)
   {
     return mol.bonds();
@@ -573,16 +792,14 @@ namespace Helium {
   }
 
   template<>
-  inline std::pair<molecule_traits<HeMol>::incident_iter,
-                   molecule_traits<HeMol>::incident_iter>
+  inline iterator_pair<molecule_traits<HeMol>::incident_iter>
   get_bonds<HeMol>(const HeMol &mol, molecule_traits<HeMol>::atom_type atom)
   {
     return atom.bonds();
   }
 
   template<>
-  inline std::pair<molecule_traits<HeMol>::nbr_iter,
-                   molecule_traits<HeMol>::nbr_iter>
+  inline iterator_pair<molecule_traits<HeMol>::nbr_iter>
   get_nbrs<HeMol>(const HeMol &mol, molecule_traits<HeMol>::atom_type atom)
   {
     return atom.nbrs();
@@ -747,16 +964,20 @@ namespace Helium {
    */
   std::ostream& operator<<(std::ostream &os, HeMol &mol);
 
-  inline std::ostream& operator<<(std::ostream &os, const HeAtom &atom)
-  {
-    os << "HeAtom(" << atom.index() << ")";
-    return os;
-  }
+  namespace impl {
 
-  inline std::ostream& operator<<(std::ostream &os, const HeBond &bond)
-  {
-    os << "HeBond(" << bond.index() << ")";
-    return os;
+    inline std::ostream& operator<<(std::ostream &os, const HeAtom &atom)
+    {
+      os << "HeAtom(" << atom.index() << ")";
+      return os;
+    }
+
+    inline std::ostream& operator<<(std::ostream &os, const HeBond &bond)
+    {
+      os << "HeBond(" << bond.index() << ")";
+      return os;
+    }
+
   }
 
   //@endcond

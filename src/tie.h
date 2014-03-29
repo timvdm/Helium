@@ -31,6 +31,9 @@
 
 namespace Helium {
 
+  template<typename IteratorType>
+  class iterator_pair;
+
   namespace impl {
 
     /**
@@ -58,6 +61,12 @@ namespace Helium {
           // assign pair values to variable references
           m_first = p.first;
           m_second = p.second;
+        }
+
+        void operator=(const iterator_pair<T1> &p)
+        {
+          m_first = p.begin();
+          m_second = p.end();
         }
 
       private:

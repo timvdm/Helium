@@ -361,8 +361,6 @@ namespace Helium {
   void depth_first_search_mask(const MoleculeType &mol, DFSVisitorType &visitor,
       const std::vector<bool> &atomMask, const std::vector<bool> &bondMask)
   {
-    typedef typename molecule_traits<MoleculeType>::atom_type atom_type;
-
     // initialize the visitor
     visitor.initialize(mol);
 
@@ -508,8 +506,6 @@ namespace Helium {
       typename molecule_traits<MoleculeType>::atom_type atom, DFSVisitorType &visitor,
       const std::vector<bool> &atomMask, const std::vector<bool> &bondMask)
   {
-    typedef typename molecule_traits<MoleculeType>::atom_type atom_type;
-
     // initialize the visitor
     visitor.initialize(mol);
 

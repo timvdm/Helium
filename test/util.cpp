@@ -29,7 +29,7 @@ void test_combinations()
   do {
     ++count;
   } while (next_combination(s.begin(), s.begin() + 1, s.end()));
-  
+
   COMPARE(8, count);
 
   // 2 elements
@@ -37,7 +37,7 @@ void test_combinations()
   do {
     ++count;
   } while (next_combination(s.begin(), s.begin() + 2, s.end()));
-  
+
   COMPARE(28, count);
 
   // 3 elements
@@ -45,7 +45,7 @@ void test_combinations()
   do {
     ++count;
   } while (next_combination(s.begin(), s.begin() + 3, s.end()));
-  
+
   COMPARE(56, count);
 }
 

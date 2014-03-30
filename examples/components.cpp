@@ -1,12 +1,18 @@
 // examples/components.cpp
 #include <Helium/algorithms/components.h>
 #include <Helium/hemol.h>
+#include <Helium/smiles.h>
 
 using namespace Helium;
 
 int main()
 {
-  HeMol mol = hemol_from_smiles("CCC.CC.C");
+  HeMol mol;
+  Smiles SMILES;
+  if (!SMILES.read("CCC.CC.C", mol)) {
+    std::cerr << SMILES.error().what();
+    return -1;
+  }
 
   Size numComponents = num_connected_components(mol);
 

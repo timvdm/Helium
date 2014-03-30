@@ -71,7 +71,7 @@ void test_parse_smiles()
 void test_write_smiles(const std::string &smiles)
 {
   HeMol mol = hemol_from_smiles(smiles);
-  COMPARE(smiles, write_smiles(mol));
+  COMPARE(smiles, SMILES.write(mol));
 }
 
 int main()

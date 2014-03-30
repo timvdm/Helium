@@ -417,8 +417,10 @@ namespace Helium {
         break;
       // create query
       std::string smiles = "*1" + std::string(size - 1, '*') + "1";
+
+      Smiles SMILES;
       HeMol cycleMol;
-      parse_smiles(smiles, cycleMol);
+      SMILES.read(smiles, cycleMol);
 
       // find all cycles of size
       MappingList mappings;

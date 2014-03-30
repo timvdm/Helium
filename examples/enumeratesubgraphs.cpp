@@ -5,6 +5,8 @@
 
 using namespace Helium;
 
+Smiles SMILES;
+
 template<typename MoleculeType>
 struct SubgraphsCallback
 {
@@ -23,7 +25,7 @@ struct SubgraphsCallback
     std::vector<Index> canon = canonicalize(substruct, symmetry,
         AtomInvariant(AtomInvariant::Element), BondInvariant(BondInvariant::Order)).first;
     // write subgraph SMILES
-    std::string smiles = write_smiles(substruct, canon);
+    std::string smiles = SMILES.write(substruct, canon);
     // add to features
     std::map<std::string, int>::iterator feature = features.find(smiles);
     if (feature == features.end())
@@ -44,7 +46,12 @@ int main(int argc, char **argv)
     return -1;
   }
 
-  HeMol mol = hemol_from_smiles(argv[1]);
+  HeMol mol;
+  Smiles SMILES;
+  if (!SMILES.read(argv[1], mol)) {
+    std::cerr << SMILES.error().what();
+    return -1;
+  }
 
   SubgraphsCallback<HeMol> callback(mol);
   enumerate_subgraphs(mol, callback, 7, false);

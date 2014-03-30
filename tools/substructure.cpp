@@ -129,12 +129,11 @@ namespace Helium {
 
         // compute query fingerprint
         HeMol query;
-        try {
-          parse_smiles(smiles, query);
-        }
-        catch (Smiley::Exception &e) {
-          std::cerr << e.what();
-        }
+        Smiles SMILES;
+        SMILES.read(smiles, query);
+        if (SMILES.error())
+          std::cerr << SMILES.error().what();
+
         Word *queryFingerprint = compute_fingerprint(storage.header(), query);
 
         // perform search

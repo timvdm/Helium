@@ -24,29 +24,37 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-#include <Helium/hemol.h>
-#include <Helium/smiles.h>
+#ifndef HELIUM_ERROR_H
+#define HELIUM_ERROR_H
 
 namespace Helium {
 
-  //@cond dev
-  std::ostream& operator<<(std::ostream &os, HeMol &mol)
+  class Error
   {
-    os << "Molecule:" << std::endl;
-    os << "    Atoms:\tindex\telement" << std::endl;
-    molecule_traits<HeMol>::atom_iter atom, end_atoms;
-    TIE(atom, end_atoms) = mol.atoms();
-    for (; atom != end_atoms; ++atom)
-      os << "          \t" << (*atom).index() << "\t" << (*atom).element() << std::endl;
+    public:
+      Error() : m_error(false)
+      {
+      }
 
-    os << "    Bonds:\tsource\ttarget\torder" << std::endl;
-    molecule_traits<HeMol>::bond_iter bond, end_bonds;
-    TIE(bond, end_bonds) = mol.bonds();
-    for (; bond != end_bonds; ++bond)
-      os << "          \t" << (*bond).source().index() << "\t" << (*bond).target().index() << "\t" << (*bond).order() << std::endl;
-    return os;
-  }
+      Error(const std::string &what) : m_error(true), m_what(what)
+      {
+      }
 
-  //@endcond dev
+      operator bool() const
+      {
+        return m_error;
+      }
+
+      const std::string& what() const
+      {
+        return m_what;
+      }
+
+    private:
+      bool m_error;
+      std::string m_what;
+  };
 
 }
+
+#endif

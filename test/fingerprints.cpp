@@ -10,13 +10,8 @@ void test_path_fingerprint(const std::string &substructure, const std::string &s
 {
   std::cout << "Testing (path): " << substructure << " < " << superstructure << std::endl;
   HeMol sub, super;
-  try {
-    parse_smiles(substructure, sub);
-    parse_smiles(superstructure, super);
-  }
-  catch(Smiley::Exception &e) {
-    std::cerr << e.what();
-  }
+  SMILES.read(substructure, sub);
+  SMILES.read(superstructure, super);
 
   Word subFp[16], superFp[16];
   path_fingerprint(sub, subFp);
@@ -32,13 +27,9 @@ void test_tree_fingerprint(const std::string &substructure, const std::string &s
 {
   std::cout << "Testing (tree): " << substructure << " < " << superstructure << std::endl;
   HeMol sub, super;
-  try {
-    parse_smiles(substructure, sub);
-    parse_smiles(superstructure, super);
-  }
-  catch(Smiley::Exception &e) {
-    std::cerr << e.what();
-  }
+  SMILES.read(substructure, sub);
+  SMILES.read(superstructure, super);
+
   Word subFp[16], superFp[16];
   std::cout << "    generating query fingerprint..." << std::endl;
   tree_fingerprint(sub, subFp);
@@ -47,7 +38,7 @@ void test_tree_fingerprint(const std::string &substructure, const std::string &s
 
   //print(subFp, 16);
   //print(superFp, 16);
-  
+
   for (unsigned int i = 0; i < 1024; ++i)
     if (bitvec_get(i, subFp) && !bitvec_get(i, superFp))
       std::cout << "bit " << i << " is not in queried fingerprint" << std::endl;
@@ -71,13 +62,12 @@ int main()
   test_fingerprint("C", "ClC(Cl)Cl");
   test_fingerprint("CCl", "ClC(Cl)Cl");
   test_fingerprint("ClCCl", "ClC(Cl)Cl");
-  
+
   test_fingerprint("CCC", "C1CCC1");
   test_fingerprint("CCC", "c1ccccc1");
   test_fingerprint("C1CCCCC1", "c1ccccc1");
   test_fingerprint("CCCOCCl", "c1ccccc1COCCl");
-  
-  
+
   test_fingerprint("Clc1ccccc1", "CCc1cc(Cl)c(C=O)cc1");
 
 }

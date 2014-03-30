@@ -12,12 +12,7 @@ using namespace Helium;
 void test_canonicalize(const std::string &smiles)
 {
   std::cout << "Testing: " << smiles << std::endl;
-  HeMol mol;
-  try {
-    parse_smiles(smiles, mol);
-  } catch (Smiley::Exception &e) {
-    std::cerr << e.what();
-  }
+  HeMol mol = hemol_from_smiles(smiles);
   std::vector<unsigned long> symmetry = extended_connectivities(mol, AtomInvariant());
   std::cout << "symmetry: " << symmetry << std::endl;
   canonicalize(mol, symmetry, AtomInvariant(), BondInvariant());
@@ -34,7 +29,7 @@ bool shuffle_test_mol(HeMol &mol)
   std::pair<std::vector<Index>, std::vector<unsigned long> > ref_canon = canonicalize(mol,
         extended_connectivities(mol, AtomInvariant()), AtomInvariant(), BondInvariant());
   const std::vector<unsigned long> &ref_code = ref_canon.second;
-  std::string ref_smiles = write_smiles(mol, ref_canon.first, WriteSmiles::All);
+  std::string ref_smiles = SMILES.write(mol, ref_canon.first, Smiles::All);
 
   // make sure the canonical SMILES is valid and can be read
   try {
@@ -55,7 +50,7 @@ bool shuffle_test_mol(HeMol &mol)
     std::pair<std::vector<Index>, std::vector<unsigned long> > canon = canonicalize(mol,
         extended_connectivities(mol, AtomInvariant()), AtomInvariant(), BondInvariant());
     const std::vector<unsigned long> &code = canon.second;
-    std::string smiles = write_smiles(mol, canon.first, WriteSmiles::All);
+    std::string smiles = SMILES.write(mol, canon.first, Smiles::All);
 
     std::cout << smiles << std::endl;
 
@@ -72,8 +67,7 @@ bool shuffle_test_mol(HeMol &mol)
 void shuffle_test_smiles(const std::string &smiles)
 {
   std::cout << "Testing " << smiles << "..." << std::endl;
-  HeMol mol;
-  parse_smiles(smiles, mol);
+  HeMol mol = hemol_from_smiles(smiles);
   shuffle_test_mol(mol);
 }
 
@@ -93,7 +87,7 @@ void shuffle_test(const std::string &filename)
     //if ((i % 1000) == 0)
     //  std::cout << "Testing molecule " << i << "..." << std::endl;
 
-    std::cout << "  testing: " << write_smiles(mol) << std::endl;
+    std::cout << "  testing: " << SMILES.write(mol) << std::endl;
 
     if (!shuffle_test_mol(mol) && num_atoms(mol) < numAtoms) {
       numAtoms = num_atoms(mol);

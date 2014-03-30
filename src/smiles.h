@@ -30,6 +30,7 @@
 #include <Helium/molecule.h>
 #include <Helium/algorithms/dfs.h>
 #include <Helium/element.h>
+#include <Helium/error.h>
 
 #include <smiley.h>
 
@@ -37,6 +38,77 @@
 
 
 namespace Helium {
+
+  /**
+   * @brief Class for reading SMILES.
+   */
+  class Smiles
+  {
+    public:
+      /**
+       * @brief SMILES features to write.
+       */
+      enum Flags {
+        None = 0,
+        Mass = 1,
+        Charge = 2,
+        Hydrogens = 4,
+        Order = 8,
+        All = Mass | Charge | Hydrogens | Order
+      };
+
+      /**
+       * @brief Parse a SMILES string.
+       *
+       * @tparam EditableMoleculeType The type of the molecule, this must be a model
+       *         of the EdiatbleMolecule concept.
+       *
+       * @param smiles The SMILES string.
+       * @param mol The molecule.
+       */
+      template<typename EditableMoleculeType>
+      bool read(const std::string &smiles, EditableMoleculeType &mol);
+
+      /**
+       * @brief Write a SMILES string for the molecule.
+       *
+       * @param mol The molecule.
+       * @param flags The SMILES features to write (see Flags).
+       *
+       * @return The SMILES string.
+       */
+      template<typename MoleculeType>
+      std::string write(const MoleculeType &mol, int flags = All);
+
+      /**
+       * @brief Write a SMILES string for the molecule using a specified order.
+       *
+       * This version of write() can be used to write canonical SMILES if a
+       * canonical atom order is used.
+       *
+       * @param mol The molecule.
+       * @param order The atom order.
+       * @param flags The SMILES features to write (see Flags).
+       *
+       * @return The SMILES string.
+       */
+      template<typename MoleculeType>
+      std::string write(const MoleculeType &mol, const std::vector<Index> &order,
+          int flags = All);
+
+      /**
+       * @brief Get the error resulting from calling read().
+       *
+       * @return The parse error.
+       */
+      const Error& error() const
+      {
+        return m_error;
+      }
+
+    private:
+      Error m_error; //!< The last error.
+  };
 
   namespace impl {
 
@@ -78,85 +150,6 @@ namespace Helium {
 
       EditableMoleculeType &mol;
     };
-
-  }
-
-  /**
-   * @brief Parse a SMILES string.
-   *
-   * @tparam EditableMoleculeType The type of the molecule, this must be a model
-   *         of the EdiatbleMolecule concept.
-   *
-   * @param smiles The SMILES string.
-   * @param mol The molecule.
-   */
-  template<typename EditableMoleculeType>
-  void parse_smiles(const std::string &smiles, EditableMoleculeType &mol)
-  {
-    impl::SmileyCallback<EditableMoleculeType> callback(mol);
-    Smiley::Parser<impl::SmileyCallback<EditableMoleculeType> > parser(callback);
-
-    try {
-      parser.parse(smiles);
-    } catch (Smiley::Exception &e) {
-      std::ostringstream errorStream;
-      if (e.type() == Smiley::Exception::SyntaxError)
-        errorStream << "Syntax";
-      else
-        errorStream << "Semantics";
-      errorStream << "Error: " << e.what() << "." << std::endl;
-      errorStream << smiles << std::endl;
-      for (std::size_t i = 0; i < e.pos(); ++i)
-        errorStream << " ";
-      for (std::size_t i = 0; i < e.length(); ++i)
-        errorStream << "^";
-      errorStream << std::endl;
-
-      // Throw new exception with added details ...
-      throw Smiley::Exception(e.type(), e.errorCode(),
-          errorStream.str(), e.pos(), e.length());
-
-    }
-
-    // add hydrogens
-    FOREACH_ATOM_T (atom, mol, EditableMoleculeType) {
-      if (num_hydrogens(mol, *atom) != 99)
-        continue;
-      if (!Element::addHydrogens(get_element(mol, *atom)))
-        continue;
-
-      int explicitH = 0;
-      FOREACH_NBR_T (nbr, *atom, mol, EditableMoleculeType)
-        if (get_element(mol, *nbr) == 1)
-          ++explicitH;
-
-      int valence = get_valence(mol, *atom);
-      int expValence = Element::valence(get_element(mol, *atom), get_charge(mol, *atom), valence);
-      //std::cout << "val: " << valence << "  deg: " << valence << " explH: " << explicitH << std::endl;
-      if (expValence > valence - explicitH)
-        set_hydrogens(mol, *atom, expValence - valence);
-      else
-        set_hydrogens(mol, *atom, 0);
-    }
-  }
-
-  namespace WriteSmiles {
-
-    /**
-     * @brief SMILES features to write.
-     */
-    enum Flags {
-      None = 0,
-      Mass = 1,
-      Charge = 2,
-      Hydrogens = 4,
-      Order = 8,
-      All = Mass | Charge | Hydrogens | Order
-    };
-
-  }
-
-  namespace impl {
 
     template<typename MoleculeType>
     struct WriteSmilesRingNumberVisitor : public DFSVisitor<MoleculeType>
@@ -254,24 +247,24 @@ namespace Helium {
 
         // ignore mass 0
         bool needBrackets = !isOrganicSubset(get_element(mol, atom));
-        if (get_charge(mol, atom) && (flags & WriteSmiles::Charge))
+        if (get_charge(mol, atom) && (flags & Smiles::Charge))
           needBrackets = true;
-        if (get_mass(mol, atom) && get_mass(mol, atom) != Element::averageMass(get_element(mol, atom)) && (flags & WriteSmiles::Mass))
+        if (get_mass(mol, atom) && get_mass(mol, atom) != Element::averageMass(get_element(mol, atom)) && (flags & Smiles::Mass))
           needBrackets = true;
 
         if (needBrackets)
           smiles << "[";
 
-        if (get_mass(mol, atom) && get_mass(mol, atom) != Element::averageMass(get_element(mol, atom)) && (flags & WriteSmiles::Mass))
+        if (get_mass(mol, atom) && get_mass(mol, atom) != Element::averageMass(get_element(mol, atom)) && (flags & Smiles::Mass))
           smiles << get_mass(mol, atom);
 
         smiles << element;
 
         int numH = num_hydrogens(mol, atom);
-        if (needBrackets && (flags & WriteSmiles::Hydrogens) && numH)
+        if (needBrackets && (flags & Smiles::Hydrogens) && numH)
           smiles << "H" << numH;
 
-        if ((flags & WriteSmiles::Charge) && get_charge(mol, atom)) {
+        if ((flags & Smiles::Charge) && get_charge(mol, atom)) {
           int charge = get_charge(mol, atom);
           if (charge == 1)
             smiles << "+";
@@ -300,7 +293,7 @@ namespace Helium {
 
       void bond(const MoleculeType &mol, atom_type prev, bond_type bond)
       {
-        if (!(flags & WriteSmiles::Order))
+        if (!(flags & Smiles::Order))
           return;
 
         explicitBond = 0;
@@ -345,18 +338,64 @@ namespace Helium {
       int flags;
     };
 
+  } // namespace impl
+
+  template<typename EditableMoleculeType>
+  bool Smiles::read(const std::string &smiles, EditableMoleculeType &mol)
+  {
+    // reset error
+    m_error = Error();
+
+    impl::SmileyCallback<EditableMoleculeType> callback(mol);
+    Smiley::Parser<impl::SmileyCallback<EditableMoleculeType> > parser(callback);
+
+    try {
+      parser.parse(smiles);
+    } catch (Smiley::Exception &e) {
+      std::ostringstream errorStream;
+      if (e.type() == Smiley::Exception::SyntaxError)
+        errorStream << "Syntax";
+      else
+        errorStream << "Semantics";
+      errorStream << "Error: " << e.what() << "." << std::endl;
+      errorStream << smiles << std::endl;
+      for (std::size_t i = 0; i < e.pos(); ++i)
+        errorStream << " ";
+      for (std::size_t i = 0; i < e.length(); ++i)
+        errorStream << "^";
+      errorStream << std::endl;
+
+      // Throw new exception with added details ...
+      m_error = Error(errorStream.str());
+      return false;
+    }
+
+    // add hydrogens
+    FOREACH_ATOM_T (atom, mol, EditableMoleculeType) {
+      if (num_hydrogens(mol, *atom) != 99)
+        continue;
+      if (!Element::addHydrogens(get_element(mol, *atom)))
+        continue;
+
+      int explicitH = 0;
+      FOREACH_NBR_T (nbr, *atom, mol, EditableMoleculeType)
+        if (get_element(mol, *nbr) == 1)
+          ++explicitH;
+
+      int valence = get_valence(mol, *atom);
+      int expValence = Element::valence(get_element(mol, *atom), get_charge(mol, *atom), valence);
+      //std::cout << "val: " << valence << "  deg: " << valence << " explH: " << explicitH << std::endl;
+      if (expValence > valence - explicitH)
+        set_hydrogens(mol, *atom, expValence - valence);
+      else
+        set_hydrogens(mol, *atom, 0);
+    }
+
+    return true;
   }
 
-  /**
-   * @brief Write a SMILES string for the molecule.
-   *
-   * @param mol The molecule.
-   * @param flags The SMILES features to write (see WriteSmiles::Flags).
-   *
-   * @return The SMILES string.
-   */
   template<typename MoleculeType>
-  std::string write_smiles(const MoleculeType &mol, int flags = WriteSmiles::All)
+  std::string Smiles::write(const MoleculeType &mol, int flags)
   {
     impl::WriteSmilesRingNumberVisitor<MoleculeType> ringNumbers;
     depth_first_search(mol, ringNumbers);
@@ -367,20 +406,8 @@ namespace Helium {
     return smilesWriter.smiles.str();
   }
 
-  /**
-   * @brief Write a SMILES string for the molecule using a specified order.
-   *
-   * This version of write_smiles() can be used to write canonical SMILES if a
-   * canonical atom order is used.
-   *
-   * @param mol The molecule.
-   * @param order The atom order.
-   * @param flags The SMILES features to write (see WriteSmiles::Flags).
-   *
-   * @return The SMILES string.
-   */
   template<typename MoleculeType>
-  std::string write_smiles(const MoleculeType &mol, const std::vector<Index> &order, int flags = WriteSmiles::All)
+  std::string Smiles::write(const MoleculeType &mol, const std::vector<Index> &order, int flags)
   {
     impl::WriteSmilesRingNumberVisitor<MoleculeType> ringNumbers;
     depth_first_search(mol, order, ringNumbers);

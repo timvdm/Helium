@@ -33,6 +33,7 @@
 #include <Helium/ring.h>
 #include <Helium/algorithms/isomorphism.h>
 #include <Helium/algorithms/components.h>
+#include <Helium/error.h>
 
 #include <smiley.h>
 
@@ -507,7 +508,7 @@ namespace Helium {
        *
        * @return The parse error.
        */
-      const Smiley::Exception& error() const
+      const Error& error() const
       {
         return m_error;
       }
@@ -577,7 +578,7 @@ namespace Helium {
       std::vector<impl::SmartsTrees> m_recursiveTrees; //!< The recursive expression trees
       std::vector<std::vector<Index> > m_atomMaps; //!< m_components atom index to original smarts index
       //std::vector<std::vector<Index> > m_bondMaps; //!< m_components bond index to original smarts index
-      Smiley::Exception m_error;
+      Error m_error;
   };
 
   namespace impl {

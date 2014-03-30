@@ -11,12 +11,7 @@ void testEnumeratePaths(const std::string &smiles, int expected)
   std::cout << "Testing: " << smiles << std::endl;
   HeMol mol;
   std::string errorString;
-  try {
-    parse_smiles(smiles, mol);
-  }
-  catch (Smiley::Exception &e) {
-    std::cerr << e.what();
-  }
+  SMILES.read(smiles, mol);
 
   std::vector<std::vector<unsigned int> > paths = enumerate_paths(mol, 7);
 

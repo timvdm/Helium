@@ -85,8 +85,10 @@ namespace Helium {
 
           if (found) {
             result.push_back(i);
-            if (writeSmiles)
-              smiles.push_back(write_smiles(mol));
+            if (writeSmiles) {
+              Smiles SMILES;
+              smiles.push_back(SMILES.write(mol));
+            }
           }
         }
 

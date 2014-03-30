@@ -1,6 +1,7 @@
 // examples/dfs1.cpp
 #include <Helium/smarts.h>
 #include <Helium/hemol.h>
+#include <Helium/smiles.h>
 #include <Helium/algorithms/cycles.h>
 
 
@@ -8,13 +9,18 @@ using namespace Helium;
 
 int main()
 {
-  std::string SMARTS = "C(O)=O";
-  std::string SMILES = "CCCCC(=O)[O-]";
+  std::string smartsString = "C(O)=O";
+  std::string smilesString = "CCCCC(=O)[O-]";
 
-  HeMol mol = hemol_from_smiles(SMILES);
+  HeMol mol;
+  Smiles SMILES;
+  if (!SMILES.read(smilesString, mol)) {
+    std::cerr << SMILES.error().what();
+    return -1;
+  }
 
   Smarts smarts;
-  if (!smarts.init(SMARTS)) {
+  if (!smarts.init(smartsString)) {
     std::cerr << "Error: " << smarts.error().what() << std::endl;
     return -1;
   }
@@ -29,7 +35,7 @@ int main()
     match = smarts.search(mol, mapping, RingSet<HeMol>(mol));
 
   if (match) {
-    std::cout << SMARTS << "\t->\t" << SMILES << std::endl;
+    std::cout << smartsString << "\t->\t" << smilesString << std::endl;
     for (std::size_t i = 0; i < mapping.map.size(); ++i)
       std::cout << i << "\t->\t" << mapping.map[i] << std::endl;
   } else {

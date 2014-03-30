@@ -54,7 +54,7 @@ void testEnumerateSubgraphs(const std::string &smiles, int size = 7, bool trees 
 {
   std::cout << "Testing: " << smiles << std::endl;
   HeMol mol;
-  parse_smiles(smiles, mol);
+  SMILES.read(smiles, mol);
 
   EnumerateSubgraphsCallback callback_correct, callback_slow, callback_fast;
 
@@ -97,9 +97,8 @@ int main()
   testEnumerateSubgraphs("C(=O)CC", 7, true);
   testEnumerateSubgraphs("CCC12C(C2C)C1", 7, true);
   testEnumerateSubgraphs("NCc1ccc2c(cnn2C)c1", 7, true);
-  
+
   testEnumerateSubgraphs("Clc1ccccc1", 7, true);
-  
-  
+
   testEnumerateSubgraphs("ClC1CC1", 7, true);
 }

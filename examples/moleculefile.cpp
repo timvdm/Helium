@@ -1,11 +1,13 @@
 // examples/moleculefile.cpp
-#include <Helium/fileio/moleculefile.h> 
-#include <Helium/hemol.h> // for HeMol and hemol_from_smiles()
-#include <Helium/smiles.h> // for write_smiles()
+#include <Helium/fileio/moleculefile.h>
+#include <Helium/hemol.h>
+#include <Helium/smiles.h>
 
 #include <iostream>
 
 using namespace Helium;
+
+Smiles SMILES;
 
 int main(int argc, char **argv)
 {
@@ -28,6 +30,6 @@ int main(int argc, char **argv)
   for (std::size_t i = 0; i < file.numMolecules(); ++i) {
     file.readMolecule(mol);
 
-    std::cout << write_smiles(mol) << std::endl;
+    std::cout << SMILES.write(mol) << std::endl;
   }
 }

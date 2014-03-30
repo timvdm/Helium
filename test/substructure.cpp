@@ -43,14 +43,7 @@ void test_substructure1()
 int main()
 {
   HeMol mol;
-
-  try {
-    parse_smiles("CNOSP", mol);
-  }
-  catch (Smiley::Exception &e) {
-    std::cerr << e.what();
-  }
-
+  SMILES.read("CNOSP", mol);
 
   std::vector<bool> atoms(5), bonds(4);
   atoms[1] = true;
@@ -100,7 +93,7 @@ int main()
 
   COMPARE(get_bond(mol, 1), get_bond(substruct, get_atom(substruct, 0), get_atom(substruct, 1)));
   COMPARE(get_bond(mol, 2), get_bond(substruct, get_atom(substruct, 1), get_atom(substruct, 2)));
-  
+
   ////////////////////////////////////////////////
   //
   // Atom

@@ -1,12 +1,18 @@
 // examples/cycles.cpp
 #include <Helium/algorithms/cycles.h>
 #include <Helium/hemol.h>
+#include <Helium/smiles.h>
 
 using namespace Helium;
 
 int main()
 {
-  HeMol mol = hemol_from_smiles("c1cccc2c1cc[nH]2CCCC3CC3");
+  HeMol mol;
+  Smiles SMILES;
+  if (!SMILES.read("c1cccc2c1cc[nH]2CCCC3CC3", mol)) {
+    std::cerr << SMILES.error().what();
+    return -1;
+  }
 
   std::cout << "cyclomatic number: " << cyclomatic_number(mol) << std::endl;
 

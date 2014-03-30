@@ -148,12 +148,8 @@ void test_cycle_perception(const CyclePerceptionAlgorithm &algorithm, const std:
     const std::string &smiles, const std::vector<TestCycle> &correct)
 {
   HeMol mol;
-  try {
-    parse_smiles(smiles, mol);
-  } catch (const Smiley::Exception &e) {
-    std::cout << e.what() << std::endl;
+  if (!SMILES.read(smiles, mol))
     return;
-  }
 
   test_cycle_perception(algorithm, name, mol, correct);
 }

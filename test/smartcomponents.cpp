@@ -16,14 +16,10 @@ void test_lazy_bond_components(const std::string &smiles)
   COMPARE("Helium::bond_components", lazyBondComponents->name());
   mol.addAttribute(lazyBondComponents);
 
-  try {
-    parse_smiles(smiles, mol);
-    components = connected_bond_components(mol);
-    COMPARE(components, lazyBondComponents->components());
-    COMPARE(unique_elements(components), lazyBondComponents->numComponents());
-  } catch (Smiley::Exception &e) {
-    std::cerr << e.what();
-  }
+  SMILES.read(smiles, mol);
+  components = connected_bond_components(mol);
+  COMPARE(components, lazyBondComponents->components());
+  COMPARE(unique_elements(components), lazyBondComponents->numComponents());
 }
 
 void test_lazy_atom_components(const std::string &smiles)
@@ -35,14 +31,10 @@ void test_lazy_atom_components(const std::string &smiles)
   COMPARE("Helium::atom_components", lazyAtomComponents->name());
   mol.addAttribute(lazyAtomComponents);
 
-  try {
-    parse_smiles(smiles, mol);
-    components = connected_atom_components(mol);
-    COMPARE(components, lazyAtomComponents->components());
-    COMPARE(unique_elements(components), lazyAtomComponents->numComponents());
-  } catch (Smiley::Exception &e) {
-    std::cerr << e.what();
-  }
+  SMILES.read(smiles, mol);
+  components = connected_atom_components(mol);
+  COMPARE(components, lazyAtomComponents->components());
+  COMPARE(unique_elements(components), lazyAtomComponents->numComponents());
 }
 
 bool compare_components(const std::vector<unsigned int> &componentsRef, const std::vector<unsigned int> &components)
@@ -77,7 +69,7 @@ bool compare_components(const std::vector<unsigned int> &componentsRef, const st
 
 void test_dynamic_atom_components(SmartMol &mol, DynamicAtomComponents *dynamicAtomComponents)
 {
-  std::cout << write_smiles(mol) << std::endl;
+  std::cout << SMILES.write(mol) << std::endl;
   std::vector<unsigned int> componentsRef;
 
   componentsRef = connected_atom_components(mol);
@@ -108,13 +100,7 @@ void test_dynamic_atom_components(const std::string &smiles)
   COMPARE("Helium::atom_components", dynamicAtomComponents->name());
   mol.addAttribute(dynamicAtomComponents);
 
-  try {
-    parse_smiles(smiles, mol);
-  } catch (Smiley::Exception &e) {
-    std::cerr << e.what();
-    ASSERT(0);
-    return;
-  }
+  SMILES.read(smiles, mol);
 
   test_dynamic_atom_components(mol, dynamicAtomComponents);
 }

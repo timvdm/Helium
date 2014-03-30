@@ -32,7 +32,9 @@ int main()
 {
   SmartMol mol;
 
+  /*
   for (auto atom : mol.atoms()) {
   }
+  */
   //print_stuff(mol);
 }

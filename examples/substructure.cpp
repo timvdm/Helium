@@ -2,6 +2,7 @@
 #include <Helium/substructure.h>
 #include <Helium/algorithms/cycles.h>
 #include <Helium/hemol.h>
+#include <Helium/smiles.h>
 #include <Helium/smarts.h>
 
 using namespace Helium;
@@ -55,6 +56,12 @@ void print_stuff(const MoleculeType &mol)
 int main()
 {
   // read a SMILES string
-  HeMol mol = hemol_from_smiles("c1ccccc1C(=O)[O-]");
+  HeMol mol;
+  Smiles SMILES;
+  if (!SMILES.read("c1ccccc1C(=O)[O-]", mol)) {
+    std::cerr << SMILES.error().what();
+    return -1;
+  }
+
   print_stuff(mol);
 }

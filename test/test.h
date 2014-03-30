@@ -32,6 +32,9 @@
 #include <sstream>
 #include <cstdlib>
 
+#include <Helium/smiles.h>
+#include <Helium/hemol.h>
+
 #ifdef _MSC_VER
 #define FUNCTION_SIGNATURE __FUNCSIG__
 #else
@@ -90,6 +93,34 @@ inline void compare_file(const std::string &filename, const std::string &exp)
 inline void compare_file(const std::string &filename, const std::stringstream &exp)
 {
   compare_file(filename, exp.str());
+}
+
+Helium::Smiles SMILES;
+
+/**
+ * @brief Read a SMILES string and construct a HeMol object from it.
+ *
+ * @param smiles The SMILES string.
+ * @param mol The molecule output paramater.
+ */
+void hemol_from_smiles(const std::string &smiles, Helium::HeMol &mol)
+{
+  if (!SMILES.read(smiles, mol))
+    std::cerr << "FAIL: " << SMILES.error().what();
+}
+
+/**
+ * @brief Read a SMILES string and construct a HeMol object from it.
+ *
+ * @param smiles The SMILES string.
+ *
+ * @return The HeMol object for the SMILES.
+ */
+Helium::HeMol hemol_from_smiles(const std::string &smiles)
+{
+  Helium::HeMol mol;
+  hemol_from_smiles(smiles, mol);
+  return mol;
 }
 
 #endif

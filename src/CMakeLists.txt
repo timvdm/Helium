@@ -10,6 +10,7 @@ set(HELIUM_HDRS
   concepts.h
   concurrent.h
   element.h
+  error.h
   molecule.h
   substructure.h
   tie.h

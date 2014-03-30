@@ -1,12 +1,14 @@
 // examples/molecule4.cpp
 #include <Helium/molecule.h>
-#include <Helium/hemol.h> // for HeMol and hemol_from_smiles()
-#include <Helium/smiles.h> // for write_smiles()
+#include <Helium/hemol.h>
+#include <Helium/smiles.h>
 #include <Helium/element.h>
 
 #include <iostream>
 
 using namespace Helium;
+
+Smiles SMILES;
 
 int main()
 {
@@ -46,5 +48,5 @@ int main()
   bond_type bond = add_bond(mol, C2, O);
   set_order(mol, bond, 2);
 
-  std::cout << "SMILES: " << write_smiles(mol) << std::endl;
+  std::cout << "SMILES: " << SMILES.write(mol) << std::endl;
 }

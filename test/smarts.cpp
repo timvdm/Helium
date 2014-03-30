@@ -35,7 +35,7 @@ void test_parser_error()
 {
   Smarts smarts;
   ASSERT(smarts.init("C"));
-  ASSERT(smarts.error().type() == Smiley::Exception::NoError);
+  ASSERT(!smarts.error());
 
   ASSERT(!smarts.init("gsfsf"));
   std::cout << smarts.error().what() << std::endl;

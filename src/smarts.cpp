@@ -484,7 +484,7 @@ namespace Helium {
   bool Smarts::init(const std::string &smarts)
   {
     // clear error, ...
-    m_error = Smiley::Exception();
+    m_error = Error();
 
     m_query.clear();
     m_trees.clear();
@@ -518,8 +518,7 @@ namespace Helium {
         errorStream << "^";
       errorStream << std::endl;
 
-      m_error = Smiley::Exception(e.type(), e.errorCode(),
-          errorStream.str(), e.pos(), e.length());
+      m_error = Error(errorStream.str());
 
       return false;
     }

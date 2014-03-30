@@ -9,13 +9,7 @@ using namespace Helium;
 void test_cyclomatic_number(const std::string &smiles, unsigned int expected)
 {
   std::cout << "Testing: " << smiles << std::endl;
-  HeMol mol;
-  try {
-    parse_smiles(smiles, mol);
-  }
-  catch(Smiley::Exception &e) {
-    std::cerr << e.what();
-  }
+  HeMol mol = hemol_from_smiles(smiles);
   COMPARE(expected, cyclomatic_number(mol));
 }
 
@@ -61,13 +55,7 @@ void test_cycle_membership(const std::string &filename)
 void test_relevant_cycles(const std::string &smiles, std::vector<std::pair<unsigned int, unsigned int> > &expected)
 {
   std::cout << "Testing: " << smiles << std::endl;
-  HeMol mol;
-  try {
-    parse_smiles(smiles, mol);
-  }
-  catch(Smiley::Exception &e) {
-    std::cerr << e.what();
-  }
+  HeMol mol = hemol_from_smiles(smiles);
 
   RingSet<HeMol> cycles = relevant_cycles(mol);
   std::map<unsigned int, unsigned int> cycleSizeCounts;

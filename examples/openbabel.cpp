@@ -6,6 +6,8 @@
 
 using namespace Helium;
 
+Smiles SMILES;
+
 template<typename EditableMoleculeType>
 void amide_formation(EditableMoleculeType &mol)
 {
@@ -34,7 +36,7 @@ void amide_formation(const std::string &amine, const std::string &acylchloride)
   // apply SMIRKS
   amide_formation(mol);
 
-  std::string product = write_smiles(mol);
+  std::string product = SMILES.write(mol);
   std::cout << amine << " + " << acylchloride + " -> " + product << std::endl;
 }
 

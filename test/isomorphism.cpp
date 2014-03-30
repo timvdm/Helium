@@ -10,12 +10,7 @@ void test_isomorphisms(const std::string &smiles)
 {
   std::cout << "Testing: " << smiles << std::endl;
   HeMol mol;
-  try {
-    parse_smiles(smiles, mol);
-  }
-  catch (Smiley::Exception &e) {
-    std::cerr << e.what();
-  }
+  SMILES.read(smiles, mol);
 
   DefaultAtomMatcher<HeMol, HeMol> atomMatcher;
   DefaultBondMatcher<HeMol, HeMol> bondMatcher;

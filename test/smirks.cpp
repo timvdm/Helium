@@ -269,7 +269,7 @@ void test_smirks(const std::string &smirks, const std::string smiles,
   if (s.requiresExplicitHydrogens())
     make_hydrogens_implicit(mol);
 
-  std::cout << "    transformed molecule: " << write_smiles(mol) << std::endl;
+  std::cout << "    transformed molecule: " << SMILES.write(mol) << std::endl;
 
   if (smarts1.size() && !smarts_match(mol, smarts1)) {
     std::cout << "    " << smarts1 << " not found!" << std::endl;

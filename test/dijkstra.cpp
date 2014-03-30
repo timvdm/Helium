@@ -10,11 +10,7 @@ using namespace Helium;
 void test_all_atoms()
 {
   HeMol mol;
-  try {
-    parse_smiles("C1CCCC2C1CCC2", mol);
-  } catch(Smiley::Exception &e) {
-    std::cerr << e.what();
-  }
+  hemol_from_smiles("C1CCCC2C1CCC2", mol);
 
   Dijkstra<HeMol> d(mol, get_atom(mol, 0));
 

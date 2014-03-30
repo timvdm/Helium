@@ -105,7 +105,7 @@ namespace Helium {
   };
 
   template<typename MoleculeType>
-  class MoleculeConcept : boost::DefaultConstructible<MoleculeType>, boost::Assignable<MoleculeType>
+  class MoleculeConcept /*: boost::Assignable<MoleculeType>*/
   {
     public:
       typedef typename molecule_traits<MoleculeType>::atom_type atom_type;
@@ -158,13 +158,12 @@ namespace Helium {
   };
 
   template<typename MoleculeType>
-  void check_molecule_concept()
+  void check_molecule_concept(const MoleculeType &mol)
   {
     BOOST_CONCEPT_ASSERT((MoleculeConcept<MoleculeType>));
 
     // the functions below are forward declared and are called to ensure
     // they are defined
-    const MoleculeType mol = MoleculeType();
     num_atoms(mol);
     num_bonds(mol);
     get_atoms(mol);
@@ -257,14 +256,13 @@ namespace Helium {
   };
 
   template<typename MoleculeType>
-  void check_editable_molecule_concept()
+  void check_editable_molecule_concept(MoleculeType &mol)
   {
     BOOST_CONCEPT_ASSERT((EditableMoleculeConcept<MoleculeType>));
-    check_molecule_concept<MoleculeType>();
+    check_molecule_concept(mol);
 
     // the functions below are forward declared and are called to ensure
     // they are defined
-    MoleculeType mol;
     typename molecule_traits<MoleculeType>::atom_type atom = add_atom(mol);
     typename molecule_traits<MoleculeType>::atom_type source = add_atom(mol);
     typename molecule_traits<MoleculeType>::atom_type target = add_atom(mol);

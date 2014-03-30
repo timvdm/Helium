@@ -922,6 +922,38 @@ namespace Helium {
     return mol.null_bond();
   }
 
+  /**
+   * @brief STL output stream operator for SmartMol.
+   */
+  inline std::ostream& operator<<(std::ostream &os, SmartMol &mol)
+  {
+    os << "Molecule:" << std::endl;
+    os << "    Atoms:\tindex\telement" << std::endl;
+    molecule_traits<SmartMol>::atom_iter atom, end_atoms;
+    TIE(atom, end_atoms) = mol.atoms();
+    for (; atom != end_atoms; ++atom)
+      os << "          \t" << (*atom).index() << "\t" << (*atom).element() << std::endl;
+
+    os << "    Bonds:\tsource\ttarget\torder" << std::endl;
+    molecule_traits<SmartMol>::bond_iter bond, end_bonds;
+    TIE(bond, end_bonds) = mol.bonds();
+    for (; bond != end_bonds; ++bond)
+      os << "          \t" << (*bond).source().index() << "\t" << (*bond).target().index() << "\t" << (*bond).order() << std::endl;
+    return os;
+  }
+
+  inline std::ostream& operator<<(std::ostream &os, const SmartMol::atom_type &atom)
+  {
+    os << "SmartAtom(" << atom.index() << ")";
+    return os;
+  }
+
+  inline std::ostream& operator<<(std::ostream &os, const SmartMol::bond_type &bond)
+  {
+    os << "SmartBond(" << bond.index() << ")";
+    return os;
+  }
+
 }
 
 #endif

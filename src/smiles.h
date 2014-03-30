@@ -29,6 +29,8 @@
 
 #include <Helium/molecule.h>
 #include <Helium/algorithms/dfs.h>
+#include <Helium/algorithms/canonical.h>
+#include <Helium/algorithms/extendedconnectivities.h>
 #include <Helium/element.h>
 #include <Helium/error.h>
 
@@ -95,6 +97,15 @@ namespace Helium {
       template<typename MoleculeType>
       std::string write(const MoleculeType &mol, const std::vector<Index> &order,
           int flags = All);
+
+      template<typename MoleculeType>
+      std::string writeCanonical(const MoleculeType &mol)
+      {
+        std::pair<std::vector<Index>, std::vector<unsigned long> > canon = canonicalize(mol,
+            extended_connectivities(mol, AtomInvariant(AtomInvariant::Element)),
+            AtomInvariant(AtomInvariant::All), BondInvariant(BondInvariant::All));
+        return write(mol, canon.first);
+      }
 
       /**
        * @brief Get the error resulting from calling read().

@@ -40,3 +40,6 @@ if (OPENBABEL2_FOUND)
   target_link_libraries(test_openbabel ${Helium_LIBRARIES} ${OPENBABEL2_LIBRARIES})
 endif()
 
+if (ENABLE_PYTHON)
+  add_subdirectory(python)
+endif()

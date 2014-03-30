@@ -1,5 +1,6 @@
 #include "../src/substructure.h"
 #include "../src/smiles.h"
+#include "../src/concepts.h"
 
 #include "test.h"
 
@@ -162,4 +163,6 @@ int main()
 
 
   test_substructure1();
+
+  //check_molecule_concept(Substructure<HeMol>(HeMol(), std::vector<bool>(), std::vector<bool>()));
 }

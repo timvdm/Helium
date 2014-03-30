@@ -41,7 +41,8 @@ namespace Helium {
   namespace impl {
 
     template<typename SubstructureType>
-    class substructure_atom_iterator
+    class substructure_atom_iterator : public std::iterator<std::forward_iterator_tag,
+        typename molecule_traits<typename SubstructureType::molecule_type>::atom_type>
     {
       public:
         typedef typename SubstructureType::molecule_type molecule_type;
@@ -59,7 +60,7 @@ namespace Helium {
             ++m_iter;
         }
 
-        atom_type operator*() const
+        atom_type& operator*() const
         {
           return *m_iter;
         }
@@ -81,6 +82,11 @@ namespace Helium {
           return tmp;
         }
 
+        bool operator==(const substructure_atom_iterator<SubstructureType> &other)
+        {
+          return m_iter == other.m_iter;
+        }
+
         bool operator!=(const substructure_atom_iterator<SubstructureType> &other)
         {
           return m_iter != other.m_iter;
@@ -93,7 +99,8 @@ namespace Helium {
     };
 
     template<typename SubstructureType>
-    class substructure_bond_iterator
+    class substructure_bond_iterator : public std::iterator<std::forward_iterator_tag,
+        typename molecule_traits<typename SubstructureType::molecule_type>::bond_type>
     {
         public:
           typedef typename SubstructureType::molecule_type molecule_type;
@@ -111,7 +118,7 @@ namespace Helium {
               ++m_iter;
           }
 
-          bond_type operator*() const
+          bond_type& operator*() const
           {
             return *m_iter;
           }
@@ -133,6 +140,11 @@ namespace Helium {
             return tmp;
           }
 
+          bool operator==(const substructure_bond_iterator<SubstructureType> &other)
+          {
+            return m_iter == other.m_iter;
+          }
+
           bool operator!=(const substructure_bond_iterator<SubstructureType> &other)
           {
             return m_iter != other.m_iter;
@@ -145,7 +157,8 @@ namespace Helium {
     };
 
     template<typename SubstructureType>
-    class substructure_incident_iterator
+    class substructure_incident_iterator : public std::iterator<std::forward_iterator_tag,
+        typename molecule_traits<typename SubstructureType::molecule_type>::bond_type>
     {
       public:
         typedef typename SubstructureType::molecule_type molecule_type;
@@ -163,7 +176,7 @@ namespace Helium {
             ++m_iter;
         }
 
-        bond_type operator*() const
+        bond_type& operator*() const
         {
           return *m_iter;
         }
@@ -185,6 +198,11 @@ namespace Helium {
           return tmp;
         }
 
+        bool operator==(const substructure_incident_iterator<SubstructureType> &other)
+        {
+          return m_iter == other.m_iter;
+        }
+
         bool operator!=(const substructure_incident_iterator<SubstructureType> &other)
         {
           return m_iter != other.m_iter;
@@ -197,7 +215,8 @@ namespace Helium {
     };
 
     template<typename SubstructureType>
-    class substructure_nbr_iterator
+    class substructure_nbr_iterator : public std::iterator<std::forward_iterator_tag,
+        typename molecule_traits<typename SubstructureType::molecule_type>::atom_type>
     {
         typedef typename molecule_traits<SubstructureType>::atom_type atom_type;
         typedef typename molecule_traits<SubstructureType>::bond_type bond_type;
@@ -211,10 +230,11 @@ namespace Helium {
         {
         }
 
-        atom_type operator*() const
+        atom_type& operator*() const
         {
           // FIXME
-          return (*m_iter).other(m_atom);
+          m_nbr = (*m_iter).other(m_atom);
+          return m_nbr;
         }
 
         substructure_nbr_iterator& operator++()
@@ -230,6 +250,11 @@ namespace Helium {
           return tmp;
         }
 
+        bool operator==(const substructure_nbr_iterator &other)
+        {
+          return m_iter == other.m_iter;
+        }
+
         bool operator!=(const substructure_nbr_iterator &other)
         {
           return m_iter != other.m_iter;
@@ -238,6 +263,7 @@ namespace Helium {
       private:
         atom_type m_atom;
         incident_iter m_iter;
+        mutable atom_type m_nbr;
     };
 
   }
@@ -314,18 +340,18 @@ namespace Helium {
         return m_numBonds;
       }
 
-      std::pair<atom_iter, atom_iter> atoms() const
+      iterator_pair<atom_iter> atoms() const
       {
         typename molecule_traits<molecule_type>::atom_iter begin, end;
         TIE(begin, end) = get_atoms(m_mol);
-        return std::make_pair(atom_iter(this, begin, end), atom_iter(this, end, end));
+        return iterator_pair<atom_iter>(atom_iter(this, begin, end), atom_iter(this, end, end));
       }
 
-      std::pair<bond_iter, bond_iter> bonds() const
+      iterator_pair<bond_iter> bonds() const
       {
         typename molecule_traits<molecule_type>::bond_iter begin, end;
         TIE(begin, end) = get_bonds(m_mol);
-        return std::make_pair(bond_iter(this, begin, end), bond_iter(this, end, end));
+        return iterator_pair<bond_iter>(bond_iter(this, begin, end), bond_iter(this, end, end));
       }
 
       atom_type atom(Index index) const
@@ -437,8 +463,7 @@ namespace Helium {
   }
 
   template<typename MoleculeType>
-  std::pair<typename molecule_traits<Substructure<MoleculeType> >::atom_iter,
-            typename molecule_traits<Substructure<MoleculeType> >::atom_iter>
+  iterator_pair<typename molecule_traits<Substructure<MoleculeType> >::atom_iter>
   get_atoms(const Substructure<MoleculeType> &mol)
   {
     return mol.atoms();
@@ -465,8 +490,7 @@ namespace Helium {
   }
 
   template<typename MoleculeType>
-  std::pair<typename molecule_traits<Substructure<MoleculeType> >::bond_iter,
-            typename molecule_traits<Substructure<MoleculeType> >::bond_iter>
+  iterator_pair<typename molecule_traits<Substructure<MoleculeType> >::bond_iter>
   get_bonds(const Substructure<MoleculeType> &mol)
   {
     return mol.bonds();
@@ -493,27 +517,25 @@ namespace Helium {
   }
 
   template<typename MoleculeType>
-  std::pair<typename molecule_traits<Substructure<MoleculeType> >::incident_iter,
-            typename molecule_traits<Substructure<MoleculeType> >::incident_iter>
+  iterator_pair<typename molecule_traits<Substructure<MoleculeType> >::incident_iter>
   get_bonds(const Substructure<MoleculeType> &mol,
       typename molecule_traits<Substructure<MoleculeType> >::atom_type atom)
   {
     typename molecule_traits<HeMol>::incident_iter begin, end; // <- use of HeMol is intended!!
     TIE(begin, end) = get_bonds(mol.mol(), atom);
     typedef typename molecule_traits<Substructure<MoleculeType> >::incident_iter incident_iter;
-    return std::make_pair(incident_iter(&mol, begin, end), incident_iter(&mol, end, end));
+    return iterator_pair<incident_iter>(incident_iter(&mol, begin, end), incident_iter(&mol, end, end));
   }
 
   template<typename MoleculeType>
-  std::pair<typename molecule_traits<Substructure<MoleculeType> >::nbr_iter,
-            typename molecule_traits<Substructure<MoleculeType> >::nbr_iter>
+  iterator_pair<typename molecule_traits<Substructure<MoleculeType> >::nbr_iter>
   get_nbrs(const Substructure<MoleculeType> &mol,
       typename molecule_traits<Substructure<MoleculeType> >::atom_type atom)
   {
     typename molecule_traits<Substructure<MoleculeType> >::incident_iter begin, end;
     TIE(begin, end) = get_bonds(mol, atom);
     typedef typename molecule_traits<Substructure<MoleculeType> >::nbr_iter nbr_iter;
-    return std::make_pair(nbr_iter(atom, begin), nbr_iter(atom, end));
+    return iterator_pair<nbr_iter>(nbr_iter(atom, begin), nbr_iter(atom, end));
   }
 
   template<typename MoleculeType>

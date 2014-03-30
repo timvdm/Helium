@@ -33,13 +33,7 @@ namespace Helium {
 
   namespace Chemist {
 
-    class Molecule : public SmartMol
-    {
-      public:
-        Molecule() : SmartMol()
-        {
-        }
-    };
+    typedef SmartMol Molecule;
 
   }
 

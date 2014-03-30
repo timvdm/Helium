@@ -243,6 +243,9 @@ int main()
   test_editable_molecule<HeMol>();
   test_editable_molecule<SmartMol>();
 
-  check_editable_molecule_concept<HeMol>();
-  check_editable_molecule_concept<SmartMol>();
+  HeMol hemol;
+  check_editable_molecule_concept(hemol);
+
+  SmartMol smartmol;
+  check_editable_molecule_concept(smartmol);
 }

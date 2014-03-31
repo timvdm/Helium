@@ -260,8 +260,14 @@ namespace Helium {
         bool needBrackets = !isOrganicSubset(get_element(mol, atom));
         if (get_charge(mol, atom) && (flags & Smiles::Charge))
           needBrackets = true;
-        if (get_mass(mol, atom) && get_mass(mol, atom) != Element::averageMass(get_element(mol, atom)) && (flags & Smiles::Mass))
+        if (get_mass(mol, atom) && get_mass(mol, atom) !=
+            Element::averageMass(get_element(mol, atom)) && (flags & Smiles::Mass))
           needBrackets = true;
+        if (flags & Smiles::Hydrogens) {
+          int charge = (flags & Smiles::Charge) ? get_charge(mol, atom) : 0;
+          if (get_valence(mol, atom) != Element::valence(get_element(mol, atom), charge, get_degree(mol, atom)))
+            needBrackets = true;
+        }
 
         if (needBrackets)
           smiles << "[";

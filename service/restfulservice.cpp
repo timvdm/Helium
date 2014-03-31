@@ -185,7 +185,9 @@ Word* RESTfulService::computeFingerprint(const std::string &settings,
     const std::string &smiles)
 {
   HeMol mol;
-  parse_smiles(smiles, mol);
+  Smiles SMILES;
+  if (!SMILES.read(smiles, mol))
+    throw std::runtime_error(SMILES.error().what());
 
   return computeFingerprint(settings, mol);
 }
@@ -295,7 +297,9 @@ string RESTfulService::subStructureSearch(const string &smiles, bool pretty,
     unsigned int limit)
 {
   HeMol query;
-  parse_smiles(smiles, query);
+  Smiles SMILES;
+  if (!SMILES.read(smiles, query))
+    throw std::runtime_error(SMILES.error().what());
 
   // compute query fingerprint
   Word *queryFingerprint = computeFingerprint(m_subStructureStorage.header(),
@@ -313,8 +317,10 @@ string RESTfulService::subStructureSearch(const string &smiles, bool pretty,
   for (unsigned int i = 0; i < m_moleculeFile.numMolecules(); ++i) {
     if (bitvec_get(i, candidates)) {
       ++can;
-      m_moleculeFile.read_molecule(i, mol);
-      if (isomorphism_search<DefaultAtomMatcher, DefaultBondMatcher>(mol, query))
+      m_moleculeFile.readMolecule(i, mol);
+      DefaultAtomMatcher<HeMol, HeMol> atomMatcher;
+      DefaultBondMatcher<HeMol, HeMol> bondMatcher;
+      if (isomorphism_search(mol, query, atomMatcher, bondMatcher))
         result.push_back(i);
     }
 

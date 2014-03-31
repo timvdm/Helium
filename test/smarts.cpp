@@ -554,18 +554,17 @@ void test_simple_atom_match()
   test_smarts_match("[D4]", "CC(C)C", false);
 
   // valence
-  test_smarts_match("[v]", "CC"); // default: exactly 1
-  test_smarts_match("[v]", "C", false);
-  test_smarts_match("[v0]", "C");
-  test_smarts_match("[v1]", "CC");
+  test_smarts_match("[v]", "Cl"); // default: exactly 1
+  test_smarts_match("[v3]", "C", false);
+  test_smarts_match("[v4]", "C");
+  test_smarts_match("[v4]", "CC");
   test_smarts_match("[v1]", "C", false);
   test_smarts_match("[v2]", "CC", false);
-  test_smarts_match("[v2]", "C=C");
-  test_smarts_match("[v2]", "CCC");
+  test_smarts_match("[v4]", "C=C");
+  test_smarts_match("[v4]", "CCC");
   test_smarts_match("[v3]", "CCC", false);
-  test_smarts_match("[v3]", "CC=C");
-  test_smarts_match("[v3]", "CC(C)C");
-  test_smarts_match("[v4]", "CC(C)C", false);
+  test_smarts_match("[v3]", "B");
+  test_smarts_match("[v4]", "CC(C)C");
   test_smarts_match("[v4]", "CC=C=C");
 
   // connectivity

@@ -91,21 +91,20 @@ int main()
   test_write_smiles("n1ccccc1");
 
   // isotope
-  test_write_smiles("[13C]");
+  test_write_smiles("[13CH4]");
   // charge
-  test_write_smiles("[C+]");
-  test_write_smiles("[C-]");
+  test_write_smiles("[CH3+]");
+  test_write_smiles("[CH3-]");
 
   test_write_smiles("C=C");
   test_write_smiles("C#C");
   test_write_smiles("C$C");
 
   test_write_smiles("CCC(=O)C");
-  test_write_smiles("CC(N(=O)=O)CC");
+  test_write_smiles("CC([N](=O)=O)CC");
   test_write_smiles("CC([N+](=O)[O-])CC");
 
 
   test_write_smiles("C(C)(C)(C)C");
-  test_write_smiles("CC(C)(C)(C)C");
 
 }

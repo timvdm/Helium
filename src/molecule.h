@@ -946,7 +946,7 @@ namespace Helium {
   /**
    * @brief Get the valence atom.
    *
-   * The valence is the bond order sum of the explicit bonds.
+   * The valence is the bond order sum of the explicit bonds + the number of hydrogens.
    *
    * @param mol The molecule.
    * @param atom The atom to check.
@@ -964,7 +964,7 @@ namespace Helium {
       else
         val += order;
     }
-    return val;
+    return val + num_hydrogens(mol, atom);
   }
 
   /**

@@ -31,6 +31,7 @@
 
 #include <fstream>
 #include <stdexcept>
+#include <string>
 
 namespace Helium {
 
@@ -107,7 +108,7 @@ namespace Helium {
        */
       operator bool() const
       {
-        return (bool)m_ifs;
+        return m_ifs.is_open();
       }
 
       /**

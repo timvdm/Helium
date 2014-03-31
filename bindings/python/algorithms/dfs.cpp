@@ -30,7 +30,7 @@ struct DFSVisitorWrapper : DFSVisitor, wrapper<DFSVisitor>
     }
   }
 
-  void component(int i) 
+  void component(int i)
   {
     if (override f = this->get_override("component")) {
       f(i);
@@ -126,7 +126,6 @@ void export_dfs()
     .def("back_bond", &DFSVisitor::back_bond)
     .def("stop", &DFSVisitor::stop)
     ;
- 
 
   def("depth_first_search", &depth_first_search_1);
   def("depth_first_search_mask", &depth_first_search_2);

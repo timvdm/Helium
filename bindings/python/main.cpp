@@ -13,6 +13,8 @@ void export_smirks();
 void export_substructure();
 void export_rings();
 
+void export_file();
+
 BOOST_PYTHON_MODULE(helium) {
 
   export_common();
@@ -25,5 +27,8 @@ BOOST_PYTHON_MODULE(helium) {
   export_smarts();
   //export_substructure();
   export_rings();
+
+  //  fileio
+  export_file();
 
 }

@@ -12,7 +12,6 @@ message("python library: ${PYTHON_LIBRARY}")
 set(python_SRCS
   main.cpp
   common.cpp
-  dfs.cpp
   element.cpp
   error.cpp
   molecule.cpp
@@ -21,12 +20,18 @@ set(python_SRCS
   smiles.cpp
   smirks.cpp
   substructure.cpp
+  algorithms/dfs.cpp
+  fileio/file.cpp
   ../../src/smarts.cpp
   ../../src/smirks.cpp
+  ../../src/fileio/file.cpp
 )
 
 set(CMAKE_CXX_FLAGS "-O2")
 
 add_library(PyHelium SHARED ${python_SRCS})
-set_target_properties(PyHelium PROPERTIES OUTPUT_NAME helium)
+set_target_properties(PyHelium PROPERTIES
+  PREFIX ""
+  SUFFIX ".so"
+  OUTPUT_NAME helium)
 target_link_libraries(PyHelium ${PYTHON_LIBRARIES} ${Boost_LIBRARIES})

@@ -11,10 +11,27 @@ class TestBinaryInputFile(unittest.TestCase):
 
     def test_file(self):
         f = helium.BinaryInputFile()
-
         self.assertFalse(f)
 
+        f = helium.BinaryInputFile()
+        self.assertFalse(f)
 
+        f = helium.BinaryInputFile()
+        self.assertTrue(f.open(self.datadir + '/1K.hel'))
+        self.assertTrue(f)
+
+        f = helium.BinaryInputFile()
+        self.assertRaises(RuntimeError, f.open, 'foo')
+        self.assertFalse(f)
+
+        f = helium.BinaryInputFile(self.datadir + '/1K.hel')
+        self.assertTrue(f)
+
+        header = f.header()
+        self.assertTrue(isinstance(header, str))
+
+        f.close()
+        self.assertFalse(f)
 
 
 if __name__ == '__main__':

@@ -10,6 +10,7 @@ void export_file()
 {
 
   class_<Helium::BinaryInputFile, boost::noncopyable>("BinaryInputFile")
+    .def(init<const std::string&>())
     .def("open", &Helium::BinaryInputFile::open)
     .def("close", &Helium::BinaryInputFile::close)
     .def("__nonzero__", &Helium::BinaryInputFile::operator bool)

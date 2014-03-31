@@ -2,7 +2,9 @@ include(UsePythonTest)
 
 set(python_tests
   element
+  file
   molecule
+  moleculefile
   rings
   smarts
   smiles

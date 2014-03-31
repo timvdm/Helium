@@ -14,6 +14,7 @@ void export_substructure();
 void export_rings();
 
 void export_file();
+void export_moleculefile();
 
 BOOST_PYTHON_MODULE(helium) {
 
@@ -30,5 +31,6 @@ BOOST_PYTHON_MODULE(helium) {
 
   //  fileio
   export_file();
+  export_moleculefile();
 
 }

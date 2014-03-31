@@ -3,7 +3,7 @@ find_package(PythonLibs REQUIRED)
 include_directories(${PYTHON_INCLUDE_DIRS})
 
 # Find and setup boost (required)
-find_package(Boost 1.48 COMPONENTS python REQUIRED)
+find_package(Boost 1.48 COMPONENTS python iostreams REQUIRED)
 include_directories(${BOOST_INCLUDE_DIR})
 
 message("python executable: ${PYTHON_EXECUTABLE}")
@@ -22,9 +22,11 @@ set(python_SRCS
   substructure.cpp
   algorithms/dfs.cpp
   fileio/file.cpp
+  fileio/moleculefile.cpp
   ../../src/smarts.cpp
   ../../src/smirks.cpp
   ../../src/fileio/file.cpp
+  ../../src/thirdparty/jsoncpp/jsoncpp.cpp
 )
 
 set(CMAKE_CXX_FLAGS "-O2")

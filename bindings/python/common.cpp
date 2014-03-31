@@ -13,7 +13,7 @@ struct VectorToList
   {
     list *l = new list();
     for (std::size_t i = 0; i < v.size(); ++i)
-      l->append(v[i]);
+      l->append(T(v[i]));
     return l->ptr();
   }
 };

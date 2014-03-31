@@ -10,11 +10,50 @@ Build Instructions
 
 The only external dependencies are the Boost C++ libraries.
 
-Building Helium is easy and can be accomplished using the steps below:
+Linux
+~~~~~
+
+Building Helium on linux is easy and can be accomplished using the steps below:
 
 $ tar zxvf helium-0.1.0.tar.gz
 $ cd helium-0.1.0
 $ mkdir build
 $ cd build
+$ cmake [options] ..
 $ make
 $ make test
+$ sudo make install
+
+options:
+
+* to build with python support: -DENABLE_PYTHON=ON
+* to build the RESTful service: -DENABLE_SERVICE=ON
+
+Mac OSX
+~~~~~~~
+
+Building on mac without python support is also easy when using the boost C++
+libraries provided by ports/homebrew. The instructions are the same as linux
+in this case.
+
+If python support is needed care has to be taken to ensure the same version
+of python is used. The instructions below use python 2.7 from
+/System/Library/Frameworks but other versions should work as well.
+
+Building boost:
+
+$ tar zxvf boost_1_55_0.tar.gz
+$ cd boost_1_55_0
+$ ./bootstrap.sh
+$ ./b2
+
+Building Helium:
+
+$ tar zxvf helium-x.y.z.tar.gz
+$ cd helium-x.y.z
+$ mkdir build
+$ cd build
+$ cmake -DENABLE_PYTHON=ON -DPYTHON_LIBRARY=/System/Library/Frameworks/Python.framework/Versions/2.7/Python -DPYTHON_INCLUDE_DIR=/System/Library/Frameworks/Python.framework/Versions/2.7/include/python2.7 -DPYTHON_EXECUTABLE=/System/Library/Frameworks/Python.framework/Versions/2.7/bin/python -DBOOST_ROOT=~/boost_1_55_0 -DBoost_USE_STATIC_LIBS=ON ..
+$ make
+$ make test
+$ sudo make install

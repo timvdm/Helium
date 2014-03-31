@@ -35,3 +35,14 @@ set_target_properties(PyHelium PROPERTIES
   SUFFIX ".so"
   OUTPUT_NAME helium)
 target_link_libraries(PyHelium ${PYTHON_LIBRARIES} ${Boost_LIBRARIES})
+if (NOT WIN32)
+  execute_process(COMMAND
+    ${PYTHON_EXECUTABLE} -c "from distutils import sysconfig; print(sysconfig.get_python_lib(1,0,prefix='${CMAKE_INSTALL_PREFIX}'))"
+    OUTPUT_VARIABLE PYTHON_INSTDIR
+    OUTPUT_STRIP_TRAILING_WHITESPACE
+  )
+  install(TARGETS PyHelium
+    LIBRARY DESTINATION ${PYTHON_INSTDIR}
+    COMPONENT PyHelium)
+endif()
+

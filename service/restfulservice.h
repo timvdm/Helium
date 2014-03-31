@@ -2,7 +2,7 @@
 #define HELIUM_RESTFULSERVICE_H
 
 #include <Helium/fileio/fingerprints.h>
-#include <Helium/fileio/molecules.h>
+#include <Helium/fileio/moleculefile.h>
 #include <Helium/fingerprints/similarity.h>
 #include <Helium/bitvec.h>
 

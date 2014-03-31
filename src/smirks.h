@@ -301,6 +301,8 @@ namespace Helium {
         if (!m_reactant.search(mol, mapping, rings, true))
           return false;
 
+        std::vector<typename molecule_traits<EditableMoleculeType>::atom_type> fixHydrogenAtoms;
+
         //
         // apply atom changes (atom's with atom class)
         //
@@ -314,6 +316,8 @@ namespace Helium {
             impl::SmartsAtomExpr *productExpr = m_productExpr[atomClass];
 
             apply(mol, get_atom(mol, map[j]), productExpr);
+
+            fixHydrogenAtoms.push_back(get_atom(mol, map[j]));
           }
         }
 
@@ -400,6 +404,8 @@ namespace Helium {
             typename molecule_traits<EditableMoleculeType>::atom_type atom = add_atom(mol);
             apply(mol, atom, m_product.trees().atom(j));
             product2mol[j].push_back(get_index(mol, atom));
+
+            fixHydrogenAtoms.push_back(atom);
           }
 
         // make a map of reactant & reactant atom index to atom class
@@ -450,13 +456,23 @@ namespace Helium {
             apply(mol, molBond, m_product.trees().bond(j));
           }
 
+        // fix hydrogens
+        if (m_fixHydrogens)
+          for (std::size_t i = 0; i < fixHydrogenAtoms.size(); ++i)
+            reset_implicit_hydrogens(mol, fixHydrogenAtoms[i]);
+
         // remove the planned atoms
         std::sort(remove.begin(), remove.end(), std::greater<Index>());
-        for (std::size_t i = 0; i < remove.size(); ++i)
+        for (std::size_t i = 0; i < remove.size(); ++i) {
+          if (m_fixHydrogens) {
+            // increment number of hydrogens of neighbros
+            FOREACH_NBR_T (nbr, get_atom(mol, remove[i]), mol, EditableMoleculeType)
+              if (std::find(fixHydrogenAtoms.begin(), fixHydrogenAtoms.end(), *nbr) == fixHydrogenAtoms.end())
+                set_hydrogens(mol, *nbr, num_hydrogens(mol, *nbr) + 1);
+          }
           remove_atom(mol, get_atom(mol, remove[i]));
+        }
 
-        if (m_fixHydrogens)
-          reset_implicit_hydrogens(mol);
 
         return true;
       }

@@ -46,7 +46,7 @@ namespace Helium {
    */
 #define FOREACH_ATOM_T(atom, mol, MoleculeType) \
   for (typename Helium::impl::ForeachAtom<MoleculeType> atom(mol); atom.begin != atom.end; ++atom.begin)
-  
+
   /**
    * @brief Iterate over all the atoms in a molecule.
    *
@@ -87,7 +87,7 @@ namespace Helium {
    */
 #define FOREACH_NBR_T(nbr, atom, mol, MoleculeType) \
   for (typename Helium::impl::ForeachNbr<MoleculeType> nbr(mol, atom); nbr.begin != nbr.end; ++nbr.begin)
-  
+
   /**
    * @brief Iterate over all the neighbors of an atom.
    *
@@ -1054,31 +1054,46 @@ namespace Helium {
    * hydrogens to match the expected valence.
    *
    * @param mol The molecule.
+   * @param atom The atom.
+   */
+  template<typename EditableMoleculeType>
+  void reset_implicit_hydrogens(EditableMoleculeType &mol,
+      typename molecule_traits<EditableMoleculeType>::atom_type &atom)
+  {
+    if (!Element::addHydrogens(get_element(mol, atom)))
+      return;
+
+    set_hydrogens(mol, atom, 0);
+
+    int explicitH = 0;
+    FOREACH_NBR_T (nbr, atom, mol, EditableMoleculeType)
+      if (is_hydrogen(mol, *nbr))
+        ++explicitH;
+
+    int valence = get_valence(mol, atom);
+    int expValence = Element::valence(get_element(mol, atom), get_charge(mol, atom), valence);
+    if (expValence > valence - explicitH)
+      set_hydrogens(mol, atom, expValence - valence);
+    else
+      set_hydrogens(mol, atom, 0);
+  }
+
+
+  /**
+   * @brief Reset implicit hydrogens for all atoms.
+   *
+   * This function removes all implicit hydrogens and adds then adds implicit
+   * hydrogens to match the expected valence.
+   *
+   * @param mol The molecule.
    */
   template<typename EditableMoleculeType>
   void reset_implicit_hydrogens(EditableMoleculeType &mol)
   {
     // add hydrogens
-    FOREACH_ATOM_T (atom, mol, EditableMoleculeType) {
-      if (!Element::addHydrogens(get_element(mol, *atom)))
-        continue;
-
-      set_hydrogens(mol, *atom, 0);
-
-      int explicitH = 0;
-      FOREACH_NBR_T (nbr, *atom, mol, EditableMoleculeType)
-        if (is_hydrogen(mol, *nbr))
-          ++explicitH;
-
-      int valence = get_valence(mol, *atom);
-      int expValence = Element::valence(get_element(mol, *atom), get_charge(mol, *atom), valence);
-      if (expValence > valence - explicitH)
-        set_hydrogens(mol, *atom, expValence - valence);
-      else
-        set_hydrogens(mol, *atom, 0);
-    }
+    FOREACH_ATOM_T (atom, mol, EditableMoleculeType)
+      reset_implicit_hydrogens(mol, *atom);
   }
-
 
   //////////////////////////////////////////////////////////////////////////////
   //

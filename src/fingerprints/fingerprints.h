@@ -83,7 +83,7 @@ namespace Helium {
       // compute symmetry classes
       std::vector<unsigned long> symmetry = extended_connectivities(substruct, AtomInvariant(AtomInvariant::Element));
       // canonicalize the path
-      std::vector<unsigned long> code = canonicalize(substruct, symmetry,
+      std::vector<unsigned long> code = canonicalize_component(substruct, symmetry,
           AtomInvariant(AtomInvariant::Element), BondInvariant(BondInvariant::None)).second;
       // set the bit for the hashed canonical code modulo the hash prime.
       bitvec_set(hash(code) % hashPrime, fingerprint);
@@ -128,7 +128,7 @@ namespace Helium {
           // compute symmetry classes
           std::vector<unsigned long> symmetry = extended_connectivities(substruct, AtomInvariant(AtomInvariant::Element));
           // canonicalize the subgraph
-          std::vector<unsigned long> code = canonicalize(substruct, symmetry,
+          std::vector<unsigned long> code = canonicalize_component(substruct, symmetry,
               AtomInvariant(AtomInvariant::Element), BondInvariant(BondInvariant::None)).second;
           // set the bit for the hashed canonical code modulo the hash prime.
           bitvec_set(m_hash(code) % hashPrime, fingerprint);

@@ -393,7 +393,7 @@ namespace Helium {
   }
 
   /**
-   * @brief Canonicalize a molecule.
+   * @brief Canonicalize a single component.
    *
    * The canonicalization algorithm consists of two
    * steps. In the first step, the atoms are partitioned using graph
@@ -420,9 +420,9 @@ namespace Helium {
    * @return The canonical atom order and canonical code.
    */
   template<typename MoleculeType, typename T, typename AtomInvariant, typename BondInvariant>
-  std::pair<std::vector<Index>, std::vector<unsigned long> > canonicalize(const MoleculeType &mol,
-      const std::vector<T> &symmetry, const AtomInvariant &atomInvariant,
-      const BondInvariant &bondInvariant)
+  std::pair<std::vector<Index>, std::vector<unsigned long> >
+  canonicalize_component(const MoleculeType &mol, const std::vector<T> &symmetry,
+      const AtomInvariant &atomInvariant, const BondInvariant &bondInvariant)
   {
     if (DEBUG_CANON) {
       std::cout << "+---------------------------+" << std::endl;
@@ -430,15 +430,110 @@ namespace Helium {
       std::cout << "+---------------------------+" << std::endl;
       std::cout << "symmetry: " << symmetry << std::endl;
     }
+
     impl::Canonicalize<MoleculeType, AtomInvariant, BondInvariant> can(mol, symmetry, atomInvariant, bondInvariant);
     can.canonicalize();
+
     if (DEBUG_CANON) {
       std::cout << "labels: " << can.labels() << ", code: " << can.code() << std::endl;
       std::cout << "+---------------------------+" << std::endl;
       std::cout << "| START CAONICALIZATION     |" << std::endl;
       std::cout << "+---------------------------+" << std::endl;
     }
+
     return std::make_pair(can.labels(), can.code());
+  }
+
+  namespace impl {
+
+    struct ComponentOrderAndCode
+    {
+      ComponentOrderAndCode(const std::vector<bool> &atoms_, const std::vector<Index> &order_,
+          const std::vector<unsigned long> &code_) : atoms(atoms_), order(order_), code(code_)
+      {
+      }
+
+      bool operator<(const ComponentOrderAndCode &other) const
+      {
+        return code < other.code;
+      }
+
+      std::vector<bool> atoms;
+      std::vector<Index> order;
+      std::vector<unsigned long> code;
+    };
+
+  } // namespace impl
+
+  template<typename MoleculeType, typename T, typename AtomInvariant, typename BondInvariant>
+  std::pair<std::vector<Index>, std::vector<unsigned long> > canonicalize(const MoleculeType &mol,
+      const std::vector<T> &symmetry, const AtomInvariant &atomInvariant,
+      const BondInvariant &bondInvariant, const std::vector<unsigned int> &atomComponents,
+      const std::vector<unsigned int> &bondComponents)
+  {
+    if (DEBUG_CANON) {
+      std::cout << "+---------------------------+" << std::endl;
+      std::cout << "| START CAONICALIZATION     |" << std::endl;
+      std::cout << "+---------------------------+" << std::endl;
+      std::cout << "symmetry: " << symmetry << std::endl;
+    }
+
+    std::vector<impl::ComponentOrderAndCode> ordersAndCodes;
+
+    Size numComponents = unique_elements(atomComponents);
+    for (Size i = 0; i < numComponents; ++i) {
+      std::vector<bool> atoms(num_atoms(mol));
+      std::vector<bool> bonds(num_bonds(mol));
+      std::vector<T> componentSymmetry;
+
+      for (std::size_t j = 0; j < atomComponents.size(); ++j)
+        if (atomComponents[j] == i) {
+          atoms[j] = true;
+          componentSymmetry.push_back(symmetry[j]);
+        }
+      for (std::size_t j = 0; j < bondComponents.size(); ++j)
+        if (bondComponents[j] == i)
+          bonds[j] = true;
+
+      Substructure<MoleculeType> component(mol, atoms, bonds);
+
+      impl::Canonicalize<Substructure<MoleculeType>, AtomInvariant, BondInvariant> can(component,
+          componentSymmetry, atomInvariant, bondInvariant);
+      can.canonicalize();
+
+      ordersAndCodes.push_back(impl::ComponentOrderAndCode(atoms, can.labels(), can.code()));
+    }
+
+    std::sort(ordersAndCodes.begin(), ordersAndCodes.end());
+
+    // total order & code
+    std::vector<Index> order;
+    std::vector<unsigned long> code;
+
+    for (std::size_t i = 0; i < ordersAndCodes.size(); ++i) {
+      const impl::ComponentOrderAndCode &component = ordersAndCodes[i];
+
+      std::map<Index, Index> indexMap;
+      for (std::size_t j = 0, k = 0; j < component.atoms.size(); ++j)
+        if (component.atoms[j])
+          indexMap[k++] = j;
+
+      for (std::size_t j = 0; j < component.order.size(); ++j)
+        order.push_back(indexMap[component.order[j]]);
+
+      std::copy(component.code.begin(), component.code.end(), std::back_inserter(code));
+    }
+
+    assert(order.size() == num_atoms(mol));
+
+    if (DEBUG_CANON) {
+      std::cout << "order: " << order << std::endl;
+      std::cout << "+---------------------------+" << std::endl;
+      std::cout << "| START CAONICALIZATION     |" << std::endl;
+      std::cout << "+---------------------------+" << std::endl;
+    }
+
+    return std::make_pair(order, code);
   }
 
 }

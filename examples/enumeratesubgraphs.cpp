@@ -22,7 +22,7 @@ struct SubgraphsCallback
     // compute symmetry classes
     std::vector<unsigned long> symmetry = extended_connectivities(substruct, AtomInvariant(AtomInvariant::Element));
     // canonicalize the subgraph
-    std::vector<Index> canon = canonicalize(substruct, symmetry,
+    std::vector<Index> canon = canonicalize_component(substruct, symmetry,
         AtomInvariant(AtomInvariant::Element), BondInvariant(BondInvariant::Order)).first;
     // write subgraph SMILES
     std::string smiles = SMILES.write(substruct, canon);

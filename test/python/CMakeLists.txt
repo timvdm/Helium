@@ -10,6 +10,9 @@ set(python_tests
 )
     
 foreach(pytest ${python_tests})
+  set_source_files_properties(test${pybindtest}.py PROPERTIES
+    PYTHONPATH "${CMAKE_BINARY_DIR}/bindings/python"
+    HEDATADIR "${CMAKE_SOURCE_DIR}/data")
   add_python_test(pytest_${pytest} ${pytest}.py)
   set_tests_properties(pytest_${pytest} PROPERTIES
     FAIL_REGULAR_EXPRESSION "ERROR;FAIL;Test failed")

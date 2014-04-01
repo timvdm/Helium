@@ -4,6 +4,8 @@ set(python_tests
   bitvec
   element
   file
+  fingerprintfiles
+  fps
   molecule
   moleculefile
   rings

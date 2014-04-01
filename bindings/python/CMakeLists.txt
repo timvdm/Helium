@@ -23,6 +23,8 @@ set(python_SRCS
   substructure.cpp
   algorithms/dfs.cpp
   fileio/file.cpp
+  fileio/fingerprints.cpp
+  fileio/fps.cpp
   fileio/moleculefile.cpp
   ../../src/smarts.cpp
   ../../src/smirks.cpp

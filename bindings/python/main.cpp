@@ -16,6 +16,8 @@ void export_rings();
 
 void export_file();
 void export_moleculefile();
+void export_fps();
+void export_fingerprintfiles();
 
 BOOST_PYTHON_MODULE(helium) {
 
@@ -34,5 +36,7 @@ BOOST_PYTHON_MODULE(helium) {
   //  fileio
   export_file();
   export_moleculefile();
+  export_fps();
+  export_fingerprintfiles();
 
 }

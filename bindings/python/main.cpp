@@ -2,6 +2,7 @@
 
 using namespace boost::python;
 
+void export_bitvec();
 void export_common();
 void export_element();
 void export_error();
@@ -18,6 +19,7 @@ void export_moleculefile();
 
 BOOST_PYTHON_MODULE(helium) {
 
+  export_bitvec();
   export_common();
   export_element();
   export_error();

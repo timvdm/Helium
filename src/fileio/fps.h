@@ -88,9 +88,6 @@ namespace Helium {
         if (!m_numBits)
           return false;
 
-        // allocate bit vector
-        Word *fingerprint = new Word[numWords];
-
         // process fingerprints
         while (std::getline(ifs, line)) {
           if (line.empty())
@@ -103,10 +100,13 @@ namespace Helium {
             nibbles = line.size();
 
           // convert hex to fingerprint
-          hex_to_bitvec(line.substr(0, nibbles), fingerprint, numWords);
+          std::pair<Word*, int> fingerprint = bitvec_from_hex(line.substr(0, nibbles));
 
-          std::copy(fingerprint, fingerprint + numWords, std::back_inserter(m_fingerprints));
+          std::copy(fingerprint.first, fingerprint.first + fingerprint.second, std::back_inserter(m_fingerprints));
           ++m_numFingerprints;
+
+          // free bit vector
+          delete [] fingerprint.first;
         }
 
         return true;

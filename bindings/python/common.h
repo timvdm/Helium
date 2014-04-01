@@ -1,6 +1,7 @@
 #include <boost/python.hpp>
 
 #include "../../src/molecule.h"
+#include "../../src/bitvec.h"
 
 using namespace boost::python;
 
@@ -52,3 +53,29 @@ struct IteratorWrapper
 
 };
 
+struct Fingerprint
+{
+  Fingerprint(Helium::Word *data_, int numWords_, bool owned_)
+    : data(data_), numWords(numWords_), owned(owned_)
+  {
+  }
+
+  Fingerprint(int numWords_) : data(new Helium::Word[numWords_]),
+      numWords(numWords_), owned(true)
+  {
+    Helium::bitvec_zero(data, numWords);
+  }
+
+  ~Fingerprint()
+  {
+    if (owned) {
+      delete [] data;
+      data = 0;
+      numWords = 0;
+    }
+  }
+
+  Helium::Word *data;
+  int numWords;
+  bool owned;
+};

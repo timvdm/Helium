@@ -108,9 +108,6 @@ int main(int argc, char**argv)
   // open index file
   RowMajorFingerprintOutputFile indexFile(outFile, bits);
 
-  // allocate bit vector
-  Word *fingerprint = new Word[words];
-  bitvec_zero(fingerprint, words);
   // keep track of bit counts
   std::vector<int> bitCounts;
 
@@ -119,17 +116,17 @@ int main(int argc, char**argv)
   while (std::getline(ifs, line)) {
 
     // convert hex to fingerprint
-    hex_to_bitvec(line.substr(0, nibbles), fingerprint, words);
+    std::pair<Word*, int> fingerprint = bitvec_from_hex(line.substr(0, nibbles));
 
     // record bit count
-    int bitCount = bitvec_count(fingerprint, words);
+    int bitCount = bitvec_count(fingerprint.first, fingerprint.second);
     bitCounts.push_back(bitCount);
 
-    indexFile.writeFingerprint(fingerprint);
-  }
+    indexFile.writeFingerprint(fingerprint.first);
 
-  // free bit vector
-  delete [] fingerprint;
+    // free bit vector
+    delete [] fingerprint.first;
+  }
 
   unsigned int average_count = std::accumulate(bitCounts.begin(), bitCounts.end(), 0) / bitCounts.size();
   unsigned int min_count = *std::min_element(bitCounts.begin(), bitCounts.end());

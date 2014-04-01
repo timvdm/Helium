@@ -29,7 +29,10 @@
 
 #include <Helium/config.h>
 #include <Helium/contract.h>
+#include <Helium/util.h>
 
+#include <algorithm>
+#include <stdexcept>
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -284,18 +287,29 @@ namespace Helium {
   inline int bitvec_count(const Word *bitvec, int begin, int end)
   {
     PRE(bitvec);
-    const int bits_per_word = 8 * sizeof(Word);
-    const int lft = begin / bits_per_word;
-    const int rgt = end / bits_per_word;
+    int lft = begin / BitsPerWord; // index of leftmost partial word
+    if ((begin % BitsPerWord) == 0)
+      --lft;
+    int rgt = end / BitsPerWord; // index of rightmost partial word
+    int full = rgt - lft - 1;
+    if ((end % BitsPerWord) == 0)
+      ++rgt;
+
+    /*
+    std::cout << "bitvec_count(" << begin << ", " << end << ")" << std::endl;
+    std::cout << "    " << begin << "-" << std::min(end, (lft + 1) * BitsPerWord) << "  ";
+    std::cout << (lft + 1) * BitsPerWord << "-" << (lft + 1 + full) * BitsPerWord << "  ";
+    std::cout << std::max(lft + 1, lft + 1 + full) * BitsPerWord << "-" << end << std::endl;
+    */
 
     int count = 0;
     // count bits in partial word on the left
-    for (int i = lft * bits_per_word + (begin % bits_per_word); i < (lft + 1) * bits_per_word; ++i)
+    for (int i = begin; i < std::min(end, (lft + 1) * BitsPerWord); ++i)
       count += bitvec_get(i, bitvec);
     // count bits in full words in the middle
-    count += bitvec_count(bitvec + lft + 1, rgt - lft - 1);
+    count += bitvec_count(bitvec + lft + 1, full);
     // count bits in partial word on the right
-    for (int i = rgt * bits_per_word; i < rgt * bits_per_word + (end % bits_per_word); ++i)
+    for (int i = std::max(lft + 1, lft + 1 + full) * BitsPerWord; i < end; ++i)
       count += bitvec_get(i, bitvec);
 
     return count;
@@ -580,57 +594,6 @@ namespace Helium {
   }
 
   /**
-   * @brief Print a single bit vector word to std::cout.
-   *
-   * @post The word's bits will be printed to stdout.
-   *
-   * @param word The bit vector word to print.
-   */
-  inline void bitvec_print(Word word)
-  {
-    Word bit = 1;
-    for (int j = 0; j < BitsPerWord; ++j) {
-      //if (j != 0 && (j % 16) == 0)
-      //  std::cout << " ";
-      if (bit & word)
-        std::cout << "1";
-      else
-        std::cout << "0";
-      bit <<= 1;
-    }
-    std::cout << std::endl;
-  }
-
-  /**
-   * @brief Print a bit vector to std::cout.
-   *
-   * @post The bit vector's bits will be printed to stdout.
-   *
-   * @param bitvec The bit vector to print.
-   * @param numWords The number of words for @p bitvec.
-   * @param spaces If true, a space will be inserted between bit vector words.
-   */
-  inline void bitvec_print(const Word *bitvec, int numWords, bool spaces = true)
-  {
-    PRE(bitvec);
-    for (int i = 0; i < numWords; ++i) {
-      Word bit = 1;
-      for (int j = 0; j < BitsPerWord; ++j) {
-        if (spaces && j != 0 && (j % 16) == 0)
-          std::cout << " ";
-        if (bit & *(bitvec + i))
-          std::cout << "1";
-        else
-          std::cout << "0";
-        bit <<= 1;
-      }
-      if (spaces && i + 1 < numWords)
-        std::cout << " ";
-    }
-    std::cout << std::endl;
-  }
-
-  /**
    * @brief Write a bit vector's size to a STL file output stream.
    *
    * The size is written as an unsigned long value.
@@ -688,6 +651,84 @@ namespace Helium {
     PRE(bitvec);
     ifs.read(reinterpret_cast<char*>(bitvec), sizeof(Word) * numWords);
   }
+
+  inline std::string bitvec_to_binary(const Word *bitvec, int numWords, bool spaces = true)
+  {
+    PRE(bitvec);
+
+    std::stringstream ss;
+    for (int i = 0; i < numWords; ++i) {
+      Word bit = 1;
+      for (int j = 0; j < BitsPerWord; ++j) {
+        if (spaces && j != 0 && (j % 16) == 0)
+          ss << " ";
+        if (bit & *(bitvec + i))
+          ss << "1";
+        else
+          ss << "0";
+        bit <<= 1;
+      }
+      if (spaces && i + 1 < numWords)
+        ss << " ";
+    }
+
+    return ss.str();
+  }
+
+  inline std::pair<Word*, int> bitvec_from_binary(const std::string &binary)
+  {
+    int numSpaces = std::count(binary.begin(), binary.end(), ' ');
+    int numBits = binary.size() - numSpaces;
+    int numWords = bitvec_num_words_for_bits(numBits);
+
+    Word *bitvec = new Word[numWords];
+    bitvec_zero(bitvec, numWords);
+
+    for (std::size_t i = 0; i < binary.size(); ++i) {
+      switch (binary[i]) {
+        case ' ':
+          continue;
+        case '0':
+          break;
+        case '1':
+          bitvec_set(i, bitvec);
+          break;
+        default:
+          throw std::runtime_error(make_string("Invalid binary digit: ", binary[i]));
+          break;
+      }
+    }
+
+    return std::make_pair(bitvec, numWords);
+  }
+
+  /**
+   * @brief Print a single bit vector word to std::cout.
+   *
+   * @post The word's bits will be printed to stdout.
+   *
+   * @param word The bit vector word to print.
+   */
+  inline void bitvec_print(Word word)
+  {
+    std::cout << bitvec_to_binary(&word, 1) << std::endl;
+  }
+
+  /**
+   * @brief Print a bit vector to std::cout.
+   *
+   * @post The bit vector's bits will be printed to stdout.
+   *
+   * @param bitvec The bit vector to print.
+   * @param numWords The number of words for @p bitvec.
+   * @param spaces If true, a space will be inserted between bit vector words.
+   */
+  inline void bitvec_print(const Word *bitvec, int numWords, bool spaces = true)
+  {
+    PRE(bitvec);
+    std::cout << bitvec_to_binary(bitvec, numWords, spaces) << std::endl;
+  }
+
 
   namespace impl {
 
@@ -803,12 +844,16 @@ namespace Helium {
    * @param bitvec The bit vector to store the result.
    * @param numWords The number of words for @p bitvec.
    */
-  inline void hex_to_bitvec(const std::string &hex, Word *bitvec, int numWords)
+  //inline void hex_to_bitvec(const std::string &hex, Word *bitvec, int numWords)
+  inline std::pair<Word*, int> bitvec_from_hex(const std::string &hex)
   {
-    PRE(bitvec);
     PRE((hex.size() % 2) == 0);
-    PRE(hex.size() / 16 <= numWords);
 
+    int numWords = hex.size() / (2 * sizeof(Word));
+    if (hex.size() % (2 * sizeof(Word)))
+      ++numWords;
+
+    Word *bitvec = new Word[numWords];
     bitvec_zero(bitvec, numWords);
 
     unsigned char *fp = reinterpret_cast<unsigned char*>(bitvec);
@@ -817,6 +862,8 @@ namespace Helium {
       fp[i] = impl::hex_to_dec(hex[2 * i]) << 4;
       fp[i] += impl::hex_to_dec(hex[2 * i + 1]);
     }
+
+    return std::make_pair(bitvec, numWords);
   }
 
   /**

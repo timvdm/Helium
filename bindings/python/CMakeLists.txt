@@ -11,6 +11,7 @@ message("python library: ${PYTHON_LIBRARY}")
 
 set(python_SRCS
   main.cpp
+  bitvec.cpp
   common.cpp
   element.cpp
   error.cpp

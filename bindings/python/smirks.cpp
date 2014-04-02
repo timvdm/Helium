@@ -23,9 +23,14 @@ Helium::Error error(const Helium::Smirks &smirks)
   return Helium::Error(smirks.error().what());
 }
 
-bool apply(Helium::Smirks &smirks, Molecule &mol, const Helium::RingSet<Molecule> &rings)
+bool apply_1(Helium::Smirks &smirks, Molecule &mol, const Helium::RingSet<Molecule> &rings)
 {
   return smirks.apply(mol, rings);
+}
+
+bool apply_2(Helium::Smirks &smirks, Molecule &mol)
+{
+  return smirks.apply(mol, Helium::RingSet<Molecule>(mol));
 }
 
 void export_smirks()
@@ -39,7 +44,8 @@ void export_smirks()
     .def("error", &error)
     .def("requiresCycles", &Helium::Smirks::requiresCycles)
     .def("requiresExplicitHydrogens", &Helium::Smirks::requiresExplicitHydrogens)
-    .def("apply", &apply)
+    .def("apply", &apply_1)
+    .def("apply", &apply_2)
     ;
   
 }

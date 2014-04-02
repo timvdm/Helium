@@ -17,7 +17,7 @@ class TestSmarts(unittest.TestCase):
         self.assertTrue(smarts.error().__nonzero__())
         self.assertNotEqual(0, len(str(smarts.error())))
 
-    def test_search_no_mapping_hit(self):
+    def test_find_no_mapping_hit(self):
         smarts = helium.Smarts()
         smarts.init('C')
 
@@ -27,10 +27,10 @@ class TestSmarts(unittest.TestCase):
         mapping = helium.NoMapping()
         rings = helium.RingSet(mol)
 
-        self.assertTrue(smarts.search(mol, mapping, rings))
+        self.assertTrue(smarts.findMapping(mol, rings, mapping))
         self.assertTrue(mapping.match)
 
-    def test_search_no_mapping_miss(self):
+    def test_find_no_mapping_miss(self):
         smarts = helium.Smarts()
         smarts.init('N')
 
@@ -40,10 +40,10 @@ class TestSmarts(unittest.TestCase):
         mapping = helium.NoMapping()
         rings = helium.RingSet(mol)
 
-        self.assertFalse(smarts.search(mol, mapping, rings))
+        self.assertFalse(smarts.findMapping(mol, rings, mapping))
         self.assertFalse(mapping.match)
 
-    def test_search_count_mapping(self):
+    def test_find_count_mapping(self):
         smarts = helium.Smarts()
         smarts.init('C')
 
@@ -53,10 +53,10 @@ class TestSmarts(unittest.TestCase):
         mapping = helium.CountMapping()
         rings = helium.RingSet(mol)
 
-        self.assertTrue(smarts.search(mol, mapping, rings))
+        self.assertTrue(smarts.findMapping(mol, rings, mapping))
         self.assertEqual(3, mapping.count)
 
-    def test_search_single_mapping(self):
+    def test_find_single_mapping(self):
         smarts = helium.Smarts()
         smarts.init('c1ccccc1')
 
@@ -67,10 +67,10 @@ class TestSmarts(unittest.TestCase):
         rings = helium.RingSet(mol)
 
 
-        self.assertTrue(smarts.search(mol, mapping, rings))
+        self.assertTrue(smarts.findMapping(mol, rings, mapping))
         self.assertEqual(6, len(mapping.map))
 
-    def test_search_mapping_list(self):
+    def test_find_mapping_list(self):
         smarts = helium.Smarts()
         smarts.init('c1ccccc1')
 
@@ -80,12 +80,12 @@ class TestSmarts(unittest.TestCase):
         mapping = helium.MappingList()
         rings = helium.RingSet(mol)
 
-        self.assertTrue(smarts.search(mol, mapping, rings))
+        self.assertTrue(smarts.findMapping(mol, rings, mapping))
         self.assertEqual(2, len(mapping.maps))
         self.assertEqual(6, len(mapping.maps[0]))
         self.assertEqual(6, len(mapping.maps[1]))
 
-    def test_search_unqiue(self):
+    def test_find_unqiue(self):
         smarts = helium.Smarts()
         smarts.init('C.C')
 
@@ -95,11 +95,11 @@ class TestSmarts(unittest.TestCase):
         mapping = helium.MappingList()
         rings = helium.RingSet(mol)
 
-        self.assertTrue(smarts.search(mol, mapping, rings))
+        self.assertTrue(smarts.findMapping(mol, rings, mapping))
         self.assertEqual(1, len(mapping.maps))
         self.assertEqual(2, len(mapping.maps[0]))
 
-        self.assertTrue(smarts.search(mol, mapping, rings, False))
+        self.assertTrue(smarts.findMapping(mol, rings, mapping, False))
         self.assertEqual(3, len(mapping.maps))
         self.assertEqual(2, len(mapping.maps[0]))
         self.assertEqual(2, len(mapping.maps[1]))

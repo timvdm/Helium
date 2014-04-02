@@ -298,7 +298,7 @@ namespace Helium {
           std::cout << "Smirks::apply()" << std::endl;
 
         MappingList mapping;
-        if (!m_reactant.search(mol, mapping, rings, true))
+        if (!m_reactant.findMapping(mol, rings, mapping, true))
           return false;
 
         std::vector<typename molecule_traits<EditableMoleculeType>::atom_type> fixHydrogenAtoms;
@@ -473,8 +473,20 @@ namespace Helium {
           remove_atom(mol, get_atom(mol, remove[i]));
         }
 
-
         return true;
+      }
+
+      /**
+       * @brief Apply the SMIRKS transformation to a molecule.
+       *
+       * @param mol The molecule.
+       *
+       * @return True if changes were made to the molecule.
+       */
+      template<typename EditableMoleculeType>
+      bool apply(EditableMoleculeType &mol)
+      {
+        apply(mol, RingSet<EditableMoleculeType>(mol));
       }
 
     private:

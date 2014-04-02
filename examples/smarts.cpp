@@ -30,9 +30,9 @@ int main()
 
   // only compute rings when reqlly needed!
   if (smarts.requiresCycles())
-    match = smarts.search(mol, mapping, relevant_cycles(mol));
+    match = smarts.findMapping(mol, relevant_cycles(mol), mapping);
   else
-    match = smarts.search(mol, mapping, RingSet<HeMol>(mol));
+    match = smarts.findMapping(mol, RingSet<HeMol>(mol), mapping);
 
   if (match) {
     std::cout << smartsString << "\t->\t" << smilesString << std::endl;

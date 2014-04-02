@@ -79,9 +79,9 @@ namespace Helium {
 
           bool found = false;
           if (s.requiresCycles())
-            found = s.search(mol, relevant_cycles(mol));
+            found = s.find(mol, relevant_cycles(mol));
           else
-            found = s.search(mol, RingSet<HeMol>(mol));
+            found = s.find(mol, RingSet<HeMol>(mol));
 
           if (found) {
             result.push_back(i);

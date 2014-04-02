@@ -234,7 +234,7 @@ bool smarts_match(const HeMol &mol, const std::string &smarts)
 {
   Smarts s;
   ASSERT(s.init(smarts));
-  return s.search(mol, RingSet<HeMol>(mol));
+  return s.find(mol, RingSet<HeMol>(mol));
 }
 
 bool smarts_match(const std::string &smiles, const std::string &smarts)
@@ -242,7 +242,7 @@ bool smarts_match(const std::string &smiles, const std::string &smarts)
   Smarts s;
   ASSERT(s.init(smarts));
   HeMol mol = hemol_from_smiles(smiles);
-  return s.search(mol, RingSet<HeMol>(mol));
+  return s.find(mol, RingSet<HeMol>(mol));
 }
 
 void test_smirks(const std::string &smirks, const std::string smiles,

@@ -484,7 +484,7 @@ void test_smarts_match(const std::string &smarts, const std::string &smiles, boo
   if (s.requiresExplicitHydrogens())
     make_hydrogens_explicit(mol);
 
-  COMPARE(expected, s.search(mol, rings));
+  COMPARE(expected, s.find(mol, rings));
 }
 
 void test_simple_atom_match()
@@ -917,7 +917,7 @@ void test_disconnected_mapping1()
 
   // perform match
   MappingList mappings;
-  ASSERT(s.search(mol, mappings, rings));
+  ASSERT(s.findMapping(mol, rings, mappings));
 
   // check mapping
   COMPARE(1, mappings.maps.size());
@@ -946,7 +946,7 @@ void test_disconnected_mapping2()
 
   // perform match
   MappingList mappings;
-  ASSERT(s.search(mol, mappings, rings));
+  ASSERT(s.findMapping(mol, rings, mappings));
 
   // check mapping
   COMPARE(4, mappings.maps.size());

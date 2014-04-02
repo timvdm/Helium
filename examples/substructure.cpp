@@ -19,7 +19,7 @@ void print_stuff(const MoleculeType &mol)
 
   // perform a SMARTS search
   SingleMapping mapping;
-  if (!smarts.search(mol, mapping, relevant_cycles(mol))) {
+  if (!smarts.findMapping(mol, relevant_cycles(mol), mapping)) {
     std::cout << "SMARTS did not match SMILES" << std::endl;
     return;
   }

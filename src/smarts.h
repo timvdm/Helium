@@ -555,18 +555,38 @@ namespace Helium {
        * @return True if the SMARTS matches the molecule.
        */
       template<typename MoleculeType, typename MappingType>
-      bool search(const MoleculeType &mol, MappingType &mapping,
-          const RingSet<MoleculeType> &rings, bool uniqueComponents = false);
+      bool findMapping(const MoleculeType &mol, const RingSet<MoleculeType> &rings,
+          MappingType &mapping, bool uniqueComponents = false);
+
+      /**
+       * @overload
+       */
+      template<typename MoleculeType, typename MappingType>
+      bool findMapping(const MoleculeType &mol, MappingType &mapping,
+          bool uniqueComponents = false)
+      {
+        return findMapping(mol, mapping, uniqueComponents);
+      }
 
       /**
        * @overload
        */
       template<typename MoleculeType>
-      bool search(const MoleculeType &mol, const RingSet<MoleculeType> &rings,
+      bool find(const MoleculeType &mol, const RingSet<MoleculeType> &rings,
           bool uniqueComponents = false)
       {
         NoMapping mapping;
-        return search(mol, mapping, rings, uniqueComponents);
+        return findMapping(mol, rings, mapping, uniqueComponents);
+      }
+
+      /**
+       * @overload
+       */
+      template<typename MoleculeType>
+      bool find(const MoleculeType &mol, bool uniqueComponents = false)
+      {
+        NoMapping mapping;
+        return findMapping(mol, mapping, uniqueComponents);
       }
 
     private:
@@ -634,8 +654,8 @@ namespace Helium {
   }
 
   template<typename MoleculeType, typename MappingType>
-  bool Smarts::search(const MoleculeType &mol, MappingType &mapping,
-      const RingSet<MoleculeType> &rings, bool uniqueComponents)
+  bool Smarts::findMapping(const MoleculeType &mol, const RingSet<MoleculeType> &rings,
+      MappingType &mapping, bool uniqueComponents)
   {
     if (m_components.empty())
       return false;

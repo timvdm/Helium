@@ -26,6 +26,8 @@ set(python_SRCS
   fileio/fingerprints.cpp
   fileio/fps.cpp
   fileio/moleculefile.cpp
+  fingerprints/fingerprints.cpp
+  fingerprints/similarity.cpp
   ../../src/smarts.cpp
   ../../src/smirks.cpp
   ../../src/fileio/file.cpp

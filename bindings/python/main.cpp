@@ -19,6 +19,9 @@ void export_moleculefile();
 void export_fps();
 void export_fingerprintfiles();
 
+void export_fingerprints();
+void export_similarity();
+
 BOOST_PYTHON_MODULE(helium) {
 
   export_bitvec();
@@ -38,5 +41,9 @@ BOOST_PYTHON_MODULE(helium) {
   export_moleculefile();
   export_fps();
   export_fingerprintfiles();
+
+  // fingerprints
+  export_fingerprints();
+  export_similarity();
 
 }

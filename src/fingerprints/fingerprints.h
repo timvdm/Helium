@@ -151,7 +151,7 @@ namespace Helium {
       EnumerateSubgraphsCallback callback; //!< Subgraph enumerator callback
     };
 
-  }
+  } // namespace impl
 
   /**
    * Compute the tree-based fingerprint for the specified molecule. All trees

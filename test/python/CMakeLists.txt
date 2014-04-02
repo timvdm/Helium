@@ -5,10 +5,12 @@ set(python_tests
   element
   file
   fingerprintfiles
+  fingerprints
   fps
   molecule
   moleculefile
   rings
+  similarity
   smarts
   smiles
   smirks

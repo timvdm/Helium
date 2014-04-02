@@ -6,6 +6,16 @@
 
 using Helium::Chemist::Molecule;
 
+template<typename T1, typename T2>
+struct PairToTuple
+{
+  static PyObject* convert(const std::pair<T1, T2> &p)
+  {
+    tuple *t = new tuple(make_tuple(p.first, p.second));
+    return t->ptr();
+  }
+};
+
 template<typename T>
 struct VectorToList
 {
@@ -36,8 +46,11 @@ struct VectorVectorToList
 
 void export_common()
 {
+  to_python_converter<std::pair<unsigned int, double>, PairToTuple<unsigned int, double> >();
+
   to_python_converter<std::vector<bool>, VectorToList<bool> >();
   to_python_converter<std::vector<unsigned int>, VectorToList<unsigned int> >();
+  to_python_converter<std::vector<std::pair<unsigned int, double> >, VectorToList<std::pair<unsigned int, double> > >();
 
   to_python_converter<std::vector<Molecule::atom_type>, VectorToList<Molecule::atom_type> >();
   to_python_converter<std::vector<Molecule::bond_type>, VectorToList<Molecule::bond_type> >();

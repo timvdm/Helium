@@ -134,8 +134,31 @@ void test_dfs9()
 }
 
 // dfs with specified order (all component)
+void test_dfs10()
+{
+  HeMol mol = hemol_from_smiles("C(C)N");
+
+  std::vector<Index> order;
+  order.push_back(0);
+  order.push_back(2);
+  order.push_back(1);
+
+  std::stringstream output;
+  DFSDebugVisitor<HeMol> visitor(output);
+  ordered_depth_first_search(mol, order, visitor);
+  compare_file(datadir() + "dfs10.log", output);
+}
 
 // exhaustive dfs starting at specific atom (single component)
+void test_dfs11()
+{
+  HeMol mol = hemol_from_smiles("CCC");
+
+  std::stringstream output;
+  DFSDebugVisitor<HeMol> visitor(output);
+  exhaustive_depth_first_search(mol, get_atom(mol, 1), visitor);
+  compare_file(datadir() + "dfs11.log", output);
+}
 
 int main()
 {
@@ -148,5 +171,7 @@ int main()
   test_dfs7();
   test_dfs8();
   test_dfs9();
+  test_dfs10();
+  test_dfs11();
 
 }

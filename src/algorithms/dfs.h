@@ -613,7 +613,8 @@ namespace Helium {
    * @param visitor The DFS visitor functor.
    */
   template<typename MoleculeType, typename DFSVisitorType>
-  void depth_first_search(const MoleculeType &mol, const std::vector<Index> &order, DFSVisitorType &visitor)
+  void ordered_depth_first_search(const MoleculeType &mol, const std::vector<Index> &order,
+      DFSVisitorType &visitor)
   {
     visitor.initialize(mol);
 

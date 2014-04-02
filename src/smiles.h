@@ -430,10 +430,10 @@ namespace Helium {
   std::string Smiles::write(const MoleculeType &mol, const std::vector<Index> &order, int flags)
   {
     impl::WriteSmilesRingNumberVisitor<MoleculeType> ringNumbers;
-    depth_first_search(mol, order, ringNumbers);
+    ordered_depth_first_search(mol, order, ringNumbers);
 
     impl::WriteSmilesVisitor<MoleculeType> smilesWriter(ringNumbers.ringNumbers, flags);
-    depth_first_search(mol, order, smilesWriter);
+    ordered_depth_first_search(mol, order, smilesWriter);
 
     return smilesWriter.smiles.str();
   }

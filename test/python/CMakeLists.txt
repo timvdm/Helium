@@ -2,6 +2,7 @@ include(UsePythonTest)
 
 set(python_tests
   bitvec
+  components
   dfs
   element
   file

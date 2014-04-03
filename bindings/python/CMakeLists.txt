@@ -22,6 +22,7 @@ set(python_SRCS
   smirks.cpp
   substructure.cpp
   algorithms/dfs.cpp
+  algorithms/components.cpp
   fileio/file.cpp
   fileio/fingerprints.cpp
   fileio/fps.cpp

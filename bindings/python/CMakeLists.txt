@@ -24,6 +24,7 @@ set(python_SRCS
   substructure.cpp
   algorithms/canonical.cpp
   algorithms/dfs.cpp
+  algorithms/dijkstra.cpp
   algorithms/enumeratepaths.cpp
   algorithms/enumeratesubgraphs.cpp
   algorithms/extendedconnectivities.cpp

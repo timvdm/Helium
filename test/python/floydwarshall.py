@@ -25,6 +25,7 @@ class TestFloydWarshall(unittest.TestCase):
 
         D = helium.floyd_warshall(mol)
         self.assertTrue(isinstance(D, helium.DistanceMatrix))
+        self.assertEqual(7, D.dim())
         self.assertEqual(0, D(0, 0))
         self.assertEqual(1, D(0, 1))
         self.assertEqual(2, D(0, 2))
@@ -32,6 +33,8 @@ class TestFloydWarshall(unittest.TestCase):
         self.assertEqual(4, D(0, 4))
         self.assertEqual(2, D(0, 5))
         self.assertEqual(3, D(0, 6))
+
+        self.assertTrue(isinstance(D.infinity(), int))
 
 
 if __name__ == '__main__':

@@ -17,6 +17,7 @@ void export_rings();
 void export_canonical();
 void export_components();
 void export_dfs();
+void export_dijkstra();
 void export_enumerate_paths();
 void export_enumerate_subgraphs();
 void export_extended_connectivities();
@@ -49,6 +50,7 @@ BOOST_PYTHON_MODULE(helium) {
   export_canonical();
   export_components();
   export_dfs();
+  export_dijkstra();
   export_enumerate_paths();
   export_enumerate_subgraphs();
   export_extended_connectivities();

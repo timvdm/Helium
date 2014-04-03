@@ -6,6 +6,8 @@ set(python_tests
   components
   dfs
   element
+  enumeratepaths
+  enumeratesubgraphs
   extendedconnectivities
   file
   fingerprintfiles

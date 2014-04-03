@@ -4,6 +4,7 @@ using namespace boost::python;
 
 void export_bitvec();
 void export_common();
+void export_distance_matrix();
 void export_element();
 void export_error();
 void export_molecule();
@@ -19,6 +20,7 @@ void export_dfs();
 void export_enumerate_paths();
 void export_enumerate_subgraphs();
 void export_extended_connectivities();
+void export_floyd_warshall();
 void export_invariants();
 
 void export_file();
@@ -33,6 +35,7 @@ BOOST_PYTHON_MODULE(helium) {
 
   export_bitvec();
   export_common();
+  export_distance_matrix();
   export_element();
   export_error();
   export_molecule();
@@ -49,6 +52,7 @@ BOOST_PYTHON_MODULE(helium) {
   export_enumerate_paths();
   export_enumerate_subgraphs();
   export_extended_connectivities();
+  export_floyd_warshall();
   export_invariants();
 
   //  fileio

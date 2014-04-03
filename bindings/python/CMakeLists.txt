@@ -13,6 +13,7 @@ set(python_SRCS
   main.cpp
   bitvec.cpp
   common.cpp
+  distancematrix.cpp
   element.cpp
   error.cpp
   molecule.cpp
@@ -26,6 +27,7 @@ set(python_SRCS
   algorithms/enumeratepaths.cpp
   algorithms/enumeratesubgraphs.cpp
   algorithms/extendedconnectivities.cpp
+  algorithms/floydwarshall.cpp
   algorithms/components.cpp
   algorithms/invariants.cpp
   fileio/file.cpp

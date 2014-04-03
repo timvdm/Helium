@@ -12,6 +12,7 @@ set(python_tests
   file
   fingerprintfiles
   fingerprints
+  floydwarshall
   fps
   invariants
   molecule

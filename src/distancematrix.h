@@ -130,7 +130,7 @@ namespace Helium {
    * @param os STL output stream.
    * @param D The distance matrix.
    */
-  std::ostream& operator<<(std::ostream &os, const DistanceMatrix &D)
+  inline std::ostream& operator<<(std::ostream &os, const DistanceMatrix &D)
   {
     for (Size i = 0; i < D.dim(); ++i) {
       std::cout << "[ ";
@@ -240,7 +240,7 @@ namespace Helium {
    * @param os STL output stream.
    * @param D The distance matrix.
    */
-  std::ostream& operator<<(std::ostream &os, const SymmetricDistanceMatrix &D)
+  inline std::ostream& operator<<(std::ostream &os, const SymmetricDistanceMatrix &D)
   {
     for (Size i = 0; i < D.dim(); ++i) {
       std::cout << "[ ";

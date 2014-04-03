@@ -42,10 +42,10 @@ void export_enumerate_subgraphs()
   class_<SubgraphCallbackWrapper, boost::noncopyable>("SubgraphCallback")
     .def("__call__", &SubgraphCallback::call);
 
-  class_<Helium::Subgraph>("Subgraph", no_init)
+  class_<Helium::Subgraph>("Subgraph", init<unsigned int, unsigned int>())
     .def("hashable", &Helium::Subgraph::hashable)
-    .def("atoms", make_function(&atoms, return_value_policy<copy_const_reference>()))
-    .def("bonds", make_function(&bonds, return_value_policy<copy_const_reference>()))
+    .add_property("atoms", make_function(&atoms, return_value_policy<copy_const_reference>()))
+    .add_property("bonds", make_function(&bonds, return_value_policy<copy_const_reference>()))
     ;
 
   def("enumerate_subgraphs", enumerate_subgraphs, enumerate_subgraphs_overload());

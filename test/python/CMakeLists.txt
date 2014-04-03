@@ -5,6 +5,7 @@ set(python_tests
   canonical
   components
   dfs
+  dijkstra
   element
   enumeratepaths
   enumeratesubgraphs

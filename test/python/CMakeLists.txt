@@ -2,13 +2,16 @@ include(UsePythonTest)
 
 set(python_tests
   bitvec
+  canonical
   components
   dfs
   element
+  extendedconnectivities
   file
   fingerprintfiles
   fingerprints
   fps
+  invariants
   molecule
   moleculefile
   rings

@@ -39,7 +39,7 @@ namespace Helium {
    * @ingroup Production
    * @note Phase: Production
    */
-  class AtomInvariant
+  class DefaultAtomInvariant
   {
     public:
       /**
@@ -81,7 +81,7 @@ namespace Helium {
        *
        * @param invariants The atom attributes to include in the invariants.
        */
-      AtomInvariant(int invariants = All) : m_invariants(invariants)
+      DefaultAtomInvariant(int invariants = All) : m_invariants(invariants)
       {
       }
 
@@ -124,7 +124,7 @@ namespace Helium {
    * @ingroup Production
    * @note Phase: Production
    */
-  class BondInvariant
+  class DefaultBondInvariant
   {
     public:
       /**
@@ -154,7 +154,7 @@ namespace Helium {
        *
        * @param invariants The atom attributes to include in the invariants.
        */
-      BondInvariant(int invariants = All) : m_invariants(invariants)
+      DefaultBondInvariant(int invariants = All) : m_invariants(invariants)
       {
       }
 

@@ -50,6 +50,7 @@ void export_common()
 
   to_python_converter<std::vector<bool>, VectorToList<bool> >();
   to_python_converter<std::vector<unsigned int>, VectorToList<unsigned int> >();
+  to_python_converter<std::vector<unsigned long>, VectorToList<unsigned long> >();
   to_python_converter<std::vector<std::pair<unsigned int, double> >, VectorToList<std::pair<unsigned int, double> > >();
 
   to_python_converter<std::vector<Molecule::atom_type>, VectorToList<Molecule::atom_type> >();

@@ -25,50 +25,38 @@ struct DFSVisitorWrapper : DFSVisitor, wrapper<DFSVisitor>
 {
   void initialize(const Molecule &mol)
   {
-    if (override f = this->get_override("initialize")) {
+    if (override f = this->get_override("initialize"))
       f(boost::ref(mol));
-      return;
-    }
   }
 
   void component(int i)
   {
-    if (override f = this->get_override("component")) {
+    if (override f = this->get_override("component"))
       f(i);
-      return;
-    }
   }
 
   void atom(const Molecule &mol, atom_type prev, atom_type atom)
   {
-    if (override f = this->get_override("atom")) {
+    if (override f = this->get_override("atom"))
       f(boost::ref(mol), boost::ref(prev), boost::ref(atom));
-      return;
-    }
   }
 
   void bond(const Molecule &mol, atom_type prev, bond_type bond)
   {
-    if (override f = this->get_override("bond")) {
+    if (override f = this->get_override("bond"))
       f(boost::ref(mol), boost::ref(prev), boost::ref(bond));
-      return;
-    }
   }
 
   void backtrack(const Molecule &mol, atom_type atom)
   {
-    if (override f = this->get_override("backtrack")) {
+    if (override f = this->get_override("backtrack"))
       f(boost::ref(mol), boost::ref(atom));
-      return;
-    }
   }
 
   void back_bond(const Molecule &mol, bond_type bond)
   {
-    if (override f = this->get_override("back_bond")) {
+    if (override f = this->get_override("back_bond"))
       f(boost::ref(mol), boost::ref(bond));
-      return;
-    }
   }
 
   bool stop() const

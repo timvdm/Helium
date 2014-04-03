@@ -81,10 +81,12 @@ namespace Helium {
       // create path molecule
       Substructure<MoleculeType> substruct(mol, atoms, bonds);
       // compute symmetry classes
-      std::vector<unsigned long> symmetry = extended_connectivities(substruct, AtomInvariant(AtomInvariant::Element));
+      std::vector<unsigned long> symmetry = extended_connectivities(substruct,
+          DefaultAtomInvariant(DefaultAtomInvariant::Element));
       // canonicalize the path
       std::vector<unsigned long> code = canonicalize_component(substruct, symmetry,
-          AtomInvariant(AtomInvariant::Element), BondInvariant(BondInvariant::None)).second;
+          DefaultAtomInvariant(DefaultAtomInvariant::Element),
+          DefaultBondInvariant(DefaultBondInvariant::None)).second;
       // set the bit for the hashed canonical code modulo the hash prime.
       bitvec_set(hash(code) % hashPrime, fingerprint);
     }
@@ -126,10 +128,12 @@ namespace Helium {
           // create the subgraph molecule
           Substructure<MoleculeType> substruct(mol, subgraph.atoms, subgraph.bonds);
           // compute symmetry classes
-          std::vector<unsigned long> symmetry = extended_connectivities(substruct, AtomInvariant(AtomInvariant::Element));
+          std::vector<unsigned long> symmetry = extended_connectivities(substruct,
+              DefaultAtomInvariant(DefaultAtomInvariant::Element));
           // canonicalize the subgraph
           std::vector<unsigned long> code = canonicalize_component(substruct, symmetry,
-              AtomInvariant(AtomInvariant::Element), BondInvariant(BondInvariant::None)).second;
+              DefaultAtomInvariant(DefaultAtomInvariant::Element),
+              DefaultBondInvariant(DefaultBondInvariant::None)).second;
           // set the bit for the hashed canonical code modulo the hash prime.
           bitvec_set(m_hash(code) % hashPrime, fingerprint);
         }

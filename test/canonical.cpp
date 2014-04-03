@@ -14,13 +14,13 @@ void test_canonicalize(const std::string &smiles)
   std::cout << "Testing: " << smiles << std::endl;
   HeMol mol = hemol_from_smiles(smiles);
 
-  std::vector<unsigned long> symmetry = extended_connectivities(mol, AtomInvariant());
+  std::vector<unsigned long> symmetry = extended_connectivities(mol, DefaultAtomInvariant());
   std::cout << "symmetry: " << symmetry << std::endl;
 
   std::vector<unsigned int> atoms = connected_atom_components(mol);
   std::vector<unsigned int> bonds = connected_bond_components(mol);
 
-  canonicalize(mol, symmetry, AtomInvariant(), BondInvariant(), atoms, bonds);
+  canonicalize(mol, symmetry, DefaultAtomInvariant(), DefaultBondInvariant(), atoms, bonds);
 }
 
 bool shuffle_test_mol(HeMol &mol)
@@ -32,8 +32,8 @@ bool shuffle_test_mol(HeMol &mol)
 
 
   std::pair<std::vector<Index>, std::vector<unsigned long> > ref_canon = canonicalize(mol,
-        extended_connectivities(mol, AtomInvariant()), AtomInvariant(), BondInvariant(),
-        connected_atom_components(mol), connected_bond_components(mol));
+        extended_connectivities(mol, DefaultAtomInvariant()), DefaultAtomInvariant(),
+        DefaultBondInvariant(), connected_atom_components(mol), connected_bond_components(mol));
 
   const std::vector<unsigned long> &ref_code = ref_canon.second;
   std::string ref_smiles = SMILES.write(mol, ref_canon.first, Smiles::All);
@@ -55,8 +55,8 @@ bool shuffle_test_mol(HeMol &mol)
     //std::cout << mol << std::endl;
 
     std::pair<std::vector<Index>, std::vector<unsigned long> > canon = canonicalize(mol,
-        extended_connectivities(mol, AtomInvariant()), AtomInvariant(), BondInvariant(),
-        connected_atom_components(mol), connected_bond_components(mol));
+        extended_connectivities(mol, DefaultAtomInvariant()), DefaultAtomInvariant(),
+        DefaultBondInvariant(), connected_atom_components(mol), connected_bond_components(mol));
 
     const std::vector<unsigned long> &code = canon.second;
     std::string smiles = SMILES.write(mol, canon.first, Smiles::All);

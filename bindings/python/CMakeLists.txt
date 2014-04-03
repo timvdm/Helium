@@ -21,8 +21,11 @@ set(python_SRCS
   smiles.cpp
   smirks.cpp
   substructure.cpp
+  algorithms/canonical.cpp
   algorithms/dfs.cpp
+  algorithms/extendedconnectivities.cpp
   algorithms/components.cpp
+  algorithms/invariants.cpp
   fileio/file.cpp
   fileio/fingerprints.cpp
   fileio/fps.cpp

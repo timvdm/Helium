@@ -13,8 +13,11 @@ void export_smirks();
 void export_substructure();
 void export_rings();
 
+void export_canonical();
 void export_components();
 void export_dfs();
+void export_extended_connectivities();
+void export_invariants();
 
 void export_file();
 void export_moleculefile();
@@ -38,8 +41,11 @@ BOOST_PYTHON_MODULE(helium) {
   export_rings();
 
   // algorithms
+  export_canonical();
   export_components();
   export_dfs();
+  export_extended_connectivities();
+  export_invariants();
 
   //  fileio
   export_file();

@@ -103,8 +103,8 @@ namespace Helium {
       std::string writeCanonical(const MoleculeType &mol)
       {
         std::pair<std::vector<Index>, std::vector<unsigned long> > canon = canonicalize(mol,
-            extended_connectivities(mol, AtomInvariant(AtomInvariant::Element)),
-            AtomInvariant(AtomInvariant::All), BondInvariant(BondInvariant::All),
+            extended_connectivities(mol, DefaultAtomInvariant(DefaultAtomInvariant::Element)),
+            DefaultAtomInvariant(DefaultAtomInvariant::All), DefaultBondInvariant(DefaultBondInvariant::All),
             connected_atom_components(mol), connected_bond_components(mol));
         return write(mol, canon.first);
       }

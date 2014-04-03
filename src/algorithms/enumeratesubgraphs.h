@@ -643,8 +643,6 @@ namespace Helium {
 
   }
 
-
-
 }
 
 #endif

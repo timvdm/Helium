@@ -23,6 +23,8 @@ set(python_SRCS
   substructure.cpp
   algorithms/canonical.cpp
   algorithms/dfs.cpp
+  algorithms/enumeratepaths.cpp
+  algorithms/enumeratesubgraphs.cpp
   algorithms/extendedconnectivities.cpp
   algorithms/components.cpp
   algorithms/invariants.cpp

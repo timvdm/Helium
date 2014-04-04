@@ -63,6 +63,20 @@ namespace Helium {
     void initialize(const MoleculeType &mol) {}
 
     /**
+     * @brief A new component starts.
+     *
+     * @param i The component (i.e. [0,n])
+     */
+    void component(int i) {}
+
+    /**
+     * @brief A new depth is reached.
+     *
+     * @param d The new depth.
+     */
+    void depth(int d) {}
+
+    /**
      * @brief Visit an atom.
      *
      * This function is called every time a new atom is traversed.
@@ -94,7 +108,105 @@ namespace Helium {
      * @param bond The "back" bond.
      */
     void back_bond(const MoleculeType &mol, bond_type bond) {}
+
+    /**
+     * @brief Check if the search should be stopped.
+     *
+     * By overloading this function it is possible to abort the search before
+     * it is complete (e.g. when some goal is achieved).
+     *
+     * @return True if the search should be stopped.
+     */
+    bool stop() const
+    {
+      return false;
+    }
   };
+
+  namespace impl {
+
+    template<typename MoleculeType>
+    struct BFSQueueItem
+    {
+      typedef typename molecule_traits<MoleculeType>::atom_type atom_type;
+      typedef typename molecule_traits<MoleculeType>::bond_type bond_type;
+
+      BFSQueueItem(const bond_type &bond_, const atom_type &atom_, int depth_)
+        : bond(bond_), atom(atom_), depth(depth_)
+      {
+      }
+
+      bond_type bond;
+      atom_type atom;
+      int depth;
+    };
+
+    template<typename MoleculeType, typename BFSVisitorType>
+    void process_bfs_queue(const MoleculeType &mol, BFSVisitorType &visitor,
+        std::queue<BFSQueueItem<MoleculeType> > &queue, std::vector<bool> &visited)
+    {
+      typedef typename molecule_traits<MoleculeType>::atom_type atom_type;
+      typedef typename molecule_traits<MoleculeType>::bond_type bond_type;
+      typedef typename impl::BFSQueueItem<MoleculeType> QueueItem;
+
+      int lastDepth = -1;
+      while (queue.size()) {
+        if (visitor.stop())
+          return;
+
+        // pop from stack
+        QueueItem next = queue.front();
+        queue.pop();
+
+        // is the atom already visited?
+        if (visited[get_index(mol, next.atom)])
+          continue;
+
+        if (next.depth > lastDepth) {
+          visitor.depth(next.depth);
+          lastDepth = next.depth;
+        }
+
+        // mark atom as visited
+        visited[get_index(mol, next.atom)] = true;
+        // mark bond as visited
+        if (next.bond != molecule_traits<MoleculeType>::null_bond()) {
+          visited[num_atoms(mol) + get_index(mol, next.bond)] = true;
+          // invoke visitor on bond and atom
+          atom_type prev = get_other(mol, next.bond, next.atom);
+          visitor.bond(mol, prev, next.bond);
+          visitor.atom(mol, prev, next.atom);
+        } else {
+          visitor.atom(mol, molecule_traits<MoleculeType>::null_atom(), next.atom);
+        }
+
+        // add unvisited neighbors to queue
+        FOREACH_INCIDENT_T (bond, next.atom, mol, MoleculeType) {
+          if (visitor.stop())
+            return;
+
+          if (visited[num_atoms(mol) + get_index(mol, *bond)])
+            continue;
+
+          atom_type nbr = get_other(mol, *bond, next.atom);
+
+          // is the neighbor atom already visited?
+          if (visited[get_index(mol, nbr)]) {
+            // if the bond is not visited yet, it is a back bond
+            if (!visited[num_atoms(mol) + get_index(mol, *bond)])
+              visitor.back_bond(mol, *bond);
+            // mark the back bond as visited
+            visited[num_atoms(mol) + get_index(mol, *bond)] = true;
+            continue;
+          }
+
+          // push neighbor to stack
+          queue.push(QueueItem(*bond, get_other(mol, *bond, next.atom), next.depth + 1));
+        }
+      }
+    }
+
+  } // namespace impl
 
   /**
    * @brief Perform a breadth-first search (BFS).
@@ -122,59 +234,322 @@ namespace Helium {
   {
     typedef typename molecule_traits<MoleculeType>::atom_type atom_type;
     typedef typename molecule_traits<MoleculeType>::bond_type bond_type;
+    typedef typename impl::BFSQueueItem<MoleculeType> QueueItem;
+
+    // keep track of visited atoms and bonds
+    std::vector<bool> visited(num_atoms(mol) + num_bonds(mol));
 
     visitor.initialize(mol);
 
-    std::queue<std::pair<bond_type, atom_type> > queue;
-    std::vector<bool> visited(num_atoms(mol) + num_bonds(mol));
+    std::queue<QueueItem> queue;
 
+    int component = 0;
     FOREACH_ATOM_T (atom, mol, MoleculeType) {
       if (!visited[get_index(mol, *atom)]) {
         // push initial component atom to stack
-        queue.push(std::make_pair(molecule_traits<MoleculeType>::null_bond(), *atom));
+        queue.push(QueueItem(molecule_traits<MoleculeType>::null_bond(), *atom, 0));
 
-        while (queue.size()) {
-          // pop from stack
-          std::pair<bond_type, atom_type> next = queue.front();
-          queue.pop();
+        // start new compoenent
+        visitor.component(component++);
 
-          // is the atom already visited?
-          if (visited[get_index(mol, next.second)])
-            continue;
-
-          // mark atom as visited
-          visited[get_index(mol, next.second)] = true;
-          // mark bond as visited
-          if (next.first != molecule_traits<MoleculeType>::null_bond()) {
-            visited[num_atoms(mol) + get_index(mol, next.first)] = true;
-            // invoke visitor on bond and atom
-            atom_type prev = get_other(mol, next.first, next.second);
-            visitor.bond(mol, prev, next.first);
-            visitor.atom(mol, prev, next.second);
-          } else {
-            visitor.atom(mol, molecule_traits<MoleculeType>::null_atom(), next.second);
-          }
-
-          // add unvisited neighbors to queue
-          FOREACH_INCIDENT_T (bond, next.second, mol, MoleculeType) {
-            atom_type nbr = get_other(mol, *bond, next.second);
-
-            // is the neighbor atom already visited?
-            if (visited[get_index(mol, nbr)]) {
-              // if the bond is not visited yet, it is a back bond
-              if (!visited[num_atoms(mol) + get_index(mol, *bond)])
-                visitor.back_bond(mol, *bond);
-              // mark the back bond as visited
-              visited[num_atoms(mol) + get_index(mol, *bond)] = true;
-              continue;
-            }
-
-            // push neighbor to stack
-            queue.push(std::make_pair(*bond, get_other(mol, *bond, next.second)));
-          }
-        }
+        // process the queue
+        impl::process_bfs_queue(mol, visitor, queue, visited);
       }
     }
+  }
+
+  /**
+   * @brief Perform a breadth-first search (BFS).
+   *
+   * This breadth-first search function considers all fragments and walks a single
+   * spanning tree for each fragment. The atom with the lowest index from each
+   * fragment is used as root of the resulting spanning tree to start the
+   * search.
+   *
+   * This function makes use of a visitor functor to allow actions to be
+   * performed. A number of visitors are available (e.g. BFSAtomOrderVisitor,
+   * BFSBondOrderVisitor, BFSClosureRecorderVisitor, BFSDebugVisitor). Custom
+   * functor can be implemented by inheriting the BFSVisitor struct and
+   * reimplementing the required functions.
+   *
+   * The @p atomMask specifies the atoms and bonds that will be considered.
+   * The element in the @p atomMask that correspond with atoms to be included
+   * in the search should be set to true. If an atom is not included in the
+   * search, all bonds around the atom are also excluded.
+   *
+   * @note Complexity: @f$O(n)@f$
+   * @ingroup Beta
+   * @note Phase: Beta
+   *
+   * @param mol The molecule.
+   * @param visitor The BFS visitor functor.
+   */
+  template<typename MoleculeType, typename BFSVisitorType>
+  void breadth_first_search_mask(const MoleculeType &mol, BFSVisitorType &visitor,
+      const std::vector<bool> &atomMask)
+  {
+    typedef typename molecule_traits<MoleculeType>::atom_type atom_type;
+    typedef typename molecule_traits<MoleculeType>::bond_type bond_type;
+    typedef typename impl::BFSQueueItem<MoleculeType> QueueItem;
+
+    // keep track of visited atoms and bonds
+    std::vector<bool> visited(num_atoms(mol) + num_bonds(mol));
+
+    // initialize visited to take mask into account
+    for (std::size_t i = 0; i < num_atoms(mol); ++i)
+      if (!atomMask[i]) {
+        // mark masked atoms as visited
+        visited[i] = true;
+        // mark bonds around atom as visited
+        atom_type atom = get_atom(mol, i);
+        FOREACH_INCIDENT_T(bond, atom, mol, MoleculeType)
+          visited[num_atoms(mol) + get_index(mol, *bond)] = true;
+      }
+
+    visitor.initialize(mol);
+
+    std::queue<QueueItem> queue;
+
+    int component = 0;
+    FOREACH_ATOM_T (atom, mol, MoleculeType) {
+      if (!visited[get_index(mol, *atom)]) {
+        // push initial component atom to stack
+        queue.push(QueueItem(molecule_traits<MoleculeType>::null_bond(), *atom, 0));
+
+        // start new compoenent
+        visitor.component(component++);
+
+        // process the queue
+        impl::process_bfs_queue(mol, visitor, queue, visited);
+      }
+    }
+  }
+
+  /**
+   * @brief Perform a breadth-first search (BFS).
+   *
+   * This breadth-first search function considers all fragments and walks a single
+   * spanning tree for each fragment. The atom with the lowest index from each
+   * fragment is used as root of the resulting spanning tree to start the
+   * search.
+   *
+   * This function makes use of a visitor functor to allow actions to be
+   * performed. A number of visitors are available (e.g. BFSAtomOrderVisitor,
+   * BFSBondOrderVisitor, BFSClosureRecorderVisitor, BFSDebugVisitor). Custom
+   * functor can be implemented by inheriting the BFSVisitor struct and
+   * reimplementing the required functions.
+   *
+   * The @p atomMask specifies the atoms that will be considered.
+   * The element in the @p atomMask that correspond with atoms to be included
+   * in the search should be set to true. The @p bondMask works in the same way
+   * but specifies the bonds that should be considered.
+   *
+   * @note Complexity: @f$O(n)@f$
+   * @ingroup Beta
+   * @note Phase: Beta
+   *
+   * @param mol The molecule.
+   * @param visitor The BFS visitor functor.
+   */
+  template<typename MoleculeType, typename BFSVisitorType>
+  void breadth_first_search_mask(const MoleculeType &mol, BFSVisitorType &visitor,
+      const std::vector<bool> &atomMask, const std::vector<bool> &bondMask)
+  {
+    typedef typename molecule_traits<MoleculeType>::atom_type atom_type;
+    typedef typename molecule_traits<MoleculeType>::bond_type bond_type;
+    typedef typename impl::BFSQueueItem<MoleculeType> QueueItem;
+
+    // keep track of visited atoms and bonds
+    std::vector<bool> visited(num_atoms(mol) + num_bonds(mol));
+
+    // initialize visited to take masks into account
+    for (std::size_t i = 0; i < num_atoms(mol); ++i)
+      if (!atomMask[i])
+        visited[i] = true;
+    for (std::size_t i = 0; i < num_bonds(mol); ++i)
+      if (!bondMask[i])
+        visited[num_atoms(mol) + i] = true;
+
+    visitor.initialize(mol);
+
+    std::queue<QueueItem> queue;
+
+    int component = 0;
+    FOREACH_ATOM_T (atom, mol, MoleculeType) {
+      if (!visited[get_index(mol, *atom)]) {
+        // push initial component atom to stack
+        queue.push(QueueItem(molecule_traits<MoleculeType>::null_bond(), *atom, 0));
+
+        // start new compoenent
+        visitor.component(component++);
+
+        // process the queue
+        impl::process_bfs_queue(mol, visitor, queue, visited);
+      }
+    }
+  }
+
+  /**
+   * @brief Perform a breadth-first search (BFS).
+   *
+   * This breadth-first search function considers a single component and walks a
+   * single spanning tree starting at @p atom.
+   *
+   * This function makes use of a visitor functor to allow actions to be
+   * performed. A number of visitors are available (e.g. BFSAtomOrderVisitor,
+   * BFSBondOrderVisitor, BFSClosureRecorderVisitor, BFSDebugVisitor). Custom
+   * functor can be implemented by inheriting the BFSVisitor struct and
+   * reimplementing the required functions.
+   *
+   * @note Complexity: @f$O(n)@f$
+   * @ingroup Beta
+   * @note Phase: Beta
+   *
+   * @param mol The molecule.
+   * @param visitor The BFS visitor functor.
+   */
+  template<typename MoleculeType, typename BFSVisitorType>
+  void breadth_first_search(const MoleculeType &mol,
+      typename molecule_traits<MoleculeType>::atom_type atom, BFSVisitorType &visitor)
+  {
+    typedef typename molecule_traits<MoleculeType>::atom_type atom_type;
+    typedef typename molecule_traits<MoleculeType>::bond_type bond_type;
+    typedef typename impl::BFSQueueItem<MoleculeType> QueueItem;
+
+    // keep track of visited atoms and bonds
+    std::vector<bool> visited(num_atoms(mol) + num_bonds(mol));
+
+    visitor.initialize(mol);
+
+    std::queue<QueueItem> queue;
+
+    // push initial component atom to stack
+    queue.push(QueueItem(molecule_traits<MoleculeType>::null_bond(), atom, 0));
+
+    // start new compoenent
+    visitor.component(0);
+
+    // process the queue
+    impl::process_bfs_queue(mol, visitor, queue, visited);
+  }
+
+  /**
+   * @brief Perform a breadth-first search (BFS).
+   *
+   * This breadth-first search function considers a single component and walks a
+   * single spanning tree starting at @p atom.
+   *
+   * This function makes use of a visitor functor to allow actions to be
+   * performed. A number of visitors are available (e.g. BFSAtomOrderVisitor,
+   * BFSBondOrderVisitor, BFSClosureRecorderVisitor, BFSDebugVisitor). Custom
+   * functor can be implemented by inheriting the BFSVisitor struct and
+   * reimplementing the required functions.
+   *
+   * The @p atomMask specifies the atoms and bonds that will be considered.
+   * The element in the @p atomMask that correspond with atoms to be included
+   * in the search should be set to true. If an atom is not included in the
+   * search, all bonds around the atom are also excluded.
+   *
+   * @note Complexity: @f$O(n)@f$
+   * @ingroup Beta
+   * @note Phase: Beta
+   *
+   * @param mol The molecule.
+   * @param visitor The BFS visitor functor.
+   */
+  template<typename MoleculeType, typename BFSVisitorType>
+  void breadth_first_search_mask(const MoleculeType &mol,
+      typename molecule_traits<MoleculeType>::atom_type atom, BFSVisitorType &visitor,
+      const std::vector<bool> &atomMask)
+  {
+    typedef typename molecule_traits<MoleculeType>::atom_type atom_type;
+    typedef typename molecule_traits<MoleculeType>::bond_type bond_type;
+    typedef typename impl::BFSQueueItem<MoleculeType> QueueItem;
+
+    // keep track of visited atoms and bonds
+    std::vector<bool> visited(num_atoms(mol) + num_bonds(mol));
+
+    // initialize visited to take mask into account
+    for (std::size_t i = 0; i < num_atoms(mol); ++i)
+      if (!atomMask[i]) {
+        // mark masked atoms as visited
+        visited[i] = true;
+        // mark bonds around atom as visited
+        atom_type atom = get_atom(mol, i);
+        FOREACH_INCIDENT_T(bond, atom, mol, MoleculeType)
+          visited[num_atoms(mol) + get_index(mol, *bond)] = true;
+      }
+
+    visitor.initialize(mol);
+
+    std::queue<QueueItem> queue;
+
+    // push initial component atom to stack
+    queue.push(QueueItem(molecule_traits<MoleculeType>::null_bond(), atom, 0));
+
+    // start new compoenent
+    visitor.component(0);
+
+    // process the queue
+    impl::process_bfs_queue(mol, visitor, queue, visited);
+  }
+
+  /**
+   * @brief Perform a breadth-first search (BFS).
+   *
+   * This breadth-first search function considers a single component and walks a
+   * single spanning tree starting at @p atom.
+   *
+   * This function makes use of a visitor functor to allow actions to be
+   * performed. A number of visitors are available (e.g. BFSAtomOrderVisitor,
+   * BFSBondOrderVisitor, BFSClosureRecorderVisitor, BFSDebugVisitor). Custom
+   * functor can be implemented by inheriting the BFSVisitor struct and
+   * reimplementing the required functions.
+   *
+   * The @p atomMask specifies the atoms that will be considered.
+   * The element in the @p atomMask that correspond with atoms to be included
+   * in the search should be set to true. The @p bondMask works in the same way
+   * but specifies the bonds that should be considered.
+   *
+   * @note Complexity: @f$O(n)@f$
+   * @ingroup Beta
+   * @note Phase: Beta
+   *
+   * @param mol The molecule.
+   * @param visitor The BFS visitor functor.
+   */
+  template<typename MoleculeType, typename BFSVisitorType>
+  void breadth_first_search_mask(const MoleculeType &mol,
+      typename molecule_traits<MoleculeType>::atom_type atom, BFSVisitorType &visitor,
+      const std::vector<bool> &atomMask, const std::vector<bool> &bondMask)
+  {
+    typedef typename molecule_traits<MoleculeType>::atom_type atom_type;
+    typedef typename molecule_traits<MoleculeType>::bond_type bond_type;
+    typedef typename impl::BFSQueueItem<MoleculeType> QueueItem;
+
+    // keep track of visited atoms and bonds
+    std::vector<bool> visited(num_atoms(mol) + num_bonds(mol));
+
+    // initialize visited to take masks into account
+    for (std::size_t i = 0; i < num_atoms(mol); ++i)
+      if (!atomMask[i])
+        visited[i] = true;
+    for (std::size_t i = 0; i < num_bonds(mol); ++i)
+      if (!bondMask[i])
+        visited[num_atoms(mol) + i] = true;
+
+    visitor.initialize(mol);
+
+    std::queue<QueueItem> queue;
+
+    // push initial component atom to stack
+    queue.push(QueueItem(molecule_traits<MoleculeType>::null_bond(), atom, 0));
+
+    // start new compoenent
+    visitor.component(0);
+
+    // process the queue
+    impl::process_bfs_queue(mol, visitor, queue, visited);
   }
 
   /**
@@ -295,6 +670,38 @@ namespace Helium {
      */
     BFSDebugVisitor(std::ostream &os_ = std::cout) : os(os_)
     {
+    }
+
+    /**
+     * @brief Initialize the functor.
+     *
+     * This function is called once when the BFS search is started.
+     *
+     * @param mol The molecule.
+     */
+    void initialize(const MoleculeType &mol)
+    {
+      os << "initialize()" << std::endl;
+    }
+
+    /**
+     * @brief A new component starts.
+     *
+     * @param i The component (i.e. [0,n])
+     */
+    void component(int i)
+    {
+      os << "component(" << i << ")" << std::endl;
+    }
+
+    /*
+     * @brief A new depth is reached.
+     *
+     * @param d The new depth.
+     */
+    void depth(int d)
+    {
+      os << "depth(" << d << ")" << std::endl;
     }
 
     /**

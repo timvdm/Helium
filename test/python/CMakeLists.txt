@@ -1,6 +1,7 @@
 include(UsePythonTest)
 
 set(python_tests
+  bfs
   bitvec
   canonical
   components

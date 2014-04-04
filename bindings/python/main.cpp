@@ -14,6 +14,7 @@ void export_smirks();
 void export_substructure();
 void export_rings();
 
+void export_bfs();
 void export_canonical();
 void export_components();
 void export_dfs();
@@ -47,6 +48,7 @@ BOOST_PYTHON_MODULE(helium) {
   export_rings();
 
   // algorithms
+  export_bfs();
   export_canonical();
   export_components();
   export_dfs();

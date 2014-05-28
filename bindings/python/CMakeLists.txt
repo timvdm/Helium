@@ -41,7 +41,7 @@ set(python_SRCS
   ../../src/smarts.cpp
   ../../src/smirks.cpp
   ../../src/fileio/file.cpp
-  ../../src/thirdparty/jsoncpp/jsoncpp.cpp
+  ../../src/jsoncpp.cpp
 )
 
 set(CMAKE_CXX_FLAGS "-O2")

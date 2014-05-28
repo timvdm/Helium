@@ -34,8 +34,7 @@
 #include <Helium/algorithms/isomorphism.h>
 #include <Helium/algorithms/components.h>
 #include <Helium/error.h>
-
-#include <smiley.h>
+#include <Helium/smiley.h>
 
 namespace Helium {
 

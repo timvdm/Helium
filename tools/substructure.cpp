@@ -31,8 +31,8 @@
 #include <Helium/fileio/fingerprints.h>
 #include <Helium/fileio/moleculefile.h>
 #include <Helium/algorithms/isomorphism.h>
+#include <Helium/json/json.h>
 
-#include <json/json.h>
 
 #include "args.h"
 

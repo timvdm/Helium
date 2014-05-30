@@ -146,7 +146,6 @@ namespace Helium {
         std::queue<BFSQueueItem<MoleculeType> > &queue, std::vector<bool> &visited)
     {
       typedef typename molecule_traits<MoleculeType>::atom_type atom_type;
-      typedef typename molecule_traits<MoleculeType>::bond_type bond_type;
       typedef typename impl::BFSQueueItem<MoleculeType> QueueItem;
 
       int lastDepth = -1;
@@ -232,8 +231,6 @@ namespace Helium {
   template<typename MoleculeType, typename BFSVisitorType>
   void breadth_first_search(const MoleculeType &mol, BFSVisitorType &visitor)
   {
-    typedef typename molecule_traits<MoleculeType>::atom_type atom_type;
-    typedef typename molecule_traits<MoleculeType>::bond_type bond_type;
     typedef typename impl::BFSQueueItem<MoleculeType> QueueItem;
 
     // keep track of visited atoms and bonds
@@ -289,7 +286,6 @@ namespace Helium {
       const std::vector<bool> &atomMask)
   {
     typedef typename molecule_traits<MoleculeType>::atom_type atom_type;
-    typedef typename molecule_traits<MoleculeType>::bond_type bond_type;
     typedef typename impl::BFSQueueItem<MoleculeType> QueueItem;
 
     // keep track of visited atoms and bonds
@@ -355,8 +351,6 @@ namespace Helium {
   void breadth_first_search_mask(const MoleculeType &mol, BFSVisitorType &visitor,
       const std::vector<bool> &atomMask, const std::vector<bool> &bondMask)
   {
-    typedef typename molecule_traits<MoleculeType>::atom_type atom_type;
-    typedef typename molecule_traits<MoleculeType>::bond_type bond_type;
     typedef typename impl::BFSQueueItem<MoleculeType> QueueItem;
 
     // keep track of visited atoms and bonds
@@ -412,8 +406,6 @@ namespace Helium {
   void breadth_first_search(const MoleculeType &mol,
       typename molecule_traits<MoleculeType>::atom_type atom, BFSVisitorType &visitor)
   {
-    typedef typename molecule_traits<MoleculeType>::atom_type atom_type;
-    typedef typename molecule_traits<MoleculeType>::bond_type bond_type;
     typedef typename impl::BFSQueueItem<MoleculeType> QueueItem;
 
     // keep track of visited atoms and bonds
@@ -463,7 +455,6 @@ namespace Helium {
       const std::vector<bool> &atomMask)
   {
     typedef typename molecule_traits<MoleculeType>::atom_type atom_type;
-    typedef typename molecule_traits<MoleculeType>::bond_type bond_type;
     typedef typename impl::BFSQueueItem<MoleculeType> QueueItem;
 
     // keep track of visited atoms and bonds
@@ -523,8 +514,6 @@ namespace Helium {
       typename molecule_traits<MoleculeType>::atom_type atom, BFSVisitorType &visitor,
       const std::vector<bool> &atomMask, const std::vector<bool> &bondMask)
   {
-    typedef typename molecule_traits<MoleculeType>::atom_type atom_type;
-    typedef typename molecule_traits<MoleculeType>::bond_type bond_type;
     typedef typename impl::BFSQueueItem<MoleculeType> QueueItem;
 
     // keep track of visited atoms and bonds

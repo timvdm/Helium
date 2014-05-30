@@ -244,7 +244,7 @@ namespace Helium {
   }
 
   template<>
-  int num_hydrogens(const OpenBabel::OBMol &mol,
+  int get_hydrogens(const OpenBabel::OBMol &mol,
       typename molecule_traits<OpenBabel::OBMol>::atom_type atom)
   {
     return atom->GetImplicitValence() - atom->GetValence();

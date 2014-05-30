@@ -36,9 +36,9 @@ void test_atom_functions(EditableMoleculeType &mol)
   COMPARE(2, get_mass(mol, atom1));
   // atom number of implicit hydrogens
   set_hydrogens(mol, atom1, 4);
-  COMPARE(4, num_hydrogens(mol, atom1));
+  COMPARE(4, get_hydrogens(mol, atom1));
   set_hydrogens(mol, atom1, 3);
-  COMPARE(3, num_hydrogens(mol, atom1));
+  COMPARE(3, get_hydrogens(mol, atom1));
   // atom charge
   set_charge(mol, atom1, -1);
   COMPARE(-1, get_charge(mol, atom1));

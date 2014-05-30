@@ -17,7 +17,7 @@ void print_stuff(const MoleculeType &mol)
     std::cout << "    mass: " << get_mass(mol, *atom) << std::endl;
     std::cout << "    charge: " << get_charge(mol, *atom) << std::endl;
     std::cout << "    degree: " << get_degree(mol, *atom) << std::endl;
-    std::cout << "    number of hydrogens: " << num_hydrogens(mol, *atom) << std::endl;
+    std::cout << "    number of hydrogens: " << get_hydrogens(mol, *atom) << std::endl;
   }
 
   // print neighbor indices for atom 1

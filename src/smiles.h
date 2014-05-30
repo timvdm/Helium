@@ -267,7 +267,7 @@ namespace Helium {
         if (flags & Smiles::Hydrogens) {
           int charge = (flags & Smiles::Charge) ? get_charge(mol, atom) : 0;
           //std::cout << get_valence(mol, atom) << " != " << Element::valence(get_element(mol, atom), charge, get_degree(mol, atom)) << std::endl;
-          //std::cout << "#H: " << num_hydrogens(mol, atom) << std::endl;
+          //std::cout << "#H: " << get_hydrogens(mol, atom) << std::endl;
           if (get_valence(mol, atom) != Element::valence(get_element(mol, atom), charge, get_degree(mol, atom)))
             needBrackets = true;
         }
@@ -280,7 +280,7 @@ namespace Helium {
 
         smiles << element;
 
-        int numH = num_hydrogens(mol, atom);
+        int numH = get_hydrogens(mol, atom);
         if (needBrackets && (flags & Smiles::Hydrogens) && numH)
           smiles << "H" << numH;
 
@@ -392,7 +392,7 @@ namespace Helium {
 
     // add hydrogens
     FOREACH_ATOM_T (atom, mol, EditableMoleculeType) {
-      if (num_hydrogens(mol, *atom) != 99)
+      if (get_hydrogens(mol, *atom) != 99)
         continue;
       set_hydrogens(mol, *atom, 0);
       if (!Element::addHydrogens(get_element(mol, *atom)))
@@ -405,7 +405,7 @@ namespace Helium {
 
       int valence = get_valence(mol, *atom);
       int expValence = Element::valence(get_element(mol, *atom), get_charge(mol, *atom), valence);
-      //std::cout << "val: " << valence << "  deg: " << get_degree(mol, *atom) << " explH: " << explicitH << " H: " << num_hydrogens(mol, *atom) << std::endl;
+      //std::cout << "val: " << valence << "  deg: " << get_degree(mol, *atom) << " explH: " << explicitH << " H: " << get_hydrogens(mol, *atom) << std::endl;
       if (expValence > valence - explicitH)
         set_hydrogens(mol, *atom, expValence - valence);
     }

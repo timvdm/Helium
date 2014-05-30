@@ -855,7 +855,7 @@ namespace Helium {
   }
 
   template<>
-  inline int num_hydrogens<HeMol>(const HeMol &mol,
+  inline int get_hydrogens<HeMol>(const HeMol &mol,
       const molecule_traits<HeMol>::atom_type atom)
   {
     return atom.hydrogens();

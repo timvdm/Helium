@@ -55,7 +55,7 @@ namespace Helium {
         integer = get_element(mol, atom);
         integer = get_mass(mol, atom);
         integer = get_degree(mol, atom);
-        integer = num_hydrogens(mol, atom);
+        integer = get_hydrogens(mol, atom);
         integer = get_charge(mol, atom);
 
         same_type(molecule_traits<MoleculeType>::null_bond(), *bonds.begin());
@@ -179,7 +179,7 @@ namespace Helium {
     get_element(mol, atom);
     get_mass(mol, atom);
     get_degree(mol, atom);
-    num_hydrogens(mol, atom);
+    get_hydrogens(mol, atom);
     get_charge(mol, atom);
 
     typename molecule_traits<MoleculeType>::bond_type bond;

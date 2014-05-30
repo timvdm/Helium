@@ -30,8 +30,7 @@
 #include <Helium/molecule.h>
 #include <Helium/util.h>
 #include <Helium/fileio/file.h>
-
-#include <json/json.h>
+#include <Helium/json/json.h>
 
 #include <boost/iostreams/device/mapped_file.hpp>
 

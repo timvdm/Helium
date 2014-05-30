@@ -29,8 +29,7 @@
 
 #include <Helium/bitvec.h>
 #include <Helium/fileio/file.h>
-
-#include <json/json.h>
+#include <Helium/json/json.h>
 
 #include <stdexcept>
 

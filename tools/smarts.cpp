@@ -30,8 +30,7 @@
 #include <Helium/algorithms/cycles.h>
 #include <Helium/smiles.h>
 #include <Helium/fileio/moleculefile.h>
-
-#include <json/json.h>
+#include <Helium/json/json.h>
 
 #include "args.h"
 

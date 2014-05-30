@@ -44,7 +44,7 @@ BOOST_PYTHON_MODULE(helium) {
   export_smiles();
   export_smirks();
   export_smarts();
-  //export_substructure();
+  export_substructure();
   export_rings();
 
   // algorithms

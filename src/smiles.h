@@ -34,8 +34,7 @@
 #include <Helium/algorithms/extendedconnectivities.h>
 #include <Helium/element.h>
 #include <Helium/error.h>
-
-#include <Helium/thirdparty/smiley.h>
+#include <Helium/smiley.h>
 
 #include <sstream>
 

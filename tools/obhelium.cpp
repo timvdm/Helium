@@ -27,6 +27,7 @@
 #include <Helium/molecule.h>
 #include <Helium/element.h>
 #include <Helium/fileio/file.h>
+#include <Helium/json/json.h>
 
 #include "args.h"
 #include "progress.h"
@@ -34,7 +35,6 @@
 #include <openbabel/obconversion.h>
 #include <openbabel/mol.h>
 
-#include <json/json.h>
 
 using namespace Helium;
 

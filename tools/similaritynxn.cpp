@@ -34,6 +34,7 @@
 #include <Helium/fileio/fingerprints.h>
 #include <Helium/fileio/fps.h>
 #include <Helium/smiles.h>
+#include <Helium/json/json.h>
 
 #ifdef HAVE_CPP11
 #include <Helium/concurrent.h>
@@ -43,7 +44,6 @@
 #include <CL/cl.hpp>
 #endif
 
-#include <json/json.h>
 
 #include "args.h"
 

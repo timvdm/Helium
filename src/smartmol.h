@@ -248,6 +248,66 @@ namespace Helium {
         set_charge(m_mol->m_mol, atom, value);
       }
 
+      bool isHydrogen() const
+      {
+        HeMol::atom_type atom = get_atom(m_mol->m_mol, m_index);
+        return is_hydrogen(m_mol->m_mol, atom);
+      }
+
+      bool isCarbon() const
+      {
+        HeMol::atom_type atom = get_atom(m_mol->m_mol, m_index);
+        return is_carbon(m_mol->m_mol, atom);
+      }
+
+      bool isNitrogen() const
+      {
+        HeMol::atom_type atom = get_atom(m_mol->m_mol, m_index);
+        return is_nitrogen(m_mol->m_mol, atom);
+      }
+
+      bool isOxygen() const
+      {
+        HeMol::atom_type atom = get_atom(m_mol->m_mol, m_index);
+        return is_oxygen(m_mol->m_mol, atom);
+      }
+
+      bool isPhosphorus() const
+      {
+        HeMol::atom_type atom = get_atom(m_mol->m_mol, m_index);
+        return is_phosphorus(m_mol->m_mol, atom);
+      }
+
+      bool isSulfur() const
+      {
+        HeMol::atom_type atom = get_atom(m_mol->m_mol, m_index);
+        return is_sulfur(m_mol->m_mol, atom);
+      }
+
+      int heavyDegree() const
+      {
+        HeMol::atom_type atom = get_atom(m_mol->m_mol, m_index);
+        return get_heavy_degree(m_mol->m_mol, atom);
+      }
+
+      int boSum() const
+      {
+        HeMol::atom_type atom = get_atom(m_mol->m_mol, m_index);
+        return get_bosum(m_mol->m_mol, atom);
+      }
+
+      int valence() const
+      {
+        HeMol::atom_type atom = get_atom(m_mol->m_mol, m_index);
+        return get_valence(m_mol->m_mol, atom);
+      }
+
+      int connectivity() const
+      {
+        HeMol::atom_type atom = get_atom(m_mol->m_mol, m_index);
+        return get_connectivity(m_mol->m_mol, atom);
+      }
+
       bool operator==(const atom_type &other) const
       {
         return m_index == other.m_index;
@@ -527,6 +587,16 @@ namespace Helium {
       typedef impl::incident_iterator<SmartMol> incident_iter;
       typedef impl::nbr_iterator_wrapper<SmartMol> nbr_iter;
 
+      SmartMol()
+      {
+      }
+
+      SmartMol(const SmartMol &other)
+      {
+        m_mol = other.m_mol;
+        m_attributes = other.m_attributes;
+      }
+
       Size numAtoms() const
       {
         return num_atoms(m_mol);
@@ -561,7 +631,7 @@ namespace Helium {
         return bond_type(const_cast<SmartMol*>(this), index);
       }
 
-      bond_type bond(const atom_type &source, const atom_type &target) const;
+      inline bond_type bond(const atom_type &source, const atom_type &target) const;
 
       atom_type addAtom()
       {
@@ -940,8 +1010,8 @@ namespace Helium {
     return mol.null_bond();
   }
 
-  inline SmartMol::bond_type SmartMol::bond(const atom_type &source,
-      const atom_type &target) const
+  SmartMol::bond_type SmartMol::bond(const SmartMol::atom_type &source,
+      const SmartMol::atom_type &target) const
   {
     bond_type bond = get_bond(*this, source, target);
     if (bond == molecule_traits<SmartMol>::null_bond())

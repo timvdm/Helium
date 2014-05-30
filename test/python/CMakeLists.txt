@@ -21,6 +21,7 @@ set(python_tests
   moleculefile
   rings
   similarity
+  substructure
   smarts
   smiles
   smirks

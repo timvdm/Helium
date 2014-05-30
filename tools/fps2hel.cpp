@@ -28,11 +28,11 @@
 #include <Helium/fileio/file.h>
 #include <Helium/bitvec.h>
 #include <Helium/fileio/fingerprints.h>
+#include <Helium/json/json.h>
 
 #include "args.h"
 #include "progress.h"
 
-#include <json/json.h>
 #include <numeric>
 
 using namespace Helium;

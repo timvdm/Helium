@@ -18,6 +18,7 @@ set(HELIUM_HDRS
   util.h
   hemol.h
   smiles.h
+  smiley.h
   distancematrix.h
   ring.h
   smarts.h
@@ -75,6 +76,10 @@ set(HELIUM_CHEMIST_HDRS
   chemist/molecule.h
 )
 
+set(HELIUM_JSON_HDRS
+  json/json.h
+)
+
 set(HELIUM_ALL_HDRS
   ${HELIUM_HDRS}
   ${HELIUM_ALGORITHMS_HDRS}
@@ -84,6 +89,7 @@ set(HELIUM_ALL_HDRS
   ${HELIUM_STEREO_HDRS}
   ${HELIUM_TOOLKITS_HDRS}
   ${HELIUM_CHEMIST_HDRS}
+  ${HELIUM_JSON_HDRS}
 )
 
 # Set up the include directory and symlink/copy all headers to it.
@@ -96,6 +102,7 @@ make_directory("${CMAKE_BINARY_DIR}/include/Helium/fingerprints")
 make_directory("${CMAKE_BINARY_DIR}/include/Helium/algorithms")
 make_directory("${CMAKE_BINARY_DIR}/include/Helium/toolkits")
 make_directory("${CMAKE_BINARY_DIR}/include/Helium/chemist")
+make_directory("${CMAKE_BINARY_DIR}/include/Helium/json")
 if(UNIX)
   set(header_cmd "create_symlink")
 else()
@@ -112,7 +119,7 @@ set(HELIUM_SRCS
   fileio/file.cpp
   smarts.cpp
   smirks.cpp
-  thirdparty/jsoncpp/jsoncpp.cpp
+  jsoncpp.cpp
 )
 
 # Helium library
@@ -133,4 +140,5 @@ install(FILES ${HELIUM_FILEIO_HDRS} DESTINATION "${INCLUDE_INSTALL_DIR}/Helium/f
 install(FILES ${HELIUM_FINGERPRINTS_HDRS} DESTINATION "${INCLUDE_INSTALL_DIR}/Helium/fingerprints")
 install(FILES ${HELIUM_STEREO_HDRS} DESTINATION "${INCLUDE_INSTALL_DIR}/Helium/stereo")
 install(FILES ${HELIUM_TOOLKITS_HDRS} DESTINATION "${INCLUDE_INSTALL_DIR}/Helium/toolkits")
+install(FILES ${HELIUM_JSON_HDRS} DESTINATION "${INCLUDE_INSTALL_DIR}/Helium/json")
 install(FILES ${CMAKE_BINARY_DIR}/include/Helium/config.h DESTINATION "${INCLUDE_INSTALL_DIR}/Helium")

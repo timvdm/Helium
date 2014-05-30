@@ -27,6 +27,16 @@ Molecule::bond_type bond_2(const Molecule &mol, const Molecule::atom_type &sourc
   return mol.bond(source, target);
 }
 
+void reset_implicit_hydrogens_1(Molecule &mol)
+{
+  reset_implicit_hydrogens(mol);
+}
+
+void reset_implicit_hydrogens_2(Molecule &mol, const Molecule::atom_type &atom)
+{
+  reset_implicit_hydrogens(mol, atom);
+}
+
 void export_molecule()
 {
   IteratorWrapper<Molecule::atom_type, Molecule::atom_iter>().wrap("AtomIterator");
@@ -89,5 +99,10 @@ void export_molecule()
     .def("removeBond", &Molecule::removeBond)
     .def("clear", &Molecule::clear)
     ;
+
+  def("make_hydrogens_explicit", &Helium::make_hydrogens_explicit<Molecule>);
+  def("make_hydrogens_implicit", &Helium::make_hydrogens_implicit<Molecule>);
+  def("reset_implicit_hydrogens", &reset_implicit_hydrogens_1);
+  def("reset_implicit_hydrogens", &reset_implicit_hydrogens_2);
 
 }

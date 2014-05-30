@@ -22,7 +22,6 @@ class TestMolecule(unittest.TestCase):
             bonds.append(bond)
         self.assertListEqual([mol.bond(0), mol.bond(1), mol.bond(2)], bonds)
 
-
     def test_atom(self):
         mol = helium.Molecule()
         SMILES.read('CC(C)N', mol)
@@ -166,6 +165,28 @@ class TestMolecule(unittest.TestCase):
 
         self.assertEqual(0, mol.numAtoms())
         self.assertEqual(0, mol.numBonds())
+
+    def test_copy_ctor(self):
+        mol1 = helium.Molecule()
+
+        SMILES.read('CC', mol1)
+
+        mol2 = helium.Molecule(mol1)
+
+        self.assertEqual(2, mol1.numAtoms())
+        self.assertEqual(2, mol2.numAtoms())
+
+        mol2.clear()
+
+        self.assertEqual(2, mol1.numAtoms())
+        self.assertEqual(0, mol2.numAtoms())
+
+    def test_get_bond(self):
+        mol = helium.Molecule()
+        SMILES.read('C=C', mol)
+
+        bond = mol.bond(0)
+        bond = mol.bond(mol.atom(0), mol.atom(1))
 
 if __name__ == '__main__':
     unittest.main()

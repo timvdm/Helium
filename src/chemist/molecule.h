@@ -34,6 +34,8 @@ namespace Helium {
   namespace Chemist {
 
     typedef SmartMol Molecule;
+    typedef Molecule::atom_type Atom;
+    typedef Molecule::bond_type Bond;
 
   }
 

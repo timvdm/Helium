@@ -7,11 +7,6 @@
 using Helium::Chemist::Molecule;
 using namespace boost::python;
 
-Molecule* create_molecule()
-{
-  return new Molecule();
-}
-
 bool atom_equal(const Molecule::atom_type &self, const Molecule::atom_type &other)
 {
   return self.index() == other.index();
@@ -20,6 +15,16 @@ bool atom_equal(const Molecule::atom_type &self, const Molecule::atom_type &othe
 bool bond_equal(const Molecule::bond_type &self, const Molecule::bond_type &other)
 {
   return self.index() == other.index();
+}
+
+Molecule::bond_type bond_1(const Molecule &mol, Helium::Index index)
+{
+  return mol.bond(index);
+}
+
+Molecule::bond_type bond_2(const Molecule &mol, const Molecule::atom_type &source, const Molecule::atom_type &target)
+{
+  return mol.bond(source, target);
 }
 
 void export_molecule()
@@ -44,6 +49,16 @@ void export_molecule()
     .def("setHydrogens", &Molecule::atom_type::setHydrogens)
     .def("charge", &Molecule::atom_type::charge)
     .def("setCharge", &Molecule::atom_type::setCharge)
+    .def("isHydrogen", &Molecule::atom_type::isHydrogen)
+    .def("isCarbon", &Molecule::atom_type::isCarbon)
+    .def("isNitrogen", &Molecule::atom_type::isNitrogen)
+    .def("isOxygen", &Molecule::atom_type::isOxygen)
+    .def("isPhosphorus", &Molecule::atom_type::isPhosphorus)
+    .def("isSulfur", &Molecule::atom_type::isSulfur)
+    .def("heavyDegree", &Molecule::atom_type::heavyDegree)
+    .def("boSum", &Molecule::atom_type::boSum)
+    .def("valence", &Molecule::atom_type::valence)
+    .def("connectivity", &Molecule::atom_type::connectivity)
     .def("__eq__", &atom_equal)
     ;
 
@@ -60,13 +75,14 @@ void export_molecule()
     ;
 
   class_<Molecule, boost::noncopyable>("Molecule")
-    .def("__init__", make_constructor(&create_molecule))
+    .def(init<const Molecule&>())
     .def("numAtoms", &Molecule::numAtoms)
     .def("numBonds", &Molecule::numBonds)
     .def("atoms", &Molecule::atoms)
     .def("bonds", &Molecule::bonds)
     .def("atom", &Molecule::atom)
-    .def("bond", &Molecule::bond)
+    .def("bond", &bond_1)
+    .def("bond", &bond_2)
     .def("addAtom", &Molecule::addAtom)
     .def("removeAtom", &Molecule::removeAtom)
     .def("addBond", &Molecule::addBond)

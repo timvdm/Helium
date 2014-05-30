@@ -929,7 +929,7 @@ namespace Helium {
    * All atoms except hydrogen are heavy atoms.
    *
    * @param mol The molecule.
-   * @param atom The atom to check.
+   * @param atom The atom.
    *
    * @return The number of attached heavy atoms.
    */
@@ -941,6 +941,30 @@ namespace Helium {
       if (get_element(mol, *nbr) > 1)
         ++degree;
     return degree;
+  }
+
+  /**
+   * @brief Get the atom's bond order sum.
+   *
+   * This is the sum of the explicit bond orders.
+   *
+   * @param mol The molecule.
+   * @param atom The atom.
+   *
+   * @return The bond order sum for the atom.
+   */
+  template<typename MoleculeType>
+  int get_bosum(const MoleculeType &mol, typename molecule_traits<MoleculeType>::atom_type atom)
+  {
+    double sum = 0;
+    FOREACH_INCIDENT_T (bond, atom, mol, MoleculeType) {
+      int order = get_order(mol, *bond);
+      if (order == 5)
+        sum += 1.5;
+      else
+        sum += order;
+    }
+    return sum;
   }
 
   /**
@@ -956,15 +980,7 @@ namespace Helium {
   template<typename MoleculeType>
   int get_valence(const MoleculeType &mol, typename molecule_traits<MoleculeType>::atom_type atom)
   {
-    double val = 0;
-    FOREACH_INCIDENT_T (bond, atom, mol, MoleculeType) {
-      int order = get_order(mol, *bond);
-      if (order == 5)
-        val += 1.5;
-      else
-        val += order;
-    }
-    return val + num_hydrogens(mol, atom);
+    return get_bosum(mol, atom) + num_hydrogens(mol, atom);
   }
 
   /**

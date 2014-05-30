@@ -7,55 +7,54 @@
 using Helium::Chemist::Molecule;
 using namespace boost::python;
 
-Helium::Substructure<Molecule>* create_substructure(const Molecule &mol, const list &atoms, const list &bonds)
+Molecule* create_substructure(const Molecule &mol, const list &atoms_, const list &bonds_)
 {
-  return new Helium::Substructure<Molecule>(mol, vector_from_list<bool>(atoms),
-      vector_from_list<bool>(bonds));
+  std::vector<bool> atoms = vector_from_list<bool>(atoms_);
+  std::vector<bool> bonds = vector_from_list<bool>(bonds_);
+  std::map<Helium::Index, Helium::Index> indexMap;
+
+  Molecule *sub = new Molecule;
+
+  for (std::size_t i = 0; i < mol.numAtoms(); ++i) {
+    if (!atoms[i])
+      continue;
+
+    Molecule::atom_type atom = mol.atom(i);
+    Molecule::atom_type subAtom = sub->addAtom();
+
+    subAtom.setAromatic(atom.isAromatic());
+    subAtom.setElement(atom.element());
+    subAtom.setMass(atom.mass());
+    subAtom.setHydrogens(atom.hydrogens());
+    subAtom.setCharge(atom.charge());
+
+    indexMap[atom.index()] = subAtom.index();
+  }
+
+  for (std::size_t i = 0; i < mol.numBonds(); ++i) {
+    if (!bonds[i])
+      continue;
+
+    Molecule::bond_type bond = mol.bond(i);
+    Molecule::atom_type source = bond.source();
+    Molecule::atom_type target = bond.target();
+
+    if (!atoms[source.index()] || !atoms[target.index()])
+      continue;
+
+    Molecule::bond_type subBond = sub->addBond(sub->atom(indexMap[source.index()]), sub->atom(indexMap[target.index()]));
+
+    subBond.setAromatic(bond.isAromatic());
+    subBond.setOrder(bond.order());
+  }
+
+  return sub;
 }
 
-bool atom_equal(const Helium::Substructure<Molecule>::atom_type &self, const Helium::Substructure<Molecule>::atom_type &other);
-bool bond_equal(const Helium::Substructure<Molecule>::bond_type &self, const Helium::Substructure<Molecule>::bond_type &other);
 
 void export_substructure()
 {
-  IteratorWrapper<Helium::Substructure<Molecule>::atom_type, Helium::Substructure<Molecule>::atom_iter>().wrap("AtomIterator");
-  IteratorWrapper<Helium::Substructure<Molecule>::bond_type, Helium::Substructure<Molecule>::bond_iter>().wrap("BondIterator");
-  IteratorWrapper<Helium::Substructure<Molecule>::atom_type, Helium::Substructure<Molecule>::nbr_iter>().wrap("NbrIterator");
-  IteratorWrapper<Helium::Substructure<Molecule>::bond_type, Helium::Substructure<Molecule>::incident_iter>().wrap("IncidentIterator");
 
-  /*
-  class_<Helium::Substructure<Molecule>::atom_type>("Atom", no_init)
-    .def("index", &Helium::Substructure<Molecule>::atom_type::index)
-    .def("degree", &Helium::Substructure<Molecule>::atom_type::degree)
-    .def("bonds", &Helium::Substructure<Molecule>::atom_type::bonds)
-    .def("nbrs", &Helium::Substructure<Molecule>::atom_type::nbrs)
-    .def("isAromatic", &Helium::Substructure<Molecule>::atom_type::isAromatic)
-    .def("element", &Helium::Substructure<Molecule>::atom_type::element)
-    .def("mass", &Helium::Substructure<Molecule>::atom_type::mass)
-    .def("hydrogens", &Helium::Substructure<Molecule>::atom_type::hydrogens)
-    .def("charge", &Helium::Substructure<Molecule>::atom_type::charge)
-    .def("__eq__", &atom_equal)
-    ;
-
-  class_<Helium::Substructure<Molecule>::bond_type>("Bond", no_init)
-    .def("index", &Helium::Substructure<Molecule>::bond_type::index)
-    .def("source", &Helium::Substructure<Molecule>::bond_type::source)
-    .def("target", &Helium::Substructure<Molecule>::bond_type::target)
-    .def("other", &Helium::Substructure<Molecule>::bond_type::other)
-    .def("isAromatic", &Helium::Substructure<Molecule>::bond_type::isAromatic)
-    .def("order", &Helium::Substructure<Molecule>::bond_type::order)
-    .def("__eq__", &bond_equal)
-    ;
-    */
-
-  class_<Helium::Substructure<Molecule>, boost::noncopyable>("Substructure", no_init)
-    .def("__init__", make_constructor(&create_substructure))
-    .def("numAtoms", &Helium::Substructure<Molecule>::numAtoms)
-    .def("numBonds", &Helium::Substructure<Molecule>::numBonds)
-    .def("atoms", &Helium::Substructure<Molecule>::atoms)
-    .def("bonds", &Helium::Substructure<Molecule>::bonds)
-    .def("atom", &Helium::Substructure<Molecule>::atom)
-    .def("bond", &Helium::Substructure<Molecule>::bond)
-    ;
+  def("Substructure", &create_substructure, return_value_policy<manage_new_object>());
 
 }

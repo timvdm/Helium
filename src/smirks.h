@@ -468,7 +468,7 @@ namespace Helium {
             // increment number of hydrogens of neighbros
             FOREACH_NBR_T (nbr, get_atom(mol, remove[i]), mol, EditableMoleculeType)
               if (std::find(fixHydrogenAtoms.begin(), fixHydrogenAtoms.end(), *nbr) == fixHydrogenAtoms.end())
-                set_hydrogens(mol, *nbr, num_hydrogens(mol, *nbr) + 1);
+                set_hydrogens(mol, *nbr, get_hydrogens(mol, *nbr) + 1);
           }
           remove_atom(mol, get_atom(mol, remove[i]));
         }
@@ -486,7 +486,7 @@ namespace Helium {
       template<typename EditableMoleculeType>
       bool apply(EditableMoleculeType &mol)
       {
-        apply(mol, RingSet<EditableMoleculeType>(mol));
+        return apply(mol, RingSet<EditableMoleculeType>(mol));
       }
 
     private:

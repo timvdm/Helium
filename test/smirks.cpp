@@ -97,7 +97,7 @@ void test_simple_atoms()
     smirks.init("[C:1]>>[Ch2:1]");
     smirks.apply(mol, RingSet<HeMol>(mol));
     COMPARE(6, get_element(mol, get_atom(mol, 0)));
-    COMPARE(2, num_hydrogens(mol, get_atom(mol, 0)));
+    COMPARE(2, get_hydrogens(mol, get_atom(mol, 0)));
   }
   // CH4 -> CH3
   {
@@ -107,12 +107,12 @@ void test_simple_atoms()
     ASSERT(smirks.init("[C:1]>>[CH3:1]"));
     smirks.apply(mol, RingSet<HeMol>(mol));
     COMPARE(6, get_element(mol, get_atom(mol, 0)));
-    COMPARE(3, num_hydrogens(mol, get_atom(mol, 0)));
+    COMPARE(3, get_hydrogens(mol, get_atom(mol, 0)));
 
     mol = hemol_from_smiles("C[H]");
     smirks.apply(mol, RingSet<HeMol>(mol));
     COMPARE(6, get_element(mol, get_atom(mol, 0)));
-    COMPARE(2, num_hydrogens(mol, get_atom(mol, 0)));
+    COMPARE(2, get_hydrogens(mol, get_atom(mol, 0)));
   }
 }
 

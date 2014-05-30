@@ -28,6 +28,8 @@
 #define HELIUM_SMARTMOL_H
 
 #include <Helium/hemol.h>
+#include <Helium/util.h>
+#include <stdexcept>
 #include <map>
 
 namespace Helium {
@@ -170,6 +172,11 @@ namespace Helium {
                                   impl::nbr_iterator_wrapper<MoleculeType>(m_mol, atom, iters.end()));
       }
 
+      MoleculeType* mol() const
+      {
+        return m_mol;
+      }
+
       Index index() const
       {
         return m_index;
@@ -220,7 +227,7 @@ namespace Helium {
       int hydrogens() const
       {
         HeMol::atom_type atom = get_atom(m_mol->m_mol, m_index);
-        return num_hydrogens(m_mol->m_mol, atom);
+        return get_hydrogens(m_mol->m_mol, atom);
       }
 
       void setHydrogens(int value)
@@ -275,6 +282,11 @@ namespace Helium {
       Index index() const
       {
         return m_index;
+      }
+
+      MoleculeType* mol() const
+      {
+        return m_mol;
       }
 
       atom_type source() const
@@ -537,13 +549,19 @@ namespace Helium {
 
       atom_type atom(Index index) const
       {
+        if (index >= num_atoms(m_mol))
+          throw std::runtime_error("Invalid atom index");
         return atom_type(const_cast<SmartMol*>(this), index);
       }
 
       bond_type bond(Index index) const
       {
+        if (index >= num_bonds(m_mol))
+          throw std::runtime_error("Invalid bond index");
         return bond_type(const_cast<SmartMol*>(this), index);
       }
+
+      bond_type bond(const atom_type &source, const atom_type &target) const;
 
       atom_type addAtom()
       {
@@ -815,7 +833,7 @@ namespace Helium {
   }
 
   template<>
-  inline int num_hydrogens<SmartMol>(const SmartMol &mol,
+  inline int get_hydrogens<SmartMol>(const SmartMol &mol,
       const molecule_traits<SmartMol>::atom_type atom)
   {
     return atom.hydrogens();
@@ -920,6 +938,16 @@ namespace Helium {
       if (get_other(mol, *bond, source) == target)
         return *bond;
     return mol.null_bond();
+  }
+
+  inline SmartMol::bond_type SmartMol::bond(const atom_type &source,
+      const atom_type &target) const
+  {
+    bond_type bond = get_bond(*this, source, target);
+    if (bond == molecule_traits<SmartMol>::null_bond())
+      throw std::runtime_error(make_string("There is no bond between atoms ",
+            source.index(), " and ", target.index()));
+    return bond;
   }
 
   /**

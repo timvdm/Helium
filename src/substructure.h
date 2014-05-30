@@ -572,10 +572,10 @@ namespace Helium {
   }
 
   template<typename MoleculeType>
-  int num_hydrogens(const Substructure<MoleculeType> &mol,
+  int get_hydrogens(const Substructure<MoleculeType> &mol,
       typename molecule_traits<Substructure<MoleculeType> >::atom_type atom)
   {
-    return num_hydrogens(mol.mol(), atom);
+    return get_hydrogens(mol.mol(), atom);
   }
 
   template<typename MoleculeType>

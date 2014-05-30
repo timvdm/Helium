@@ -273,7 +273,7 @@ namespace Helium {
  * @li @b get_mass(mol, atom): Get the atom's mass.
  * @li @b get_degree(mol, atom): Get the atom's degree.
  * @li @b get_charge(mol, atom): Get the atom's charge.
- * @li @b num_hydrogens(mol, atom): Get the number of implicit hydrogens attached to this atom.
+ * @li @b get_hydrogens(mol, atom): Get the number of implicit hydrogens attached to this atom.
  * @li @b get_bonds(mol, atom): Get an iterator pair over the atom's incident bonds.
  * @li @b get_nbrs(mol, atom): Get an iterator pair over the atom's neighbor atoms.
  * @li @b get_nbrs(mol, atom): Get an iterator pair over the atom's neighbor atoms.
@@ -333,9 +333,9 @@ namespace Helium {
  *     charge_lt_predicate(), charge_gt_predicate(), charge_leq_predicate(),
  *     charge_geq_predicate()).
  * @li NumHydrogensPredicate: Compare an atom's number of hydrogens
- *     (num_hydrogens_eq_predicate(), num_hydrogens_lt_predicate(),
- *     num_hydrogens_gt_predicate(), num_hydrogens_leq_predicate(),
- *     num_hydrogens_geq_predicate()).
+ *     (get_hydrogens_eq_predicate(), get_hydrogens_lt_predicate(),
+ *     get_hydrogens_gt_predicate(), get_hydrogens_leq_predicate(),
+ *     get_hydrogens_geq_predicate()).
  * @li DegreePredicate: Compare an atom's degree (degree_eq_predicate(),
  *     degree_lt_predicate(), degree_gt_predicate(), degree_leq_predicate(),
  *     degree_geq_predicate()).

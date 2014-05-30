@@ -598,7 +598,7 @@ namespace Helium {
    * @return The atom's number of connected hydrogens.
    */
   template<typename MoleculeType>
-  int num_hydrogens(const MoleculeType &mol,
+  int get_hydrogens(const MoleculeType &mol,
       typename molecule_traits<MoleculeType>::atom_type atom);
 
   /**
@@ -964,7 +964,7 @@ namespace Helium {
       else
         val += order;
     }
-    return val + num_hydrogens(mol, atom);
+    return val + get_hydrogens(mol, atom);
   }
 
   /**
@@ -981,7 +981,7 @@ namespace Helium {
   template<typename MoleculeType>
   int get_connectivity(const MoleculeType &mol, typename molecule_traits<MoleculeType>::atom_type atom)
   {
-    return get_degree(mol, atom) + num_hydrogens(mol, atom);
+    return get_degree(mol, atom) + get_hydrogens(mol, atom);
   }
 
   /**
@@ -1000,8 +1000,8 @@ namespace Helium {
     FOREACH_ATOM_T (atom, mol, EditableMoleculeType) {
       if (is_hydrogen(mol, *atom))
         continue;
-      if (num_hydrogens(mol, *atom))
-        hydrogens.push_back(std::make_pair(*atom, num_hydrogens(mol, *atom)));
+      if (get_hydrogens(mol, *atom))
+        hydrogens.push_back(std::make_pair(*atom, get_hydrogens(mol, *atom)));
     }
 
     // add the hydrogens
@@ -1039,7 +1039,7 @@ namespace Helium {
           ++explicitH;
       }
 
-      set_hydrogens(mol, *atom, num_hydrogens(mol, *atom) + explicitH);
+      set_hydrogens(mol, *atom, get_hydrogens(mol, *atom) + explicitH);
     }
 
     std::sort(hydrogens.begin(), hydrogens.end(), std::greater<Index>());
@@ -1058,7 +1058,7 @@ namespace Helium {
    */
   template<typename EditableMoleculeType>
   void reset_implicit_hydrogens(EditableMoleculeType &mol,
-      typename molecule_traits<EditableMoleculeType>::atom_type &atom)
+      const typename molecule_traits<EditableMoleculeType>::atom_type &atom)
   {
     if (!Element::addHydrogens(get_element(mol, atom)))
       return;
@@ -1719,7 +1719,7 @@ namespace Helium {
       bool operator()(const MoleculeType &mol, atom_type atom) const
       {
         Compare<int> compare;
-        return compare(num_hydrogens(mol, atom), m_numHydrogens);
+        return compare(get_hydrogens(mol, atom), m_numHydrogens);
       }
 
     private:
@@ -1735,7 +1735,7 @@ namespace Helium {
    * @return The NumHydrogensPredicate.
    */
   template<typename MoleculeType>
-  NumHydrogensPredicate<MoleculeType, std::equal_to> num_hydrogens_eq_predicate(const MoleculeType &mol, int numHydrogens)
+  NumHydrogensPredicate<MoleculeType, std::equal_to> get_hydrogens_eq_predicate(const MoleculeType &mol, int numHydrogens)
   {
     return NumHydrogensPredicate<MoleculeType, std::equal_to>(numHydrogens);
   }
@@ -1749,7 +1749,7 @@ namespace Helium {
    * @return The NumHydrogensPredicate.
    */
   template<typename MoleculeType>
-  NumHydrogensPredicate<MoleculeType, std::less> num_hydrogens_lt_predicate(const MoleculeType &mol, int numHydrogens)
+  NumHydrogensPredicate<MoleculeType, std::less> get_hydrogens_lt_predicate(const MoleculeType &mol, int numHydrogens)
   {
     return NumHydrogensPredicate<MoleculeType, std::less>(numHydrogens);
   }
@@ -1763,7 +1763,7 @@ namespace Helium {
    * @return The NumHydrogensPredicate.
    */
   template<typename MoleculeType>
-  NumHydrogensPredicate<MoleculeType, std::greater> num_hydrogens_gt_predicate(const MoleculeType &mol, int numHydrogens)
+  NumHydrogensPredicate<MoleculeType, std::greater> get_hydrogens_gt_predicate(const MoleculeType &mol, int numHydrogens)
   {
     return NumHydrogensPredicate<MoleculeType, std::greater>(numHydrogens);
   }
@@ -1777,7 +1777,7 @@ namespace Helium {
    * @return The NumHydrogensPredicate.
    */
   template<typename MoleculeType>
-  NumHydrogensPredicate<MoleculeType, std::less_equal> num_hydrogens_leq_predicate(const MoleculeType &mol, int numHydrogens)
+  NumHydrogensPredicate<MoleculeType, std::less_equal> get_hydrogens_leq_predicate(const MoleculeType &mol, int numHydrogens)
   {
     return NumHydrogensPredicate<MoleculeType, std::less_equal>(numHydrogens);
   }
@@ -1791,7 +1791,7 @@ namespace Helium {
    * @return The NumHydrogensPredicate.
    */
   template<typename MoleculeType>
-  NumHydrogensPredicate<MoleculeType, std::greater_equal> num_hydrogens_geq_predicate(const MoleculeType &mol, int numHydrogens)
+  NumHydrogensPredicate<MoleculeType, std::greater_equal> get_hydrogens_geq_predicate(const MoleculeType &mol, int numHydrogens)
   {
     return NumHydrogensPredicate<MoleculeType, std::greater_equal>(numHydrogens);
   }

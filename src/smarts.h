@@ -330,13 +330,13 @@ namespace Helium {
                 FOREACH_NBR_T (nbr, atom, mol, MoleculeType)
                   if (get_element(mol, *nbr) == 1)
                     ++h;
-                return (h + num_hydrogens(mol, atom)) == expr->value;
+                return (h + get_hydrogens(mol, atom)) == expr->value;
               }
             case Smiley::AE_ImplicitH:
               if (expr->value == -1) // default: at least 1
-                return num_hydrogens(mol, atom) >= 1;
+                return get_hydrogens(mol, atom) >= 1;
               else
-                return num_hydrogens(mol, atom) == expr->value;
+                return get_hydrogens(mol, atom) == expr->value;
             case Smiley::AE_RingMembership:
               return m_rings.numRings(atom) == expr->value;
             case Smiley::AE_RingSize:

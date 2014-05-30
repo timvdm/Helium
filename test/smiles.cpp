@@ -17,7 +17,7 @@ void test_parse_smiles()
   COMPARE(6, get_element(mol, get_atom(mol, 0)));
   COMPARE(12, get_mass(mol, get_atom(mol, 0)));
   COMPARE(0, get_charge(mol, get_atom(mol, 0)));
-  COMPARE(4, num_hydrogens(mol, get_atom(mol, 0)));
+  COMPARE(4, get_hydrogens(mol, get_atom(mol, 0)));
 
   hemol_from_smiles("N", mol);
   COMPARE(1, num_atoms(mol));
@@ -25,7 +25,7 @@ void test_parse_smiles()
   COMPARE(7, get_element(mol, get_atom(mol, 0)));
   COMPARE(14, get_mass(mol, get_atom(mol, 0)));
   COMPARE(0, get_charge(mol, get_atom(mol, 0)));
-  COMPARE(3, num_hydrogens(mol, get_atom(mol, 0)));
+  COMPARE(3, get_hydrogens(mol, get_atom(mol, 0)));
 
   hemol_from_smiles("[13CH4]", mol);
   COMPARE(1, num_atoms(mol));
@@ -33,7 +33,7 @@ void test_parse_smiles()
   COMPARE(6, get_element(mol, get_atom(mol, 0)));
   COMPARE(13, get_mass(mol, get_atom(mol, 0)));
   COMPARE(0, get_charge(mol, get_atom(mol, 0)));
-  COMPARE(4, num_hydrogens(mol, get_atom(mol, 0)));
+  COMPARE(4, get_hydrogens(mol, get_atom(mol, 0)));
 
   hemol_from_smiles("[NH4+]", mol);
   COMPARE(1, num_atoms(mol));
@@ -41,7 +41,7 @@ void test_parse_smiles()
   COMPARE(7, get_element(mol, get_atom(mol, 0)));
   COMPARE(14, get_mass(mol, get_atom(mol, 0)));
   COMPARE(1, get_charge(mol, get_atom(mol, 0)));
-  COMPARE(4, num_hydrogens(mol, get_atom(mol, 0)));
+  COMPARE(4, get_hydrogens(mol, get_atom(mol, 0)));
 
   hemol_from_smiles("CC", mol);
   COMPARE(2, num_atoms(mol));

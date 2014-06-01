@@ -1,6 +1,7 @@
 #ifndef HELIUM_RESTFULSERVICE_H
 #define HELIUM_RESTFULSERVICE_H
 
+#include <Helium/hemol.h>
 #include <Helium/fileio/fingerprints.h>
 #include <Helium/fileio/moleculefile.h>
 #include <Helium/fingerprints/similarity.h>

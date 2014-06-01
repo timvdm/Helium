@@ -235,8 +235,33 @@ void test_editable_molecule()
   COMPARE(0, num_bonds(mol));
 }
 
+void test_substructure()
+{
+  HeMol mol = hemol_from_smiles("Oc1cc(CC)ccc1N");
+
+  std::vector<bool> atoms(mol.numAtoms(), true);
+  atoms[0] = false;
+  atoms[4] = false;
+  atoms[5] = false;
+  atoms[9] = false;
+
+  std::vector<bool> bonds(mol.numBonds(), true);
+  bonds[0] = false;
+  bonds[3] = false;
+  bonds[4] = false;
+  bonds[9] = false;
+
+  HeMol sub;
+  make_substructure(sub, mol, atoms, bonds);
+
+  Smiles SMILES;
+  COMPARE("c1ccccc1", SMILES.write(sub));
+}
+
 int main()
 {
+  test_substructure();
+
   test_atom_predicates();
   test_molecule_has_atom();
 

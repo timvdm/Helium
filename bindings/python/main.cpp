@@ -11,7 +11,6 @@ void export_molecule();
 void export_smarts();
 void export_smiles();
 void export_smirks();
-void export_substructure();
 void export_rings();
 
 void export_bfs();
@@ -44,7 +43,6 @@ BOOST_PYTHON_MODULE(helium) {
   export_smiles();
   export_smirks();
   export_smarts();
-  export_substructure();
   export_rings();
 
   // algorithms

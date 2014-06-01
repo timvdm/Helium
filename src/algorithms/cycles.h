@@ -32,7 +32,7 @@
 #include <Helium/algorithms/isomorphism.h>
 #include <Helium/smiles.h>
 #include <Helium/ring.h>
-#include <Helium/substructure.h>
+#include <Helium/hemol.h>
 
 namespace Helium {
 

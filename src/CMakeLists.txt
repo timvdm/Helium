@@ -12,7 +12,6 @@ set(HELIUM_HDRS
   element.h
   error.h
   molecule.h
-  substructure.h
   tie.h
   timeout.h
   util.h

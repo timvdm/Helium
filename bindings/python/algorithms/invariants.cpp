@@ -13,23 +13,11 @@ struct AtomInvariantWrapper : AtomInvariant, wrapper<AtomInvariant>
   {
     return this->get_override("__call__")(boost::ref(mol), boost::ref(atom));
   }
-
-  unsigned long call_2(const Helium::Substructure<Molecule> &mol,
-      const Helium::Substructure<Molecule>::atom_type &atom) const
-  {
-    return this->get_override("__call__")(boost::ref(mol), boost::ref(atom));
-  }
 };
 
 struct BondInvariantWrapper : BondInvariant, wrapper<BondInvariant>
 {
   unsigned long call_1(const Molecule &mol, const Molecule::bond_type &bond) const
-  {
-    return this->get_override("__call__")(boost::ref(mol), boost::ref(bond));
-  }
-
-  unsigned long call_2(const Helium::Substructure<Molecule> &mol,
-      const Helium::Substructure<Molecule>::bond_type &bond) const
   {
     return this->get_override("__call__")(boost::ref(mol), boost::ref(bond));
   }
@@ -84,11 +72,9 @@ void export_invariants()
 {
 
   class_<AtomInvariantWrapper, boost::noncopyable>("AtomInvariant")
-    .def("__call__", &AtomInvariant::call_1)
-    .def("__call__", &AtomInvariant::call_2);
+    .def("__call__", &AtomInvariant::call_1);
   class_<BondInvariantWrapper, boost::noncopyable>("BondInvariant")
-    .def("__call__", &BondInvariant::call_1)
-    .def("__call__", &BondInvariant::call_2);
+    .def("__call__", &BondInvariant::call_1);
 
   export_default_atom_invariant();
   export_default_bond_invariant();

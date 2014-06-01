@@ -30,6 +30,7 @@
 #include <Helium/fileio/moleculefile.h>
 #include <Helium/fileio/fingerprints.h>
 #include <Helium/fingerprints/fingerprints.h>
+#include <Helium/hemol.h>
 
 #include <numeric> // std::accumulate
 

@@ -4,7 +4,6 @@ set(tests
   enumeratepaths
   enumeratesubgraphs
   canonical
-  substructure
   util
   components
   fingerprints

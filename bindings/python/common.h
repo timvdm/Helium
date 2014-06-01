@@ -3,7 +3,6 @@
 #include "../../src/molecule.h"
 #include "../../src/chemist/molecule.h"
 #include "../../src/bitvec.h"
-#include "../../src/substructure.h"
 
 using Helium::Chemist::Molecule;
 using namespace boost::python;
@@ -86,36 +85,20 @@ struct Fingerprint
 struct AtomInvariant
 {
   virtual unsigned long call_1(const Molecule &mol, const Molecule::atom_type &atom) const = 0;
-  virtual unsigned long call_2(const Helium::Substructure<Molecule> &mol,
-      const Helium::Substructure<Molecule>::atom_type &atom) const = 0;
 
   unsigned long operator()(const Molecule &mol, const Molecule::atom_type &atom) const
   {
     return call_1(mol, atom);
-  }
-
-  unsigned long operator()(const Helium::Substructure<Molecule> &mol,
-      const Helium::Substructure<Molecule>::atom_type &atom) const
-  {
-    return call_2(mol, atom);
   }
 };
 
 struct BondInvariant
 {
   virtual unsigned long call_1(const Molecule &mol, const Molecule::bond_type &bond) const = 0;
-  virtual unsigned long call_2(const Helium::Substructure<Molecule> &mol,
-      const Helium::Substructure<Molecule>::bond_type &bond) const = 0;
 
   unsigned long operator()(const Molecule &mol, const Molecule::bond_type &bond) const
   {
     return call_1(mol, bond);
-  }
-
-  unsigned long operator()(const Helium::Substructure<Molecule> &mol,
-      const Helium::Substructure<Molecule>::bond_type &bond) const
-  {
-    return call_2(mol, bond);
   }
 };
 

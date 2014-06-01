@@ -34,6 +34,7 @@
 #include <vector>
 #include <sstream>
 #include <algorithm>
+#include <map>
 
 namespace Helium {
 
@@ -2662,6 +2663,63 @@ namespace Helium {
   }
 
   //@}
+
+  template<typename EditableMoleculeType, typename MoleculeType>
+  void make_substructure(EditableMoleculeType &target, const MoleculeType &source,
+      const std::vector<bool> &atoms, const std::vector<bool> &bonds,
+      bool adjustHydrogens = true)
+  {
+    typedef typename molecule_traits<EditableMoleculeType>::atom_type target_atom_type;
+    typedef typename molecule_traits<EditableMoleculeType>::bond_type target_bond_type;
+    typedef typename molecule_traits<MoleculeType>::atom_type source_atom_type;
+    typedef typename molecule_traits<MoleculeType>::bond_type source_bond_type;
+
+    clear_molecule(target);
+
+    std::map<Index, Index> indexMap;
+
+    for (std::size_t i = 0; i < num_atoms(source); ++i) {
+      if (!atoms[i])
+        continue;
+
+      source_atom_type sAtom = get_atom(source, i);
+      target_atom_type tAtom = add_atom(target);
+
+      // count the number of neighbers that are not part of the substructure
+      int deltaH = 0;
+      if (adjustHydrogens)
+        FOREACH_NBR (nbr, sAtom, source, MoleculeType)
+          if (!atoms[(*nbr).index()])
+            deltaH++;
+
+      set_aromatic(target, tAtom, is_aromatic(source, sAtom));
+      set_element(target, tAtom, get_element(source, sAtom));
+      set_mass(target, tAtom, get_mass(source, sAtom));
+      set_hydrogens(target, tAtom, get_hydrogens(source, sAtom) + deltaH);
+      set_charge(target, tAtom, get_charge(source, sAtom));
+
+      indexMap[get_index(source, sAtom)] = get_index(target, tAtom);
+    }
+
+    for (std::size_t i = 0; i < num_bonds(source); ++i) {
+      if (!bonds[i])
+        continue;
+
+      source_bond_type sBond = get_bond(source, i);
+      source_atom_type sAtom = get_source(source, sBond);
+      source_atom_type tAtom = get_target(source, sBond);
+
+      if (!atoms[get_index(source, sAtom)] || !atoms[get_index(source, tAtom)])
+        continue;
+
+      target_bond_type tBond = add_bond(target, get_atom(target, indexMap[get_index(source, sAtom)]),
+                                                get_atom(target, indexMap[get_index(source, tAtom)]));
+
+      set_aromatic(target, tBond, is_aromatic(source, sBond));
+      set_order(target, tBond, get_order(source, sBond));
+    }
+
+  }
 
 
 }

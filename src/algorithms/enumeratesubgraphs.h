@@ -29,7 +29,6 @@
 
 #include <Helium/molecule.h>
 #include <Helium/algorithms/components.h>
-#include <Helium/substructure.h>
 #include <Helium/tie.h>
 #include <Helium/util.h>
 //#include "timeout.h"
@@ -212,7 +211,8 @@ namespace Helium {
           continue;
 
         if (size > 1) {
-          Substructure<MoleculeType> substruct(mol, atoms, bonds);
+          MoleculeType substruct;
+          make_substructure(substruct, mol, atoms, bonds);
           // don't allow cyclic subgraphs when enumerating trees
           if (trees && impl::is_cyclic(substruct))
             continue;
@@ -620,7 +620,8 @@ namespace Helium {
         assert(std::count(subgraph.atoms.begin(), subgraph.atoms.end(), true) <= maxSize);
 
 
-        Substructure<MoleculeType> substruct(mol, atoms, bonds);
+        MoleculeType substruct;
+        make_substructure(substruct, mol, atoms, bonds);
         if (trees && impl::is_cyclic(substruct))
           continue;
 

@@ -27,7 +27,6 @@
 #ifndef HELIUM_CANONICAL_H
 #define HELIUM_CANONICAL_H
 
-#include <Helium/substructure.h>
 #include <Helium/algorithms/invariants.h>
 #include <Helium/util.h>
 
@@ -495,9 +494,10 @@ namespace Helium {
         if (bondComponents[j] == i)
           bonds[j] = true;
 
-      Substructure<MoleculeType> component(mol, atoms, bonds);
+      MoleculeType component;
+      make_substructure(component, mol, atoms, bonds);
 
-      impl::Canonicalize<Substructure<MoleculeType>, AtomInvariant, BondInvariant> can(component,
+      impl::Canonicalize<MoleculeType, AtomInvariant, BondInvariant> can(component,
           componentSymmetry, atomInvariant, bondInvariant);
       can.canonicalize();
 

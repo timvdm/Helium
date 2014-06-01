@@ -1,3 +1,4 @@
+#include <Helium/hemol.h>
 #include <Helium/algorithms/enumeratesubgraphs.h>
 #include <Helium/algorithms/extendedconnectivities.h>
 #include <Helium/algorithms/canonical.h>
@@ -18,7 +19,8 @@ struct SubgraphsCallback
   void operator()(const Subgraph &subgraph)
   {
     // create the subgraph molecule
-    Substructure<MoleculeType> substruct(mol, subgraph.atoms, subgraph.bonds);
+    MoleculeType substruct;
+    make_substructure(substruct, mol, subgraph.atoms, subgraph.bonds);
     // compute symmetry classes
     std::vector<unsigned long> symmetry = extended_connectivities(substruct,
         DefaultAtomInvariant(DefaultAtomInvariant::Element));

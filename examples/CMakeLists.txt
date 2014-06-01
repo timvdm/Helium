@@ -8,7 +8,6 @@ set(examples
   molecule3
   molecule4
   moleculefile
-  substructure
   smarts
   smirks
   cycles

@@ -30,6 +30,7 @@
 #include <Helium/fileio/fingerprints.h>
 #include <Helium/fileio/fps.h>
 #include <Helium/smiles.h>
+#include <Helium/hemol.h>
 #include <Helium/json/json.h>
 
 #ifdef HAVE_CPP11

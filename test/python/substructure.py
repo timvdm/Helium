@@ -23,7 +23,20 @@ class TestSubstructure(unittest.TestCase):
 
         sub = helium.Substructure(mol, atoms, bonds)
 
-        self.assertEqual('[c]1c[c]cc[c]1', SMILES.write(sub))
+        self.assertEqual('c1ccccc1', SMILES.write(sub))
+
+    def test_exceptions(self):
+        mol = helium.Molecule()
+        SMILES.read('CCCCC', mol)
+
+        # test invalid atoms
+        with self.assertRaises(RuntimeError):
+            helium.Substructure(mol, [], [False] * mol.numBonds())
+
+        # test invalid bonds
+        with self.assertRaises(RuntimeError):
+            helium.Substructure(mol, [False] * mol.numAtoms(), [])
+
 
 
 

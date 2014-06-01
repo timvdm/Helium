@@ -7,10 +7,16 @@
 using Helium::Chemist::Molecule;
 using namespace boost::python;
 
-Molecule* create_substructure(const Molecule &mol, const list &atoms_, const list &bonds_)
+Molecule* create_substructure_1(const Molecule &mol, const list &atoms_, const list &bonds_, bool adjustHydrogens)
 {
   std::vector<bool> atoms = vector_from_list<bool>(atoms_);
   std::vector<bool> bonds = vector_from_list<bool>(bonds_);
+
+  if (atoms.size() != mol.numAtoms())
+    throw std::runtime_error("atoms parameter does not have the correct size");
+  if (bonds.size() != mol.numBonds())
+    throw std::runtime_error("bonds parameter does not have the correct size");
+
   std::map<Helium::Index, Helium::Index> indexMap;
 
   Molecule *sub = new Molecule;
@@ -22,10 +28,17 @@ Molecule* create_substructure(const Molecule &mol, const list &atoms_, const lis
     Molecule::atom_type atom = mol.atom(i);
     Molecule::atom_type subAtom = sub->addAtom();
 
+    // count the number of neighbers that are not part of the substructure
+    int deltaH = 0;
+    if (adjustHydrogens)
+      FOREACH_NBR (nbr, atom, mol, Molecule)
+        if (!atoms[(*nbr).index()])
+          deltaH++;
+
     subAtom.setAromatic(atom.isAromatic());
     subAtom.setElement(atom.element());
     subAtom.setMass(atom.mass());
-    subAtom.setHydrogens(atom.hydrogens());
+    subAtom.setHydrogens(atom.hydrogens() + deltaH);
     subAtom.setCharge(atom.charge());
 
     indexMap[atom.index()] = subAtom.index();
@@ -51,10 +64,16 @@ Molecule* create_substructure(const Molecule &mol, const list &atoms_, const lis
   return sub;
 }
 
+Molecule* create_substructure_2(const Molecule &mol, const list &atoms_, const list &bonds_)
+{
+  return create_substructure_1(mol, atoms_, bonds_, true);
+}
+
 
 void export_substructure()
 {
 
-  def("Substructure", &create_substructure, return_value_policy<manage_new_object>());
+  def("Substructure", &create_substructure_1, return_value_policy<manage_new_object>());
+  def("Substructure", &create_substructure_2, return_value_policy<manage_new_object>());
 
 }

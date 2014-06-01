@@ -13,6 +13,15 @@ bool readMolecule_1(Helium::MoleculeFile &file, Molecule &mol)
 
 bool readMolecule_2(Helium::MoleculeFile &file, unsigned int index, Molecule &mol)
 {
+  if (index >= file.numMolecules())
+    throw std::runtime_error("Invalid molecule index");
+  return file.readMolecule(index, mol);
+}
+
+bool readMolecule_3(Helium::MemoryMappedMoleculeFile &file, unsigned int index, Molecule &mol)
+{
+  if (index >= file.numMolecules())
+    throw std::runtime_error("Invalid molecule index");
   return file.readMolecule(index, mol);
 }
 
@@ -32,6 +41,6 @@ void export_moleculefile()
     .def(init<const std::string&>())
     .def("load", &Helium::MemoryMappedMoleculeFile::load)
     .def("numMolecules", &Helium::MemoryMappedMoleculeFile::numMolecules)
-    .def("readMolecule", &Helium::MemoryMappedMoleculeFile::readMolecule<Molecule>)
+    .def("readMolecule", &readMolecule_3)
     ;
 }

@@ -19,16 +19,22 @@ Fingerprint* bitvec_copy(const Fingerprint &fp)
 
 bool bitvec_get(int index, const Fingerprint &fp)
 {
+  if (index >= Helium::BitsPerWord * fp.numWords)
+    throw std::runtime_error("Invalid fingerprint bit index");
   return Helium::bitvec_get(index, fp.data);
 }
 
 void bitvec_set(int index, Fingerprint &fp)
 {
+  if (index >= Helium::BitsPerWord * fp.numWords)
+    throw std::runtime_error("Invalid fingerprint bit index");
   return Helium::bitvec_set(index, fp.data);
 }
 
 void bitvec_reset(int index, Fingerprint &fp)
 {
+  if (index >= Helium::BitsPerWord * fp.numWords)
+    throw std::runtime_error("Invalid fingerprint bit index");
   return Helium::bitvec_reset(index, fp.data);
 }
 
@@ -44,6 +50,10 @@ int bitvec_count_1(const Fingerprint &fp)
 
 int bitvec_count_2(const Fingerprint &fp, int begin, int end)
 {
+  if (begin >= Helium::BitsPerWord * fp.numWords)
+    throw std::runtime_error("Invalid fingerprint bit index for begin");
+  if (end >= Helium::BitsPerWord * fp.numWords + 1)
+    throw std::runtime_error("Invalid fingerprint bit index for end");
   return Helium::bitvec_count(fp.data, begin, end);
 }
 
@@ -136,11 +146,15 @@ std::string bin_2(const Fingerprint &fp, bool spaces)
 
 bool Fingerprint_get(const Fingerprint &fp, int index)
 {
+  if (index >= Helium::BitsPerWord * fp.numWords)
+    throw std::runtime_error("Invalid fingerprint bit index");
   return Helium::bitvec_get(index, fp.data);
 }
 
 void Fingerprint_set(Fingerprint &fp, int index , bool value)
 {
+  if (index >= Helium::BitsPerWord * fp.numWords)
+    throw std::runtime_error("Invalid fingerprint bit index");
   value ? Helium::bitvec_set(index, fp.data) : Helium::bitvec_reset(index, fp.data);
 }
 

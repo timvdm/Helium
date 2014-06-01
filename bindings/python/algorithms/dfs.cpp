@@ -95,6 +95,8 @@ template<typename DFSVisitorType>
 void depth_first_search_2(const Molecule &mol, DFSVisitorType &visitor,
       const list &atomMask)
 {
+  if (len(atomMask) != mol.numAtoms())
+    throw std::runtime_error("Invalid atom mask, size should be equal to the number of atoms");
   Helium::depth_first_search_mask(mol, visitor, vector_from_list<bool>(atomMask));
 }
 
@@ -102,6 +104,10 @@ template<typename DFSVisitorType>
 void depth_first_search_3(const Molecule &mol, DFSVisitorType &visitor,
       const list &atomMask, const list &bondMask)
 {
+  if (len(atomMask) != mol.numAtoms())
+    throw std::runtime_error("Invalid atom mask, size should be equal to the number of atoms");
+  if (len(bondMask) != mol.numBonds())
+    throw std::runtime_error("Invalid bond mask, size should be equal to the number of bonds");
   Helium::depth_first_search_mask(mol, visitor, vector_from_list<bool>(atomMask),
       vector_from_list<bool>(bondMask));
 }
@@ -117,6 +123,8 @@ template<typename DFSVisitorType>
 void depth_first_search_5(const Molecule &mol, Molecule::atom_type atom,
       DFSVisitorType &visitor, const list &atomMask)
 {
+  if (len(atomMask) != mol.numAtoms())
+    throw std::runtime_error("Invalid atom mask, size should be equal to the number of atoms");
   Helium::depth_first_search_mask(mol, atom, visitor,
       vector_from_list<bool>(atomMask));
 }
@@ -125,6 +133,10 @@ template<typename DFSVisitorType>
 void depth_first_search_6(const Molecule &mol, Molecule::atom_type atom,
     DFSVisitorType &visitor, const list &atomMask, const list &bondMask)
 {
+  if (len(atomMask) != mol.numAtoms())
+    throw std::runtime_error("Invalid atom mask, size should be equal to the number of atoms");
+  if (len(bondMask) != mol.numBonds())
+    throw std::runtime_error("Invalid bond mask, size should be equal to the number of bonds");
   Helium::depth_first_search_mask(mol, atom, visitor,
       vector_from_list<bool>(atomMask), vector_from_list<bool>(bondMask));
 }
@@ -133,6 +145,8 @@ template<typename DFSVisitorType>
 void depth_first_search_7(const Molecule &mol, const list &order,
     DFSVisitorType &visitor)
 {
+  if (len(order) != mol.numAtoms())
+    throw std::runtime_error("Invalid order parameter, size should be equal to the number of atoms");
   Helium::ordered_depth_first_search(mol, vector_from_list<Helium::Index>(order),
       visitor);
 }

@@ -6,6 +6,10 @@ using namespace boost::python;
 
 Helium::Size DistanceMatrix_call(const Helium::DistanceMatrix &m, Helium::Size i, Helium::Size j)
 {
+  if (i >= m.dim())
+    throw std::runtime_error("Invalid row index i");
+  if (j >= m.dim())
+    throw std::runtime_error("Invalid column index j");
   return m(i, j);
 }
 

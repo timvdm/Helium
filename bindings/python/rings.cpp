@@ -5,6 +5,8 @@
 #include "../../src/ring.h"
 #include "common.h"
 
+using Helium::Chemist::Atom;
+using Helium::Chemist::Bond;
 using Helium::Chemist::Molecule;
 using namespace boost::python;
 
@@ -40,6 +42,27 @@ Helium::RingSet<Molecule> relevant_cycles_2(const Molecule &mol)
   return Helium::relevant_cycles(mol);
 }
 
+Atom Ring_atom(const Helium::Ring<Molecule> &ring, std::size_t index)
+{
+  if (index >= ring.size())
+    throw std::runtime_error("Invalid ring atom index");
+  return ring.atom(index);
+}
+
+Bond Ring_bond(const Helium::Ring<Molecule> &ring, std::size_t index)
+{
+  if (index >= ring.size())
+    throw std::runtime_error("Invalid ring bond index");
+  return ring.bond(index);
+}
+
+const Helium::Ring<Molecule>& RingSet_ring(const Helium::RingSet<Molecule> &rings, std::size_t index)
+{
+  if (index >= rings.size())
+    throw std::runtime_error("Invalid ring index");
+  return rings.ring(index);
+}
+
 void export_rings()
 {
 
@@ -53,9 +76,9 @@ void export_rings()
     .def("size", &Helium::Ring<Molecule>::size)
     .def("__len__", &Helium::Ring<Molecule>::size)
     .def("atoms", &Helium::Ring<Molecule>::atoms, return_value_policy<copy_const_reference>())
-    .def("atom", &Helium::Ring<Molecule>::atom)
+    .def("atom", &Ring_atom)
     .def("bonds", &Helium::Ring<Molecule>::bonds, return_value_policy<copy_const_reference>())
-    .def("bond", &Helium::Ring<Molecule>::bond)
+    .def("bond", &Ring_bond)
     .def("containsAtom", &Helium::Ring<Molecule>::containsAtom)
     .def("containsBond", &Helium::Ring<Molecule>::containsBond)
     ;
@@ -64,7 +87,7 @@ void export_rings()
     .def("size", &Helium::RingSet<Molecule>::size)
     .def("__len__", &Helium::RingSet<Molecule>::size)
     .def("rings", &Helium::RingSet<Molecule>::rings, return_value_policy<copy_const_reference>())
-    .def("ring", &Helium::RingSet<Molecule>::ring, return_internal_reference<>())
+    .def("ring", &RingSet_ring, return_internal_reference<>())
     .def("isAtomInRing", &Helium::RingSet<Molecule>::isAtomInRing)
     .def("isBondInRing", &Helium::RingSet<Molecule>::isBondInRing)
     .def("isAtomInRingSize", &Helium::RingSet<Molecule>::isAtomInRingSize)

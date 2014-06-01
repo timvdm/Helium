@@ -188,5 +188,28 @@ class TestMolecule(unittest.TestCase):
         bond = mol.bond(0)
         bond = mol.bond(mol.atom(0), mol.atom(1))
 
+    def test_substructure_ctor(self):
+        mol = helium.Molecule()
+        SMILES.read('Oc1cc(CC)ccc1N', mol);
+
+        atoms = [True] * mol.numAtoms()
+        atoms[0] = False
+        atoms[4] = False
+        atoms[5] = False
+        atoms[9] = False
+
+        bonds = [True] * mol.numBonds()
+        bonds[0] = False
+        bonds[3] = False
+        bonds[4] = False
+        bonds[9] = False
+
+        sub = helium.Molecule(mol, atoms, bonds)
+
+        self.assertEqual('c1ccccc1', SMILES.write(sub))
+
+
+
+
 if __name__ == '__main__':
     unittest.main()

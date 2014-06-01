@@ -29,6 +29,8 @@ std::string write_4(Helium::Smiles &self, const Molecule &mol, const list &order
 
 std::string write_5(Helium::Smiles &self, const Molecule &mol, const list &order, int flags)
 {
+  if (len(order) != mol.numAtoms())
+    throw std::runtime_error("Invalid order parameter, size not equal to the number of atoms");
   return self.write(mol, vector_from_list<Helium::Index>(order), flags);
 }
 

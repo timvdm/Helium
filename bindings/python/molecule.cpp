@@ -17,6 +17,16 @@ bool bond_equal(const Molecule::bond_type &self, const Molecule::bond_type &othe
   return self.index() == other.index();
 }
 
+Molecule* Molecule_ctor_1(const Molecule &source, const list &atoms, const list &bonds, bool adjustHydrogens)
+{
+  return new Molecule(source, vector_from_list<bool>(atoms), vector_from_list<bool>(bonds), adjustHydrogens);
+}
+
+Molecule* Molecule_ctor_2(const Molecule &source, const list &atoms, const list &bonds)
+{
+  return Molecule_ctor_1(source, atoms, bonds, true);
+}
+
 Molecule::bond_type bond_1(const Molecule &mol, Helium::Index index)
 {
   return mol.bond(index);
@@ -86,6 +96,8 @@ void export_molecule()
 
   class_<Molecule, boost::noncopyable>("Molecule")
     .def(init<const Molecule&>())
+    .def("__init__", make_constructor(&Molecule_ctor_1))
+    .def("__init__", make_constructor(&Molecule_ctor_2))
     .def("numAtoms", &Molecule::numAtoms)
     .def("numBonds", &Molecule::numBonds)
     .def("atoms", &Molecule::atoms)

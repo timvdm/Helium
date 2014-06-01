@@ -597,6 +597,18 @@ namespace Helium {
         m_attributes = other.m_attributes;
       }
 
+      SmartMol(const SmartMol &source, const std::vector<bool> &atoms,
+          const std::vector<bool> &bonds, bool adjustHydrogens = true)
+      {
+        if (atoms.size() != source.numAtoms())
+          throw std::runtime_error("atoms parameter does not have the correct size");
+        if (bonds.size() != source.numBonds())
+          throw std::runtime_error("bonds parameter does not have the correct size");
+
+        make_substructure(m_mol, source, atoms, bonds);
+        m_attributes = source.m_attributes;
+      }
+
       Size numAtoms() const
       {
         return num_atoms(m_mol);

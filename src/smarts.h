@@ -342,9 +342,9 @@ namespace Helium {
               return m_rings.isAtomInRingSize(atom, expr->value);
             case Smiley::AE_RingConnectivity:
               if (expr->value == -1) // default: at least 1
-                return m_rings.numRingBonds(atom) >= 1;
+                return m_rings.numRingNbrs(atom) >= 1;
               else
-                return m_rings.numRingBonds(atom) == expr->value;
+                return m_rings.numRingNbrs(atom) == expr->value;
             case Smiley::AE_Charge:
               return get_charge(mol, atom) == expr->value;
             case Smiley::AE_Chirality:

@@ -92,7 +92,6 @@ void export_rings()
     .def("isBondInRing", &Helium::RingSet<Molecule>::isBondInRing)
     .def("isAtomInRingSize", &Helium::RingSet<Molecule>::isAtomInRingSize)
     .def("isBondInRingSize", &Helium::RingSet<Molecule>::isBondInRingSize)
-    .def("numRingBonds", &Helium::RingSet<Molecule>::numRingBonds)
     .def("numRingNbrs", &Helium::RingSet<Molecule>::numRingNbrs)
     .def("numRings", &Helium::RingSet<Molecule>::numRings)
     ;

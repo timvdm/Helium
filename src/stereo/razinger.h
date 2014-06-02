@@ -148,7 +148,7 @@ namespace Helium {
       if (get_valence(mol, atom) > 4 || get_heavy_degree(mol, atom) < 3 || get_heavy_degree(mol, atom) > 4)
         return false;
       // skip non-chiral N
-      if (is_nitrogen(mol, atom) && get_charge(mol, atom) == 0 && rings.numRingBonds(atom) < 3)
+      if (is_nitrogen(mol, atom) && get_charge(mol, atom) == 0 && rings.numRingNbrs(atom) < 3)
         return false;
 
       if (is_carbon(mol, atom)) {

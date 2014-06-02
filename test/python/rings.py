@@ -56,7 +56,6 @@ class TestRings(unittest.TestCase):
         self.assertFalse(rings.isBondInRingSize(mol.bond(2), 4))
         self.assertTrue(rings.isBondInRingSize(mol.bond(2), 3))
 
-        self.assertEqual(2, rings.numRingBonds(mol.atom(2)))
         self.assertEqual(2, rings.numRingNbrs(mol.atom(2)))
         self.assertEqual(1, rings.numRings(mol.atom(2)))
 

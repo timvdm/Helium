@@ -349,22 +349,6 @@ namespace Helium {
       }
 
       /**
-       * @brief Get the number of incident ring bonds an atom has.
-       *
-       * @param atom The atom.
-       *
-       * @return The number of incident ring bonds.
-       */
-      int numRingBonds(atom_type atom) const
-      {
-        int result = 0;
-        FOREACH_INCIDENT_T (bond, atom, m_mol, MoleculeType)
-          if (isBondInRing(*bond))
-            ++result;
-        return result;
-      }
-
-      /**
        * @brief Get the number of neighbors an atom has that are in a ring.
        *
        * @param atom The atom.

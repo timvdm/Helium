@@ -33,6 +33,7 @@
 #include <Helium/ring.h>
 #include <Helium/algorithms/isomorphism.h>
 #include <Helium/algorithms/components.h>
+#include <Helium/algorithms/cycles.h>
 #include <Helium/error.h>
 #include <Helium/smiley.h>
 
@@ -564,7 +565,7 @@ namespace Helium {
       bool findMapping(const MoleculeType &mol, MappingType &mapping,
           bool uniqueComponents = false)
       {
-        return findMapping(mol, mapping, uniqueComponents);
+        return findMapping(mol, relevant_cycles(mol), mapping, uniqueComponents);
       }
 
       /**

@@ -33,6 +33,36 @@ bool apply_2(Helium::Smirks &smirks, Molecule &mol)
   return smirks.apply(mol, Helium::RingSet<Molecule>(mol));
 }
 
+std::vector<boost::shared_ptr<Molecule> > react_1(Helium::Smirks &smirks, const Molecule &mol, const Helium::RingSet<Molecule> &rings, int min, int max)
+{
+  return smirks.react(mol, rings, min, max);
+}
+
+std::vector<boost::shared_ptr<Molecule> > react_2(Helium::Smirks &smirks, const Molecule &mol, const Helium::RingSet<Molecule> &rings, int min)
+{
+  return smirks.react(mol, rings, min);
+}
+
+std::vector<boost::shared_ptr<Molecule> > react_3(Helium::Smirks &smirks, const Molecule &mol, const Helium::RingSet<Molecule> &rings)
+{
+  return smirks.react(mol, rings);
+}
+
+std::vector<boost::shared_ptr<Molecule> > react_4(Helium::Smirks &smirks, const Molecule &mol, int min, int max)
+{
+  return smirks.react(mol, min, max);
+}
+
+std::vector<boost::shared_ptr<Molecule> > react_5(Helium::Smirks &smirks, const Molecule &mol, int min)
+{
+  return smirks.react(mol, min);
+}
+
+std::vector<boost::shared_ptr<Molecule> > react_6(Helium::Smirks &smirks, const Molecule &mol)
+{
+  return smirks.react(mol);
+}
+
 void export_smirks()
 {
 
@@ -46,6 +76,12 @@ void export_smirks()
     .def("requiresExplicitHydrogens", &Helium::Smirks::requiresExplicitHydrogens)
     .def("apply", &apply_1)
     .def("apply", &apply_2)
+    .def("react", &react_1)
+    .def("react", &react_2)
+    .def("react", &react_3)
+    .def("react", &react_4)
+    .def("react", &react_5)
+    .def("react", &react_6)
     ;
   
 }

@@ -53,9 +53,11 @@ void export_common()
   to_python_converter<std::vector<unsigned long>, VectorToList<unsigned long> >();
   to_python_converter<std::vector<std::pair<unsigned int, double> >, VectorToList<std::pair<unsigned int, double> > >();
 
+  to_python_converter<std::vector<Molecule>, VectorToList<Molecule> >();
   to_python_converter<std::vector<Molecule::atom_type>, VectorToList<Molecule::atom_type> >();
   to_python_converter<std::vector<Molecule::bond_type>, VectorToList<Molecule::bond_type> >();
   to_python_converter<std::vector<Helium::Ring<Molecule> >, VectorToList<Helium::Ring<Molecule> > >();
+  to_python_converter<std::vector<boost::shared_ptr<Molecule> >, VectorToList<boost::shared_ptr<Molecule> > >();
 
   to_python_converter<std::vector<std::vector<unsigned int> >, VectorVectorToList<unsigned int> >();
 }

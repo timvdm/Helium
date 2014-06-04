@@ -94,7 +94,7 @@ void export_molecule()
     .def("__eq__", &bond_equal)
     ;
 
-  class_<Molecule, boost::noncopyable>("Molecule")
+  class_<Molecule, boost::shared_ptr<Molecule>, boost::noncopyable>("Molecule")
     .def(init<const Molecule&>())
     .def("__init__", make_constructor(&Molecule_ctor_1))
     .def("__init__", make_constructor(&Molecule_ctor_2))

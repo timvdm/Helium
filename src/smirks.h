@@ -28,8 +28,10 @@
 #define HELIUM_SMIRKS_H
 
 #include <Helium/smarts.h>
+#include <Helium/algorithms/cycles.h>
 
 #include <iostream>
+#include <boost/shared_ptr.hpp>
 
 #define DEBUG_SMIRKS 0
 
@@ -153,6 +155,44 @@ namespace Helium {
       }
 
       return -1;
+    }
+
+    template<typename ExprType>
+    bool smarts_has_mass(ExprType *expr)
+    {
+      switch (expr->type) {
+        case Smiley::OP_AndHi:
+        case Smiley::OP_AndLo:
+        case Smiley::OP_And:
+          if (smarts_has_mass(expr->left))
+            return true;
+          return smarts_has_mass(expr->right);
+        case Smiley::AE_Isotope:
+          return true;
+        default:
+          break;
+      }
+
+      return false;
+    }
+
+    template<typename ExprType>
+    bool smarts_has_charge(ExprType *expr)
+    {
+      switch (expr->type) {
+        case Smiley::OP_AndHi:
+        case Smiley::OP_AndLo:
+        case Smiley::OP_And:
+          if (smarts_has_charge(expr->left))
+            return true;
+          return smarts_has_charge(expr->right);
+        case Smiley::AE_Charge:
+          return true;
+        default:
+          break;
+      }
+
+      return false;
     }
 
   }
@@ -284,7 +324,9 @@ namespace Helium {
       }
 
       /**
-       * @brief Apply the SMIRKS transformation to a molecule.
+       * @brief Apply the SMIRKS transformation to all mappings in a molecule.
+       *
+       * This function is ideal for normalization purposes etc.
        *
        * @param mol The molecule.
        * @param rings The molecule's rings (needed for cyclic queries).
@@ -302,111 +344,204 @@ namespace Helium {
           return false;
 
         std::vector<typename molecule_traits<EditableMoleculeType>::atom_type> fixHydrogenAtoms;
+        std::vector<Index> removeBonds;
+        std::vector<Index> removeAtoms;
 
+        //
+        // apply to all mappings
+        //
+        for (std::size_t i = 0; i < mapping.maps.size(); ++i)
+          applyToMapping(mol, mapping.maps[i], fixHydrogenAtoms, removeBonds, removeAtoms);
+
+        // cleanup: remove planned atoms/bonds + fix hydrogens
+        cleanup(mol, fixHydrogenAtoms, removeBonds, removeAtoms);
+
+        return true;
+      }
+
+      /**
+       * @brief Apply the SMIRKS transformation to all mappings in a molecule.
+       *
+       * This function is ideal for normalization purposes etc.
+       *
+       * @param mol The molecule.
+       *
+       * @return True if changes were made to the molecule.
+       */
+      template<typename EditableMoleculeType>
+      bool apply(EditableMoleculeType &mol)
+      {
+        return apply(mol, relevant_cycles(mol));
+      }
+
+      /**
+       * @brief Apply the SMIRKS transformation as a reaction.
+       *
+       * When applying a SMIRKS as a reaction, one or more products are returned.
+       * If there is only 1 mapping, a single product is returned. If there are multiple
+       * mappings, a list of products is returned with the SMIRKS applied to all
+       * combinations of the mappings between @p min and @p max.
+       *
+       * @param mol The molecule.
+       * @param rings The molecule's rings (needed for cyclic queries).
+       * @param min
+       *
+       * @return True if changes were made to the molecule.
+       */
+      template<typename EditableMoleculeType>
+      std::vector<boost::shared_ptr<EditableMoleculeType> > react(const EditableMoleculeType &mol, const RingSet<EditableMoleculeType> &rings, int min = 1, int max = 1)
+      {
+        if (DEBUG_SMIRKS)
+          std::cout << "Smirks::apply()" << std::endl;
+
+        std::vector<boost::shared_ptr<EditableMoleculeType> > products;
+
+        MappingList mapping;
+        if (!m_reactant.findMapping(mol, rings, mapping, true))
+          return products;
+
+        std::vector<int> comb;
+        for (std::size_t i = 0; i < mapping.maps.size(); ++i)
+          comb.push_back(i);
+
+        max = std::min(static_cast<int>(mapping.maps.size()), max);
+        for (int size = min; size <= max; ++size)
+          do {
+            std::vector<typename molecule_traits<EditableMoleculeType>::atom_type> fixHydrogenAtoms;
+            std::vector<Index> removeBonds;
+            std::vector<Index> removeAtoms;
+
+            EditableMoleculeType *product = new EditableMoleculeType(mol);
+
+            // apply to mappings in combination
+            for (int i = 0; i < size; ++i)
+              applyToMapping(*product, mapping.maps[comb[i]], fixHydrogenAtoms, removeBonds, removeAtoms);
+
+            // cleanup: remove planned atoms/bonds + fix hydrogens
+            cleanup(*product, fixHydrogenAtoms, removeBonds, removeAtoms);
+
+            products.push_back(boost::shared_ptr<EditableMoleculeType>(product));
+          } while (next_combination(comb.begin(), comb.begin() + size, comb.end()));
+
+        return products;
+      }
+
+      /**
+       * @brief Apply the SMIRKS transformation as a reaction.
+       *
+       * When applying a SMIRKS as a reaction, one or more products are returned.
+       * If there is only 1 mapping, a single product is returned. If there are multiple
+       * mappings, a list of products is returned with the SMIRKS applied to all
+       * combinations of the mappings between @p min and @p max.
+       *
+       * @param mol The molecule.
+       * @param min
+       *
+       * @return True if changes were made to the molecule.
+       */
+      template<typename EditableMoleculeType>
+      std::vector<boost::shared_ptr<EditableMoleculeType> > react(const EditableMoleculeType &mol, int min = 1, int max = 1)
+      {
+        return react(mol, relevant_cycles(mol), min, max);
+      }
+
+    private:
+      /**
+       * @brief Apply the SMIRKS to a single mapping.
+       */
+      template<typename EditableMoleculeType, typename AtomType>
+      void applyToMapping(EditableMoleculeType &mol, const IsomorphismMapping &map,
+          std::vector<AtomType> &fixHydrogenAtoms, std::vector<Index> &removeBonds,
+          std::vector<Index> &removeAtoms)
+      {
         //
         // apply atom changes (atom's with atom class)
         //
-        for (std::size_t i = 0; i < mapping.maps.size(); ++i) {
-          const IsomorphismMapping &map = mapping.maps[i];
-          for (std::size_t j = 0; j < map.size(); ++j) {
-            int atomClass = m_reactant.atomClass(j);
-            if (atomClass == -1)
-              continue;
+        for (std::size_t i = 0; i < map.size(); ++i) {
+          int atomClass = m_reactant.atomClass(i);
+          if (atomClass == -1)
+            continue;
 
-            impl::SmartsAtomExpr *productExpr = m_productExpr[atomClass];
+          impl::SmartsAtomExpr *productExpr = m_productExpr[atomClass];
 
-            apply(mol, get_atom(mol, map[j]), productExpr);
+          apply(mol, get_atom(mol, map[i]), productExpr);
 
-            fixHydrogenAtoms.push_back(get_atom(mol, map[j]));
-          }
+          // remove charge if reactant has charge and product does not
+          if (impl::smarts_has_charge(m_reactantExpr[atomClass]) && !impl::smarts_has_charge(productExpr))
+            set_charge(mol, get_atom(mol, map[i]), 0);
+
+          fixHydrogenAtoms.push_back(get_atom(mol, map[i]));
         }
-
-        std::vector<Index> remove;
 
         //
         // apply bond changes (bonds between atoms with atom class)
         //
-        for (std::size_t i = 0; i < mapping.maps.size(); ++i) {
-          const IsomorphismMapping &map = mapping.maps[i];
+        for (std::size_t i = 0; i < m_bondChanges.size(); ++i) {
+          const BondChange &change = m_bondChanges[i];
 
-          for (std::size_t j = 0; j < m_bondChanges.size(); ++j) {
-            const BondChange &change = m_bondChanges[j];
+          switch (change.type) {
+            case BondChange::Changed:
+              {
+                typename molecule_traits<EditableMoleculeType>::atom_type source = get_atom(mol, map[change.source]);
+                typename molecule_traits<EditableMoleculeType>::atom_type target = get_atom(mol, map[change.target]);
+                typename molecule_traits<EditableMoleculeType>::bond_type bond = get_bond(mol, source, target);
+                apply(mol, bond, change.expr);
 
-            switch (change.type) {
-              case BondChange::Changed:
-                {
-                  typename molecule_traits<EditableMoleculeType>::atom_type source = get_atom(mol, map[change.source]);
-                  typename molecule_traits<EditableMoleculeType>::atom_type target = get_atom(mol, map[change.target]);
-                  typename molecule_traits<EditableMoleculeType>::bond_type bond = get_bond(mol, source, target);
-                  apply(mol, bond, change.expr);
+                if (DEBUG_SMIRKS)
+                  std::cout << "changed bond " << get_index(mol, bond) << ": " << get_index(mol, source) << "-" << get_index(mol, target) << std::endl;
+              }
+              break;
+            case BondChange::Removed:
+              {
+                typename molecule_traits<EditableMoleculeType>::atom_type source = get_atom(mol, map[change.source]);
+                typename molecule_traits<EditableMoleculeType>::atom_type target = get_atom(mol, map[change.target]);
+                typename molecule_traits<EditableMoleculeType>::bond_type bond = get_bond(mol, source, target);
+                removeBonds.push_back(get_index(mol, bond));
 
-                  if (DEBUG_SMIRKS)
-                    std::cout << "changed bond " << get_index(mol, bond) << ": " << get_index(mol, source) << "-" << get_index(mol, target) << std::endl;
-                }
-                break;
-              case BondChange::Removed:
-                {
-                  typename molecule_traits<EditableMoleculeType>::atom_type source = get_atom(mol, map[change.source]);
-                  typename molecule_traits<EditableMoleculeType>::atom_type target = get_atom(mol, map[change.target]);
-                  typename molecule_traits<EditableMoleculeType>::bond_type bond = get_bond(mol, source, target);
-                  remove.push_back(get_index(mol, bond));
+                if (DEBUG_SMIRKS)
+                  std::cout << "removed bond " << get_index(mol, bond) << ": " << get_index(mol, source) << "-" << get_index(mol, target) << std::endl;
+              }
+              break;
+            case BondChange::Added:
+              {
+                typename molecule_traits<EditableMoleculeType>::atom_type source = get_atom(mol, map[change.source]);
+                typename molecule_traits<EditableMoleculeType>::atom_type target = get_atom(mol, map[change.target]);
+                typename molecule_traits<EditableMoleculeType>::bond_type bond = add_bond(mol, source, target);
+                apply(mol, bond, change.expr);
 
-                  if (DEBUG_SMIRKS)
-                    std::cout << "removed bond " << get_index(mol, bond) << ": " << get_index(mol, source) << "-" << get_index(mol, target) << std::endl;
-                }
-                break;
-              case BondChange::Added:
-                {
-                  typename molecule_traits<EditableMoleculeType>::atom_type source = get_atom(mol, map[change.source]);
-                  typename molecule_traits<EditableMoleculeType>::atom_type target = get_atom(mol, map[change.target]);
-                  typename molecule_traits<EditableMoleculeType>::bond_type bond = add_bond(mol, source, target);
-                  apply(mol, bond, change.expr);
+                if (DEBUG_SMIRKS)
+                  std::cout << "added bond " << get_index(mol, bond) << ": " << get_index(mol, source) << "-" << get_index(mol, target) << std::endl;
+              }
+              break;
+          } // switch(type)
 
-                  if (DEBUG_SMIRKS)
-                    std::cout << "added bond " << get_index(mol, bond) << ": " << get_index(mol, source) << "-" << get_index(mol, target) << std::endl;
-                }
-                break;
-            }
-          }
-        }
+        } // foreach bond charge
 
-        // remove the planned bonds
-        std::sort(remove.begin(), remove.end(), std::greater<Index>());
-        for (std::size_t i = 0; i < remove.size(); ++i)
-          remove_bond(mol, get_bond(mol, remove[i]));
 
         //
-        // Remove reactant atoms that do not have atom classes
+        // Plan to remove reactant atoms that do not have atom classes
         //
-        remove.clear();
-        for (std::size_t i = 0; i < mapping.maps.size(); ++i) {
-          const IsomorphismMapping &map = mapping.maps[i];
-          for (std::size_t j = 0; j < map.size(); ++j) {
-            int atomClass = m_reactant.atomClass(j);
-            if (atomClass == -1)
-              remove.push_back(mapping.maps[i][j]);
-          }
+        for (std::size_t i = 0; i < map.size(); ++i) {
+          int atomClass = m_reactant.atomClass(i);
+          if (atomClass == -1)
+            removeAtoms.push_back(map[i]);
         }
 
         //
         // Add product atoms that do not have atom classes
         //
-        std::map<Index, std::vector<Index> > product2mol; // unmapped product atom index -> added atom index in mol
-        for (std::size_t i = 0; i < mapping.maps.size(); ++i)
-          for (std::size_t j = 0; j < num_atoms(m_product.query()); ++j) {
-            int atomClass = m_product.atomClass(j);
-            if (atomClass != -1)
-              continue;
+        std::map<Index, Index> product2mol; // unmapped product atom index -> added atom index in mol
+        for (std::size_t i = 0; i < num_atoms(m_product.query()); ++i) {
+          int atomClass = m_product.atomClass(i);
+          if (atomClass != -1)
+            continue;
 
-            if (product2mol.find(j) == product2mol.end())
-              product2mol[j] = std::vector<Index>();
+          typename molecule_traits<EditableMoleculeType>::atom_type atom = add_atom(mol);
+          apply(mol, atom, m_product.trees().atom(i));
+          product2mol[i] = get_index(mol, atom);
 
-            typename molecule_traits<EditableMoleculeType>::atom_type atom = add_atom(mol);
-            apply(mol, atom, m_product.trees().atom(j));
-            product2mol[j].push_back(get_index(mol, atom));
-
-            fixHydrogenAtoms.push_back(atom);
-          }
+          fixHydrogenAtoms.push_back(atom);
+        }
 
         // make a map of reactant & reactant atom index to atom class
         std::map<Index, Index> reactantAtomClass2index;
@@ -418,84 +553,48 @@ namespace Helium {
         }
 
         //
-        // Add product bonds that do not have atom clases
+        // Add product bonds that do not have atom classes
         //
-        for (std::size_t i = 0; i < mapping.maps.size(); ++i)
-          for (std::size_t j = 0; j < num_bonds(m_product.query()); ++j) {
-            molecule_traits<HeMol>::bond_type bond = get_bond(m_product.query(), j);
-            molecule_traits<HeMol>::atom_type source = get_source(m_product.query(), bond);
-            molecule_traits<HeMol>::atom_type target = get_target(m_product.query(), bond);
-            int sourceIndex = get_index(m_product.query(), source);
-            int targetIndex = get_index(m_product.query(), target);
-            int sourceAtomClass = m_product.atomClass(sourceIndex);
-            int targetAtomClass = m_product.atomClass(targetIndex);
+        for (std::size_t i = 0; i < num_bonds(m_product.query()); ++i) {
+          molecule_traits<HeMol>::bond_type bond = get_bond(m_product.query(), i);
+          molecule_traits<HeMol>::atom_type source = get_source(m_product.query(), bond);
+          molecule_traits<HeMol>::atom_type target = get_target(m_product.query(), bond);
+          int sourceIndex = get_index(m_product.query(), source);
+          int targetIndex = get_index(m_product.query(), target);
+          int sourceAtomClass = m_product.atomClass(sourceIndex);
+          int targetAtomClass = m_product.atomClass(targetIndex);
 
+          // both atoms have atom class: ignore bond
+          if (sourceAtomClass != -1 && targetAtomClass != -1)
+            continue;
 
-            // both atoms have atom class: ignore bond
-            if (sourceAtomClass != -1 && targetAtomClass != -1)
-              continue;
-
-
-            // both atoms do not have atom class: use product2mol
-            if (sourceAtomClass == -1 && targetAtomClass == -1) {
-              typename molecule_traits<EditableMoleculeType>::atom_type molSource = get_atom(mol, product2mol[sourceIndex][i]);
-              typename molecule_traits<EditableMoleculeType>::atom_type molTarget = get_atom(mol, product2mol[targetIndex][i]);
-              typename molecule_traits<EditableMoleculeType>::bond_type molBond = add_bond(mol, molSource, molTarget);
-              apply(mol, molBond, m_product.trees().bond(j));
-              continue;
-            }
-
-
-            // one atom has atom class: use product2mol + reactantAtomClass2index -> mapping
-            Index index = sourceAtomClass == -1 ? sourceIndex : targetIndex;
-            int atomClass = sourceAtomClass == -1 ? targetAtomClass : sourceAtomClass;
-
-            typename molecule_traits<EditableMoleculeType>::atom_type molSource = get_atom(mol, product2mol[index][i]);
-            typename molecule_traits<EditableMoleculeType>::atom_type molTarget = get_atom(mol, mapping.maps[i][reactantAtomClass2index[atomClass]]);
+          // both atoms do not have atom class: use product2mol
+          if (sourceAtomClass == -1 && targetAtomClass == -1) {
+            typename molecule_traits<EditableMoleculeType>::atom_type molSource = get_atom(mol, product2mol[sourceIndex]);
+            typename molecule_traits<EditableMoleculeType>::atom_type molTarget = get_atom(mol, product2mol[targetIndex]);
             typename molecule_traits<EditableMoleculeType>::bond_type molBond = add_bond(mol, molSource, molTarget);
-            apply(mol, molBond, m_product.trees().bond(j));
+            apply(mol, molBond, m_product.trees().bond(i));
+            continue;
           }
 
-        // fix hydrogens
-        if (m_fixHydrogens)
-          for (std::size_t i = 0; i < fixHydrogenAtoms.size(); ++i)
-            reset_implicit_hydrogens(mol, fixHydrogenAtoms[i]);
+          // one atom has atom class: use product2mol + reactantAtomClass2index -> mapping
+          Index index = sourceAtomClass == -1 ? sourceIndex : targetIndex;
+          int atomClass = sourceAtomClass == -1 ? targetAtomClass : sourceAtomClass;
 
-        // remove the planned atoms
-        std::sort(remove.begin(), remove.end(), std::greater<Index>());
-        for (std::size_t i = 0; i < remove.size(); ++i) {
-          if (m_fixHydrogens) {
-            // increment number of hydrogens of neighbros
-            FOREACH_NBR_T (nbr, get_atom(mol, remove[i]), mol, EditableMoleculeType)
-              if (std::find(fixHydrogenAtoms.begin(), fixHydrogenAtoms.end(), *nbr) == fixHydrogenAtoms.end())
-                set_hydrogens(mol, *nbr, get_hydrogens(mol, *nbr) + 1);
-          }
-          remove_atom(mol, get_atom(mol, remove[i]));
+          typename molecule_traits<EditableMoleculeType>::atom_type molSource = get_atom(mol, product2mol[index]);
+          typename molecule_traits<EditableMoleculeType>::atom_type molTarget = get_atom(mol, map[reactantAtomClass2index[atomClass]]);
+          typename molecule_traits<EditableMoleculeType>::bond_type molBond = add_bond(mol, molSource, molTarget);
+          apply(mol, molBond, m_product.trees().bond(i));
         }
-
-        return true;
       }
 
-      /**
-       * @brief Apply the SMIRKS transformation to a molecule.
-       *
-       * @param mol The molecule.
-       *
-       * @return True if changes were made to the molecule.
-       */
-      template<typename EditableMoleculeType>
-      bool apply(EditableMoleculeType &mol)
-      {
-        return apply(mol, RingSet<EditableMoleculeType>(mol));
-      }
 
-    private:
       template<typename EditableMoleculeType, typename AtomType>
       void apply(EditableMoleculeType &mol, AtomType atom, impl::SmartsAtomExpr *expr)
       {
         int oldElement = get_element(mol, atom);
         applyRecursive(mol, atom, expr);
-        if (m_fixMass) {
+        if (m_fixMass && !impl::smarts_has_mass(expr)) {
           int newElement = impl::smarts_get_element(expr);
           if (newElement != -1 && newElement != oldElement)
             set_mass(mol, atom, Element::averageMass(newElement));
@@ -590,6 +689,36 @@ namespace Helium {
           case Smiley::BE_Up:
           case Smiley::BE_Down:
             break;
+        }
+      }
+
+      /**
+       * @brief Cleanup: remove planned atoms/bonds and fix hydrogens.
+       */
+      template<typename EditableMoleculeType, typename AtomType>
+      void cleanup(EditableMoleculeType &mol, const std::vector<AtomType> &fixHydrogenAtoms,
+          std::vector<Index> &removeBonds, std::vector<Index> &removeAtoms)
+      {
+        // remove the planned bonds
+        std::sort(removeBonds.begin(), removeBonds.end(), std::greater<Index>());
+        for (std::size_t i = 0; i < removeBonds.size(); ++i)
+          remove_bond(mol, get_bond(mol, removeBonds[i]));
+
+        // fix hydrogens
+        if (m_fixHydrogens)
+          for (std::size_t i = 0; i < fixHydrogenAtoms.size(); ++i)
+            reset_implicit_hydrogens(mol, fixHydrogenAtoms[i]);
+
+        // remove the planned atoms
+        std::sort(removeAtoms.begin(), removeAtoms.end(), std::greater<Index>());
+        for (std::size_t i = 0; i < removeAtoms.size(); ++i) {
+          if (m_fixHydrogens) {
+            // increment number of hydrogens of neighbros
+            FOREACH_NBR_T (nbr, get_atom(mol, removeAtoms[i]), mol, EditableMoleculeType)
+              if (std::find(fixHydrogenAtoms.begin(), fixHydrogenAtoms.end(), *nbr) == fixHydrogenAtoms.end())
+                set_hydrogens(mol, *nbr, get_hydrogens(mol, *nbr) + 1);
+          }
+          remove_atom(mol, get_atom(mol, removeAtoms[i]));
         }
       }
 

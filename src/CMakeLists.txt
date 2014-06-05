@@ -73,6 +73,12 @@ set(HELIUM_TOOLKITS_HDRS
 
 set(HELIUM_CHEMIST_HDRS
   chemist/molecule.h
+  chemist/rings.h
+  chemist/smiles.h
+  chemist/smarts.h
+  chemist/smirks.h
+  chemist/dfs.h
+  chemist/bfs.h
 )
 
 set(HELIUM_JSON_HDRS

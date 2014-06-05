@@ -24,22 +24,21 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-#ifndef HELIUM_CHEMIST_MOLECULE_H
-#define HELIUM_CHEMIST_MOLECULE_H
+#ifndef HELIUM_CHEMIST_SMARTS_H
+#define HELIUM_CHEMIST_SMARTS_H
 
-#include <Helium/smartmol.h>
-#include <Helium/element.h>
+#include <Helium/smarts.h>
 
 namespace Helium {
 
   namespace Chemist {
 
-    typedef SmartMol Molecule;
-    typedef Molecule::atom_type Atom;
-    typedef Molecule::bond_type Bond;
-    using Helium::Index;
-    using Helium::Size;
-    using Helium::Element;
+    using Helium::Smarts;
+    using Helium::Error;
+    using Helium::NoMapping;
+    using Helium::SingleMapping;
+    using Helium::CountMapping;
+    using Helium::MappingList;
 
   }
 

@@ -24,22 +24,20 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-#ifndef HELIUM_CHEMIST_MOLECULE_H
-#define HELIUM_CHEMIST_MOLECULE_H
+#ifndef HELIUM_CHEMIST_DFS_H
+#define HELIUM_CHEMIST_DFS_H
 
-#include <Helium/smartmol.h>
-#include <Helium/element.h>
+#include <Helium/algorithms/dfs.h>
 
 namespace Helium {
 
   namespace Chemist {
 
-    typedef SmartMol Molecule;
-    typedef Molecule::atom_type Atom;
-    typedef Molecule::bond_type Bond;
-    using Helium::Index;
-    using Helium::Size;
-    using Helium::Element;
+    using Helium::DFSVisitor;
+    using Helium::DFSAtomOrderVisitor;
+    using Helium::DFSBondOrderVisitor;
+    using Helium::DFSClosureRecorderVisitor;
+    using Helium::DFSDebugVisitor;
 
   }
 

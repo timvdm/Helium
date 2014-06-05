@@ -2838,6 +2838,7 @@ namespace diagram {
 
     if (cHB < 0) return;
 
+    makeFragment(list1,getBond(cHB)->at[1],getBond(cHB)->at[0]);
     if (list1.size() > 1) {
       //One of the atoms haven't neighbours-flip unavalable
       cHA1=getBond(cHB)->at[0];
@@ -2866,11 +2867,13 @@ namespace diagram {
   void TSimpleMolecule::bondEnlarge(int bN) {
     double r;
     std::vector<int> list(listarSize());
-    int cH1, cH2, n;
+    int cHA1, cH1, cH2, n;
     double xc, yc, xc1, yc1;
     int i;
 
     for (i=0; i<nAtoms(); i++) list[i]=i;
+    cHA1=getBond(bN)->at[0];
+    makeFragment(list,cHA1,getBond(bN)->at[1]);
     if (list[0] == getBond(bN)->at[0]) { //center definition
       cH1=getBond(bN)->at[0];
       cH2=getBond(bN)->at[1];
@@ -3595,6 +3598,7 @@ namespace diagram {
     scale=1;
     xOld=0;
     yOld=0;
+    fragmentMol.makeFragment(list,naDef1,-1); //creation of template's fragment
     //Scale definitions
 
     if (thisAN >= 0) { //connection through atoms
@@ -3743,6 +3747,7 @@ namespace diagram {
     if ((atomN < 0) || (atomN >= nAtoms())) return result;
     if (enumerator != NULL) for (i=0; i<nAtoms(); i++) (*enumerator)[i]=-1;
     for (i=0; i<nAtoms(); i++) inverseList[i]=-1;
+    makeFragment(list,atomN,-1);
 
 
     if (list.size()>1) for (i=0; i<(list.size()-1); i++) for (j=i+1; j<list.size(); j++) if (list[i]>list[j]) {

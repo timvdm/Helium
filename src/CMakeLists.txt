@@ -9,6 +9,7 @@ set(HELIUM_HDRS
   contract.h
   concepts.h
   concurrent.h
+  diagram.h
   element.h
   error.h
   molecule.h

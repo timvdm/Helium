@@ -302,11 +302,11 @@ namespace diagram {
   const string fsbstart="{SB:";
 
 
-  string intToStr(int k) {
-    char temp[16];
-    sprintf(temp,"%d",k);
-    string line=temp;
-    return line;
+  std::string intToStr(int k)
+  {
+    std::stringstream ss;
+    ss << k;
+    return ss.str();
   }
 
 
@@ -386,11 +386,11 @@ namespace diagram {
     short int bstereo;   /* =0 - no, =1 - E , = 2 - Z, =3 E/Z*/
     // The new code uses bstereo_refs, the refs from the OBCisTransStereo object arranged in a U
     //
-    //                            1       4
-    //                             \     /
-    //                              X = Y
-    //                             /     \
-    //                            2       3
+    //                            1       4             //
+    //                             \     /              //
+    //                              X = Y               //
+    //                             /     \              //
+    //                            2       3             //
     vector<unsigned long> bstereo_refs;
 
     short int special;
@@ -2832,14 +2832,12 @@ namespace diagram {
     //part flip is executed. Case CHB-ring bond-no effects}
 
     int cHA1, cHA2, n;
-    bool test;
     std::vector<int>list1(listarSize());
     double r, xc, yc, xo, yo, xn, yn;
     int i;
 
     if (cHB < 0) return;
 
-    test=makeFragment(list1,getBond(cHB)->at[1],getBond(cHB)->at[0]);
     if (list1.size() > 1) {
       //One of the atoms haven't neighbours-flip unavalable
       cHA1=getBond(cHB)->at[0];
@@ -2868,14 +2866,11 @@ namespace diagram {
   void TSimpleMolecule::bondEnlarge(int bN) {
     double r;
     std::vector<int> list(listarSize());
-    int cHA1, cH1, cH2, n;
-    bool test;
+    int cH1, cH2, n;
     double xc, yc, xc1, yc1;
     int i;
 
     for (i=0; i<nAtoms(); i++) list[i]=i;
-    cHA1=getBond(bN)->at[0];
-    test=makeFragment(list,cHA1,getBond(bN)->at[1]);
     if (list[0] == getBond(bN)->at[0]) { //center definition
       cH1=getBond(bN)->at[0];
       cH2=getBond(bN)->at[1];
@@ -3569,11 +3564,10 @@ namespace diagram {
 
 
   void TEditedMolecule::addAsTemplate(TEditedMolecule& fragmentMol, int thisAN, int smAN, int thisBN, int smBN, bool isAddition) {
-    int nAtomsOld,nBondsOld,naDef1,naDef,i;
-    bool test,test1,test2;
+    int nAtomsOld,naDef1,naDef,i;
     std::vector<int> list;
-    double r,scale,xOld,yOld,xNew,yNew,xCenter,yCenter;
-    double r1;
+    double r,scale,xOld,yOld,xNew,yNew;
+    double r1 = 0;
     double r2;
     double xu1;
     double yu1;
@@ -3594,24 +3588,16 @@ namespace diagram {
     }
 
     naDef1=smAN;
-    test1=true;
-    test2=false;
-    xCenter=0;
-    yCenter=0;
     if (thisBN >= 0) {
       naDef1=fragmentMol.getBond(smBN)->at[0];
-      test1=false; test2=true;
     }
 
     scale=1;
     xOld=0;
     yOld=0;
-    test=fragmentMol.makeFragment(list,naDef1,-1); //creation of template's fragment
     //Scale definitions
 
     if (thisAN >= 0) { //connection through atoms
-      xCenter=this->getAtom(thisAN)->rx;
-      yCenter=this->getAtom(thisAN)->ry;
       naDef=thisAN;
       scale=1;
       r1=0;
@@ -3722,7 +3708,6 @@ namespace diagram {
       xu2=-xu2; yu2=-yu2;
       r1=xu1*xu2+yu1*yu2;
       r2=yu1*xu2-xu1*yu2;
-      nBondsOld=this->nBonds();
       nAtomsOld=this->nAtoms();
       if (isAddition) mouseButton=1; else mouseButton=2;
 
@@ -3739,7 +3724,6 @@ namespace diagram {
       xu2=-xu2; yu2=-yu2;
       r1=xu1*xu2+yu1*yu2;
       r2=yu1*xu2-xu1*yu2;
-      nBondsOld=this->nBonds();
       nAtomsOld=this->nAtoms();
       addFragment(fragmentMol,list.size(),thisAN,thisBN,smBN,list,
                   xOld,yOld,xNew,yNew,scale,r1,r2,1,false);
@@ -3752,7 +3736,6 @@ namespace diagram {
     std::vector<int> list(listarSize());
     std::vector<int>  inverseList(listarSize());
     int i,j,k;
-    bool test;
     TSingleAtom * sa;
     TSingleBond * sb;
     TEditedMolecule * result=NULL;
@@ -3760,7 +3743,6 @@ namespace diagram {
     if ((atomN < 0) || (atomN >= nAtoms())) return result;
     if (enumerator != NULL) for (i=0; i<nAtoms(); i++) (*enumerator)[i]=-1;
     for (i=0; i<nAtoms(); i++) inverseList[i]=-1;
-    test=makeFragment(list,atomN,-1);
 
 
     if (list.size()>1) for (i=0; i<(list.size()-1); i++) for (j=i+1; j<list.size(); j++) if (list[i]>list[j]) {
@@ -4193,7 +4175,6 @@ namespace diagram {
   }
 
   bool TEditedMolecule::fragmentSearch(TEditedMolecule * molecule1, std::vector<int>* bondLabel) {
-    int cycleNumber;
     int j,k,l,m,mm;
     bool test;
     bool test1;
@@ -4229,7 +4210,6 @@ namespace diagram {
         bEQ[i][j] = false;
     }
 
-    cycleNumber=0;
 
     molecule1->fIOPT11=fIOPT11;
     molecule1->fIOPT12=fIOPT13;
@@ -5017,7 +4997,6 @@ namespace diagram {
     int nFound;
     TEditedMolecule * smFragment;
     TEditedMolecule * smRest;
-    int naStore;
     int result;
 
 
@@ -5180,7 +5159,6 @@ namespace diagram {
             break;
           }
 		if ((templateAN>=0) && (fragmentAN>=0)) {
-          naStore=tm.nAtoms();
           tm.refofs=sm.refofs;
           tm.addAsTemplate(*emTemplate,templateAN,fragmentAN,-1,-1,true);
 		}

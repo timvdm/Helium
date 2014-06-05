@@ -34,6 +34,7 @@ set(HELIUM_ALGORITHMS_HDRS
   algorithms/enumeratepaths.h
   algorithms/enumeratesubgraphs.h
   algorithms/extendedconnectivities.h
+  algorithms/gtd.h
   algorithms/invariants.h
   algorithms/isomorphism.h
   algorithms/dijkstra.h
@@ -79,6 +80,12 @@ set(HELIUM_JSON_HDRS
   json/json.h
 )
 
+set(HELIUM_DEPICT_HDRS
+  depict/painter.h
+  depict/svgpainter.h
+  depict/depict.h
+)
+
 set(HELIUM_ALL_HDRS
   ${HELIUM_HDRS}
   ${HELIUM_ALGORITHMS_HDRS}
@@ -89,6 +96,7 @@ set(HELIUM_ALL_HDRS
   ${HELIUM_TOOLKITS_HDRS}
   ${HELIUM_CHEMIST_HDRS}
   ${HELIUM_JSON_HDRS}
+  ${HELIUM_DEPICT_HDRS}
 )
 
 # Set up the include directory and symlink/copy all headers to it.
@@ -102,6 +110,7 @@ make_directory("${CMAKE_BINARY_DIR}/include/Helium/algorithms")
 make_directory("${CMAKE_BINARY_DIR}/include/Helium/toolkits")
 make_directory("${CMAKE_BINARY_DIR}/include/Helium/chemist")
 make_directory("${CMAKE_BINARY_DIR}/include/Helium/json")
+make_directory("${CMAKE_BINARY_DIR}/include/Helium/depict")
 if(UNIX)
   set(header_cmd "create_symlink")
 else()
@@ -119,6 +128,9 @@ set(HELIUM_SRCS
   smarts.cpp
   smirks.cpp
   jsoncpp.cpp
+  diagram.cpp
+  depict/svgpainter.cpp
+  depict/depict.cpp
 )
 
 # Helium library
@@ -141,4 +153,5 @@ install(FILES ${HELIUM_STEREO_HDRS} DESTINATION "${INCLUDE_INSTALL_DIR}/Helium/s
 install(FILES ${HELIUM_TOOLKITS_HDRS} DESTINATION "${INCLUDE_INSTALL_DIR}/Helium/toolkits")
 install(FILES ${HELIUM_JSON_HDRS} DESTINATION "${INCLUDE_INSTALL_DIR}/Helium/json")
 install(FILES ${HELIUM_CHEMIST_HDRS} DESTINATION "${INCLUDE_INSTALL_DIR}/Helium/chemist")
+install(FILES ${HELIUM_CHEMIST_HDRS} DESTINATION "${INCLUDE_INSTALL_DIR}/Helium/depict")
 install(FILES ${CMAKE_BINARY_DIR}/include/Helium/config.h DESTINATION "${INCLUDE_INSTALL_DIR}/Helium")

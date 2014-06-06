@@ -187,6 +187,10 @@ namespace Helium
           bool beginLbl, bool endLbl);
       void drawAtomLabel(const std::string &label, int alignment, const Eigen::Vector2d &pos);
 
+      template<typename MoleculeType>
+      void drawRing(const MoleculeType &mol, const Ring<MoleculeType> &ring,
+          const std::vector<Eigen::Vector2d> &coords, std::vector<bool> &drawnBonds);
+
       template<typename MoleculeType, typename AtomType>
       bool hasLabel(const MoleculeType &mol, const AtomType &atom);
       //void setWedgeAndHash(OBMol* mol);
@@ -251,6 +255,46 @@ namespace Helium
 
     Color elementColor(int element);
 
+  }
+
+  template<typename MoleculeType>
+  void Depict::drawRing(const MoleculeType &mol, const Ring<MoleculeType> &ring,
+      const std::vector<Eigen::Vector2d> &coords, std::vector<bool> &drawnBonds)
+  {
+    typedef typename molecule_traits<MoleculeType>::atom_type atom_type;
+    typedef typename molecule_traits<MoleculeType>::bond_type bond_type;
+
+    // compute center
+    Eigen::Vector2d center(Eigen::Vector2d::Zero());
+    for (std::size_t j = 0; j < ring.size(); ++j)
+      center += coords[get_index(mol, ring.atom(j))];
+    center /= ring.size();
+
+    bool aromatic = true;
+    for (std::size_t j = 0; j < ring.size(); ++j) {
+      bond_type ringBond = ring.bond(j);
+      atom_type source = get_source(mol, ringBond);
+      atom_type target = get_target(mol, ringBond);
+
+      if (drawnBonds[get_index(mol, ringBond)])
+        continue;
+      drawnBonds[get_index(mol, ringBond)] = true;
+
+      if (get_order(mol, ringBond) != 5)
+        aromatic = false;
+
+      drawRingBond(coords[get_index(mol, source)], coords[get_index(mol, target)],
+          hasLabel(mol, source), hasLabel(mol, target), get_valence(mol, source),
+          get_valence(mol, target), get_order(mol, ringBond), center);
+    }
+
+    if (aromatic) {
+      double minDist = std::numeric_limits<double>::max();
+      for (std::size_t j = 0; j < ring.size(); ++j)
+        minDist = std::min(minDist, (center - coords[get_index(mol, ring.atom(j))]).norm());
+
+      m_painter->drawCircle(center.x(), center.y(), minDist - 3 * m_bondSpacing);
+    }
   }
 
   template<typename MoleculeType>
@@ -384,41 +428,18 @@ namespace Helium
     // draw ring bonds
     m_painter->setPenColor(m_bondColor);
     std::vector<bool> drawnBonds(num_bonds(mol));
+    // draw aromatic rings first, looks better since all double bonds will be inside
+    // aromatic rings
+    for (std::size_t i = 0; i < rings.size(); ++i) {
+      const Ring<MoleculeType> &ring = rings.ring(rings.size() - i - 1);
+      if (ring.isAromatic())
+        drawRing(mol, ring, coords, drawnBonds);
+    }
+    // draw aliphatic rings
     for (std::size_t i = 0; i < rings.size(); ++i) {
       const Ring<MoleculeType> &ring = rings.ring(i);
-
-      // compute center
-      Eigen::Vector2d center(Eigen::Vector2d::Zero());
-      for (std::size_t j = 0; j < ring.size(); ++j)
-        center += coords[get_index(mol, ring.atom(j))];
-      center /= ring.size();
-
-      bool aromatic = true;
-      for (std::size_t j = 0; j < ring.size(); ++j) {
-        bond_type ringBond = ring.bond(j);
-        atom_type source = get_source(mol, ringBond);
-        atom_type target = get_target(mol, ringBond);
-
-        if (drawnBonds[get_index(mol, ringBond)])
-          continue;
-        drawnBonds[get_index(mol, ringBond)] = true;
-
-        if (get_order(mol, ringBond) != 5)
-          aromatic = false;
-
-        drawRingBond(coords[get_index(mol, source)], coords[get_index(mol, target)],
-            hasLabel(mol, source), hasLabel(mol, target), get_valence(mol, source),
-            get_valence(mol, target), get_order(mol, ringBond), center);
-      }
-
-      if (aromatic) {
-        double minDist = std::numeric_limits<double>::max();
-        for (std::size_t j = 0; j < ring.size(); ++j)
-          minDist = std::min(minDist, (center - coords[get_index(mol, ring.atom(j))]).norm());
-
-        m_painter->drawCircle(center.x(), center.y(), minDist - 3 * m_bondSpacing);
-      }
-
+      if (!ring.isAromatic())
+        drawRing(mol, ring, coords, drawnBonds);
     }
 
     // draw atom labels

@@ -41,6 +41,7 @@ set(HELIUM_ALGORITHMS_HDRS
   algorithms/dijkstra.h
   algorithms/floydwarshall.h
   algorithms/smartcomponents.h
+  algorithms/kekulize.h
 )
 
 set(HELIUM_UTIL_HDRS

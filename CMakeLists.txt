@@ -20,7 +20,7 @@ include_directories(${CMAKE_SOURCE_DIR}/src/thirdparty)
 include_directories(${CMAKE_SOURCE_DIR}/src/thirdparty/jsoncpp)
 
 # Find and setup boost (required)
-find_package(Boost 1.48 COMPONENTS chrono timer system iostreams REQUIRED)
+find_package(Boost 1.48 COMPONENTS chrono timer system iostreams filesystem REQUIRED)
 include_directories(${Boost_INCLUDE_DIR})
 
 # Find and setup Eigen3 (optional)

@@ -17,6 +17,8 @@ set(helium_tool_SRCS
   sort.cpp
   substructure.cpp
   smarts.cpp
+  depict.cpp
+  benchmark.cpp
 )
 
 if (OPENCL_FOUND)

@@ -185,6 +185,21 @@ namespace Helium {
         return contains_index(*m_mol, m_bonds, get_index(*m_mol, bond));
       }
 
+      /**
+       * @brief Check if the ring is aromatic.
+       *
+       * A ring is considered aromatic when all it's bonds are aromatic.
+       *
+       * @return True if the ring is aromatic.
+       */
+      bool isAromatic() const
+      {
+        for (std::size_t i = 0; i < m_bonds.size(); ++i)
+          if (!is_aromatic(*m_mol, m_bonds[i]))
+            return false;
+        return true;
+      }
+
     private:
       /**
        * @brief Determine ring bonds based on ring atoms.

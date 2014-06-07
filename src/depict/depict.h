@@ -43,22 +43,15 @@ namespace Helium
   class Depict
   {
     public:
-      enum AtomLabelType {
-        AtomId = 1,
-        AtomIndex,
-        AtomSymmetryClass,
-        AtomValence,
-        AtomTetrahedralStereo
-      };
-
-      enum OptionType{
-        bwAtoms              = 0x0001,
-        internalColor        = 0x0002,
-        noMargin             = 0x0004,
-        drawTermC            = 0x0010,
-        drawAllC             = 0x0020,
-        noWedgeHashGen       = 0x0100,
-        asymmetricDoubleBond = 0x0200
+      enum OptionType {
+        BlackWhiteAtoms      = 0x0001,
+        NoMargin             = 0x0002,
+        DrawTermC            = 0x0004,
+        DrawAllC             = 0x0008,
+        NoWedgeHashGen       = 0x0010,
+        AsymmetricDoubleBond = 0x0020,
+        AromaticCircle       = 0x0040,
+        AromaticHash         = 0x0080
       };
 
       /**
@@ -213,7 +206,7 @@ namespace Helium
   {
     if (!is_carbon(mol, atom))
       return true;
-    if ((m_options & Depict::drawAllC) || ((m_options & Depict::drawTermC) && (get_valence(mol, atom) == 1)))
+    if ((m_options & Depict::DrawAllC) || ((m_options & Depict::DrawTermC) && (get_valence(mol, atom) == 1)))
       return true;
     return false;
   }
@@ -270,7 +263,7 @@ namespace Helium
       center += coords[get_index(mol, ring.atom(j))];
     center /= ring.size();
 
-    bool aromatic = true;
+    bool aromatic = ring.isAromatic();
     for (std::size_t j = 0; j < ring.size(); ++j) {
       bond_type ringBond = ring.bond(j);
       atom_type source = get_source(mol, ringBond);
@@ -280,20 +273,50 @@ namespace Helium
         continue;
       drawnBonds[get_index(mol, ringBond)] = true;
 
-      if (get_order(mol, ringBond) != 5)
-        aromatic = false;
+      int order = get_order(mol, ringBond);
+      if (aromatic) {
+        if (m_options & AromaticCircle || m_options & AromaticHash)
+          order = 1;
+        else if (order != 5)
+          aromatic = false;
+      }
 
       drawRingBond(coords[get_index(mol, source)], coords[get_index(mol, target)],
           hasLabel(mol, source), hasLabel(mol, target), get_valence(mol, source),
-          get_valence(mol, target), get_order(mol, ringBond), center);
+          get_valence(mol, target), order, center);
     }
 
-    if (aromatic) {
+    if (aromatic || (m_options & AromaticCircle) || (m_options & AromaticHash)) {
       double minDist = std::numeric_limits<double>::max();
       for (std::size_t j = 0; j < ring.size(); ++j)
         minDist = std::min(minDist, (center - coords[get_index(mol, ring.atom(j))]).norm());
 
-      m_painter->drawCircle(center.x(), center.y(), minDist - 3 * m_bondSpacing);
+      if (m_options & AromaticHash) {
+        std::vector<Eigen::Vector2d> points;
+        for (std::size_t j = 0; j < ring.size(); ++j)
+          points.push_back(coords[get_index(mol, ring.atom(j))] - center);
+
+        double scale = (minDist - 1.5 * m_bondSpacing) / minDist;
+        for (std::size_t j = 0; j < ring.size(); ++j)
+          points[j] *= scale;
+
+        for (std::size_t j = 1; j < ring.size(); ++j) {
+          const Eigen::Vector2d &p1 = points[j-1] + center;
+          const Eigen::Vector2d &p2 = points[j] + center;
+          m_painter->drawDashedLine(p1.x(), p1.y(), p2.x(), p2.y(), m_bondLength / 7.0);
+        }
+        const Eigen::Vector2d &p1 = points[0] + center;
+        const Eigen::Vector2d &p2 = points[ring.size()-1] + center;
+        m_painter->drawDashedLine(p1.x(), p1.y(), p2.x(), p2.y(), m_bondLength / 7.0);
+
+
+
+
+
+      } else {
+        // default is AromaticCircle
+        m_painter->drawCircle(center.x(), center.y(), minDist - 3 * m_bondSpacing);
+      }
     }
   }
 
@@ -358,7 +381,7 @@ namespace Helium
       }
 
       double margin;
-      if (m_options & noMargin)
+      if (m_options & NoMargin)
         margin = 5.0;
       else
         margin = 40.0;
@@ -395,13 +418,13 @@ namespace Helium
       m_painter->setPenColor(m_bondColor);
 
       /* FIXME: stereo
-      if(from.find(bond)!=from.end()) {
+      if (from.find(bond)!=from.end()) {
         //is a wedge or hash bond
-        if(from[bond]==bond->GetEndAtom()->GetId())
+        if (from[bond]==bond->GetEndAtom()->GetId())
           swap(begin, end);
-        if(updown[bond]==OBStereo::UpBond)
+        if (updown[bond]==OBStereo::UpBond)
           drawWedge(begin, end);
-        else if(updown[bond]==OBStereo::DownBond)
+        else if (updown[bond]==OBStereo::DownBond)
           drawHash(begin, end);
         else {
           //This is a bond to a chiral center specified as unknown
@@ -456,7 +479,7 @@ namespace Helium
           break;
       }
 
-      if(m_options & bwAtoms)
+      if (m_options & BlackWhiteAtoms)
         m_painter->setPenColor(m_bondColor);
       else
         m_painter->setPenColor(impl::elementColor(get_element(mol, *atom)));
@@ -474,10 +497,10 @@ namespace Helium
             yoffset = - 1.2 * metrics.height;
         }*/
         std::stringstream ss;
-        if(charge) {
-          if(abs(charge)!=1)
+        if (charge) {
+          if (abs(charge) != 1)
             ss << abs(charge);
-          if(charge>0)
+          if (charge > 0)
             ss << '+';
           else if (charge<-1) //use underscore for single negative charge and minus if multiple
             ss << '-';
@@ -488,7 +511,7 @@ namespace Helium
           }
         }
         m_painter->drawText(x + 0.4*metrics.width, y+yoffset, ss.str());
-        if(spin) {
+        if (spin) {
           std::string radchars = (spin==2 ? "." : "..");
           //yoffset += 0.5 * metrics.height;
           m_painter->setFontSize(2 * metrics.fontSize);
@@ -499,11 +522,10 @@ namespace Helium
       }
 
       if (is_carbon(mol, *atom)) {
-        if(!(m_options & drawAllC))
-        {
+        if (!(m_options & DrawAllC)) {
           if (get_valence(mol, *atom) > 1)
             continue;
-          if ((get_valence(mol, *atom) == 1) && !(m_options & drawTermC))//!d->drawTerminalC)
+          if ((get_valence(mol, *atom) == 1) && !(m_options & DrawTermC))//!d->drawTerminalC)
             continue;
         }
       }

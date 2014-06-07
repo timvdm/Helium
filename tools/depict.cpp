@@ -54,7 +54,7 @@ namespace Helium {
     Depict depict(&painter);
     depict.setFontFamily("Arial");
     depict.setPenWidth(3);
-    depict.setOption(Depict::asymmetricDoubleBond);
+    depict.setOption(Depict::AsymmetricDoubleBond | Depict::AromaticHash);
     depict.drawMolecule(mol, relevant_cycles(mol), coords);
 
     return true;

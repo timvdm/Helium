@@ -477,7 +477,7 @@ namespace Helium {
     } else if (order == 2) {
       Eigen::Vector2d orthogonalLine(vb.y(), -vb.x());
 
-      bool useAsymmetricDouble = m_options & Depict::asymmetricDoubleBond;
+      bool useAsymmetricDouble = m_options & Depict::AsymmetricDoubleBond;
       if (beginLbl && endLbl)
         useAsymmetricDouble = false;
       if (beginLbl && endValence == 3)

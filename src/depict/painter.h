@@ -32,6 +32,8 @@
 #include <vector>
 #include <sstream>
 
+#include <Eigen/Core>
+
 namespace Helium {
 
   /**
@@ -175,6 +177,25 @@ namespace Helium {
       virtual void drawPolygon(const std::vector<std::pair<double,double> > &points) = 0;
       virtual void drawText(double x, double y, const std::string &text) = 0;
       virtual FontMetrics fontMetrics(const std::string &text) = 0;
+
+      void drawDashedLine(double x1, double y1, double x2, double y2, double size)
+      {
+        Eigen::Vector2d p1(x1, y1);
+        Eigen::Vector2d p2(x2, y2);
+        Eigen::Vector2d p1p2 = p2 - p1;
+        double norm = p1p2.norm();
+        p1p2.normalize();
+        Eigen::Vector2d last = p1;
+        double drawn = 0.0;
+        while (drawn < norm) {
+          Eigen::Vector2d next = last + size * p1p2;
+          if ((p1 - next).norm() >= norm)
+            next = p2;
+          drawLine(last.x(), last.y(), next.x(), next.y());
+          last += 2 * size * p1p2;
+          drawn += 2 * size;
+        }
+      }
   };
 
 }

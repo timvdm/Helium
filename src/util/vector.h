@@ -25,7 +25,7 @@ namespace std {
   bool operator<(const std::vector<T> &v1, const std::vector<T> &v2)
   {
     if (v1.size() < v2.size())
-      return true;
+      return false;
     for (std::size_t i = 0; i < v1.size(); ++i) {
       if (v1[i] < v2[i])
         return true;

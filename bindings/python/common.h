@@ -25,6 +25,20 @@ std::vector<T> vector_from_list(const list &l)
   return result;
 }
 
+template<typename Key, typename Value>
+std::map<Key, Value> map_from_dict(const dict &d)
+{
+  std::map<Key, Value> result;
+
+  list keys = d.keys();
+
+  ssize_t size = len(keys);
+  for (ssize_t i = 0; i < size; ++i)
+    result[extract<Key>(keys[i])] = extract<Value>(d[keys[i]]);
+
+  return result;
+}
+
 inline object pass_through(object const& o)
 {
   return o;

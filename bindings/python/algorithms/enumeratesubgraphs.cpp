@@ -24,7 +24,7 @@ struct SubgraphCallbackWrapper : SubgraphCallback, wrapper<SubgraphCallback>
 {
   void call(const Helium::Subgraph &subgraph)
   {
-    this->get_override("__call__")(boost::ref(subgraph));
+    this->get_override("__call__")(subgraph);
   }
 };
 

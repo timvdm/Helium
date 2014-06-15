@@ -83,6 +83,19 @@ namespace Helium {
       std::string write(const MoleculeType &mol, int flags = All);
 
       /**
+       * @brief Write a SMILES string for the molecule.
+       *
+       * @param mol The molecule.
+       * @param atomClasses The atom classes.
+       * @param flags The SMILES features to write (see Flags).
+       *
+       * @return The SMILES string.
+       */
+      template<typename MoleculeType>
+      std::string write(const MoleculeType &mol,
+          const std::map<Index, int> &atomClasses, int flags = All);
+
+      /**
        * @brief Write a SMILES string for the molecule using a specified order.
        *
        * This version of write() can be used to write canonical SMILES if a
@@ -98,14 +111,56 @@ namespace Helium {
       std::string write(const MoleculeType &mol, const std::vector<Index> &order,
           int flags = All);
 
+      /**
+       * @brief Write a SMILES string for the molecule using a specified order.
+       *
+       * This version of write() can be used to write canonical SMILES if a
+       * canonical atom order is used.
+       *
+       * @param mol The molecule.
+       * @param order The atom order.
+       * @param atomClasses The atom classes.
+       * @param flags The SMILES features to write (see Flags).
+       *
+       * @return The SMILES string.
+       */
       template<typename MoleculeType>
-      std::string writeCanonical(const MoleculeType &mol)
+      std::string write(const MoleculeType &mol, const std::vector<Index> &order,
+          const std::map<Index, int> &atomClasses, int flags = All);
+
+      /**
+       * @brief Write a canonical SMILES string for the molecule.
+       *
+       * @param mol The molecule.
+       * @param atomClasses The atom classes.
+       * @param flags The SMILES features to write (see Flags).
+       *
+       * @return The SMILES string.
+       */
+      template<typename MoleculeType>
+      std::string writeCanonical(const MoleculeType &mol, const std::map<Index, int> &atomClasses, int flags = All)
       {
         std::pair<std::vector<Index>, std::vector<unsigned long> > canon = canonicalize(mol,
             extended_connectivities(mol, DefaultAtomInvariant(DefaultAtomInvariant::Element)),
             DefaultAtomInvariant(DefaultAtomInvariant::All), DefaultBondInvariant(DefaultBondInvariant::All),
             connected_atom_components(mol), connected_bond_components(mol));
-        return write(mol, canon.first);
+        return write(mol, canon.first, atomClasses, flags);
+      }
+
+      /**
+       * @brief Write a canonical SMILES string for the molecule.
+       *
+       * @param mol The molecule.
+       * @param atomClasses The atom classes.
+       * @param flags The SMILES features to write (see Flags).
+       *
+       * @return The SMILES string.
+       */
+      template<typename MoleculeType>
+      std::string writeCanonical(const MoleculeType &mol, int flags = All)
+      {
+        std::map<Index, int> atomClasses;
+        return writeCanonical(mol, atomClasses, flags);
       }
 
       /**
@@ -210,8 +265,9 @@ namespace Helium {
       typedef typename molecule_traits<MoleculeType>::bond_type bond_type;
 
       WriteSmilesVisitor(const std::map<atom_type, std::vector<int> > &ringNumbers_,
-          const std::map<int, int> &orders_, int flags_)
-        : ringNumbers(ringNumbers_), orders(orders_), explicitBond(0), flags(flags_)
+          const std::map<int, int> &orders_, const std::map<Index, int> &atomClasses_,
+          int flags_) : ringNumbers(ringNumbers_), orders(orders_),
+        atomClasses(atomClasses_), explicitBond(0), flags(flags_)
       {
       }
 
@@ -283,6 +339,9 @@ namespace Helium {
           if (get_valence(mol, atom) != Element::valence(get_element(mol, atom), charge, get_degree(mol, atom)))
             needBrackets = true;
         }
+        std::map<Index, int>::const_iterator atomClass = atomClasses.find(get_index(mol, atom));
+        if (atomClass != atomClasses.end())
+          needBrackets = true;
 
         if (needBrackets)
           smiles << "[";
@@ -308,6 +367,8 @@ namespace Helium {
             smiles << "-" << charge;
         }
 
+        if (atomClass != atomClasses.end())
+          smiles << ":" << atomClass->second;
 
         if (needBrackets)
           smiles << "]";
@@ -401,6 +462,7 @@ namespace Helium {
       std::vector<int> degrees;
       std::vector<Index> branches;
       std::stringstream smiles;
+      const std::map<Index, int> &atomClasses;
       char explicitBond;
       int flags;
     };
@@ -461,13 +523,32 @@ namespace Helium {
   }
 
   template<typename MoleculeType>
-  std::string Smiles::write(const MoleculeType &mol, int flags)
+  std::string Smiles::write(const MoleculeType &mol, const std::map<Index, int> &atomClasses, int flags)
   {
     impl::WriteSmilesRingNumberVisitor<MoleculeType> ringNumbers;
     depth_first_search(mol, ringNumbers);
 
-    impl::WriteSmilesVisitor<MoleculeType> smilesWriter(ringNumbers.ringNumbers, ringNumbers.orders, flags);
+    impl::WriteSmilesVisitor<MoleculeType> smilesWriter(ringNumbers.ringNumbers, ringNumbers.orders, atomClasses, flags);
     depth_first_search(mol, smilesWriter);
+
+    return smilesWriter.smiles.str();
+  }
+
+  template<typename MoleculeType>
+  std::string Smiles::write(const MoleculeType &mol, int flags)
+  {
+    std::map<Index, int> atomClasses;
+    return write(mol, atomClasses, flags);
+  }
+
+  template<typename MoleculeType>
+  std::string Smiles::write(const MoleculeType &mol, const std::vector<Index> &order, const std::map<Index, int> &atomClasses, int flags)
+  {
+    impl::WriteSmilesRingNumberVisitor<MoleculeType> ringNumbers;
+    ordered_depth_first_search(mol, order, ringNumbers);
+
+    impl::WriteSmilesVisitor<MoleculeType> smilesWriter(ringNumbers.ringNumbers, ringNumbers.orders, atomClasses, flags);
+    ordered_depth_first_search(mol, order, smilesWriter);
 
     return smilesWriter.smiles.str();
   }
@@ -475,13 +556,8 @@ namespace Helium {
   template<typename MoleculeType>
   std::string Smiles::write(const MoleculeType &mol, const std::vector<Index> &order, int flags)
   {
-    impl::WriteSmilesRingNumberVisitor<MoleculeType> ringNumbers;
-    ordered_depth_first_search(mol, order, ringNumbers);
-
-    impl::WriteSmilesVisitor<MoleculeType> smilesWriter(ringNumbers.ringNumbers, ringNumbers.orders, flags);
-    ordered_depth_first_search(mol, order, smilesWriter);
-
-    return smilesWriter.smiles.str();
+    std::map<Index, int> atomClasses;
+    return write(mol, order, atomClasses, flags);
   }
 
 }

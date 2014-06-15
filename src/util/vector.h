@@ -24,29 +24,27 @@ namespace std {
   template<typename T>
   bool operator<(const std::vector<T> &v1, const std::vector<T> &v2)
   {
-    if (v1.size() < v2.size())
-      return false;
-    for (std::size_t i = 0; i < v1.size(); ++i) {
+    std::size_t size = std::min(v1.size(), v2.size());
+    for (std::size_t i = 0; i < size; ++i) {
       if (v1[i] < v2[i])
         return true;
       if (v1[i] > v2[i])
         return false;
     }
-    return false;
+    return v1.size() < v2.size();
   }
 
   template<typename T>
   bool operator>(const std::vector<T> &v1, const std::vector<T> &v2)
   {
-    if (v1.size() > v2.size())
-      return true;
-    for (std::size_t i = 0; i < v1.size(); ++i) {
+    std::size_t size = std::min(v1.size(), v2.size());
+    for (std::size_t i = 0; i < size; ++i) {
       if (v1[i] > v2[i])
         return true;
       if (v1[i] < v2[i])
         return false;
     }
-    return false;
+    return v1.size() > v2.size();
   }
 
   template<typename T>

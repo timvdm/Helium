@@ -534,7 +534,7 @@ namespace Helium {
 
     // dfs recursive function taking specified order into account
     template<typename MoleculeType, typename AtomType, typename DFSVisitorType>
-    void dfs_visit(const MoleculeType &mol, AtomType atom, const std::vector<Index> &order,
+    void ordered_dfs_visit(const MoleculeType &mol, AtomType atom, const std::vector<Index> &order,
         DFSVisitorType &visitor, std::vector<bool> &visited,
         AtomType prev = molecule_traits<MoleculeType>::null_atom())
     {
@@ -551,6 +551,8 @@ namespace Helium {
 
       std::vector<std::pair<std::size_t, bond_type> > bonds;
       FOREACH_INCIDENT_T (bond, atom, mol, MoleculeType) {
+        if (visited[num_atoms(mol) + get_index(mol, *bond)])
+          continue;
         atom_type nbr = get_other(mol, *bond, atom);
         bonds.push_back(std::make_pair(std::find(order.begin(), order.end(),
                 get_index(mol, nbr)) - order.begin(), *bond));
@@ -558,7 +560,7 @@ namespace Helium {
 
       std::sort(bonds.begin(), bonds.end(), compare_first<std::size_t, bond_type>());
 
-      // call dfs_visit for all unvisited neighbors of v
+      // call ordered_dfs_visit for all unvisited neighbors of v
       for (std::size_t i = 0; i < bonds.size(); ++i) {
         if (visitor.stop())
           return;
@@ -580,7 +582,7 @@ namespace Helium {
         // invoke bond visitor
         visitor.bond(mol, prev, bond);
 
-        dfs_visit(mol, nbr, order, visitor, visited, atom);
+        ordered_dfs_visit(mol, nbr, order, visitor, visited, atom);
       }
 
       // invoke backtrack visitor
@@ -612,12 +614,13 @@ namespace Helium {
    * @param order The order for visiting atoms.
    * @param visitor The DFS visitor functor.
    */
-  template<typename MoleculeType, typename DFSVisitorType>
-  void ordered_depth_first_search(const MoleculeType &mol, const std::vector<Index> &order,
+  template<typename MoleculeType, typename DFSVisitorType, typename T>
+  void ordered_depth_first_search(const MoleculeType &mol, const std::vector<T> &order,
       DFSVisitorType &visitor)
   {
     visitor.initialize(mol);
 
+    // keep track of visited atoms and bonds
     std::vector<bool> visited(num_atoms(mol) + num_bonds(mol));
 
     int c = 0;
@@ -627,7 +630,71 @@ namespace Helium {
 
       if (!visited[order[i]]) {
         visitor.component(c);
-        impl::dfs_visit(mol, get_atom(mol, order[i]), order, visitor, visited);
+        impl::ordered_dfs_visit(mol, get_atom(mol, order[i]), order, visitor, visited);
+      }
+    }
+  }
+
+  template<typename MoleculeType, typename DFSVisitorType, typename T>
+  void ordered_depth_first_search_mask(const MoleculeType &mol, const std::vector<T> &order,
+      DFSVisitorType &visitor, const std::vector<bool> &atomMask)
+  {
+    typedef typename molecule_traits<MoleculeType>::atom_type atom_type;
+
+    visitor.initialize(mol);
+
+    // keep track of visited atoms and bonds
+    std::vector<bool> visited(num_atoms(mol) + num_bonds(mol));
+
+    // initialize visited to take mask into account
+    for (std::size_t i = 0; i < num_atoms(mol); ++i)
+      if (!atomMask[i]) {
+        // mark masked atoms as visited
+        visited[i] = true;
+        // mark bonds around atom as visited
+        atom_type atom = get_atom(mol, i);
+        FOREACH_INCIDENT_T(bond, atom, mol, MoleculeType)
+          visited[num_atoms(mol) + get_index(mol, *bond)] = true;
+      }
+
+    int c = 0;
+    for (std::size_t i = 0; i < order.size(); ++i) {
+      if (visitor.stop())
+        return;
+
+      if (!visited[order[i]]) {
+        visitor.component(c);
+        impl::ordered_dfs_visit(mol, get_atom(mol, order[i]), order, visitor, visited);
+      }
+    }
+  }
+
+  template<typename MoleculeType, typename DFSVisitorType, typename T>
+  void ordered_depth_first_search_mask(const MoleculeType &mol, const std::vector<T> &order,
+      DFSVisitorType &visitor, const std::vector<bool> &atomMask,
+      const std::vector<bool> &bondMask)
+  {
+    visitor.initialize(mol);
+
+    // keep track of visited atoms and bonds
+    std::vector<bool> visited(num_atoms(mol) + num_bonds(mol));
+
+    // initialize visited to take mask into account
+    for (std::size_t i = 0; i < num_atoms(mol); ++i)
+      if (!atomMask[i])
+        visited[i] = true;
+    for (std::size_t i = 0; i < num_bonds(mol); ++i)
+      if (!bondMask[i])
+        visited[num_atoms(mol) + i] = true;
+
+    int c = 0;
+    for (std::size_t i = 0; i < order.size(); ++i) {
+      if (visitor.stop())
+        return;
+
+      if (!visited[order[i]]) {
+        visitor.component(c);
+        impl::ordered_dfs_visit(mol, get_atom(mol, order[i]), order, visitor, visited);
       }
     }
   }

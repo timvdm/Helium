@@ -67,13 +67,17 @@ namespace Helium {
          */
         Degree = 8,
         /**
+         * @brief Include bond order sum.
+         */
+        BondOrderSum = 16,
+        /**
          * @brief Include atom aromaticity.
          */
-        Aromatic = 16,
+        Aromatic = 32,
         /**
          * @brief Include all invariants.
          */
-        All = Element | Mass | Charge | Degree | Aromatic
+        All = Element | Mass | Charge | Degree | BondOrderSum | Aromatic
       };
 
       /**
@@ -110,6 +114,8 @@ namespace Helium {
           invariant += get_degree(mol, atom) * 100000000;
         if (m_invariants & Aromatic)
           invariant += is_aromatic(mol, atom) * 1000000000;
+        if (m_invariants & BondOrderSum)
+          invariant += get_bosum(mol, atom) * 2000000000;
         return invariant;
       }
 
@@ -174,7 +180,7 @@ namespace Helium {
       {
         unsigned long invariant = 0;
         if (m_invariants & Order)
-          invariant += get_order(mol, bond);
+          invariant += is_aromatic(mol, bond) ? 5 : get_order(mol, bond);
         if (m_invariants & Aromatic)
           invariant += is_aromatic(mol, bond) * 100;
         return invariant;

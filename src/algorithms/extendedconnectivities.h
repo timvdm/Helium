@@ -28,6 +28,8 @@
 #define HELIUM_EXTENDEDCONNECTIVITIES_H
 
 #include <Helium/algorithms/invariants.h>
+#include <Helium/util/vector.h>
+#include <set>
 
 namespace Helium {
 
@@ -42,7 +44,7 @@ namespace Helium {
       typedef typename molecule_traits<MoleculeType>::atom_iter atom_iter;
       typedef typename molecule_traits<MoleculeType>::nbr_iter nbr_iter;
 
-      std::vector<unsigned long> next(ec.size());
+      std::vector<unsigned long> next = ec;
       atom_iter atom, end_atoms;
       TIE(atom, end_atoms) = get_atoms(mol);
       for (; atom != end_atoms; ++atom) {

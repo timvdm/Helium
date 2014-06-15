@@ -28,6 +28,8 @@
 #define HELIUM_EXTENDEDCONNECTIVITIES_H
 
 #include <Helium/algorithms/invariants.h>
+#include <Helium/util/vector.h>
+#include <set>
 
 namespace Helium {
 

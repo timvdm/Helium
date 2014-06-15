@@ -29,6 +29,7 @@
 
 #include <Helium/algorithms/invariants.h>
 #include <Helium/algorithms/extendedconnectivities.h>
+#include <Helium/algorithms/cycles.h>
 #include <Helium/util.h>
 
 #include <map>
@@ -81,6 +82,14 @@ namespace Helium {
           return result;
         }
 
+        unsigned long complexity() const
+        {
+          unsigned long result = 1;
+          for (std::size_t i = 0; i < m_groups.size(); ++i)
+            result *= factorial(m_groups[i].size());
+          return result;
+        }
+
       private:
         const std::vector<ItemType> &m_items;
         const std::vector<ClassType> &m_classes;
@@ -110,6 +119,177 @@ namespace Helium {
       Index target; // canonical target index
     };
 
+    /*
+    class Automorphism
+    {
+      public:
+        Automorphism(const std::vector<std::vector<unsigned int> > &orbits)
+        {
+          // number of orbits
+          m_data.push_back(orbits.size());
+          // orbit sizes
+          for (std::size_t i = 0; i < orbits.size(); ++i)
+            m_data.push_back(orbits[i].size());
+          // orbits
+          for (std::size_t i = 0; i < orbits.size(); ++i)
+            std::copy(orbits[i].begin(), orbits[i].end(), std::back_inserter(m_data));
+          // sort orbits
+          std::size_t begin = 1 + orbits.size();
+          for (unsigned int i = 0; i < orbits.size(); ++i) {
+            std::sort(m_data.begin() + begin, m_data.begin() + begin + orbits[i].size());
+            begin += orbits[i].size();
+          }
+        }
+
+        std::size_t numOrbits() const
+        {
+          return m_data[0];
+        }
+
+        unsigned int orbitSize(unsigned int i) const
+        {
+          return m_data[1 + i];
+        }
+
+        const unsigned int* orbit(unsigned int i) const
+        {
+          unsigned int offset = 1 + m_data[0];
+          for (unsigned int j = 0; j < i; ++j)
+            offset += m_data[1 + j];
+          return &m_data[0] + offset;
+        }
+
+        bool isAutomorphic(unsigned int v, unsigned int w) const
+        {
+          std::size_t begin = 1 + m_data[0];
+          for (unsigned int i = 0; i < m_data[0]; ++i) {
+            if (std::binary_search(m_data.begin() + begin, m_data.begin() + begin + m_data[1 + i], v) &&
+                std::binary_search(m_data.begin() + begin, m_data.begin() + begin + m_data[1 + i], w))
+              return true;
+            begin += m_data[1 + i];
+          }
+          return false;
+        }
+
+      private:
+        friend std::ostream& operator<<(std::ostream &os, const Automorphism &automorphism);
+
+        // [n] [sizes] [orbits]
+        std::vector<unsigned int> m_data;
+    };
+
+    inline std::ostream& operator<<(std::ostream &os, const Automorphism &automorphism)
+    {
+      std::size_t begin = 1 + automorphism.m_data[0];
+      for (unsigned int i = 0; i < automorphism.m_data[0]; ++i) {
+        os << "( ";
+        for (unsigned int j = begin; j < begin + automorphism.m_data[1 + i]; ++j)
+          os << automorphism.m_data[j] << " ";
+        os << ") ";
+        begin += automorphism.m_data[1 + i];
+      }
+      return os;
+    }
+
+    class Automorphisms
+    {
+      public:
+        void add(const std::vector<unsigned int> &p1, const std::vector<unsigned int> &p2)
+        {
+          std::vector<std::vector<unsigned int> > orbits;
+          std::vector<bool> done(p1.size());
+          for (std::size_t i = 0; i < p1.size(); ++i) {
+            if (done[p1[i]])
+              continue;
+            if (p1[i] == p2[i])
+              continue;
+
+            std::vector<unsigned int> orbit;
+            orbit.push_back(p1[i]);
+            done[p1[i]] = true;
+
+            std::size_t j = i;
+            while (p2[j] != p1[i]) {
+              done[p2[j]] = true;
+              orbit.push_back(p2[j]);
+              j = std::find(p1.begin(), p1.end(), p2[j]) - p1.begin();
+            }
+
+            orbits.push_back(orbit);
+          }
+
+          int MAX_AUTO = 250;
+          if (m_automorphisms.size() >= MAX_AUTO)
+            m_automorphisms[rand() % MAX_AUTO] = Automorphism(orbits);
+          else
+            m_automorphisms.push_back(Automorphism(orbits));
+          //removeRedundant();
+        }
+
+        const std::vector<Automorphism>& automorphisms() const
+        {
+          return m_automorphisms;
+        }
+
+      private:
+        bool isRedundantOrbit(const unsigned int *orbit1, unsigned int size1,
+            const unsigned *orbit2, unsigned int size2) const
+        {
+          if (size1 > size2)
+            return false;
+
+          for (unsigned int i = 0; i < size1; ++i)
+            if (!std::binary_search(orbit2, orbit2 + size2, orbit1[i]))
+              return false;
+
+          return true;
+        }
+
+        void removeRedundant()
+        {
+          std::vector<std::size_t> remove;
+          for (std::size_t i = 0; i < m_automorphisms.size(); ++i) {
+            const Automorphism &aut1 = m_automorphisms[i];
+            for (std::size_t j = 0; j < m_automorphisms.size(); ++j) {
+              if (i == j)
+                continue;
+
+              const Automorphism &aut2 = m_automorphisms[m_automorphisms.size() - j - 1];
+
+              bool identical = true;
+              int redundant = 0;
+              for (std::size_t k = 0; k < aut1.numOrbits(); ++k) {
+                for (std::size_t l = 0; l < aut2.numOrbits(); ++l) {
+                  if (isRedundantOrbit(aut1.orbit(k), aut1.orbitSize(k), aut2.orbit(l), aut2.orbitSize(l))) {
+                    redundant++;
+                    if (aut1.orbitSize(k) < aut2.orbitSize(l))
+                      identical = false;
+                    break;
+                  }
+                }
+                if (redundant != k + 1)
+                  break;
+              }
+
+              if (i < j && identical)
+                continue;
+
+              if (redundant == aut1.numOrbits())
+                remove.push_back(i);
+            }
+          }
+
+          while (remove.size()) {
+            //std::cout << "removing automorphism " << remove.back() << std::endl;
+            m_automorphisms.erase(m_automorphisms.begin() + remove.back());
+            remove.pop_back();
+          }
+        }
+
+        std::vector<Automorphism> m_automorphisms;
+    };
+    */
+
     template<typename MoleculeType, typename AtomInvariant, typename BondInvariant>
     class Canonicalize
     {
@@ -122,12 +302,17 @@ namespace Helium {
         Canonicalize(const MoleculeType &mol, const std::vector<unsigned long> &symmetry,
             const AtomInvariant &atomInvariant, const BondInvariant &bondInvariant)
           : m_mol(mol), m_symmetry(symmetry), m_visited(num_bonds(mol)),
-            m_atomInvariant(atomInvariant), m_bondInvariant(bondInvariant)
+            m_atomInvariant(atomInvariant), m_bondInvariant(bondInvariant),
+            m_backtrackDepth(0)
         {
         }
 
         void canonicalize()
         {
+          std::vector<bool> cyclicBonds;
+          cycle_membership(m_mol, m_cyclicAtoms, cyclicBonds);
+
+          // select a symmetry class to start
           std::map<unsigned long, std::size_t> symClassCounts;
           for (std::size_t i = 0; i < m_symmetry.size(); ++i)
             symClassCounts[m_symmetry[i]]++;
@@ -142,44 +327,84 @@ namespace Helium {
               symClass = i->first;
             }
 
-          // select atom(s) with lowest symmetry class
+          // initiate the dfs search
           FOREACH_ATOM_T (atom, m_mol, MoleculeType) {
             if (m_symmetry[get_index(m_mol, *atom)] != symClass)
               continue;
 
+            assert(std::find(m_visited.begin(), m_visited.end(), true) == m_visited.end());
             assert(m_atoms.empty());
             assert(m_bonds.empty());
             assert(m_from.empty());
-            assert(std::find(m_visited.begin(), m_visited.end(), true) == m_visited.end());
+            assert(m_code.empty());
 
             m_atoms.push_back(get_index(m_mol, *atom));
+            m_code.push_back(m_atomInvariant(m_mol, *atom));
             next(*atom);
             m_atoms.pop_back();
+            m_code.pop_back();
           }
+
+         /*
+          std::cout << "automorphisms: " << std::endl;
+          for (std::size_t i = 0; i < m_automorphisms.automorphisms().size(); ++i)
+            std::cout << "    " << m_automorphisms.automorphisms()[i] << std::endl;
+          */
         }
 
         const std::vector<Index>& labels() const
         {
-          return m_labels;
+          return m_canAtoms;
         }
 
         const std::vector<unsigned long>& code() const
         {
-          return m_code;
+          return m_canCode;
         }
 
       private:
-        void createCode()
+        /*
+        bool isAutomorphic(const std::vector<unsigned int> v1,
+            const std::vector<unsigned int> &v2) const
+        {
+          assert(v1.size() >= v2.size());
+
+          for (std::size_t i = 0; i < m_automorphisms.automorphisms().size(); ++i) {
+            const Automorphism &automorphism = m_automorphisms.automorphisms()[i];
+
+            bool automorphic = true;
+            for (std::size_t j = 0; j < v2.size(); ++j)
+              if (!automorphism.isAutomorphic(v1[j], v2[j])) {
+                automorphic = false;
+                break;
+              }
+
+            if (automorphic)
+              return true;
+          }
+
+          return false;
+        }
+        */
+
+        std::vector<unsigned long> createCode()
         {
           std::vector<unsigned long> code;
-          //
-          // encode graph
-          //
 
+          //
+          // encode ATOM invariants
+          //
+          for (std::size_t i = 0; i < m_atoms.size(); ++i)
+            code.push_back(m_atomInvariant(m_mol, get_atom(m_mol, m_atoms[i])));
+
+          //
           // FROM atoms (encodes spanning tree)
+          //
           std::copy(m_from.begin(), m_from.end(), std::back_inserter(code));
 
+          //
           // RING-CLOSURES (encodes ring closures)
+          //
           unsigned int numClosures = 0;
           for (std::size_t i = 0; i < m_atoms.size(); ++i) {
             atom_type atom = get_atom(m_mol, m_atoms[i]);
@@ -214,12 +439,6 @@ namespace Helium {
           }
 
           //
-          // encode ATOM invariants
-          //
-          for (std::size_t i = 0; i < m_atoms.size(); ++i)
-            code.push_back(m_atomInvariant(m_mol, get_atom(m_mol, m_atoms[i])));
-
-          //
           // encode BOND invariants
           //
           for (std::size_t i = 0; i < m_bonds.size(); ++i)
@@ -235,10 +454,7 @@ namespace Helium {
           if (DEBUG_CANON)
             std::cout << "code: " << code << std::endl;
 
-          if (m_code.empty() || code < m_code) {
-            m_labels = m_atoms;
-            m_code = code;
-          }
+          return code;
         }
 
         void next(const atom_type &atom)
@@ -246,12 +462,57 @@ namespace Helium {
           if (DEBUG_CANON)
             std::cout << "next(" << get_index(m_mol, atom) << ")" << std::endl;
 
+          if (m_backtrackDepth) {
+            if (m_atoms.size() > m_backtrackDepth)
+              return;
+            if (m_atoms.size() == m_backtrackDepth) {
+              m_backtrackDepth = 0;
+              return;
+            }
+            if (m_atoms.size() < m_backtrackDepth)
+              m_backtrackDepth = 0;
+          }
+
+
 
           if (m_atoms.size() == num_atoms(m_mol)) {
             // found a mapping
             if (DEBUG_CANON)
               std::cout << "mapping: " << m_atoms << ", from: " << m_from << std::endl;
-            createCode();
+
+            std::vector<unsigned long> code = createCode();
+
+            if (m_canCode.empty()) {
+              m_firstAtoms = m_atoms;
+              m_firstCode = code;
+              m_canAtoms = m_atoms;
+              m_canCode = code;
+            } else {
+              if (code < m_canCode) {
+                m_canAtoms = m_atoms;
+                m_canCode = code;
+              } else if (code == m_canCode) {
+                //m_automorphisms.add(m_canAtoms, m_atoms);
+                m_backtrackDepth = 0;
+                for (std::size_t i = 0; i < m_atoms.size(); ++i) {
+                  if (m_atoms[i] != m_canAtoms[i])
+                    return;
+                  m_backtrackDepth++;
+                }
+              }
+
+              if (code == m_firstCode) {
+                //m_automorphisms.add(m_firstAtoms, m_atoms);
+                m_backtrackDepth = 0;
+                for (std::size_t i = 0; i < m_atoms.size(); ++i) {
+                  if (m_atoms[i] != m_firstAtoms[i])
+                    return;
+                  m_backtrackDepth++;
+                }
+              }
+            }
+
+
           } else {
             std::vector<std::pair<bond_type, atom_type> > bonds;
 
@@ -286,12 +547,46 @@ namespace Helium {
             std::vector<unsigned long> classes;
             for (std::size_t i = 0; i < bonds.size(); ++i)
               classes.push_back(m_symmetry[get_index(m_mol, bonds[i].second)]);
-            
+
             // generate all permutations of these bonds with the same symmetry class
             Permutations<std::pair<bond_type, atom_type>, unsigned long> perms(bonds, classes);
+            //std::cout << "complexity: " << perms.complexity() << std::endl;
             do {
               // append the new bonds
               std::vector<std::pair<bond_type, atom_type> > orderedBonds = perms.items();
+
+              // check if this order is automorphic
+              /*
+              if (perms.complexity() > 10) {
+                m_atoms.push_back(get_index(m_mol, orderedBonds[0].second));
+
+                bool automorphic = false;
+                if (m_canAtoms.size() && isAutomorphic(m_canAtoms, m_atoms)) {
+                  automorphic = true;
+                  //std::cout << "prune automorphism 1..." << std::endl;
+                }
+                if (m_firstAtoms.size() && isAutomorphic(m_firstAtoms, m_atoms)) {
+                  automorphic = true;
+                  //std::cout << "prune automorphism 2..." << std::endl;
+                }
+                m_atoms.pop_back();
+
+                if (automorphic) {
+                  std::cout << "PRUNED" << std::endl;
+                  continue;
+                }
+              }
+              */
+
+              // update m_code
+              for (std::size_t i = 0; i < orderedBonds.size(); ++i)
+                m_code.push_back(m_atomInvariant(m_mol, orderedBonds[i].second));
+
+              if (m_canCode.size() && m_code > m_canCode) {
+                //std::cout << "prune code..." << std::endl;
+                m_code.resize(m_code.size() - orderedBonds.size());
+                continue;
+              }
 
               for (std::size_t i = 0; i < orderedBonds.size(); ++i) {
                 bond_type fromBond = orderedBonds[i].first;
@@ -310,8 +605,8 @@ namespace Helium {
 
               // recursive call...
               next(atom);
-             
-              // backtrack... 
+
+              // backtrack...
               for (std::size_t i = 0; i < orderedBonds.size(); ++i) {
                 m_atoms.pop_back();
 
@@ -322,6 +617,15 @@ namespace Helium {
                   m_visited[get_index(m_mol, fromBond)] = false;
                 }
               }
+
+              m_code.resize(m_code.size() - orderedBonds.size());
+
+              if (m_atoms.size() <= m_backtrackDepth)
+                  m_backtrackDepth = 0;
+
+              if (!m_cyclicAtoms[get_index(m_mol, atom)] || is_aromatic(m_mol, atom))
+                break;
+
             } while (perms.next());
 
           }
@@ -330,16 +634,28 @@ namespace Helium {
 
         const MoleculeType &m_mol;
         const std::vector<unsigned long> &m_symmetry;
+        std::vector<bool> m_cyclicAtoms;
+
+        // current
+        std::vector<bool> m_visited; // visited bonds
         std::vector<Index> m_atoms; // canonical atom order
         std::vector<Index> m_bonds; // canonical bond order
         std::vector<Index> m_from; // from atoms
-        std::vector<bool> m_visited; // visited bonds
+        std::vector<unsigned long> m_code;
 
-        std::vector<Index> m_labels; // currently lowest canonical labels
-        std::vector<unsigned long> m_code; // currently lowest canonical code
+        // first
+        std::vector<Index> m_firstAtoms;
+        std::vector<unsigned long> m_firstCode;
+
+        // canonical
+        std::vector<Index> m_canAtoms; // currently lowest canonical labels
+        std::vector<unsigned long> m_canCode; // currently lowest canonical code
 
         const AtomInvariant &m_atomInvariant;
         const BondInvariant &m_bondInvariant;
+
+        //Automorphisms m_automorphisms;
+        std::size_t m_backtrackDepth;
     };
 
     template<typename MoleculeType>
@@ -347,15 +663,18 @@ namespace Helium {
     {
       unsigned int numColors = unique_elements(symmetry);
 
+      //std::cout << "before: " << symmetry << std::endl;
+
       for (unsigned int color = 0; color < numColors; ++color) {
         std::vector<std::map<unsigned int, std::vector<Index> > > terminals;
         FOREACH_ATOM_T (atom, mol, MoleculeType) {
           if (symmetry[get_index(mol, *atom)] != color)
             continue;
           terminals.resize(terminals.size() + 1);
-          FOREACH_NBR_T (nbr, *atom, mol, MoleculeType)
+          FOREACH_NBR_T (nbr, *atom, mol, MoleculeType) {
             if (get_degree(mol, *nbr) == 1)
               terminals.back()[symmetry[get_index(mol, *nbr)]].push_back(get_index(mol, *nbr));
+          }
         }
 
         unsigned int nextColor = unique_elements(symmetry);
@@ -364,12 +683,14 @@ namespace Helium {
           unsigned int newColor = nextColor;
           std::map<unsigned int, std::vector<Index> >::const_iterator terminal;
           for (terminal = terminals[i].begin(); terminal != terminals[i].end(); ++terminal) {
-            std::cout << terminal->first << " -> " << terminal->second << std::endl;
+            //std::cout << terminal->first << " -> " << terminal->second << std::endl;
             for (std::size_t j = 1; j < terminal->second.size(); ++j)
               symmetry[terminal->second[j]] = newColor++;
           }
         }
       }
+
+      //std::cout << "after:  " << symmetry << std::endl;
 
     }
 
@@ -488,6 +809,9 @@ namespace Helium {
 
       // create a molecule for the component
       make_substructure(component, mol, atoms, bonds);
+
+      impl::extended_connectivities_renumber(componentSymmetry);
+      impl::remove_terminal_symmetry(component, componentSymmetry);
 
       impl::Canonicalize<MoleculeType, AtomInvariant, BondInvariant> can(component,
           componentSymmetry, atomInvariant, bondInvariant);

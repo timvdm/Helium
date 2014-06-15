@@ -186,10 +186,21 @@ namespace Helium {
         if (ringNumbers.find(get_target(mol, bond)) == ringNumbers.end())
           ringNumbers[get_target(mol, bond)] = std::vector<int>();
         ringNumbers[get_target(mol, bond)].push_back(ringNumber);
+
+        if (get_order(mol, bond) == 1 && !is_aromatic(mol, bond) &&
+            is_aromatic(mol, get_source(mol, bond)) && is_aromatic(mol, get_target(mol, bond)))
+          orders[ringNumber] = 1;
+        else if (get_order(mol, bond) == 2 && !is_aromatic(mol, bond))
+          orders[ringNumber] = 2;
+        else if (get_order(mol, bond) > 2)
+          orders[ringNumber] = get_order(mol, bond);
+        else
+          orders[ringNumber] = 0;
       }
 
       int ringNumber;
       std::map<atom_type, std::vector<int> > ringNumbers;
+      std::map<int, int> orders;
     };
 
     template<typename MoleculeType>
@@ -198,8 +209,9 @@ namespace Helium {
       typedef typename molecule_traits<MoleculeType>::atom_type atom_type;
       typedef typename molecule_traits<MoleculeType>::bond_type bond_type;
 
-      WriteSmilesVisitor(const std::map<atom_type, std::vector<int> > &ringNumbers_, int flags_)
-        : ringNumbers(ringNumbers_), explicitBond(0), flags(flags_)
+      WriteSmilesVisitor(const std::map<atom_type, std::vector<int> > &ringNumbers_,
+          const std::map<int, int> &orders_, int flags_)
+        : ringNumbers(ringNumbers_), orders(orders_), explicitBond(0), flags(flags_)
       {
       }
 
@@ -302,13 +314,46 @@ namespace Helium {
 
 
         typename std::map<atom_type, std::vector<int> >::const_iterator rings = ringNumbers.find(atom);
-        if (rings != ringNumbers.end())
+        if (rings != ringNumbers.end()) {
+          std::vector<std::pair<int, int> > sortedRingNumbers;
+
+          bool firstAtom = false;
           for (std::size_t i = 0; i < rings->second.size(); ++i) {
-            if (rings->second[i] > 9)
-              smiles << "%" << rings->second[i];
-            else
-              smiles << rings->second[i];
+            if (orderedRingNumbers.find(rings->second[i]) == orderedRingNumbers.end()) {
+              sortedRingNumbers.push_back(std::make_pair(orderedRingNumbers.size() + 1, orders[rings->second[i]]));
+              orderedRingNumbers[rings->second[i]] = sortedRingNumbers.back();
+              firstAtom = true;
+            } else
+              sortedRingNumbers.push_back(orderedRingNumbers[rings->second[i]]);
           }
+
+          std::sort(sortedRingNumbers.begin(), sortedRingNumbers.end(), compare_first<int, int>());
+
+          for (std::size_t i = 0; i < sortedRingNumbers.size(); ++i) {
+            if (flags & Smiles::Order && firstAtom)
+              switch (sortedRingNumbers[i].second) {
+                case 1:
+                  smiles << "-";
+                  break;
+                case 2:
+                  smiles << "=";
+                  break;
+                case 3:
+                  smiles << "#";
+                  break;
+                case 4:
+                  smiles << "$";
+                  break;
+                default:
+                  break;
+              }
+
+            if (sortedRingNumbers[i].first > 9)
+              smiles << "%" << sortedRingNumbers[i].first;
+            else
+              smiles << sortedRingNumbers[i].first;
+          }
+        }
       }
 
       void bond(const MoleculeType &mol, atom_type prev, bond_type bond)
@@ -351,6 +396,8 @@ namespace Helium {
       }
 
       const std::map<atom_type, std::vector<int> > &ringNumbers;
+      std::map<int, std::pair<int, int> > orderedRingNumbers;
+      std::map<int, int> orders;
       std::vector<int> degrees;
       std::vector<Index> branches;
       std::stringstream smiles;
@@ -419,7 +466,7 @@ namespace Helium {
     impl::WriteSmilesRingNumberVisitor<MoleculeType> ringNumbers;
     depth_first_search(mol, ringNumbers);
 
-    impl::WriteSmilesVisitor<MoleculeType> smilesWriter(ringNumbers.ringNumbers, flags);
+    impl::WriteSmilesVisitor<MoleculeType> smilesWriter(ringNumbers.ringNumbers, ringNumbers.orders, flags);
     depth_first_search(mol, smilesWriter);
 
     return smilesWriter.smiles.str();
@@ -431,7 +478,7 @@ namespace Helium {
     impl::WriteSmilesRingNumberVisitor<MoleculeType> ringNumbers;
     ordered_depth_first_search(mol, order, ringNumbers);
 
-    impl::WriteSmilesVisitor<MoleculeType> smilesWriter(ringNumbers.ringNumbers, flags);
+    impl::WriteSmilesVisitor<MoleculeType> smilesWriter(ringNumbers.ringNumbers, ringNumbers.orders, flags);
     ordered_depth_first_search(mol, order, smilesWriter);
 
     return smilesWriter.smiles.str();

@@ -28,6 +28,7 @@
 #define HELIUM_CANONICAL_H
 
 #include <Helium/algorithms/invariants.h>
+#include <Helium/algorithms/extendedconnectivities.h>
 #include <Helium/util.h>
 
 #include <map>
@@ -142,13 +143,7 @@ namespace Helium {
             }
 
           // select atom(s) with lowest symmetry class
-          atom_iter atom, end_atoms;
-          TIE(atom, end_atoms) = get_atoms(m_mol);
-          for (; atom != end_atoms; ++atom) {
-            /*
-            if (m_symmetry[get_index(m_mol, *atom)])
-              continue;
-            */
+          FOREACH_ATOM_T (atom, m_mol, MoleculeType) {
             if (m_symmetry[get_index(m_mol, *atom)] != symClass)
               continue;
 
@@ -157,8 +152,9 @@ namespace Helium {
             assert(m_from.empty());
             assert(std::find(m_visited.begin(), m_visited.end(), true) == m_visited.end());
 
-            std::vector<std::pair<bond_type, atom_type> > stack(1, std::make_pair(molecule_traits<MoleculeType>::null_bond(), *atom));
-            next(stack);
+            m_atoms.push_back(get_index(m_mol, *atom));
+            next(*atom);
+            m_atoms.pop_back();
           }
         }
 
@@ -190,9 +186,7 @@ namespace Helium {
             // still need to sort [1 3] and [1 4]
             std::vector<Closure> closures; // [(bond index, other atom index)]
 
-            incident_iter bond, end_bonds;
-            TIE(bond, end_bonds) = get_bonds(m_mol, atom);
-            for (; bond != end_bonds; ++bond)
+            FOREACH_INCIDENT_T (bond, atom, m_mol, MoleculeType) {
               // a closure bond is a bond not found while generating the FROM spanning tree.
               if (!m_visited[get_index(m_mol, *bond)]) {
                 atom_type other = get_other(m_mol, *bond, atom);
@@ -203,6 +197,7 @@ namespace Helium {
                 closures.push_back(Closure(get_index(m_mol, *bond), source, target));
                 m_visited[get_index(m_mol, *bond)] = true;
               }
+            }
 
             // do the sorting: [1 3] < [1 4]
             std::sort(closures.begin(), closures.end(), Closure::compare());
@@ -246,51 +241,10 @@ namespace Helium {
           }
         }
 
-        void next(std::vector<std::pair<bond_type, atom_type> > &stack)
+        void next(const atom_type &atom)
         {
           if (DEBUG_CANON)
-            std::cout << "stack: " << stack << std::endl;
-
-          if (stack.empty())
-            return;
-
-          // pop next atom from stack
-          atom_type atom;
-          bond_type fromBond;
-          TIE(fromBond, atom) = stack.back();
-          stack.pop_back();
-
-
-          if (DEBUG_CANON)
             std::cout << "next(" << get_index(m_mol, atom) << ")" << std::endl;
-
-          // check if the atom is already labeled
-          if (std::find(m_atoms.begin(), m_atoms.end(), get_index(m_mol, atom)) != m_atoms.end())
-            return;
-
-          assert(std::find(m_atoms.begin(), m_atoms.end(), get_index(m_mol, atom)) == m_atoms.end());
-
-          /*
-          if (fromBond != molecule_traits<MoleculeType>::null_bond()) {
-            Index fromAtom = std::find(m_atoms.begin(), m_atoms.end(), get_index(m_mol, get_other(m_mol, fromBond, atom))) - m_atoms.begin();
-
-            if (m_code.size() > m_from.size()) {
-              if (fromAtom > m_code[m_from.size()])
-                return;
-            }
-          }
-          */
-
-
-          // map the atom
-          m_atoms.push_back(get_index(m_mol, atom));
-          if (fromBond != molecule_traits<MoleculeType>::null_bond()) {
-            m_bonds.push_back(get_index(m_mol, fromBond));
-            // add from atom
-            m_from.push_back(std::find(m_atoms.begin(), m_atoms.end(), get_index(m_mol, get_other(m_mol, fromBond, atom))) - m_atoms.begin());
-            // mark bond as visited
-            m_visited[get_index(m_mol, fromBond)] = true;
-          }
 
 
           if (m_atoms.size() == num_atoms(m_mol)) {
@@ -299,15 +253,10 @@ namespace Helium {
               std::cout << "mapping: " << m_atoms << ", from: " << m_from << std::endl;
             createCode();
           } else {
-
-            std::vector<std::pair<bond_type, atom_type> > stackCopy(stack);
             std::vector<std::pair<bond_type, atom_type> > bonds;
 
-
-            // append unvisited bonds around atom to stack
-            incident_iter bond, end_bonds;
-            TIE(bond, end_bonds) = get_bonds(m_mol, atom);
-            for (; bond != end_bonds; ++bond) {
+            // find all unvisited bonds around the current atom
+            FOREACH_INCIDENT_T (bond, atom, m_mol, MoleculeType) {
               atom_type other = get_other(m_mol, *bond, atom);
               if (m_visited[get_index(m_mol, *bond)])
                 continue;
@@ -316,63 +265,67 @@ namespace Helium {
               bonds.push_back(std::make_pair(*bond, other));
             }
 
+            if (bonds.empty()) {
+              for (std::size_t i = 0; i < m_atoms.size(); ++i) {
+                atom_type nextAtom = get_atom(m_mol, m_atoms[i]);
+                FOREACH_INCIDENT_T (bond, nextAtom, m_mol, MoleculeType) {
+                  atom_type other = get_other(m_mol, *bond, nextAtom);
+                  if (m_visited[get_index(m_mol, *bond)])
+                    continue;
+                  if (std::find(m_atoms.begin(), m_atoms.end(), get_index(m_mol, other)) != m_atoms.end())
+                    continue;
+                  next(nextAtom);
+                  return;
+                }
+              }
+              assert(0);
+              return;
+            }
 
-
+            // find the symmetry classes for these bonds' other atom
             std::vector<unsigned long> classes;
             for (std::size_t i = 0; i < bonds.size(); ++i)
               classes.push_back(m_symmetry[get_index(m_mol, bonds[i].second)]);
-
+            
+            // generate all permutations of these bonds with the same symmetry class
             Permutations<std::pair<bond_type, atom_type>, unsigned long> perms(bonds, classes);
             do {
-              // restore stack
-              stack = stackCopy;
               // append the new bonds
               std::vector<std::pair<bond_type, atom_type> > orderedBonds = perms.items();
-              std::copy(orderedBonds.begin(), orderedBonds.end(), std::back_inserter(stack));
+
+              for (std::size_t i = 0; i < orderedBonds.size(); ++i) {
+                bond_type fromBond = orderedBonds[i].first;
+                atom_type nbr = orderedBonds[i].second;
+
+                // map the atom
+                m_atoms.push_back(get_index(m_mol, nbr));
+                if (fromBond != molecule_traits<MoleculeType>::null_bond()) {
+                  m_bonds.push_back(get_index(m_mol, fromBond));
+                  // add from atom
+                  m_from.push_back(std::find(m_atoms.begin(), m_atoms.end(), get_index(m_mol, atom)) - m_atoms.begin());
+                  // mark bond as visited
+                  m_visited[get_index(m_mol, fromBond)] = true;
+                }
+              }
+
               // recursive call...
-              next(stack);
+              next(atom);
+             
+              // backtrack... 
+              for (std::size_t i = 0; i < orderedBonds.size(); ++i) {
+                m_atoms.pop_back();
+
+                bond_type fromBond = orderedBonds[i].first;
+                if (fromBond != molecule_traits<MoleculeType>::null_bond()) {
+                  m_bonds.pop_back();
+                  m_from.pop_back();
+                  m_visited[get_index(m_mol, fromBond)] = false;
+                }
+              }
             } while (perms.next());
 
-
-
-
-
-
-
-
-            /*
-            // sort the new bonds
-            std::sort(bonds.begin(), bonds.end(), compare_first<bond_type, atom_type>());
-
-            // recursive call for each permutation of the new bonds
-            bool last = false;
-            do {
-              // restore stack
-              stack = stackCopy;
-              // append the new bonds
-              std::copy(bonds.begin(), bonds.end(), std::back_inserter(stack));
-              // recursive call...
-              next(stack);
-            } while (!last && (last = std::next_permutation(bonds.begin(), bonds.end(), compare_first<bond_type, atom_type>())));
-             */
-
-
-            // process stack
-            while (!stack.empty())
-              next(stack);
-
           }
 
-          if (DEBUG_CANON)
-            std::cout << "backtrack..." << std::endl;
-
-          // backtrack
-          m_atoms.pop_back();
-          if (fromBond != molecule_traits<MoleculeType>::null_bond()) {
-            m_bonds.pop_back();
-            m_from.pop_back();
-            m_visited[get_index(m_mol, fromBond)] = false;
-          }
         }
 
         const MoleculeType &m_mol;
@@ -388,6 +341,37 @@ namespace Helium {
         const AtomInvariant &m_atomInvariant;
         const BondInvariant &m_bondInvariant;
     };
+
+    template<typename MoleculeType>
+    void remove_terminal_symmetry(const MoleculeType &mol, std::vector<unsigned long> &symmetry)
+    {
+      unsigned int numColors = unique_elements(symmetry);
+
+      for (unsigned int color = 0; color < numColors; ++color) {
+        std::vector<std::map<unsigned int, std::vector<Index> > > terminals;
+        FOREACH_ATOM_T (atom, mol, MoleculeType) {
+          if (symmetry[get_index(mol, *atom)] != color)
+            continue;
+          terminals.resize(terminals.size() + 1);
+          FOREACH_NBR_T (nbr, *atom, mol, MoleculeType)
+            if (get_degree(mol, *nbr) == 1)
+              terminals.back()[symmetry[get_index(mol, *nbr)]].push_back(get_index(mol, *nbr));
+        }
+
+        unsigned int nextColor = unique_elements(symmetry);
+
+        for (std::size_t i = 0; i < terminals.size(); ++i) {
+          unsigned int newColor = nextColor;
+          std::map<unsigned int, std::vector<Index> >::const_iterator terminal;
+          for (terminal = terminals[i].begin(); terminal != terminals[i].end(); ++terminal) {
+            std::cout << terminal->first << " -> " << terminal->second << std::endl;
+            for (std::size_t j = 1; j < terminal->second.size(); ++j)
+              symmetry[terminal->second[j]] = newColor++;
+          }
+        }
+      }
+
+    }
 
   }
 
@@ -429,6 +413,10 @@ namespace Helium {
       std::cout << "+---------------------------+" << std::endl;
       std::cout << "symmetry: " << symmetry << std::endl;
     }
+
+    std::vector<unsigned long> sym = symmetry;
+    impl::extended_connectivities_renumber(sym);
+    impl::remove_terminal_symmetry(mol, sym);
 
     impl::Canonicalize<MoleculeType, AtomInvariant, BondInvariant> can(mol, symmetry, atomInvariant, bondInvariant);
     can.canonicalize();
@@ -477,36 +465,43 @@ namespace Helium {
       std::cout << "symmetry: " << symmetry << std::endl;
     }
 
+    MoleculeType component;
     std::vector<impl::ComponentOrderAndCode> ordersAndCodes;
-
     Size numComponents = unique_elements(atomComponents);
+
+    // canonicalize each component separatly
     for (Size i = 0; i < numComponents; ++i) {
       std::vector<bool> atoms(num_atoms(mol));
       std::vector<bool> bonds(num_bonds(mol));
       std::vector<T> componentSymmetry;
 
+      // create atom & bond mask for the component
       for (std::size_t j = 0; j < atomComponents.size(); ++j)
         if (atomComponents[j] == i) {
           atoms[j] = true;
+          // also isolate the symmetry for the fragment
           componentSymmetry.push_back(symmetry[j]);
         }
       for (std::size_t j = 0; j < bondComponents.size(); ++j)
         if (bondComponents[j] == i)
           bonds[j] = true;
 
-      MoleculeType component;
+      // create a molecule for the component
       make_substructure(component, mol, atoms, bonds);
 
       impl::Canonicalize<MoleculeType, AtomInvariant, BondInvariant> can(component,
           componentSymmetry, atomInvariant, bondInvariant);
       can.canonicalize();
 
+      assert(can.labels().size() == num_atoms(component));
+
       ordersAndCodes.push_back(impl::ComponentOrderAndCode(atoms, can.labels(), can.code()));
     }
 
+    // sort the canonical codes for the components
     std::sort(ordersAndCodes.begin(), ordersAndCodes.end());
 
-    // total order & code
+    // construct total order & code
     std::vector<Index> order;
     std::vector<unsigned long> code;
 

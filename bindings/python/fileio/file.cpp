@@ -15,6 +15,7 @@ void export_file()
     .def("close", &Helium::BinaryInputFile::close)
     .def("__nonzero__", &Helium::BinaryInputFile::operator bool)
     .def("header", &Helium::BinaryInputFile::header, return_value_policy<copy_const_reference>())
+    .def("error", &Helium::BinaryInputFile::error, return_internal_reference<>())
     ;
 
 }

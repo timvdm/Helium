@@ -28,6 +28,7 @@
 #define HELIUM_FILEIO_FILE_H
 
 #include <Helium/util.h>
+#include <Helium/error.h>
 
 #include <fstream>
 #include <stdexcept>
@@ -179,10 +180,32 @@ namespace Helium {
         return m_ifs;
       }
 
+      /**
+       * @brief Get the last error.
+       *
+       * @return The last error.
+       */
+      const Error& error() const
+      {
+        return m_error;
+      }
+
+    protected:
+      /**
+       * @brief Set the last error.
+       *
+       * @param error The error.
+       */
+      void setError(const Error &error)
+      {
+        m_error = error;
+      }
+
     private:
       std::ifstream m_ifs; //!< File handle
       std::string m_json; //!< JSON header
       std::ios_base::streampos m_offset; //!< Offset where binary data starts
+      Error m_error; //!< The last error
   };
 
   /**
@@ -298,9 +321,31 @@ namespace Helium {
         return m_ofs;
       }
 
+      /**
+       * @brief Get the last error.
+       *
+       * @return The last error.
+       */
+      const Error& error() const
+      {
+        return m_error;
+      }
+
+    protected:
+      /**
+       * @brief Set the last error.
+       *
+       * @param error The error.
+       */
+      void setError(const Error &error)
+      {
+        m_error = error;
+      }
+
     private:
       std::ofstream m_ofs; //!< File handle
       std::ios_base::streampos m_offset; //!< Offset where binary data starts
+      Error m_error; //!< The last error.
   };
 
 }

@@ -32,33 +32,39 @@ namespace Helium {
 
   bool BinaryInputFile::open(const std::string &filename)
   {
-    // reset JSON header
+    // reset JSON header and error
     m_json.clear();
+    setError(Error());
 
     // try to open the file
     m_ifs.open(filename.c_str(), std::ios_base::in | std::ios_base::binary);
-    if (!m_ifs)
-      throw std::runtime_error(make_string("Could not open file \"", filename, "\""));
+    if (!m_ifs) {
+      setError(Error(make_string("Could not open file \"", filename, "\"")));
+      return false;
+    }
 
     // read the magic number
     unsigned int magic;
     if (!m_ifs.read(reinterpret_cast<char*>(&magic), sizeof(unsigned int)) || magic != 0x48650001) {
       m_ifs.close();
-      throw std::runtime_error(make_string("Invalid magic number in file \"", filename, "\""));
+      setError(Error(make_string("Invalid magic number in file \"", filename, "\"")));
+      return false;
     }
 
     // read length of JSON header
     unsigned int jsonSize;
     if (!m_ifs.read(reinterpret_cast<char*>(&jsonSize), sizeof(unsigned int))) {
       m_ifs.close();
-      throw std::runtime_error(make_string("Invalid JSON header in file \"", filename, "\""));
+      setError(Error(make_string("Invalid JSON header in file \"", filename, "\"")));
+      return false;
     }
 
     // read json header
     char *buffer = new char[jsonSize];
     if (!m_ifs.read(buffer, jsonSize)) {
       m_ifs.close();
-      throw std::runtime_error(make_string("Invalid JSON header in file \"", filename, "\""));
+      setError(Error(make_string("Invalid JSON header in file \"", filename, "\"")));
+      return false;
     }
 
     // copy header
@@ -75,10 +81,15 @@ namespace Helium {
 
   bool BinaryOutputFile::open(const std::string &filename)
   {
+    // reset error
+    setError(Error());
+
     // try to open the file
     m_ofs.open(filename.c_str(), std::ios_base::out | std::ios_base::binary);
-    if (!m_ofs)
-      throw std::runtime_error(make_string("Could not open file \"", filename, "\""));
+    if (!m_ofs) {
+      setError(Error(make_string("Could not open file \"", filename, "\"")));
+      return false;
+    }
 
     // write the magic number
     unsigned int magic = 0x48650001;

@@ -21,8 +21,9 @@ class TestBinaryInputFile(unittest.TestCase):
         self.assertTrue(f)
 
         f = helium.BinaryInputFile()
-        self.assertRaises(RuntimeError, f.open, 'foo')
+        self.assertFalse(f.open('foo'))
         self.assertFalse(f)
+        self.assertTrue(f.error())
 
         f = helium.BinaryInputFile(self.datadir + '/1K.hel')
         self.assertTrue(f)

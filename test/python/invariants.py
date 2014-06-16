@@ -10,7 +10,7 @@ class TestInvariants(unittest.TestCase):
         SMILES.read('CNO', mol)
 
         invariant = helium.DefaultAtomInvariant()
-        self.assertEqual(110012006, invariant(mol, mol.atom(0)))
+        self.assertEqual(2110012006, invariant(mol, mol.atom(0)))
 
         invariant = helium.DefaultAtomInvariant(helium.DefaultAtomInvariant.Invariants.Element)
         self.assertEqual(6, invariant(mol, mol.atom(0)))

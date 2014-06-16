@@ -160,6 +160,28 @@ void test_dfs11()
   compare_file(datadir() + "dfs11.log", output);
 }
 
+void test_dfs12()
+{
+  HeMol mol = hemol_from_smiles("CC(C)CCCC");
+
+  std::vector<Index> order;
+  order.push_back(3);
+  order.push_back(2);
+  order.push_back(1);
+  order.push_back(0);
+
+  std::vector<bool> atomMask(num_atoms(mol), false);
+  atomMask[0] = true;
+  atomMask[1] = true;
+  atomMask[2] = true;
+  atomMask[3] = true;
+
+  std::stringstream output;
+  DFSDebugVisitor<HeMol> visitor(output);
+  ordered_depth_first_search_mask(mol, order, visitor, atomMask);
+  compare_file(datadir() + "dfs12.log", output);
+}
+
 int main()
 {
   test_dfs1();
@@ -173,5 +195,6 @@ int main()
   test_dfs9();
   test_dfs10();
   test_dfs11();
+  test_dfs12();
 
 }

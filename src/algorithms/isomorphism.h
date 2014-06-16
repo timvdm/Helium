@@ -35,7 +35,7 @@
 #include <algorithm>
 #include <set>
 
-#define DEBUG_ISOMORPHISM 0
+//#define DEBUG_ISOMORPHISM 0
 #include <iostream>
 
 namespace Helium {
@@ -230,6 +230,7 @@ namespace Helium {
           query_atom_type atom = get_atom(m_query, 0);
           dfsBonds(atom, visited);
 
+          /*
           if (DEBUG_ISOMORPHISM) {
             std::cout << "DFS bonds: ";
             for (std::size_t i = 0; i < m_dfsBonds.size(); ++i) {
@@ -241,6 +242,7 @@ namespace Helium {
             }
             std::cout << std::endl;
           }
+          */
         }
 
         void match(MappingType &mapping, int bondIndex)
@@ -253,8 +255,10 @@ namespace Helium {
           query_atom_type queryTarget = m_bondSwap[bondIndex] ? get_source(m_query, queryBond) : get_target(m_query, queryBond);
           bool isRingClosure = m_map[get_index(m_query, queryTarget)] != -1;
 
+          /*
           if (DEBUG_ISOMORPHISM)
             std::cout << "mapping bond: " << get_index(m_query, querySource) << "-" << get_index(m_query, queryTarget) << std::endl;
+          */
 
           incident_iter bond, end_bonds;
           TIE(bond, end_bonds) = get_bonds(m_mol, atom);
@@ -265,8 +269,10 @@ namespace Helium {
             atom_type nbrAtom = get_other(m_mol, *bond, atom);
 
             if (isRingClosure) {
+              /*
               if (DEBUG_ISOMORPHISM)
                 std::cout << "ring closure..." << std::endl;
+              */
               if (m_map[get_index(m_query, queryTarget)] != get_index(m_mol, nbrAtom))
                 continue;
             } else {
@@ -276,8 +282,10 @@ namespace Helium {
               if (!m_atomMatcher(m_query, queryTarget, m_mol, nbrAtom))
                 continue;
 
+              /*
               if (DEBUG_ISOMORPHISM)
                 std::cout << get_index(m_query, queryTarget) << " -> " << get_index(m_mol, nbrAtom) << std::endl;
+              */
 
               // map the target atom
               m_map[get_index(m_query, queryTarget)] = get_index(m_mol, nbrAtom);
@@ -285,10 +293,12 @@ namespace Helium {
             }
 
             if (bondIndex + 1 == m_dfsBonds.size()) {
+              /*
               if (DEBUG_ISOMORPHISM) {
                 std::cout << "found mapping..." << std::endl;
                 print_map(m_map);
               }
+              */
 
               // create bit mask of atoms (to ensure uniqueness of mapping)
               std::vector<bool> atoms(num_atoms(m_mol));
@@ -305,8 +315,10 @@ namespace Helium {
 
             // bracktrack target atom
             if (!isRingClosure) {
+              /*
               if (DEBUG_ISOMORPHISM)
                 std::cout << "backtrack: " << get_index(m_query, queryTarget) << std::endl;
+              */
 
               m_map[get_index(m_query, queryTarget)] = -1;
             }
@@ -330,16 +342,20 @@ namespace Helium {
             if (!m_atomMatcher(m_query, queryAtom, m_mol, atom))
               return;
 
+            /*
             if (DEBUG_ISOMORPHISM)
               std::cout << get_index(m_query, queryAtom) << " -> " << get_index(m_mol, atom) << std::endl;
+            */
 
             // map the source atom
             m_map[get_index(m_query, queryAtom)] = get_index(m_mol, atom);
 
             add_mapping(mapping, m_map);
 
+            /*
             if (DEBUG_ISOMORPHISM)
               std::cout << "backtrack: " << get_index(m_query, queryAtom) << std::endl;
+            */
             m_map[get_index(m_query, queryAtom)] = -1;
 
             if (MappingType::single && !empty_mappig(mapping))
@@ -350,16 +366,20 @@ namespace Helium {
             if (!m_atomMatcher(m_query, queryAtom, m_mol, atom))
               return;
 
+            /*
             if (DEBUG_ISOMORPHISM)
               std::cout << get_index(m_query, queryAtom) << " -> " << get_index(m_mol, atom) << std::endl;
+            */
 
             // map the source atom
             m_map[get_index(m_query, queryAtom)] = get_index(m_mol, atom);
 
             match(mapping, 0);
 
+            /*
             if (DEBUG_ISOMORPHISM)
               std::cout << "backtrack: " << get_index(m_query, queryAtom) << std::endl;
+            */
             m_map[get_index(m_query, queryAtom)] = -1;
 
             if (MappingType::single && !empty_mappig(mapping))

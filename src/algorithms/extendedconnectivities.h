@@ -41,18 +41,11 @@ namespace Helium {
     template<typename MoleculeType>
     void extended_connectivities_iterate(const MoleculeType &mol, std::vector<unsigned long> &ec)
     {
-      typedef typename molecule_traits<MoleculeType>::atom_iter atom_iter;
-      typedef typename molecule_traits<MoleculeType>::nbr_iter nbr_iter;
-
       std::vector<unsigned long> next = ec;
-      atom_iter atom, end_atoms;
-      TIE(atom, end_atoms) = get_atoms(mol);
-      for (; atom != end_atoms; ++atom) {
-        nbr_iter nbr, end_nbrs;
-        TIE(nbr, end_nbrs) = get_nbrs(mol, *atom);
-        for (; nbr != end_nbrs; ++nbr)
+
+      FOREACH_ATOM_T (atom, mol, MoleculeType)
+        FOREACH_NBR_T (nbr, *atom, mol, MoleculeType)
           next[get_index(mol, *atom)] += ec[get_index(mol, *nbr)];
-      }
 
       ec.swap(next);
     }
@@ -73,6 +66,16 @@ namespace Helium {
             ec[j] = cls;
         ++cls;
       }
+    }
+
+    inline unsigned int num_symmetry_classes(std::vector<unsigned long> symmetry)
+    {
+      std::sort(symmetry.begin(), symmetry.end());
+      unsigned int result = 0;
+      for (std::size_t i = 1; i < symmetry.size(); ++i)
+        if (symmetry[i - 1] != symmetry[i])
+          result++;
+      return result;
     }
 
   }
@@ -109,10 +112,12 @@ namespace Helium {
       ec.push_back(atomInvariant(mol, *atom));
 
     // iterate
-    unsigned int numClasses = unique_elements(ec);
+    //unsigned int numClasses = unique_elements(ec);
+    unsigned int numClasses = impl::num_symmetry_classes(ec);
     for (int i = 0; i < 100; ++i) { // should never reach 100...
       impl::extended_connectivities_iterate(mol, ec);
-      unsigned int nextNumClasses = unique_elements(ec);
+      //unsigned int nextNumClasses = unique_elements(ec);
+      unsigned int nextNumClasses = impl::num_symmetry_classes(ec);
       // if the number of unique values didn't change, stop the iteration
       if (numClasses == nextNumClasses)
         break;

@@ -20,6 +20,10 @@ void test_path_fingerprint(const std::string &substructure, const std::string &s
   //print(subFp, 16);
   //print(superFp, 16);
 
+  for (unsigned int i = 0; i < 1024; ++i)
+    if (bitvec_get(i, subFp) && !bitvec_get(i, superFp))
+      std::cout << "bit " << i << " is not in queried fingerprint" << std::endl;
+
   ASSERT(bitvec_is_subset_superset(subFp, superFp, 16));
 }
 

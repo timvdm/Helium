@@ -286,7 +286,7 @@ namespace Helium
           get_valence(mol, target), order, center);
     }
 
-    if (aromatic || (m_options & AromaticCircle) || (m_options & AromaticHash)) {
+    if (aromatic || (ring.isAromatic() && (m_options & AromaticCircle || m_options & AromaticHash))) {
       double minDist = std::numeric_limits<double>::max();
       for (std::size_t j = 0; j < ring.size(); ++j)
         minDist = std::min(minDist, (center - coords[get_index(mol, ring.atom(j))]).norm());

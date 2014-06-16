@@ -661,7 +661,10 @@ namespace Helium {
     template<typename MoleculeType>
     void remove_terminal_symmetry(const MoleculeType &mol, std::vector<unsigned long> &symmetry)
     {
-      unsigned int numColors = unique_elements(symmetry);
+      if (symmetry.empty())
+        return;
+
+      unsigned int numColors = *std::max_element(symmetry.begin(), symmetry.end());
 
       //std::cout << "before: " << symmetry << std::endl;
 
@@ -677,7 +680,7 @@ namespace Helium {
           }
         }
 
-        unsigned int nextColor = unique_elements(symmetry);
+        unsigned int nextColor = *std::max_element(symmetry.begin(), symmetry.end());
 
         for (std::size_t i = 0; i < terminals.size(); ++i) {
           unsigned int newColor = nextColor;

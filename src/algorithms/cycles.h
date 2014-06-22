@@ -361,6 +361,20 @@ namespace Helium {
       return relevant;
     }
 
+    template<typename MoleculeType>
+    bool is_ringset_complete(const MoleculeType &mol, const RingSet<MoleculeType> &rings,
+        const std::vector<bool> &cyclicAtoms, const std::vector<bool> &cyclicBonds)
+    {
+      // check if all cyclic atoms/bonds are covered
+      FOREACH_ATOM (atom, mol)
+        if (cyclicAtoms[get_index(mol, *atom)] && !rings.isAtomInRing(*atom))
+          return false;
+      FOREACH_BOND (bond, mol)
+        if (cyclicBonds[get_index(mol, *bond)] && !rings.isBondInRing(*bond))
+          return false;
+      return true;
+    }
+
   }
 
   /**
@@ -385,7 +399,7 @@ namespace Helium {
    * @return The set of relevant cycles.
    */
   template<typename MoleculeType>
-  RingSet<MoleculeType> relevant_cycles(const MoleculeType &mol, Size cyclomaticNumber,
+  RingSet<MoleculeType> relevant_cycles_isomorphism(const MoleculeType &mol, Size cyclomaticNumber,
       const std::vector<bool> &cyclicAtoms, const std::vector<bool> &cyclicBonds)
   {
     typedef typename molecule_traits<MoleculeType>::atom_type atom_type;
@@ -400,23 +414,9 @@ namespace Helium {
 
     while (true) {
       //std::cout << "size: " << size << ", lastSize: " << lastSize << ", nullity: " << cyclomaticNumber << ", count: " << relevant.size() << std::endl;
-      if (rings.size() >= cyclomaticNumber && lastSize < size) {
-        // check if all cyclic atoms/bonds are convered
-        bool done = true;
-        FOREACH_ATOM (atom, mol)
-          if (cyclicAtoms[get_index(mol, *atom)] && !rings.isAtomInRing(*atom)) {
-            done = false;
-            break;
-          }
-        FOREACH_BOND (bond, mol)
-          if (cyclicBonds[get_index(mol, *bond)] && !rings.isBondInRing(*bond)) {
-            done = false;
-            break;
-          }
-
-        if (done)
-          break;
-      }
+      if (rings.size() >= cyclomaticNumber && lastSize < size &&
+          impl::is_ringset_complete(mol, rings, cyclicAtoms, cyclicBonds))
+        break;
       // sanity check
       if (size > num_atoms(mol))
         break;
@@ -481,11 +481,11 @@ namespace Helium {
    * @overload
    */
   template<typename MoleculeType>
-  RingSet<MoleculeType> relevant_cycles(const MoleculeType &mol)
+  RingSet<MoleculeType> relevant_cycles_isomorphism(const MoleculeType &mol)
   {
     std::vector<bool> cyclicAtoms, cyclicBonds;
     cycle_membership(mol, cyclicAtoms, cyclicBonds);
-    return relevant_cycles(mol, cyclomatic_number(mol), cyclicAtoms, cyclicBonds);
+    return relevant_cycles_isomorphism(mol, cyclomatic_number(mol), cyclicAtoms, cyclicBonds);
   }
 
 
@@ -640,7 +640,8 @@ namespace Helium {
 
 
   template<typename MoleculeType>
-  RingSet<MoleculeType> relevant_cycles_vismara(const MoleculeType &mol)
+  RingSet<MoleculeType> relevant_cycles_vismara(const MoleculeType &mol, Size cyclomaticNumber,
+      const std::vector<bool> &cyclicAtoms, const std::vector<bool> &cyclicBonds)
   {
     typedef typename molecule_traits<MoleculeType>::atom_type atom_type;
 
@@ -675,7 +676,7 @@ namespace Helium {
       */
       std::vector<bool> atomMask(num_atoms(mol));
       for (std::size_t i = 0; i < get_index(mol, *r) + 1; ++i)
-        atomMask[i] = true;
+        atomMask[i] = cyclicAtoms[i];
       Dijkstra<MoleculeType> dijkstra(mol, *r, atomMask);
 
       //std::cout << atomMask << std::endl;
@@ -812,9 +813,18 @@ namespace Helium {
     // enumerate relevant cycles
     //
 
+    lastSize = 0;
     RingSet<MoleculeType> rings(mol);
     for (std::size_t i = 0; i < families.size(); ++i) {
       const impl::CycleFamily &family = families[i];
+
+      if (lastSize < family.prototype().size()) {
+        if (rings.size() >= cyclomaticNumber &&
+            impl::is_ringset_complete(mol, rings, cyclicAtoms, cyclicBonds))
+          break;
+        lastSize = family.prototype().size();
+      }
+
       const impl::CycleBitMatrix &Dr = D[family.r()];
 
       //std::cout << "Dr:" << std::endl << Dr << std::endl;
@@ -863,6 +873,21 @@ namespace Helium {
     }
 
     return rings;
+  }
+
+  template<typename MoleculeType>
+  RingSet<MoleculeType> relevant_cycles_vismara(const MoleculeType &mol)
+  {
+    std::vector<bool> cyclicAtoms, cyclicBonds;
+    cycle_membership(mol, cyclicAtoms, cyclicBonds);
+    return relevant_cycles_vismara(mol, cyclomatic_number(mol),
+        cyclicAtoms, cyclicBonds);
+  }
+
+  template<typename MoleculeType>
+  RingSet<MoleculeType> relevant_cycles(const MoleculeType &mol)
+  {
+    return relevant_cycles_vismara(mol);
   }
 
   /* SLOWER than regular relevant_cycles()

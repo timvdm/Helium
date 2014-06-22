@@ -217,6 +217,9 @@ void test_relevant_cycles_vismara()
 
 int main()
 {
+  test_cycle_perception(IsomorphismCycleAlgorithm());
+  test_cycle_perception(VismaraCycleAlgorithm());
+
   // counter example to relevant_cycles
   HeMol mol = hemol_from_smiles("C(NC1CN2CCC1CC2)CN3CCC5(CCC3)NCc4ccccc4O5");
   test_cycle_membership(IsomorphismCycleAlgorithm(), mol);
@@ -262,6 +265,4 @@ int main()
   cycles.push_back(std::make_pair(6, 1));
   test_relevant_cycles("C1C(N)C1Cc1ccc(O)cc1", cycles);
 
-  test_cycle_perception(IsomorphismCycleAlgorithm());
-  test_cycle_perception(VismaraCycleAlgorithm());
 }

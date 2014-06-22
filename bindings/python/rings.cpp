@@ -33,13 +33,13 @@ object cycle_membership(const Molecule &mol)
 Helium::RingSet<Molecule> relevant_cycles_1(const Molecule &mol, Helium::Size cyclomaticNumber,
     const list &cyclicAtoms, const list &cyclicBonds)
 {
-  return Helium::relevant_cycles(mol, cyclomaticNumber,
+  return Helium::relevant_cycles_vismara(mol, cyclomaticNumber,
       vector_from_list<bool>(cyclicAtoms), vector_from_list<bool>(cyclicBonds));
 }
 
 Helium::RingSet<Molecule> relevant_cycles_2(const Molecule &mol)
 {
-  return Helium::relevant_cycles(mol);
+  return Helium::relevant_cycles_vismara(mol);
 }
 
 Atom Ring_atom(const Helium::Ring<Molecule> &ring, std::size_t index)

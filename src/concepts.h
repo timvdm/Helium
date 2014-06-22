@@ -33,6 +33,8 @@
 
 namespace Helium {
 
+  //@cond DEV
+
   template<typename MoleculeType>
   class AtomConcept
   {
@@ -281,6 +283,8 @@ namespace Helium {
     remove_atom(mol, atom);
     clear_molecule(mol);
   }
+
+  //@endcond
 
 }
 

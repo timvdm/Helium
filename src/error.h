@@ -29,30 +29,51 @@
 
 namespace Helium {
 
+  /**
+   * @brief Class representing an error.
+   */
   class Error
   {
     public:
+      /**
+       * @brief Default constructor.
+       *
+       * This constructor creates a non-error Error object.
+       */
       Error() : m_error(false)
       {
       }
 
+      /**
+       * @brief Constructor.
+       *
+       * @param what The error message.
+       */
       Error(const std::string &what) : m_error(true), m_what(what)
       {
       }
 
+      /**
+       * @brief Check whether the error is set.
+       *
+       * @return True if the error is set.
+       */
       operator bool() const
       {
         return m_error;
       }
 
+      /**
+       * @brief Get the error message.
+       */
       const std::string& what() const
       {
         return m_what;
       }
 
     private:
-      bool m_error;
-      std::string m_what;
+      bool m_error; //!< True if error is set.
+      std::string m_what; //!< The error message.
   };
 
 }

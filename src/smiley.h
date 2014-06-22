@@ -38,6 +38,8 @@
 //#include <cassert>
 #define DEBUG 0
 
+//@cond DEV
+
 namespace Smiley {
 
   /**
@@ -2924,5 +2926,7 @@ namespace Smiley {
   };
 
 }
+
+//@endcond
 
 #endif

@@ -34,15 +34,20 @@
 
 namespace Helium {
 
+  /**
+   * @brief Check whether an atom mask is valid.
+   */
   template<typename MoleculeType>
   bool is_valid_atom_mask(const MoleculeType &mol, const std::vector<bool> &atomMask)
   {
     if (num_atoms(mol) != atomMask.size())
       return false;
-
     return true;
   }
 
+  /**
+   * @brief Check whether a bond mask is valid.
+   */
   template<typename MoleculeType>
   bool is_valid_bond_mask(const MoleculeType &mol, const std::vector<bool> &atomMask,
       const std::vector<bool> &bondMask)
@@ -239,10 +244,6 @@ namespace Helium {
    * functor can be implemented by inheriting the DFSVisitor struct and
    * reimplementing the required functions.
    *
-   * @note Complexity: @f$O(n)@f$
-   * @ingroup Production
-   * @note Phase: Production
-   *
    * @param mol The molecule.
    * @param visitor The DFS visitor functor.
    */
@@ -283,10 +284,6 @@ namespace Helium {
    * The element in the @p atomMask that correspond with atoms to be included
    * in the search should be set to true. If an atom is not included in the
    * search, all bonds around the atom are also excluded.
-   *
-   * @note Complexity: @f$O(n)@f$
-   * @ingroup Production
-   * @note Phase: Production
    *
    * @param mol The molecule.
    * @param visitor The DFS visitor functor.
@@ -347,10 +344,6 @@ namespace Helium {
    * The element in the @p atomMask that correspond with atoms to be included
    * in the search should be set to true. The @p bondMask works in the same way
    * but specifies the bonds that should be considered.
-   *
-   * @note Complexity: @f$O(n)@f$
-   * @ingroup Production
-   * @note Phase: Production
    *
    * @param mol The molecule.
    * @param visitor The DFS visitor functor.
@@ -401,10 +394,6 @@ namespace Helium {
    * functor can be implemented by inheriting the DFSVisitor struct and
    * reimplementing the required functions.
    *
-   * @note Complexity: @f$O(n)@f$
-   * @ingroup Production
-   * @note Phase: Production
-   *
    * @param mol The molecule.
    * @param atom The start atom (i.e. root of the spanning tree).
    * @param visitor The DFS visitor functor.
@@ -440,13 +429,10 @@ namespace Helium {
    * in the search should be set to true. If an atom is not included in the
    * search, all bonds around the atom are also excluded.
    *
-   * @note Complexity: @f$O(n)@f$
-   * @ingroup Production
-   * @note Phase: Production
-   *
    * @param mol The molecule.
    * @param atom The start atom (i.e. root of the spanning tree).
    * @param visitor The DFS visitor functor.
+   * @param atomMask The atom mask.
    */
   template<typename MoleculeType, typename DFSVisitorType>
   void depth_first_search_mask(const MoleculeType &mol,
@@ -493,13 +479,11 @@ namespace Helium {
    * in the search should be set to true. The @p bondMask works in the same way
    * but specifies the bonds that should be considered.
    *
-   * @note Complexity: @f$O(n)@f$
-   * @ingroup Production
-   * @note Phase: Production
-   *
    * @param mol The molecule.
    * @param atom The start atom (i.e. root of the spanning tree).
    * @param visitor The DFS visitor functor.
+   * @param atomMask The atom mask.
+   * @param bondMask The bond mask.
    */
   template<typename MoleculeType, typename DFSVisitorType>
   void depth_first_search_mask(const MoleculeType &mol,
@@ -606,10 +590,6 @@ namespace Helium {
    * functor can be implemented by inheriting the DFSVisitor struct and
    * reimplementing the required functions.
    *
-   * @note Complexity: @f$O(n)@f$
-   * @ingroup Production
-   * @note Phase: Production
-   *
    * @param mol The molecule.
    * @param order The order for visiting atoms.
    * @param visitor The DFS visitor functor.
@@ -635,6 +615,31 @@ namespace Helium {
     }
   }
 
+  /**
+   * @brief Perform a depth-first search (DFS).
+   *
+   * This depth-first search function considers all components and walks a single
+   * spanning tree for each component. The atom that comes first in @p order from
+   * each component is used as root of the resulting spanning tree to start the
+   * search. If an atom has multiple neighbors the specified @p order is also used
+   * to determine the order in which these are visited.
+   *
+   * This function makes use of a visitor functor to allow actions to be
+   * performed. A number of visitors are available (e.g. DFSAtomOrderVisitor,
+   * DFSBondOrderVisitor, DFSClosureRecorderVisitor, DFSDebugVisitor). Custom
+   * functor can be implemented by inheriting the DFSVisitor struct and
+   * reimplementing the required functions.
+   *
+   * The @p atomMask specifies the atoms and bonds that will be considered.
+   * The element in the @p atomMask that correspond with atoms to be included
+   * in the search should be set to true. If an atom is not included in the
+   * search, all bonds around the atom are also excluded.
+   *
+   * @param mol The molecule.
+   * @param order The order for visiting atoms.
+   * @param visitor The DFS visitor functor.
+   * @param atomMask The atom mask.
+   */
   template<typename MoleculeType, typename DFSVisitorType, typename T>
   void ordered_depth_first_search_mask(const MoleculeType &mol, const std::vector<T> &order,
       DFSVisitorType &visitor, const std::vector<bool> &atomMask)
@@ -669,6 +674,32 @@ namespace Helium {
     }
   }
 
+  /**
+   * @brief Perform a depth-first search (DFS).
+   *
+   * This depth-first search function considers all components and walks a single
+   * spanning tree for each component. The atom that comes first in @p order from
+   * each component is used as root of the resulting spanning tree to start the
+   * search. If an atom has multiple neighbors the specified @p order is also used
+   * to determine the order in which these are visited.
+   *
+   * This function makes use of a visitor functor to allow actions to be
+   * performed. A number of visitors are available (e.g. DFSAtomOrderVisitor,
+   * DFSBondOrderVisitor, DFSClosureRecorderVisitor, DFSDebugVisitor). Custom
+   * functor can be implemented by inheriting the DFSVisitor struct and
+   * reimplementing the required functions.
+   *
+   * The @p atomMask specifies the atoms that will be considered.
+   * The element in the @p atomMask that correspond with atoms to be included
+   * in the search should be set to true. The @p bondMask works in the same way
+   * but specifies the bonds that should be considered.
+   *
+   * @param mol The molecule.
+   * @param order The order for visiting atoms.
+   * @param visitor The DFS visitor functor.
+   * @param atomMask The atom mask.
+   * @param bondMask The bond mask.
+   */
   template<typename MoleculeType, typename DFSVisitorType, typename T>
   void ordered_depth_first_search_mask(const MoleculeType &mol, const std::vector<T> &order,
       DFSVisitorType &visitor, const std::vector<bool> &atomMask,
@@ -781,10 +812,6 @@ namespace Helium {
    * DFSBondOrderVisitor, DFSClosureRecorderVisitor, DFSDebugVisitor). Custom
    * functor can be implemented by inheriting the DFSVisitor struct and
    * reimplementing the required functions.
-   *
-   * @note Complexity: @f$O(2^n)@f$
-   * @ingroup Production
-   * @note Phase: Production
    *
    * @param mol The molecule.
    * @param atom The root atom for the DFS spanning tree.

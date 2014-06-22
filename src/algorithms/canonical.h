@@ -711,10 +711,6 @@ namespace Helium {
    * investigated and a code is generated for each one. The unique code is
    * selected and the associated atom order is the canonical atom order.
    *
-   * @note Complexity: @f$O(2^n)@f$
-   * @ingroup Production
-   * @note Phase: Production
-   *
    * @param mol The molecule.
    * @param symmetry The extended connectivities (see extended_connectivities()).
    * @param atomInvariant The atom invariants to use for the canonical code
@@ -776,6 +772,31 @@ namespace Helium {
 
   } // namespace impl
 
+  /**
+   * @brief Canonicalize a single component.
+   *
+   * The canonicalization algorithm consists of two
+   * steps. In the first step, the atoms are partitioned using graph
+   * invariants (e.g. atom degree). This initial partitioning reduces the
+   * number of states that need to be visited to find the canonical code.
+   *
+   * In the second step all automorphic permutations of the graph are
+   * investigated and a code is generated for each one. The unique code is
+   * selected and the associated atom order is the canonical atom order.
+   *
+   * @param mol The molecule.
+   * @param symmetry The extended connectivities (see extended_connectivities()).
+   * @param atomInvariant The atom invariants to use for the canonical code
+   *        (e.g. AtomElementInvariant). The used invariants determine what kind
+   *        of information is considered for making the molecule canonical.
+   * @param bondInvariant The bond invariants to use for the canonical code
+   *        (e.g. BondOrderInvariant). The used invariants determine what kind
+   *        of information is considered for making the molecule canonical.
+   * @param atomComponents The atom components.
+   * @param bondComponents The bond components.
+   *
+   * @return The canonical atom order and canonical code.
+   */
   template<typename MoleculeType, typename T, typename AtomInvariant, typename BondInvariant>
   std::pair<std::vector<Index>, std::vector<unsigned long> > canonicalize(const MoleculeType &mol,
       const std::vector<T> &symmetry, const AtomInvariant &atomInvariant,

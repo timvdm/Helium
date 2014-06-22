@@ -652,6 +652,13 @@ namespace Helium {
     ifs.read(reinterpret_cast<char*>(bitvec), sizeof(Word) * numWords);
   }
 
+  /**
+   * @brief Convert a bit vector to binary string.
+   *
+   * @param bitvec The bit vector.
+   * @param numWords The number of words.
+   * @param spaces When true, spaces will be added to make the string easier to read.
+   */
   inline std::string bitvec_to_binary(const Word *bitvec, int numWords, bool spaces = true)
   {
     PRE(bitvec);
@@ -675,6 +682,13 @@ namespace Helium {
     return ss.str();
   }
 
+  /**
+   * @brief Convert a binary string to a bit vector.
+   *
+   * @param binary The binary string.
+   *
+   * @return Pointer to the bit vector and the number of words as pair.
+   */
   inline std::pair<Word*, int> bitvec_from_binary(const std::string &binary)
   {
     int numSpaces = std::count(binary.begin(), binary.end(), ' ');
@@ -841,10 +855,7 @@ namespace Helium {
    * @post @p bitvec will contain the bits specified by the hexadecimal string.
    *
    * @param hex The hexadecimal bit vector.
-   * @param bitvec The bit vector to store the result.
-   * @param numWords The number of words for @p bitvec.
    */
-  //inline void hex_to_bitvec(const std::string &hex, Word *bitvec, int numWords)
   inline std::pair<Word*, int> bitvec_from_hex(const std::string &hex)
   {
     PRE((hex.size() % 2) == 0);

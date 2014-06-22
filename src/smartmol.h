@@ -34,6 +34,8 @@
 
 namespace Helium {
 
+  //@cond DEV
+
   namespace impl {
 
     template<typename MoleculeType>
@@ -1063,6 +1065,8 @@ namespace Helium {
     os << "SmartBond(" << bond.index() << ")";
     return os;
   }
+
+  //@endcond
 
 }
 

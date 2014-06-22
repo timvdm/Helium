@@ -189,40 +189,64 @@ namespace Helium {
     }
   };
 
+  /**
+   * @brief Class representing an iterator pair (i.e. range).
+   */
   template<typename IteratorType>
   class iterator_pair
   {
     public:
+      /**
+       * @brief Constructor.
+       */
       iterator_pair(const IteratorType &begin, const IteratorType &end)
         : m_begin(begin), m_end(end)
       {
       }
 
+      /**
+       * @brief Get the begin iterator.
+       */
       const IteratorType& begin() const
       {
         return m_begin;
       }
 
+      /**
+       * @brief Get the begin iterator.
+       */
       IteratorType& begin()
       {
         return m_begin;
       }
 
+      /**
+       * @brief Get the end iterator.
+       */
       const IteratorType& end() const
       {
         return m_end;
       }
 
+      /**
+       * @brief Get the end iterator.
+       */
       IteratorType& end()
       {
         return m_end;
       }
 
     private:
-      IteratorType m_begin;
-      IteratorType m_end;
+      IteratorType m_begin; //!< The begin iterator.
+      IteratorType m_end; //!< The end iterator.
   };
 
+  /**
+   * @brief Utility function to make an iterator_pair.
+   *
+   * @param begin The begin iterator.
+   * @param end The end iterator.
+   */
   template<typename IteratorType>
   iterator_pair<IteratorType> make_iterator_pair(const IteratorType &begin,
       const IteratorType &end)
@@ -2619,6 +2643,16 @@ namespace Helium {
 
   //@}
 
+  /**
+   * @brief Create a substructure molecule from atom/bond masks.
+   *
+   * @param target The output molecule.
+   * @param source The input molecule.
+   * @param atoms The atom mask.
+   * @param bonds The bond mask.
+   * @param adjustHydrogens When true, bonds to atoms not in the atomMask will
+   *        be replaced by implicit hydrogens.
+   */
   template<typename EditableMoleculeType, typename MoleculeType>
   void make_substructure(EditableMoleculeType &target, const MoleculeType &source,
       const std::vector<bool> &atoms, const std::vector<bool> &bonds,

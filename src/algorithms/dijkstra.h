@@ -65,14 +65,14 @@ namespace Helium {
    * constructor is executed. Later, the distances and paths can be retrieved
    * using the distance() and path() member functions.
    *
-   * @note Complexity: @f$O(n^2)@f$
-   * @ingroup Beta
-   * @note Phase: Beta
    */
   template<typename MoleculeType>
   class Dijkstra
   {
     public:
+      /**
+       * @brief The atom type.
+       */
       typedef typename molecule_traits<MoleculeType>::atom_type atom_type;
 
       /**
@@ -82,9 +82,6 @@ namespace Helium {
        *
        * @param mol The molecule.
        * @param source The source atom.
-       * @param preferSmallerIndexPaths When true, same length paths are
-       *        preferred that include only atoms with indices smaller than the
-       *        source's index.
        */
       template<typename AtomType>
       Dijkstra(const MoleculeType &mol, AtomType source)
@@ -99,6 +96,15 @@ namespace Helium {
         dijkstra(mol, source, Q, atomMask);
       }
 
+      /**
+       * @brief Constructor.
+       *
+       * Using this constructor, only the atoms in the mask will be considered.
+       *
+       * @param mol The molecule.
+       * @param source The source atom.
+       * @param atomMask The atom mask.
+       */
       template<typename AtomType>
       Dijkstra(const MoleculeType &mol, AtomType source, const std::vector<bool> &atomMask)
           : m_mol(mol), m_source(source)
@@ -112,6 +118,9 @@ namespace Helium {
         dijkstra(mol, source, Q, atomMask);
       }
 
+      /**
+       * @brief Get the source atom.
+       */
       const atom_type& source() const
       {
         return m_source;
@@ -164,6 +173,12 @@ namespace Helium {
         return S;
       }
 
+      /**
+       * @brief Get the list with previous atoms.
+       *
+       * This list is indexed by atom index and gives the previous atom for the
+       * shortest path to source.
+       */
       const std::vector<atom_type>& prev() const
       {
         return m_prev;

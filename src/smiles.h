@@ -151,7 +151,6 @@ namespace Helium {
        * @brief Write a canonical SMILES string for the molecule.
        *
        * @param mol The molecule.
-       * @param atomClasses The atom classes.
        * @param flags The SMILES features to write (see Flags).
        *
        * @return The SMILES string.

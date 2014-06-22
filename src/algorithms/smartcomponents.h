@@ -32,6 +32,8 @@
 #include <Helium/algorithms/dfs.h>
 #include <Helium/algorithms/cycles.h>
 
+//@cond DEV
+
 namespace Helium {
 
   class LazyBondComponents : public SmartAttribute
@@ -311,5 +313,7 @@ namespace Helium {
   };
 
 }
+
+//@endcond
 
 #endif

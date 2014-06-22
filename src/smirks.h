@@ -384,12 +384,14 @@ namespace Helium {
        *
        * @param mol The molecule.
        * @param rings The molecule's rings (needed for cyclic queries).
-       * @param min
+       * @param min The minimum number of times to apply the transformation.
+       * @param max The maximum number of times to apply the transformation.
        *
        * @return True if changes were made to the molecule.
        */
       template<typename EditableMoleculeType>
-      std::vector<boost::shared_ptr<EditableMoleculeType> > react(const EditableMoleculeType &mol, const RingSet<EditableMoleculeType> &rings, int min = 1, int max = 1)
+      std::vector<boost::shared_ptr<EditableMoleculeType> > react(const EditableMoleculeType &mol,
+          const RingSet<EditableMoleculeType> &rings, int min = 1, int max = 1)
       {
         if (DEBUG_SMIRKS)
           std::cout << "Smirks::apply()" << std::endl;
@@ -435,7 +437,8 @@ namespace Helium {
        * combinations of the mappings between @p min and @p max.
        *
        * @param mol The molecule.
-       * @param min
+       * @param min The minimum number of times to apply the transformation.
+       * @param max The maximum number of times to apply the transformation.
        *
        * @return True if changes were made to the molecule.
        */

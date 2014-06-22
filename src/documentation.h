@@ -356,21 +356,6 @@ namespace Helium {
  * @li AromaticBondPredicate : Check a bond's aromaticity
  *     (aromatic_bond_predicate(), not_aromatic_bond_predicate()).
  *
- *
- *
- * @subsection mol_concept_substruct Substructures
- *
- * The Substructure class can be used to create a view on a molecule's substructure.
- * An instance of the Substructure class can be used anywhere a molecule argument is
- * expected.
- *
- * In the example below, the SMILES for benzoic acid is read into a molecule and
- * a SMARTS search is done for a benzene ring. Next, the found mapping is used to
- * create a substructure from the molecule resuling in a benzene ring view of the
- * molecule.
- *
- * @include substructure.cpp
- *
  * @subsection mol_concept_editable Editable Molecules
  *
  * The Molecule concept is further extended to the EditableMolecule concept to

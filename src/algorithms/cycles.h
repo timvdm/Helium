@@ -45,10 +45,6 @@ namespace Helium {
    * connected components. This formula is known as Cauchy's formula. The
    * cyclomatic number is the same as the nullity or first Betti's number.
    *
-   * @note Complexity: @f$O(1)@f$
-   * @ingroup Production
-   * @note Phase: Production
-   *
    * @param mol The molecule.
    * @param numComponents The number of connected components.
    *
@@ -67,10 +63,6 @@ namespace Helium {
    * number of atoms, \f$m\f$ the number of bonds and \f$c\f$ the number of
    * connected components. This formula is known as Cauchy's formula. The
    * cyclomatic number is the same as the nullity or first Betti's number.
-   *
-   * @note Complexity: @f$O(1)@f$
-   * @ingroup Production
-   * @note Phase: Production
    *
    * @param mol The molecule.
    *
@@ -140,10 +132,6 @@ namespace Helium {
 
   /**
    * @brief Determine atom and bond cycle membership.
-   *
-   * @note Complexity: @f$O(n)@f$
-   * @ingroup Production
-   * @note Phase: Production
    *
    * @param mol The molecule.
    * @param cycle_atoms cyclic atoms output parameter.
@@ -383,13 +371,6 @@ namespace Helium {
    * The set of relevant cycles is formed by taking the union of all the
    * minimum cycles bases. An alternative definition is that a cycle is
    * relevant if it is not the sum of smaller cycles.
-   *
-   * This function returns the set of relevant cycles listing the atom
-   * indices in sequence.
-   *
-   * @note Complexity: @f$O(2^n)@f$
-   * @ingroup Production
-   * @note Phase: Production
    *
    * @param mol The molecule.
    * @param cyclomaticNumber The cyclomatic number.
@@ -639,6 +620,20 @@ namespace Helium {
   }
 
 
+  /**
+   * @brief Find the relevant cycles.
+   *
+   * The set of relevant cycles is formed by taking the union of all the
+   * minimum cycles bases. An alternative definition is that a cycle is
+   * relevant if it is not the sum of smaller cycles.
+   *
+   * @param mol The molecule.
+   * @param cyclomaticNumber The cyclomatic number.
+   * @param cyclicAtoms Atom cycle membership.
+   * @param cyclicBonds Bond cycle membership.
+   *
+   * @return The set of relevant cycles.
+   */
   template<typename MoleculeType>
   RingSet<MoleculeType> relevant_cycles_vismara(const MoleculeType &mol, Size cyclomaticNumber,
       const std::vector<bool> &cyclicAtoms, const std::vector<bool> &cyclicBonds)
@@ -875,6 +870,9 @@ namespace Helium {
     return rings;
   }
 
+  /**
+   * @overload
+   */
   template<typename MoleculeType>
   RingSet<MoleculeType> relevant_cycles_vismara(const MoleculeType &mol)
   {
@@ -884,63 +882,22 @@ namespace Helium {
         cyclicAtoms, cyclicBonds);
   }
 
+  /**
+   * @brief Find the relevant cycles.
+   *
+   * The set of relevant cycles is formed by taking the union of all the
+   * minimum cycles bases. An alternative definition is that a cycle is
+   * relevant if it is not the sum of smaller cycles.
+   *
+   * @param mol The molecule.
+   *
+   * @return The set of relevant cycles.
+   */
   template<typename MoleculeType>
   RingSet<MoleculeType> relevant_cycles(const MoleculeType &mol)
   {
     return relevant_cycles_vismara(mol);
   }
-
-  /* SLOWER than regular relevant_cycles()
-  template<typename MoleculeType>
-  RingSet<MoleculeType> relevant_cycles_substructure(const MoleculeType &mol, Size cyclomaticNumber)
-  {
-    typedef typename molecule_traits<MoleculeType>::atom_type atom_type;
-
-    std::vector<bool> cycle_atoms;
-    std::vector<bool> cycle_bonds;
-    cycle_membership(mol, cycle_atoms, cycle_bonds);
-
-    Substructure<MoleculeType> substructure(mol, cycle_atoms, cycle_bonds);
-
-    std::vector<unsigned int> components = connected_bond_components(substructure);
-    unsigned int numComponents = unique_elements(components);
-
-    RingSet<MoleculeType> cycles(mol);
-
-    for (unsigned int i = 0; i < numComponents; ++i) {
-      std::vector<bool> atoms(num_atoms(mol));
-      std::vector<bool> bonds(num_bonds(mol));
-
-      FOREACH_BOND (bond, substructure) {
-        if (i == components[get_index(substructure, *bond)]) {
-          bonds[substructure.oldBondIndex(*bond)] = true;
-          atoms[substructure.oldAtomIndex(get_source(substructure, *bond))] = true;
-          atoms[substructure.oldAtomIndex(get_target(substructure, *bond))] = true;
-        }
-      }
-
-      Substructure<MoleculeType> component(mol, atoms, bonds);
-
-      RingSet<Substructure<MoleculeType> > componentCycles = relevant_cycles(component);
-
-      for (std::size_t j = 0; j < componentCycles.size(); ++j) {
-        const Ring<Substructure<MoleculeType> > &ring = componentCycles.ring(j);
-        std::vector<atom_type> atoms;
-        for (std::size_t k = 0; k < ring.size(); ++k)
-          atoms.push_back(get_atom(mol, component.oldAtomIndex(ring.atom(k))));
-        cycles.addRing(Ring<MoleculeType>(mol, atoms));
-      }
-    }
-
-    return cycles;
-  }
-
-  template<typename MoleculeType>
-  RingSet<MoleculeType> relevant_cycles_substructure(const MoleculeType &mol)
-  {
-    return relevant_cycles2(mol, cyclomatic_number(mol));
-  }
-  */
 
 }
 

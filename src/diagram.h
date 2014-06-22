@@ -36,6 +36,11 @@ namespace Helium {
     }
   }
 
+  /**
+   * @brief Generate 2D-coordinates.
+   *
+   * @param mol The molecule.
+   */
   template<typename MoleculeType>
   std::vector<std::pair<double, double> > generate_diagram(const MoleculeType &mol)
   {

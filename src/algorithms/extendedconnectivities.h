@@ -86,10 +86,6 @@ namespace Helium {
    * @param mol The molecule.
    * @param atomInvariant The atom invariant to use.
    *
-   * @note Complexity: @f$O(n)@f$
-   * @ingroup Production
-   * @note Phase: Production
-   *
    @verbatim
    Morgan, H. L. The Generation of a Unique Machine Description for Chemical
    Structures - A Technique Developed at Chemical Abstracts Service. J. Chem.

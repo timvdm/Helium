@@ -221,10 +221,6 @@ namespace Helium {
    * functor can be implemented by inheriting the BFSVisitor struct and
    * reimplementing the required functions.
    *
-   * @note Complexity: @f$O(n)@f$
-   * @ingroup Beta
-   * @note Phase: Beta
-   *
    * @param mol The molecule.
    * @param visitor The BFS visitor functor.
    */
@@ -274,12 +270,9 @@ namespace Helium {
    * in the search should be set to true. If an atom is not included in the
    * search, all bonds around the atom are also excluded.
    *
-   * @note Complexity: @f$O(n)@f$
-   * @ingroup Beta
-   * @note Phase: Beta
-   *
    * @param mol The molecule.
    * @param visitor The BFS visitor functor.
+   * @param atomMask The atom mask.
    */
   template<typename MoleculeType, typename BFSVisitorType>
   void breadth_first_search_mask(const MoleculeType &mol, BFSVisitorType &visitor,
@@ -340,12 +333,10 @@ namespace Helium {
    * in the search should be set to true. The @p bondMask works in the same way
    * but specifies the bonds that should be considered.
    *
-   * @note Complexity: @f$O(n)@f$
-   * @ingroup Beta
-   * @note Phase: Beta
-   *
    * @param mol The molecule.
    * @param visitor The BFS visitor functor.
+   * @param atomMask The atom mask.
+   * @param bondMask The bond mask.
    */
   template<typename MoleculeType, typename BFSVisitorType>
   void breadth_first_search_mask(const MoleculeType &mol, BFSVisitorType &visitor,
@@ -395,11 +386,8 @@ namespace Helium {
    * functor can be implemented by inheriting the BFSVisitor struct and
    * reimplementing the required functions.
    *
-   * @note Complexity: @f$O(n)@f$
-   * @ingroup Beta
-   * @note Phase: Beta
-   *
    * @param mol The molecule.
+   * @param atom The start atom.
    * @param visitor The BFS visitor functor.
    */
   template<typename MoleculeType, typename BFSVisitorType>
@@ -442,12 +430,10 @@ namespace Helium {
    * in the search should be set to true. If an atom is not included in the
    * search, all bonds around the atom are also excluded.
    *
-   * @note Complexity: @f$O(n)@f$
-   * @ingroup Beta
-   * @note Phase: Beta
-   *
    * @param mol The molecule.
+   * @param atom The start atom.
    * @param visitor The BFS visitor functor.
+   * @param atomMask The atom mask.
    */
   template<typename MoleculeType, typename BFSVisitorType>
   void breadth_first_search_mask(const MoleculeType &mol,
@@ -502,12 +488,11 @@ namespace Helium {
    * in the search should be set to true. The @p bondMask works in the same way
    * but specifies the bonds that should be considered.
    *
-   * @note Complexity: @f$O(n)@f$
-   * @ingroup Beta
-   * @note Phase: Beta
-   *
    * @param mol The molecule.
+   * @param atom The start atom.
    * @param visitor The BFS visitor functor.
+   * @param atomMask The atom mask.
+   * @param bondMask The bond mask.
    */
   template<typename MoleculeType, typename BFSVisitorType>
   void breadth_first_search_mask(const MoleculeType &mol,
@@ -683,7 +668,7 @@ namespace Helium {
       os << "component(" << i << ")" << std::endl;
     }
 
-    /*
+    /**
      * @brief A new depth is reached.
      *
      * @param d The new depth.

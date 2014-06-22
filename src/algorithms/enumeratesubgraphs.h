@@ -517,10 +517,6 @@ namespace Helium {
   /**
    * @brief Enumerate subgraphs of a molecule.
    *
-   * @note Complexity: @f$O(2^n)@f$
-   * @ingroup Production
-   * @note Phase: Production
-   *
    * @param mol The molecule.
    * @param callback The callback functor for reporting the subgraphs.
    * @param maxSize The maximum size of the subgraphs.

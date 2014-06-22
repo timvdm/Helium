@@ -67,10 +67,6 @@ namespace Helium {
    * vector is indexed by bond index starting from 0. The components are
    * sequentially numbered starting from 0.
    *
-   * @note Complexity: @f$O(n)@f$
-   * @ingroup Production
-   * @note Phase: Production
-   *
    * @param mol The molecule.
    *
    * @return A std::vector containing the component number for each bond.
@@ -100,10 +96,6 @@ namespace Helium {
    * Get a std::vector containing the component number for each atom. This
    * vector is indexed by atom index starting from 0. The components are
    * sequentially numbered starting from 0.
-   *
-   * @note Complexity: @f$O(n)@f$
-   * @ingroup Production
-   * @note Phase: Production
    *
    * @param mol The molecule.
    *
@@ -140,10 +132,6 @@ namespace Helium {
 
   /**
    * Get the number of connected components in a molecule.
-   *
-   * @note Complexity: @f$O(n)@f$
-   * @ingroup Production
-   * @note Phase: Production
    *
    * @param mol The molecule.
    *

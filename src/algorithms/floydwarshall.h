@@ -9,6 +9,11 @@
 
 namespace Helium {
 
+  /**
+   * @brief Floyd-Warshall shortest-path algorithm.
+   *
+   * @param mol The molecule.
+   */
   template<typename MoleculeType>
   DistanceMatrix floyd_warshall(const MoleculeType &mol)
   {

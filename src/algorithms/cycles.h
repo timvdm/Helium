@@ -30,6 +30,7 @@
 #include <Helium/algorithms/components.h>
 #include <Helium/algorithms/dfs.h>
 #include <Helium/algorithms/isomorphism.h>
+#include <Helium/algorithms/dijkstra.h>
 #include <Helium/smiles.h>
 #include <Helium/ring.h>
 #include <Helium/hemol.h>
@@ -228,6 +229,11 @@ namespace Helium {
         {
         }
 
+        CycleBitMatrix(int rows, int cols) : m_rows(rows), m_cols(cols)
+        {
+          m_data.resize(rows * cols);
+        }
+
         void addRow()
         {
           ++m_rows;
@@ -291,7 +297,6 @@ namespace Helium {
           }
           return y;
         }
-
 
       private:
         std::size_t index(int row, int col) const
@@ -471,6 +476,7 @@ namespace Helium {
     return rings;
   }
 
+
   /**
    * @overload
    */
@@ -480,6 +486,383 @@ namespace Helium {
     std::vector<bool> cyclicAtoms, cyclicBonds;
     cycle_membership(mol, cyclicAtoms, cyclicBonds);
     return relevant_cycles(mol, cyclomatic_number(mol), cyclicAtoms, cyclicBonds);
+  }
+
+
+  namespace impl {
+
+    template<typename MoleculeType, typename AtomType>
+    bool paths_intersection_is_source(const Dijkstra<MoleculeType> &dijkstra,
+        const MoleculeType &mol, const AtomType &y, const AtomType &z)
+    {
+      AtomType u = y;
+      while (dijkstra.prev()[get_index(mol, u)] != molecule_traits<MoleculeType>::null_atom()) {
+        AtomType v = z;
+        while (dijkstra.prev()[get_index(mol, v)] != molecule_traits<MoleculeType>::null_atom()) {
+          if (u == v)
+            return false;
+          v = dijkstra.prev()[get_index(mol, v)];
+        }
+        u = dijkstra.prev()[get_index(mol, u)];
+      }
+
+      return true;
+      /*
+      std::vector<AtomType> Py = dijkstra.path(y);
+      std::vector<AtomType> Pz = dijkstra.path(z);
+      std::sort(Py.begin(), Py.end());
+      std::sort(Pz.begin(), Pz.end());
+      std::vector<AtomType> intersection;
+      std::set_intersection(Py.begin(), Py.end(), Pz.begin(), Pz.end(),
+          std::back_inserter(intersection));
+      return intersection.size() == 1 && intersection[0] == dijkstra.source();
+      */
+    }
+
+    class CycleFamily
+    {
+      public:
+        CycleFamily(Index r, Index p, Index q, const std::vector<Index> &prototype)
+          : m_r(r), m_p(p), m_q(q), m_x(std::numeric_limits<Index>::max()),
+            m_prototype(prototype)
+        {
+        }
+
+        CycleFamily(Index r, Index p, Index q, Index x, const std::vector<Index> &prototype)
+          : m_r(r), m_p(p), m_q(q), m_x(x), m_prototype(prototype)
+        {
+        }
+
+        Index r() const
+        {
+          return m_r;
+        }
+
+        Index p() const
+        {
+          return m_p;
+        }
+
+        Index q() const
+        {
+          return m_q;
+        }
+
+        Index x() const
+        {
+          return m_x;
+        }
+
+        const std::vector<Index>& prototype() const
+        {
+          return m_prototype;
+        }
+
+        bool isOdd() const
+        {
+          return m_x == std::numeric_limits<Index>::max();
+        }
+
+        bool isEven() const
+        {
+          return m_x != std::numeric_limits<Index>::max();
+        }
+
+        bool operator<(const CycleFamily &other) const
+        {
+          return m_prototype.size() < other.m_prototype.size();
+        }
+
+      private:
+        Index m_r;
+        Index m_p;
+        Index m_q;
+        Index m_x;
+        std::vector<Index> m_prototype;
+    };
+
+    inline void list_paths(const CycleBitMatrix &Dr, Index r, Index x, std::vector<Index> &current,
+        std::vector<std::vector<Index> > &result)
+    {
+      // add x at the head-end of current path
+      current.insert(current.begin(), x);
+
+      //std::cout << current << std::endl;
+
+      if (x == r) {
+        result.push_back(current);
+      } else {
+        // for any z such that (x, z) is in Ur
+        for (std::size_t z = 0; z <= r; ++z)
+          if (Dr.get(x, z)) {
+            std::vector<Index> currentCopy(current);
+            list_paths(Dr, r, z, currentCopy, result);
+          }
+      }
+
+      //current.pop_back();
+    }
+
+    inline std::vector<std::vector<Index> > list_paths(const CycleBitMatrix &Dr, Index r, Index x)
+    {
+      std::vector<std::vector<Index> > result;
+      std::vector<Index> current;
+      list_paths(Dr, r, x, current, result);
+      return result;
+    }
+
+    template<typename MoleculeType>
+    void add_atom_cycle_to_matrix(const MoleculeType &mol, CycleBitMatrix &B,
+        const std::vector<Index> &cycle)
+    {
+      int row = B.rows();
+      B.addRow();
+      for (std::size_t i = 1; i < cycle.size(); ++i)
+        B.set(row, get_index(mol, get_bond(mol, get_atom(mol, cycle[i - 1]), get_atom(mol, cycle[i]))), true);
+      B.set(row, get_index(mol, get_bond(mol, get_atom(mol, cycle.front()),
+              get_atom(mol, cycle.back()))), true);
+    }
+
+    template<typename MoleculeType>
+    bool is_relevant(const MoleculeType &mol, const CycleBitMatrix &matrix,
+        const std::vector<Index> &cycle)
+    {
+      CycleBitMatrix m(matrix);
+
+      add_atom_cycle_to_matrix(mol, m, cycle);
+
+      int rank = m.rows();
+      bool relevant = (rank == m.eliminate());
+      return relevant;
+    }
+
+  }
+
+
+  template<typename MoleculeType>
+  RingSet<MoleculeType> relevant_cycles_vismara(const MoleculeType &mol)
+  {
+    typedef typename molecule_traits<MoleculeType>::atom_type atom_type;
+
+    // V = {1, ..., n}  |V| = n
+    //
+    // E = { (x, y) | there is an edge between x and y }  |E| = m
+    //
+    // w((x, y)): weight of edge (x, y) (always 1)
+    //
+    // G = (V, E)
+    //
+    // pi: a random total order on V (i.e. atom indexes)
+    //
+    // Vr = { z in V | there is a shortest path in G from r to z that passes only
+    //                 through vertices which precede r in the ordering pi }
+
+    // digraph Dr = (Vr, Ur)
+    //
+    // Ur = { directed edge (y, z) | (z, y) belongs to a shortest path in G from
+    //                               r to y that passes only to through vertices
+    //                               which precede r in the ordering pi }
+    std::vector<impl::CycleBitMatrix> D;
+
+    std::vector<impl::CycleFamily> families;
+
+    // for all r in V do
+    FOREACH_ATOM_T (r, mol, MoleculeType) {
+      // compute Vr and for all t in Vr find a shortest path P(r, t) from r to t
+      /*
+      std::vector<bool> atomMask(get_index(mol, *r) + 1, true);
+      atomMask.resize(num_atoms(mol));
+      */
+      std::vector<bool> atomMask(num_atoms(mol));
+      for (std::size_t i = 0; i < get_index(mol, *r) + 1; ++i)
+        atomMask[i] = true;
+      Dijkstra<MoleculeType> dijkstra(mol, *r, atomMask);
+
+      //std::cout << atomMask << std::endl;
+
+      std::vector<Index> Vr;
+      for (std::size_t i = 0; i <= get_index(mol, *r); ++i)
+        if (dijkstra.distance(get_atom(mol, i)) < dijkstra.infinity())
+          Vr.push_back(i);
+
+      //std::cout << "Vr: " << Vr << std::endl;
+
+      D.push_back(impl::CycleBitMatrix(num_atoms(mol), num_atoms(mol)));
+      impl::CycleBitMatrix &Dr = D.back();
+
+      // for all y in Vr do
+      for (std::size_t i = 0; i < Vr.size(); ++i) {
+        atom_type y = get_atom(mol, Vr[i]);
+
+        // S <- {}
+        std::vector<atom_type> S;
+
+        // for all z in Vr such that z is adjacent to y
+        FOREACH_NBR_T (z, y, mol, MoleculeType) {
+          if (!std::binary_search(Vr.begin(), Vr.end(), get_index(mol, *z)))
+            continue;
+
+          // if d(r, z) + w((z, y)) = d(r, y) then
+          if (dijkstra.distance(*z) + 1 == dijkstra.distance(y)) {
+            // S <- S U {z}
+            S.push_back(*z);
+            //std::cout << "edge: (" << get_index(mol, y) << ", " << get_index(mol, *z) << ")" << std::endl;
+            Dr.set(get_index(mol, y), get_index(mol, *z), true);
+          // else if d(r, z) != d(r, y) + w((z, y))
+          //     and pi(z) < pi(y)
+          //     and P(r, y) ^ P(r, z) = {r}
+          // then
+          } else if (dijkstra.distance(*z) != dijkstra.distance(y)  + 1 &&
+                     get_index(mol, *z) < get_index(mol, y) &&
+                     impl::paths_intersection_is_source(dijkstra, mol, y, *z)) {
+            // add to CI' the odd cycle C = P(r, y) + P(r, z) + (z, y)
+            //std::cout << "odd cycle family: " << get_index(mol, *r) << ", "
+            //          << get_index(mol, y) << ", " << get_index(mol, *z) << std::endl;
+            //std::cout << "    |P(r, y)| = " << dijkstra.distance(y) << std::endl;
+            //std::cout << "    |P(r, z)| = " << dijkstra.distance(*z) << std::endl;
+
+            std::vector<Index> prototype;
+            std::vector<atom_type> Py = dijkstra.path(y);
+            std::vector<atom_type> Pz = dijkstra.path(*z);
+            for (std::size_t j = 0; j < Py.size(); ++j)
+              prototype.push_back(get_index(mol, Py[j]));
+            for (std::size_t j = Pz.size() - 1; j > 0; --j)
+              prototype.push_back(get_index(mol, Pz[j]));
+
+            assert(prototype.size() == Py.size() + Pz.size() - 1);
+
+            families.push_back(impl::CycleFamily(get_index(mol, *r), get_index(mol, y),
+                get_index(mol, *z), prototype));
+          }
+        }
+
+        // for any pair of vertices p, q in S such that P(r, p) ^ P(r, q) = {r} do
+        for (std::size_t j = 0; j < S.size(); ++j)
+          for (std::size_t k = j + 1; k < S.size(); ++k) {
+            const atom_type &p = S[j];
+            const atom_type &q = S[k];
+            if (!impl::paths_intersection_is_source(dijkstra, mol, p, q))
+              continue;
+
+            // add to CI' the even cycle C = P(r, p) + P(r, q) + (p, y, q)
+            //std::cout << "even cycle family: " << get_index(mol, *r) << ", "
+            //          << get_index(mol, p) << ", " << get_index(mol, y) << ", "
+            //          << get_index(mol, q) << std::endl;
+
+            std::vector<Index> prototype;
+            std::vector<atom_type> Pp = dijkstra.path(p);
+            std::vector<atom_type> Pq = dijkstra.path(q);
+            for (std::size_t l = 0; l < Pp.size(); ++l)
+              prototype.push_back(get_index(mol, Pp[l]));
+            prototype.push_back(get_index(mol, y));
+            for (std::size_t l = Pq.size() - 1; l > 0; --l)
+              prototype.push_back(get_index(mol, Pq[l]));
+
+            assert(prototype.size() == Pp.size() + Pq.size());
+
+            families.push_back(impl::CycleFamily(get_index(mol, *r), get_index(mol, p),
+                get_index(mol, q), get_index(mol, y), prototype));
+          }
+      }
+    }
+
+    if (families.empty())
+      return RingSet<MoleculeType>(mol);
+
+    //
+    // select relevant families
+    //
+
+    std::sort(families.begin(), families.end());
+
+    unsigned int lastSize = families.front().prototype().size();
+
+    std::vector<std::size_t> remove;
+    impl::CycleBitMatrix B_less(num_bonds(mol));
+    for (std::size_t i = 0; i < families.size(); ++i) {
+      const impl::CycleFamily &family = families[i];
+
+      // update B_less
+      if (lastSize < family.prototype().size()) {
+        for (std::size_t j = 0; j < families.size(); ++j) {
+          if (families[j].prototype().size() < lastSize)
+            continue;
+          if (families[j].prototype().size() >= family.prototype().size())
+            break;
+          add_atom_cycle_to_matrix(mol, B_less, families[j].prototype());
+        }
+
+        int rank = B_less.eliminate();
+        while (B_less.rows() > rank)
+          B_less.popRow();
+
+        lastSize = family.prototype().size();
+      }
+
+      if (!is_relevant(mol, B_less, family.prototype()))
+        remove.push_back(i);
+    }
+
+    //std::cout << "removing " << remove.size() << " families..." << std::endl;
+
+    for (std::size_t i = 0; i < remove.size(); ++i)
+      families.erase(families.begin() + remove[remove.size() - i - 1]);
+
+    //
+    // enumerate relevant cycles
+    //
+
+    RingSet<MoleculeType> rings(mol);
+    for (std::size_t i = 0; i < families.size(); ++i) {
+      const impl::CycleFamily &family = families[i];
+      const impl::CycleBitMatrix &Dr = D[family.r()];
+
+      //std::cout << "Dr:" << std::endl << Dr << std::endl;
+
+      std::vector<std::vector<Index> > pPaths = impl::list_paths(Dr, family.r(), family.p());
+      std::vector<std::vector<Index> > qPaths = impl::list_paths(Dr, family.r(), family.q());
+
+
+      //std::cout << "    (r, ..., p): " << pPaths << std::endl;
+      //std::cout << "    (r, ..., q): " << qPaths << std::endl;
+
+      if (family.isOdd()) {
+        //std::cout << "odd cycle: " << family.r() << " " << family.p() << " "
+        //          << family.q() << "  " << family.prototype() << std::endl;
+        for (std::size_t j = 0; j < pPaths.size(); ++j)
+          for (std::size_t k = 0; k < qPaths.size(); ++k) {
+            std::vector<atom_type> atoms;
+
+            for (std::size_t l = 0; l < pPaths[j].size(); ++l)
+              atoms.push_back(get_atom(mol, pPaths[j][l]));
+            for (std::size_t l = qPaths[k].size() - 1; l > 0; --l)
+              atoms.push_back(get_atom(mol, qPaths[k][l]));
+            //std::cout << atoms << std::endl;
+
+            rings.addRing(Ring<MoleculeType>(mol, atoms));
+          }
+      } else {
+        //std::cout << "even cycle: " << family.r() << " " << family.p() << " "
+        //          << family.q() << " " << family.x() << "  "
+        //          << family.prototype() << std::endl;
+        for (std::size_t j = 0; j < pPaths.size(); ++j)
+          for (std::size_t k = 0; k < qPaths.size(); ++k) {
+            std::vector<atom_type> atoms;
+
+            for (std::size_t l = 0; l < pPaths[j].size(); ++l)
+              atoms.push_back(get_atom(mol, pPaths[j][l]));
+            atoms.push_back(get_atom(mol, family.x()));
+            for (std::size_t l = qPaths[k].size() - 1; l > 0; --l)
+              atoms.push_back(get_atom(mol, qPaths[k][l]));
+            //std::cout << atoms << std::endl;
+
+            rings.addRing(Ring<MoleculeType>(mol, atoms));
+          }
+      }
+
+    }
+
+    return rings;
   }
 
   /* SLOWER than regular relevant_cycles()

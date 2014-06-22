@@ -73,6 +73,8 @@ namespace Helium {
   class Dijkstra
   {
     public:
+      typedef typename molecule_traits<MoleculeType>::atom_type atom_type;
+
       /**
        * @brief Constructor.
        *
@@ -85,7 +87,7 @@ namespace Helium {
        *        source's index.
        */
       template<typename AtomType>
-      Dijkstra(const MoleculeType &mol, AtomType source, bool preferSmallerIndexPaths = false)
+      Dijkstra(const MoleculeType &mol, AtomType source)
           : m_mol(mol), m_source(source)
       {
         // add all atoms in mol to Q
@@ -93,7 +95,26 @@ namespace Helium {
         FOREACH_ATOM_T (atom, mol, MoleculeType)
           Q.push_back(*atom);
 
-        dijkstra(mol, source, Q, preferSmallerIndexPaths);
+        std::vector<bool> atomMask(num_atoms(mol), true);
+        dijkstra(mol, source, Q, atomMask);
+      }
+
+      template<typename AtomType>
+      Dijkstra(const MoleculeType &mol, AtomType source, const std::vector<bool> &atomMask)
+          : m_mol(mol), m_source(source)
+      {
+        // add all atoms in mol to Q
+        std::vector<AtomType> Q;
+        FOREACH_ATOM_T (atom, mol, MoleculeType)
+          if (atomMask[get_index(mol, *atom)])
+            Q.push_back(*atom);
+
+        dijkstra(mol, source, Q, atomMask);
+      }
+
+      const atom_type& source() const
+      {
+        return m_source;
       }
 
       /**
@@ -143,9 +164,15 @@ namespace Helium {
         return S;
       }
 
+      const std::vector<atom_type>& prev() const
+      {
+        return m_prev;
+      }
+
     private:
       template<typename AtomType>
-      void dijkstra(const MoleculeType &mol, AtomType source, std::vector<AtomType> &Q, bool preferSmallerIndexPaths)
+      void dijkstra(const MoleculeType &mol, AtomType source, std::vector<AtomType> &Q,
+          const std::vector<bool> &atomMask)
       {
         // distance from source to other atoms
         m_dist.resize(num_atoms(mol), std::numeric_limits<Size>::max());
@@ -182,6 +209,9 @@ namespace Helium {
             break;
 
           FOREACH_NBR_T (v, u, mol, MoleculeType) {
+            if (!atomMask[get_index(mol, *v)])
+              continue;
+
             Size alt = m_dist[get_index(mol, u)] + 1;
 
             if (alt < m_dist[get_index(mol, *v)]) {
@@ -190,18 +220,14 @@ namespace Helium {
               // [heap implementation only]
               std::make_heap(Q.begin(), Q.end(), HeapCompare(mol, m_dist));
             }
-
-            if (preferSmallerIndexPaths && alt == m_dist[get_index(mol, *v)] &&
-                contains_larger_index(mol, path(*v), get_index(mol, m_source)))
-              m_prev[get_index(mol, *v)] = u;
           }
         }
       }
 
       const MoleculeType &m_mol;
-      typename molecule_traits<MoleculeType>::atom_type m_source;
+      atom_type m_source;
       std::vector<Size> m_dist;
-      std::vector<typename molecule_traits<MoleculeType>::atom_type> m_prev;
+      std::vector<atom_type> m_prev;
   };
 
 }

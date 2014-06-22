@@ -121,7 +121,7 @@ void test_cycle_perception(const CyclePerceptionAlgorithm &algorithm, const std:
 {
   std::cout << "Testing: " << name << std::endl;
 
-  std::vector<TestCycle> cycles = algorithm(mol);
+  std::vector<TestCycle> cycles = algorithm.testCycles(mol);
 
   for (std::size_t i = 0; i < correct.size(); ++i)
     ASSERT(correct[i].cycle().size() == num_bonds(mol));

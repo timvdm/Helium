@@ -13,11 +13,13 @@ void test_cyclomatic_number(const std::string &smiles, unsigned int expected)
   COMPARE(expected, cyclomatic_number(mol));
 }
 
-void test_cycle_membership(const HeMol &mol)
+template<typename CyclePerceptionAlgorithm>
+void test_cycle_membership(const CyclePerceptionAlgorithm &algorithm,
+    const HeMol &mol)
 {
   std::vector<bool> cyclic_atoms, cyclic_bonds;
   cycle_membership(mol, cyclic_atoms, cyclic_bonds);
-  RingSet<HeMol> rings = relevant_cycles(mol);
+  RingSet<HeMol> rings = algorithm(mol);
 
   //std::cout << write_smiles(mol, WriteSmiles::Order) << std::endl;
 
@@ -40,7 +42,9 @@ void test_cycle_membership(const HeMol &mol)
   }
 }
 
-void test_cycle_membership(const std::string &filename)
+template<typename CyclePerceptionAlgorithm>
+void test_cycle_membership(const CyclePerceptionAlgorithm &algorithm,
+    const std::string &filename)
 {
   std::cout << "Testing cycle_membership()..." << std::endl;
   MoleculeFile file(filename);
@@ -48,7 +52,7 @@ void test_cycle_membership(const std::string &filename)
   HeMol mol;
   for (unsigned int i = 0; i < file.numMolecules(); ++i) {
     file.readMolecule(mol);
-    test_cycle_membership(mol);
+    test_cycle_membership(algorithm, mol);
   }
 }
 
@@ -69,7 +73,7 @@ void test_relevant_cycles(const std::string &smiles, std::vector<std::pair<unsig
 struct IsomorphismCycleAlgorithm
 {
   template<typename MoleculeType>
-  std::vector<TestCycle> operator()(const MoleculeType &mol) const
+  std::vector<TestCycle> testCycles(const MoleculeType &mol) const
   {
     RingSet<HeMol> cycles = relevant_cycles(mol);
 
@@ -82,6 +86,37 @@ struct IsomorphismCycleAlgorithm
     }
 
     return result;
+  }
+
+  template<typename MoleculeType>
+  RingSet<MoleculeType> operator()(const MoleculeType &mol) const
+  {
+    return relevant_cycles(mol);
+  }
+};
+
+struct VismaraCycleAlgorithm
+{
+  template<typename MoleculeType>
+  std::vector<TestCycle> testCycles(const MoleculeType &mol) const
+  {
+    RingSet<HeMol> cycles = relevant_cycles_vismara(mol);
+
+    std::vector<TestCycle> result;
+    for (std::size_t i = 0; i < cycles.size(); ++i) {
+      TestCycle cycle(num_bonds(mol));
+      for (std::size_t j = 0; j < cycles.ring(i).size(); ++j)
+        cycle.cycle()[get_index(mol, cycles.ring(i).bond(j))] = true;
+      result.push_back(cycle);
+    }
+
+    return result;
+  }
+
+  template<typename MoleculeType>
+  RingSet<MoleculeType> operator()(const MoleculeType &mol) const
+  {
+    return relevant_cycles_vismara(mol);
   }
 };
 
@@ -162,11 +197,37 @@ void test_cycle_bit_matrix3()
   std::cout << m << std::endl;
 }
 
+void test_relevant_cycles_vismara()
+{
+  HeMol mol;
+
+  std::cout << "4-ring" << std::endl;
+  mol = hemol_from_smiles("C1CCC1");
+  relevant_cycles_vismara(mol);
+
+  std::cout << "5-ring" << std::endl;
+  mol = hemol_from_smiles("C1CCCC1");
+  relevant_cycles_vismara(mol);
+
+  std::cout << "6-ring" << std::endl;
+  mol = hemol_from_smiles("C1CCCCC1");
+  relevant_cycles_vismara(mol);
+}
+
+
 int main()
 {
+  test_cycle_perception(IsomorphismCycleAlgorithm());
+  test_cycle_membership(IsomorphismCycleAlgorithm(), datadir() + "100K.hel");
+  return 0;
+
   // counter example to relevant_cycles
   HeMol mol = hemol_from_smiles("C(NC1CN2CCC1CC2)CN3CCC5(CCC3)NCc4ccccc4O5");
-  test_cycle_membership(mol);
+  test_cycle_membership(IsomorphismCycleAlgorithm(), mol);
+  test_cycle_membership(VismaraCycleAlgorithm(), mol);
+
+  test_cycle_membership(IsomorphismCycleAlgorithm(), datadir() + "100K.hel");
+  test_cycle_membership(VismaraCycleAlgorithm(), datadir() + "100K.hel");
 
 
   test_cycle_bit_matrix1();
@@ -180,7 +241,6 @@ int main()
   test_cyclomatic_number("C1CC1C1CC1", 2);
   test_cyclomatic_number("C1CC1.C1CC1", 2);
 
-  test_cycle_membership(datadir() + "100K.hel");
 
   std::vector<std::pair<unsigned int, unsigned int> > cycles;
 
@@ -207,4 +267,5 @@ int main()
   test_relevant_cycles("C1C(N)C1Cc1ccc(O)cc1", cycles);
 
   test_cycle_perception(IsomorphismCycleAlgorithm());
+  test_cycle_perception(VismaraCycleAlgorithm());
 }

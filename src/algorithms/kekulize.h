@@ -60,7 +60,7 @@ namespace Helium {
 
     // create a list of aromatic bonds
     std::vector<bool> bonds(num_bonds(mol));
-    FOREACH_BOND_T (bond, mol, EditableMoleculeType)
+    FOREACH_BOND (bond, mol)
       if (is_aromatic(mol, *bond))
         bonds[get_index(mol, *bond)] = true;
 
@@ -87,7 +87,7 @@ namespace Helium {
           exclude = true;
 
         if (exclude) {
-          FOREACH_INCIDENT_T (bond, atom, mol, EditableMoleculeType)
+          FOREACH_INCIDENT (bond, atom, mol)
             bonds[get_index(mol, *bond)] = false;
         }
       }
@@ -96,7 +96,7 @@ namespace Helium {
     // create boost graph
     graph_type g(num_atoms(mol));
 
-    FOREACH_BOND_T (bond, mol, EditableMoleculeType)
+    FOREACH_BOND (bond, mol)
       if (bonds[get_index(mol, *bond)])
         boost::add_edge(get_index(mol, get_source(mol, *bond)), get_index(mol, get_target(mol, *bond)), g);
 
@@ -106,7 +106,7 @@ namespace Helium {
       return false;
 
     // mark all aromatic bonds as single
-    FOREACH_BOND_T (bond, mol, EditableMoleculeType)
+    FOREACH_BOND (bond, mol)
       if (is_aromatic(mol, *bond))
         set_order(mol, *bond, 1);
 

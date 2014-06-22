@@ -226,7 +226,7 @@ namespace Helium {
 
         // create list of neighbors
         std::set<Index> nbrs;
-        FOREACH_NBR (nbr, atom, molecule(), SmartMol)
+        FOREACH_NBR (nbr, atom, molecule())
           nbrs.insert(get_index(molecule(), *nbr));
 
         // keep track of visited neighbors
@@ -241,7 +241,7 @@ namespace Helium {
         --m_numComponents;
 
         // the loop below labels the new components
-        FOREACH_INCIDENT (bond, atom, molecule(), SmartMol) {
+        FOREACH_INCIDENT (bond, atom, molecule()) {
           SmartMol::atom_type nbr = get_other(molecule(), *bond, atom);
           // continue if the neighbor is already visited, this can happen if
           // the atom is cyclic
@@ -254,7 +254,7 @@ namespace Helium {
           // mark the atom and it's bonds as visited
           std::vector<bool> visited(num_atoms(molecule()) + num_bonds(molecule()));
           visited[get_index(molecule(), atom)] = true;
-          FOREACH_INCIDENT (bond2, atom, molecule(), SmartMol)
+          FOREACH_INCIDENT (bond2, atom, molecule())
             visited[num_atoms(molecule()) + get_index(molecule(), *bond2)] = true;
 
           DFSAtomOrderVisitor<SmartMol> visitor;

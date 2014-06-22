@@ -11,7 +11,7 @@ template<typename MoleculeType>
 void print_stuff(const MoleculeType &mol)
 {
   // iterate over the bonds
-  FOREACH_BOND_T (bond, mol, MoleculeType) {
+  FOREACH_BOND (bond, mol) {
     std::cout << "bond " << get_index(mol, *bond) << ":" << std::endl;
     std::cout << "    source atom index: " << get_index(mol, get_source(mol, *bond)) << std::endl;
     std::cout << "    target atom index: " << get_index(mol, get_target(mol, *bond)) << std::endl;

@@ -226,7 +226,7 @@ namespace Helium
 
       // compute the sum of the bond vectors, this gives
       Eigen::Vector2d direction(Eigen::Vector2d::Zero());
-      FOREACH_NBR_T (nbr, atom, mol, MoleculeType)
+      FOREACH_NBR (nbr, atom, mol)
         direction += coords[get_index(mol, atom)] - coords[get_index(mol, *nbr)];
 
       const double bias = -0.1; //towards left-alignment, which is more natural
@@ -355,7 +355,7 @@ namespace Helium
 
       // scale bond lengths and invert the y coordinate (both SVG and Cairo use top left as the origin)
       double bondLengthSum = 0.0;
-      FOREACH_BOND_T (bond, mol, MoleculeType) {
+      FOREACH_BOND (bond, mol) {
         Index source = get_index(mol, get_source(mol, *bond));
         Index target = get_index(mol, get_target(mol, *bond));
         bondLengthSum += (coords[source] - coords[target]).norm();
@@ -411,7 +411,7 @@ namespace Helium
     }
 
     // draw bonds
-    FOREACH_BOND_T (bond, mol, MoleculeType) {
+    FOREACH_BOND (bond, mol) {
       atom_type source = get_source(mol, *bond);
       atom_type target = get_target(mol, *bond);
 
@@ -466,7 +466,7 @@ namespace Helium
     }
 
     // draw atom labels
-    FOREACH_ATOM_T (atom, mol, MoleculeType) {
+    FOREACH_ATOM (atom, mol) {
       double x = coords[get_index(mol, *atom)].x();
       double y = coords[get_index(mol, *atom)].y();
 

@@ -43,8 +43,8 @@ namespace Helium {
     {
       std::vector<unsigned long> next = ec;
 
-      FOREACH_ATOM_T (atom, mol, MoleculeType)
-        FOREACH_NBR_T (nbr, *atom, mol, MoleculeType)
+      FOREACH_ATOM (atom, mol)
+        FOREACH_NBR (nbr, *atom, mol)
           next[get_index(mol, *atom)] += ec[get_index(mol, *nbr)];
 
       ec.swap(next);

@@ -92,7 +92,7 @@ namespace Helium {
       {
         // add all atoms in mol to Q
         std::vector<AtomType> Q;
-        FOREACH_ATOM_T (atom, mol, MoleculeType)
+        FOREACH_ATOM (atom, mol)
           Q.push_back(*atom);
 
         std::vector<bool> atomMask(num_atoms(mol), true);
@@ -105,7 +105,7 @@ namespace Helium {
       {
         // add all atoms in mol to Q
         std::vector<AtomType> Q;
-        FOREACH_ATOM_T (atom, mol, MoleculeType)
+        FOREACH_ATOM (atom, mol)
           if (atomMask[get_index(mol, *atom)])
             Q.push_back(*atom);
 
@@ -208,7 +208,7 @@ namespace Helium {
             // all remaining atoms are inaccessible from source
             break;
 
-          FOREACH_NBR_T (v, u, mol, MoleculeType) {
+          FOREACH_NBR (v, u, mol) {
             if (!atomMask[get_index(mol, *v)])
               continue;
 

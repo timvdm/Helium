@@ -14,7 +14,7 @@ namespace Helium {
   {
     DistanceMatrix dist(num_atoms(mol), 0, DistanceMatrix::infinity());
 
-    FOREACH_BOND_T (bond, mol, MoleculeType)
+    FOREACH_BOND (bond, mol)
       dist(get_index(mol, get_source(mol, *bond)), get_index(mol, get_target(mol, *bond))) = 1;
 
     for (Size k = 0; k < num_atoms(mol); ++k)
@@ -46,7 +46,7 @@ namespace Helium {
         m_dist[get_index(mol, source)] = 0;
         // add all atoms in mol to Q
         std::vector<AtomType> Q;
-        FOREACH_ATOM (atom, mol, MoleculeType)
+        FOREACH_ATOM (atom, mol)
           Q.push_back(*atom);
 
         while (Q.size()) {
@@ -63,7 +63,7 @@ namespace Helium {
             // all remaining atoms are inaccessible from source
             break;
 
-          FOREACH_NBR (v, u, mol, MoleculeType) {
+          FOREACH_NBR (v, u, mol) {
             Size alt = m_dist[get_index(mol, u)] + 1;
 
             if (alt < m_dist[get_index(mol, *v)]) {

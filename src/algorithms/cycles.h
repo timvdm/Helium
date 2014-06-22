@@ -403,12 +403,12 @@ namespace Helium {
       if (rings.size() >= cyclomaticNumber && lastSize < size) {
         // check if all cyclic atoms/bonds are convered
         bool done = true;
-        FOREACH_ATOM_T (atom, mol, MoleculeType)
+        FOREACH_ATOM (atom, mol)
           if (cyclicAtoms[get_index(mol, *atom)] && !rings.isAtomInRing(*atom)) {
             done = false;
             break;
           }
-        FOREACH_BOND_T (bond, mol, MoleculeType)
+        FOREACH_BOND (bond, mol)
           if (cyclicBonds[get_index(mol, *bond)] && !rings.isBondInRing(*bond)) {
             done = false;
             break;
@@ -436,7 +436,7 @@ namespace Helium {
       // find all cycles of size
       MappingList mappings;
       impl::CycleBondMatcher<MoleculeType, HeMol> bondMatcher;
-      FOREACH_ATOM_T (atom, mol, MoleculeType) {
+      FOREACH_ATOM (atom, mol) {
         impl::CycleAtomMatcher<MoleculeType, HeMol> atomMatcher(get_index(mol, *atom));
 
         if (isomorphism_search(mol, *atom, cycleMol, mappings, atomMatcher, bondMatcher)) {
@@ -667,7 +667,7 @@ namespace Helium {
     std::vector<impl::CycleFamily> families;
 
     // for all r in V do
-    FOREACH_ATOM_T (r, mol, MoleculeType) {
+    FOREACH_ATOM (r, mol) {
       // compute Vr and for all t in Vr find a shortest path P(r, t) from r to t
       /*
       std::vector<bool> atomMask(get_index(mol, *r) + 1, true);
@@ -698,7 +698,7 @@ namespace Helium {
         std::vector<atom_type> S;
 
         // for all z in Vr such that z is adjacent to y
-        FOREACH_NBR_T (z, y, mol, MoleculeType) {
+        FOREACH_NBR (z, y, mol) {
           if (!std::binary_search(Vr.begin(), Vr.end(), get_index(mol, *z)))
             continue;
 
@@ -886,7 +886,7 @@ namespace Helium {
       std::vector<bool> atoms(num_atoms(mol));
       std::vector<bool> bonds(num_bonds(mol));
 
-      FOREACH_BOND_T (bond, substructure, Substructure<MoleculeType>) {
+      FOREACH_BOND (bond, substructure) {
         if (i == components[get_index(substructure, *bond)]) {
           bonds[substructure.oldBondIndex(*bond)] = true;
           atoms[substructure.oldAtomIndex(get_source(substructure, *bond))] = true;

@@ -18,12 +18,12 @@ void print_stuff(const MoleculeType &mol)
   std::cout << "the bond C=O has order: " << get_order(mol, get_bond(mol, get_atom(mol, 1), get_atom(mol, 2))) << std::endl;
 
   // iterate over the atoms
-  FOREACH_ATOM_T (atom, mol, MoleculeType) {
+  FOREACH_ATOM (atom, mol) {
     std::cout << "atom " << get_index(mol, *atom) << " has element " << get_element(mol, *atom) << std::endl;
   }
 
   // iterate over the bonds
-  FOREACH_BOND_T (bond, mol, MoleculeType) {
+  FOREACH_BOND (bond, mol) {
     std::cout << "bond " << get_index(mol, *bond) << " has order " << get_order(mol, *bond) << std::endl;
   }
 }

@@ -11,7 +11,7 @@ template<typename MoleculeType>
 void print_stuff(const MoleculeType &mol)
 {
   // iterate over the atoms
-  FOREACH_ATOM_T (atom, mol, MoleculeType) {
+  FOREACH_ATOM (atom, mol) {
     std::cout << "atom " << get_index(mol, *atom) << ":" << std::endl;
     std::cout << "    element: " << get_element(mol, *atom) << std::endl;
     std::cout << "    mass: " << get_mass(mol, *atom) << std::endl;
@@ -22,13 +22,13 @@ void print_stuff(const MoleculeType &mol)
 
   // print neighbor indices for atom 1
   std::cout << "neighbor indices for atom 1: ";
-  FOREACH_NBR_T (nbr, get_atom(mol, 1), mol, MoleculeType)
+  FOREACH_NBR (nbr, get_atom(mol, 1), mol)
     std::cout << get_index(mol, *nbr) << " ";
   std::cout << std::endl;
 
   // print incident bond indices for atom 1
   std::cout << "incident bond indices for atom 1: ";
-  FOREACH_INCIDENT_T (bond, get_atom(mol, 1), mol, MoleculeType)
+  FOREACH_INCIDENT (bond, get_atom(mol, 1), mol)
     std::cout << get_index(mol, *bond) << " ";
   std::cout << std::endl;
 }

@@ -941,7 +941,7 @@ namespace Helium {
   template<typename MoleculeType>
   int get_heavy_degree(const MoleculeType &mol, typename molecule_traits<MoleculeType>::atom_type atom)
   {
-    PRE(atom != molecule_traits<HeMol>::null_atom());
+    PRE(atom != molecule_traits<MoleculeType>::null_atom());
     int degree = 0;
     FOREACH_NBR (nbr, atom, mol)
       if (get_element(mol, *nbr) > 1)
@@ -964,7 +964,7 @@ namespace Helium {
   template<typename MoleculeType>
   int get_bosum(const MoleculeType &mol, typename molecule_traits<MoleculeType>::atom_type atom)
   {
-    PRE(atom != molecule_traits<HeMol>::null_atom());
+    PRE(atom != molecule_traits<MoleculeType>::null_atom());
     double sum = 0;
     FOREACH_INCIDENT (bond, atom, mol) {
       int order = get_order(mol, *bond);
@@ -992,7 +992,7 @@ namespace Helium {
   template<typename MoleculeType>
   int get_valence(const MoleculeType &mol, typename molecule_traits<MoleculeType>::atom_type atom)
   {
-    PRE(atom != molecule_traits<HeMol>::null_atom());
+    PRE(atom != molecule_traits<MoleculeType>::null_atom());
     return get_bosum(mol, atom) + get_hydrogens(mol, atom);
   }
 
@@ -1012,7 +1012,7 @@ namespace Helium {
   template<typename MoleculeType>
   int get_connectivity(const MoleculeType &mol, typename molecule_traits<MoleculeType>::atom_type atom)
   {
-    PRE(atom != molecule_traits<HeMol>::null_atom());
+    PRE(atom != molecule_traits<MoleculeType>::null_atom());
     return get_degree(mol, atom) + get_hydrogens(mol, atom);
   }
 
@@ -2753,7 +2753,7 @@ namespace Helium {
       const std::vector<bool> &atoms, const std::vector<bool> &bonds,
       bool adjustHydrogens = true)
   {
-    PRE(is_valid_bond_mask(mol, atoms, bonds));
+    PRE(is_valid_bond_mask(source, atoms, bonds));
 
     typedef typename molecule_traits<EditableMoleculeType>::atom_type target_atom_type;
     typedef typename molecule_traits<EditableMoleculeType>::bond_type target_bond_type;

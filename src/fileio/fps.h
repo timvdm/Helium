@@ -74,7 +74,6 @@ namespace Helium {
 
         m_numFingerprints = 0;
         m_numBits = 0;
-        unsigned int numWords = 0;
 
         m_type = "FPS";
 
@@ -85,7 +84,6 @@ namespace Helium {
           if (line.substr(0, 10) == "#num_bits=") {
             std::stringstream ss(line.substr(10));
             ss >> m_numBits;
-            numWords = bitvec_num_words_for_bits(m_numBits);
           } else if (line.substr(0, 6) == "#type=") {
             m_type = line.substr(6);
           }

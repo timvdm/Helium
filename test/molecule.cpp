@@ -271,8 +271,10 @@ int main()
   HeMol hemol;
   //check_editable_molecule_concept(hemol);
 
+  /*
   try {
     SmartMol smartmol;
     check_editable_molecule_concept(smartmol);
   } catch (...) {}
+  */
 }

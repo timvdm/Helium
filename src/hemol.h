@@ -942,7 +942,7 @@ namespace Helium {
       const molecule_traits<HeMol>::atom_type atom)
   {
     PRE(bond != molecule_traits<HeMol>::null_bond());
-    PRE(atom == bond.source() || atom == bond.target);
+    PRE(atom == bond.source() || atom == bond.target());
     return bond.other(atom);
   }
 

@@ -1050,8 +1050,8 @@ namespace Helium {
       molecule_traits<SmartMol>::atom_type source,
       molecule_traits<SmartMol>::atom_type target)
   {
-    PRE(source != molecule_traits<HeMol>::null_atom());
-    PRE(target != molecule_traits<HeMol>::null_atom());
+    PRE(source != molecule_traits<SmartMol>::null_atom());
+    PRE(target != molecule_traits<SmartMol>::null_atom());
     FOREACH_INCIDENT (bond, source, mol)
       if (get_other(mol, *bond, source) == target)
         return *bond;

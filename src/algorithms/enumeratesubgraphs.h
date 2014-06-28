@@ -101,8 +101,6 @@ namespace Helium {
     bool is_cyclic(const MoleculeType &mol, typename molecule_traits<MoleculeType>::atom_type atom,
         std::vector<bool> &visitedAtoms, std::vector<bool> &visitedBonds)
     {
-      typedef typename molecule_traits<MoleculeType>::incident_iter incident_iter;
-
       visitedAtoms[get_index(mol, atom)] = true;
 
       FOREACH_INCIDENT (bond, atom, mol) {
@@ -123,8 +121,6 @@ namespace Helium {
     template<typename MoleculeType>
     bool is_cyclic(const MoleculeType &mol)
     {
-      typedef typename molecule_traits<MoleculeType>::atom_iter atom_iter;
-
       std::vector<bool> visitedAtoms(num_atoms(mol));
       std::vector<bool> visitedBonds(num_bonds(mol));
 
@@ -260,7 +256,6 @@ namespace Helium {
         const std::vector<bool> &newAtoms, const std::vector<bool> &allAtoms, bool trees)
     {
       typedef typename molecule_traits<MoleculeType>::atom_type atom_type;
-      typedef typename molecule_traits<MoleculeType>::incident_iter incident_iter;
 
       /*
       std::cout << "find_extensions(" << std::endl;
@@ -363,8 +358,6 @@ namespace Helium {
   template<typename MoleculeType, typename CallbackType>
   void enumerate_subgraphs(const MoleculeType &mol, CallbackType &callback, int maxSize, bool trees = false)
   {
-    typedef typename molecule_traits<MoleculeType>::bond_iter bond_iter;
-
     //Timeout timeout(500000); // 5s timeout
 
     assert(maxSize >= 0);

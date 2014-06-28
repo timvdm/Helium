@@ -103,8 +103,6 @@ namespace Helium {
   std::vector<unsigned long> extended_connectivities(const MoleculeType &mol,
       const AtomInvariant &atomInvariant)
   {
-    typedef typename molecule_traits<MoleculeType>::atom_iter atom_iter;
-
     // initial atom invariants
     std::vector<unsigned long> ec;
     FOREACH_ATOM (atom, mol)

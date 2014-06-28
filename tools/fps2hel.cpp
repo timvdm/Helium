@@ -84,7 +84,6 @@ int main(int argc, char**argv)
   std::ifstream ifs(inFile.c_str());
 
   int bits = -1;
-  int words = -1;
   std::string type = "fps";
 
   std::string line;
@@ -94,7 +93,6 @@ int main(int argc, char**argv)
     if (line.substr(0, 10) == "#num_bits=") {
       std::stringstream ss(line.substr(10));
       ss >> bits;
-      words = bitvec_num_words_for_bits(bits);
     } else if (line.substr(0, 6) == "#type=") {
       type = line.substr(6);
     }

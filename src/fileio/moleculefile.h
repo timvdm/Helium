@@ -288,6 +288,7 @@ namespace Helium {
       {
         m_positions.push_back(m_file.stream().tellp());
         write_molecule(m_file.stream(), mol);
+        return true;
       }
 
       /**

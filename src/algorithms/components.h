@@ -48,8 +48,6 @@ namespace Helium {
     void connected_bond_components(const MoleculeType &mol, typename molecule_traits<MoleculeType>::atom_type atom,
         unsigned int number, std::vector<unsigned int> &components)
     {
-      typedef typename molecule_traits<MoleculeType>::incident_iter incident_iter;
-
       // iterator over atom's bonds
       FOREACH_INCIDENT (bond, atom, mol) {
         // skip already visited bonds
@@ -76,8 +74,6 @@ namespace Helium {
   template<typename MoleculeType>
   std::vector<unsigned int> connected_bond_components(const MoleculeType &mol)
   {
-    typedef typename molecule_traits<MoleculeType>::bond_iter bond_iter;
-
     unsigned int number = 0;
     std::vector<unsigned int> components(num_bonds(mol), molecule_traits<MoleculeType>::null_index());
 
@@ -104,9 +100,6 @@ namespace Helium {
   template<typename MoleculeType>
   std::vector<unsigned int> connected_atom_components(const MoleculeType &mol)
   {
-    typedef typename molecule_traits<MoleculeType>::bond_iter bond_iter;
-    typedef typename molecule_traits<MoleculeType>::atom_iter atom_iter;
-
     std::vector<unsigned int> atom_components(num_atoms(mol), molecule_traits<MoleculeType>::null_index());
 
     // convert bond components to atom components

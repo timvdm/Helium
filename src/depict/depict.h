@@ -413,7 +413,6 @@ namespace Helium
       const std::vector<std::pair<double, double> > &origCoords)
   {
     typedef typename molecule_traits<MoleculeType>::atom_type atom_type;
-    typedef typename molecule_traits<MoleculeType>::bond_type bond_type;
 
     if (!m_painter)
       return false;

@@ -29,7 +29,6 @@
 
 #include <Helium/config.h>
 #include <Helium/molecule.h>
-#include <Helium/tie.h>
 #include <Helium/util/vector.h>
 
 #include <vector>
@@ -40,6 +39,12 @@
 namespace Helium {
 
   /**
+   * @file ring.h
+   * @brief Ring and RingSet classes.
+   */
+
+  /**
+   * @class Ring ring.h <Helium/ring.h>
    * @brief Class representing a ring in a molecule.
    */
   template<typename MoleculeType>
@@ -237,6 +242,7 @@ namespace Helium {
   };
 
   /**
+   * @class RingSet ring.h <Helium/ring.h>
    * @brief Class representing a set of rings in a molecule.
    */
   template<typename MoleculeType>

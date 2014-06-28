@@ -41,7 +41,6 @@ install(TARGETS helium_tool
 #
 ############################################################
 
-find_package(OpenBabel2)
 if (OPENBABEL2_FOUND)
   message(STATUS "OpenBabel found: building obhelium tool")
   include_directories(${OPENBABEL2_INCLUDE_DIR})

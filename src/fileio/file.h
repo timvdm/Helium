@@ -37,6 +37,11 @@
 namespace Helium {
 
   /**
+   * @file fileio/file.h
+   * @brief Base classes for file I/O.
+   */
+
+  /**
    * @page binary_files Helium Binary Files
    *
    * The exact format is described below but for using these file
@@ -55,6 +60,7 @@ namespace Helium {
    */
 
   /**
+   * @class BinaryInputFile fileio/file.h <Helium/fileio/file.h>
    * @brief Helper class for all Helium binary input file formats.
    *
    * The HeliumInputFile class is a helper class used for all Helium binary
@@ -81,6 +87,8 @@ namespace Helium {
       }
 
       /**
+       * @brief open a file.
+       *
        * Open the file with the specified filename. This method also checks the
        * file's magic number and reads the JSON header. If this method returns
        * false the error() method can be used to get the type of error that
@@ -94,7 +102,7 @@ namespace Helium {
       bool open(const std::string &filename);
 
       /**
-       * Close the file.
+       * @brief Close the file.
        */
       void close()
       {
@@ -103,7 +111,7 @@ namespace Helium {
       }
 
       /**
-       * Convert to bool, can be used to check if stream is valid.
+       * @brief Convert to bool, can be used to check if stream is valid.
        *
        * @return True if the file stream is valid.
        */
@@ -113,8 +121,9 @@ namespace Helium {
       }
 
       /**
-       * Get the current file stream position. The binary data starts at
-       * position 0.
+       * @brief Get the current file stream position.
+       *
+       * The binary data starts at position 0.
        *
        * @return The file stream position.
        */
@@ -124,7 +133,7 @@ namespace Helium {
       }
 
       /**
-       * Set the file stream position.
+       * @brief Set the file stream position.
        *
        * @param pos The new file stream position.
        */
@@ -134,7 +143,7 @@ namespace Helium {
       }
 
       /**
-       * Get the JSON header.
+       * @brief Get the JSON header.
        *
        * @return The JSON header.
        */
@@ -144,7 +153,7 @@ namespace Helium {
       }
 
       /**
-       * Read data from the file.
+       * @brief Read data from the file.
        *
        * @param data The data to read from the file.
        * @param size The size of the data to read in bytes.
@@ -171,7 +180,7 @@ namespace Helium {
       }
 
       /**
-       * Get the std::ifstream to manipulate it directly.
+       * @brief Get the std::ifstream to manipulate it directly.
        *
        * @return The std::ifstream.
        */
@@ -209,6 +218,7 @@ namespace Helium {
   };
 
   /**
+   * @class BinaryOutputFile fileio/file.h <Helium/fileio/file.h>
    * @brief Helper class for all Helium binary output file formats.
    *
    * The HeliumOutputFile class is a helper class used for all Helium binary
@@ -235,7 +245,7 @@ namespace Helium {
       }
 
       /**
-       * Open the file with the specified filename.
+       * @brief Open the file with the specified filename.
        *
        * @param filename The filename for the file to open.
        *
@@ -244,7 +254,7 @@ namespace Helium {
       bool open(const std::string &filename);
 
       /**
-       * Close the file.
+       * @brief Close the file.
        */
       void close()
       {
@@ -252,7 +262,7 @@ namespace Helium {
       }
 
       /**
-       * Convert to bool, can be used to check if stream is valid.
+       * @brief Convert to bool, can be used to check if stream is valid.
        *
        * @return True if the file stream is valid.
        */
@@ -262,8 +272,9 @@ namespace Helium {
       }
 
       /**
-       * Get the current file stream position. The binary data starts at
-       * position 0.
+       * @brief Get the current file stream position.
+       *
+       * The binary data starts at position 0.
        *
        * @return The file stream position.
        */
@@ -273,7 +284,7 @@ namespace Helium {
       }
 
       /**
-       * Set the file stream position.
+       * @brief Set the file stream position.
        *
        * @param pos The new file stream position.
        */
@@ -283,7 +294,7 @@ namespace Helium {
       }
 
       /**
-       * Write data to the file.
+       * @brief Write data to the file.
        *
        * @param data The data to write to the file.
        * @param size The size of the data to write in bytes.
@@ -305,7 +316,7 @@ namespace Helium {
       }
 
       /**
-       * Write the JSON header to the file.
+       * @brief Write the JSON header to the file.
        *
        * @param header The JSON header.
        *
@@ -314,7 +325,7 @@ namespace Helium {
       bool writeHeader(const std::string &header);
 
       /**
-       * Get the std::ofstream to manipulate it directly.
+       * @brief Get the std::ofstream to manipulate it directly.
        */
       std::ofstream& stream()
       {

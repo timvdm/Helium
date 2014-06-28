@@ -39,6 +39,11 @@
 
 namespace Helium {
 
+  /**
+   * @file smarts.h
+   * @brief SMARTS substructure search.
+   */
+
   namespace impl {
 
     struct SmartsAtomExpr
@@ -443,6 +448,7 @@ namespace Helium {
   }
 
   /**
+   * @class Smarts smarts.h <Helium/smarts.h>
    * @brief Class for matching SMARTS.
    */
   class Smarts

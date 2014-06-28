@@ -34,6 +34,11 @@
 namespace Helium {
 
   /**
+   * @file algorithms/kekulize.h
+   * @brief Kekulization.
+   */
+
+  /**
    * @brief Kekulize a molecule.
    *
    * This algorithm changes aromatic bonds to alternating single and double bonds.

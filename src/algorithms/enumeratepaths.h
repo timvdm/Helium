@@ -28,12 +28,16 @@
 #define HELIUM_ENUMERATEPATHS_H
 
 #include <Helium/molecule.h>
-#include <Helium/tie.h>
 
 #include <vector>
 #include <algorithm>
 
 namespace Helium {
+
+  /**
+   * @file algorithms/enumeratepaths.h
+   * @brief Path enumeration.
+   */
 
   namespace impl {
 
@@ -65,9 +69,7 @@ namespace Helium {
         std::vector<std::vector<unsigned int> > paths()
         {
           // enumerate the paths starting from each atom
-          atom_iter atom, end_atoms;
-          TIE(atom, end_atoms) = get_atoms(m_mol);
-          for (; atom != end_atoms; ++atom) {
+          FOREACH_ATOM (atom, m_mol) {
             std::vector<unsigned int> path;
             enumerate(*atom, path);
           }
@@ -99,9 +101,7 @@ namespace Helium {
           // if the maximum path size is reached the path isn't extended
           if (path.size() < m_size) {
             // create new paths by adding neighbors of atom
-            nbr_iter nbr, end_nbrs;
-            TIE(nbr, end_nbrs) = get_nbrs(m_mol, atom);
-            for (; nbr != end_nbrs; ++nbr) {
+            FOREACH_NBR (nbr, atom, m_mol) {
               if (std::find(path.begin(), path.end(), get_index(m_mol, *nbr)) != path.end())
                 continue;
 

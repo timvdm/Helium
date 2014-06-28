@@ -33,8 +33,14 @@
 #include <thread>
 
 namespace Helium {
+  
+  /**
+   * @file concurrent.h
+   * @brief Concurrent class for C++11 thread support (experimental).
+   */
 
   /**
+   * @class Concurrent concurrent.h <Helium/concurrent.h>
    * @brief Class to run taks in parallel.
    *
    * The Concurrent class can be used to execute tasks that can be put in a

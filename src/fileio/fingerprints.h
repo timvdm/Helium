@@ -36,6 +36,11 @@
 namespace Helium {
 
   /**
+   * @file fileio/fingerprints.h
+   * @brief Classes for reading and writing fingerprint files.
+   */
+
+  /**
    * @page fingerprints_page Fingerprint Storage and Indexes
    *
    * @section fingerprints_files Fingerprint File Classes
@@ -254,6 +259,7 @@ namespace Helium {
 
 
   /**
+   * @class RowMajorFingerprintOutputFile fileio/fingerprints.h <Helium/fileio/fingerprints.h>
    * @brief Output file for storing fingerprints in row-major order.
    */
   class RowMajorFingerprintOutputFile
@@ -294,12 +300,23 @@ namespace Helium {
         return m_file.writeHeader(header);
       }
 
+      /**
+       * @brief Get the last error.
+       *
+       * @return The last error.
+       */
+      const Error& error() const
+      {
+        return m_file.error();
+      }
+
     private:
       BinaryOutputFile m_file; //!< The output file.
       unsigned int m_numBytes; //!< The number of bytes in a fingerprint.
   };
 
   /**
+   * @class ColumnMajorFingerprintOutputFile fileio/fingerprints.h <Helium/fileio/fingerprints.h>
    * @brief Output file for storing fingerprints in column-major order.
    */
   class ColumnMajorFingerprintOutputFile
@@ -366,6 +383,16 @@ namespace Helium {
         return m_file.writeHeader(header);
       }
 
+      /**
+       * @brief Get the last error.
+       *
+       * @return The last error.
+       */
+      const Error& error() const
+      {
+        return m_file.error();
+      }
+
     private:
       BinaryOutputFile m_file; //!< The output file.
       unsigned int m_numBits; //!< The number of bits in the fingerprint.
@@ -375,6 +402,7 @@ namespace Helium {
   };
 
   /**
+   * @class InMemoryRowMajorFingerprintStorage fileio/fingerprints.h <Helium/fileio/fingerprints.h>
    * @brief Class for accessing row-major order fingerprints file from memory.
    */
   class InMemoryRowMajorFingerprintStorage
@@ -444,39 +472,51 @@ namespace Helium {
       /**
        * @brief Load the fingerprints from a file in memory.
        *
-       * An exception is thrown when an error occurs.
-       *
        * @param filename The filename.
        */
-      void load(const std::string &filename)
+      bool load(const std::string &filename)
       {
         TIMER("InMemoryRowMajorFingerprintStorage::load():");
 
         // open the file
         BinaryInputFile file(filename);
-        if (!file)
-          throw std::runtime_error(make_string("Could not open fingerprint file \"", filename, "\""));
+        if (!file) {
+          m_error = Error(make_string("Could not open fingerprint file \"", filename, "\""));
+          return false;
+        }
 
         // parse the JSON header
         m_json = file.header();
         Json::Reader reader;
         Json::Value data;
-        if (!reader.parse(m_json, data))
-          throw std::runtime_error(reader.getFormattedErrorMessages());
+        if (!reader.parse(m_json, data)) {
+          m_error = Error(reader.getFormattedErrorMessages());
+          return false;
+        }
 
         // make sure the required attributes are present
-        if (!data.isMember("filetype") || data["filetype"].asString() != "fingerprints")
-          throw std::runtime_error(make_string("JSON header for file ", filename, " does not contain 'filetype' attribute or is not 'fingerprints'"));
-        if (!data.isMember("order"))
-          throw std::runtime_error(make_string("JSON header for file ", filename, " does not contain 'order' attribute"));
-        if (!data.isMember("num_bits"))
-          throw std::runtime_error(make_string("JSON header for file ", filename, " does not contain 'num_bits' attribute"));
-        if (!data.isMember("num_fingerprints"))
-          throw std::runtime_error(make_string("JSON header for file ", filename, " does not contain 'num_fingerprints' attribute"));
+        if (!data.isMember("filetype") || data["filetype"].asString() != "fingerprints") {
+          m_error = Error(make_string("JSON header for file ", filename, " does not contain 'filetype' attribute or is not 'fingerprints'"));
+          return false;
+        }
+        if (!data.isMember("order")) {
+          m_error = Error(make_string("JSON header for file ", filename, " does not contain 'order' attribute"));
+          return false;
+        }
+        if (!data.isMember("num_bits")) {
+          m_error = Error(make_string("JSON header for file ", filename, " does not contain 'num_bits' attribute"));
+          return false;
+        }
+        if (!data.isMember("num_fingerprints")) {
+          m_error = Error(make_string("JSON header for file ", filename, " does not contain 'num_fingerprints' attribute"));
+          return false;
+        }
 
         // ensure this is a row-major order file
-        if (data["order"].asString() != "row-major")
-          throw std::runtime_error(make_string(filename, " is not a row-major order fingerprint file"));
+        if (data["order"].asString() != "row-major") {
+          m_error = Error(make_string(filename, " is not a row-major order fingerprint file"));
+          return false;
+        }
 
         // get attributes from header
         m_numBits = data["num_bits"].asUInt();
@@ -487,6 +527,18 @@ namespace Helium {
         file.read(m_fingerprints, bitvec_num_words_for_bits(m_numBits) * m_numFingerprints * sizeof(Word));
 
         m_init = true;
+
+        return true;
+      }
+
+      /**
+       * @brief Get the last error.
+       *
+       * @return The last error.
+       */
+      const Error& error() const
+      {
+        return m_error;
       }
 
     private:
@@ -495,9 +547,11 @@ namespace Helium {
       unsigned int m_numBits; //!< The number of fingerprint bits.
       unsigned int m_numFingerprints; //!< The number of fingerprints.
       bool m_init; //!< Flag to check for initialization.
+      Error m_error; //!< The last error.
   };
 
   /**
+   * @class InMemoryColumnMajorFingerprintStorage fileio/fingerprints.h <Helium/fileio/fingerprints.h>
    * @brief Class for accessing column-major order fingerprints file from memory.
    */
   class InMemoryColumnMajorFingerprintStorage
@@ -566,39 +620,51 @@ namespace Helium {
       /**
        * @brief Load the fingerprints from a file in memory.
        *
-       * An exception is thrown when an error occurs.
-       *
        * @param filename The filename.
        */
-      void load(const std::string &filename)
+      bool load(const std::string &filename)
       {
         TIMER("InMemoryColumnMajorFingerprintStorage::load():");
 
         // open the file
         BinaryInputFile file(filename);
-        if (!file)
-          throw std::runtime_error(make_string("Could not open fingerprint file \"", filename, "\""));
+        if (!file) {
+          m_error = Error(make_string("Could not open fingerprint file \"", filename, "\""));
+          return false;
+        }
 
         // parse the JSON header
         m_json = file.header();
         Json::Reader reader;
         Json::Value data;
-        if (!reader.parse(m_json, data))
-          throw std::runtime_error(reader.getFormattedErrorMessages());
+        if (!reader.parse(m_json, data)) {
+          m_error = Error(reader.getFormattedErrorMessages());
+          return false;
+        }
 
         // make sure the required attributes are present
-        if (!data.isMember("filetype") || data["filetype"].asString() != "fingerprints")
-          throw std::runtime_error(make_string("JSON header for file ", filename, " does not contain 'filetype' attribute or is not 'fingerprints'"));
-        if (!data.isMember("order"))
-          throw std::runtime_error(make_string("JSON header for file ", filename, " does not contain 'order' attribute"));
-        if (!data.isMember("num_bits"))
-          throw std::runtime_error(make_string("JSON header for file ", filename, " does not contain 'num_bits' attribute"));
-        if (!data.isMember("num_fingerprints"))
-          throw std::runtime_error(make_string("JSON header for file ", filename, " does not contain 'num_fingerprints' attribute"));
+        if (!data.isMember("filetype") || data["filetype"].asString() != "fingerprints") {
+          m_error = Error(make_string("JSON header for file ", filename, " does not contain 'filetype' attribute or is not 'fingerprints'"));
+          return false;
+        }
+        if (!data.isMember("order")) {
+          m_error = Error(make_string("JSON header for file ", filename, " does not contain 'order' attribute"));
+          return false;
+        }
+        if (!data.isMember("num_bits")) {
+          m_error = Error(make_string("JSON header for file ", filename, " does not contain 'num_bits' attribute"));
+          return false;
+        }
+        if (!data.isMember("num_fingerprints")) {
+          m_error = Error(make_string("JSON header for file ", filename, " does not contain 'num_fingerprints' attribute"));
+          return false;
+        }
 
         // ensure this is a row-major order file
-        if (data["order"].asString() != "column-major")
-          throw std::runtime_error(make_string(filename, " is not a column-major order fingerprint file"));
+        if (data["order"].asString() != "column-major") {
+          m_error = Error(make_string(filename, " is not a column-major order fingerprint file"));
+          return false;
+        }
 
         // get attributes from header
         m_numBits = data["num_bits"].asUInt();
@@ -609,6 +675,18 @@ namespace Helium {
         file.read(m_fingerprints, bitvec_num_words_for_bits(m_numFingerprints) * m_numBits * sizeof(Word));
 
         m_init = true;
+
+        return true;
+      }
+
+      /**
+       * @brief Get the last error.
+       *
+       * @return The last error.
+       */
+      const Error& error() const
+      {
+        return m_error;
       }
 
     private:
@@ -617,6 +695,7 @@ namespace Helium {
       unsigned int m_numBits; //!< The number of fingerprint bits.
       unsigned int m_numFingerprints; //!< The number of fingerprints.
       bool m_init; //!< Flag to check for initialization.
+      Error m_error; //!< The last error.
   };
 
 }

@@ -205,10 +205,8 @@ namespace Helium {
         // open fingerprint file
         //
         InMemoryRowMajorFingerprintStorage storage;
-        try {
-          storage.load(filename);
-        } catch (const std::exception &e) {
-          std::cerr << e.what() << std::endl;
+        if (!storage.load(filename)) {
+          std::cerr << storage.error().what() << std::endl;
           return -1;
         }
 

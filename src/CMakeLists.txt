@@ -13,7 +13,6 @@ set(HELIUM_HDRS
   element.h
   error.h
   molecule.h
-  tie.h
   timeout.h
   util.h
   hemol.h
@@ -70,9 +69,12 @@ set(HELIUM_STEREO_HDRS
   stereo/razinger.h
 )
 
-set(HELIUM_TOOLKITS_HDRS
-  toolkits/openbabel.h
-)
+set(HELIUM_TOOLKITS_HDRS)
+if (OPENBABEL2_FOUND)
+  set(HELIUM_TOOLKITS_HDRS
+    toolkits/openbabel.h
+  )
+endif()
 
 set(HELIUM_CHEMIST_HDRS
   chemist/molecule.h

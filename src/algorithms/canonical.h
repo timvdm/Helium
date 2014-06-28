@@ -35,9 +35,16 @@
 #include <map>
 #include <limits>
 
+//@cond DEV
 #define DEBUG_CANON 0
+//@endcond
 
 namespace Helium {
+
+  /**
+   * @file algorithms/canonical.h
+   * @brief Canonicalization.
+   */
 
   namespace impl {
 

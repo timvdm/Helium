@@ -297,7 +297,7 @@ namespace Helium {
 
   Depict::Depict(Painter *painter) : m_painter(painter), m_bondLength(40.0), m_penWidth(2.0),
           m_bondSpacing(6.0), m_bondWidth(8.0), m_fontSize(16), m_subscriptSize(13),
-          m_aliasMode(false), m_bondColor("black"), m_options(0)
+          m_bondColor("black"), m_options(0)
   {
   }
 

@@ -37,20 +37,52 @@ namespace Helium
 {
 
   /**
-   * @class Depict depict.h <Helium/depict.h>
+   * @file depict/depict.h
+   * @brief 2D depiction.
+   */
+
+  /**
+   * @class Depict depict/depict.h <Helium/depict/depict.h>
    * @brief 2D depiction of molecules using Painter.
    */
   class Depict
   {
     public:
+      /**
+       * @brief Options.
+       */
       enum OptionType {
+        /**
+         * @brief Depict with black atoms.
+         */
         BlackWhiteAtoms      = 0x0001,
+        /**
+         * @brief Do not add margin.
+         */
         NoMargin             = 0x0002,
+        /**
+         * @brief Draw terminal carbon atoms.
+         */
         DrawTermC            = 0x0004,
+        /**
+         * @brief Draw all carbon atoms.
+         */
         DrawAllC             = 0x0008,
+        /**
+         * @brief Do not generate wedge and hash bonds.
+         */
         NoWedgeHashGen       = 0x0010,
+        /**
+         * @brief Use asymmetric double bonds.
+         */
         AsymmetricDoubleBond = 0x0020,
+        /**
+         * @brief Draw aromatic rings using a circle.
+         */
         AromaticCircle       = 0x0040,
+        /**
+         * @brief Draw aromatic rings using hash bonds.
+         */
         AromaticHash         = 0x0080
       };
 
@@ -58,63 +90,93 @@ namespace Helium
        * Constructor.
        */
       Depict(Painter *painter);
+
       /**
        * Destructor.
        */
       ~Depict();
+
       /**
-       * Draw @p mol using the painter previously stored in the constructor.
+       * @brief Draw @p mol using the painter previously stored in the constructor.
+       *
+       * @param mol The molecule.
+       * @param rings The ring set.
+       * @param origCoords The 2D coordinates.
        *
        * @return True if successful.
        */
-
       template<typename MoleculeType>
       bool drawMolecule(const MoleculeType &mol, const RingSet<MoleculeType> &rings,
           const std::vector<std::pair<double, double> > &origCoords);
 
       /**
-       * Draw atom labels of a specified @p type.
+       * @brief Set the bonds length.
        *
-       * @return True if successful.
+       * @param length The new bond lenght.
        */
-      //bool addAtomLabels(AtomLabelType type);
-
       void setBondLength(double length)
       {
         m_bondLength= length;
       }
 
+      /**
+       * @brief Get the bond lenght.
+       */
       double bondLength() const
       {
         return m_bondLength;
       }
 
+      /**
+       * @brief Set the pen width.
+       *
+       * @param width The new pen width.
+       */
       void setPenWidth(double width)
       {
         m_penWidth = width;
         m_painter->setPenWidth(width);
       }
 
+      /**
+       * @brief Get the pen width.
+       */
       double penWidth() const
       {
         return m_penWidth;
       }
 
+      /**
+       * @brief Set the bond spacing.
+       *
+       * @param spacing The new bond spacing.
+       */
       void setBondSpacing(double spacing)
       {
         m_bondSpacing = spacing;
       }
 
+      /**
+       * @brief Get the bond spacing.
+       */
       double bondSpacing() const
       {
         return m_bondSpacing;
       }
 
+      /**
+       * @brief Set the bond width.
+       *
+       * @param width The new bond width.
+       */
       void setBondWidth(double width)
       {
         m_bondWidth = width;
       }
 
+      /**
+       * @brief Get the bond width.
+       */
       double bondWidth() const
       {
         return m_bondWidth;
@@ -123,46 +185,73 @@ namespace Helium
       //void SetDrawingTerminalCarbon(bool enabled);
       //bool GetDrawingTerminalCarbon() const;
 
-      //extendable with binary compatibility
+      /**
+       * @brief Set options.
+       *
+       * @param opts The new options to be set.
+       */
       void setOption(unsigned opts)
       {
+        // extendable with binary compatibility
         m_options |= opts;
       }
 
+      /**
+       * @brief Get the options.
+       */
       unsigned options() const
       {
         return m_options;
       }
 
+      /**
+       * @brief Clear all options.
+       */
       void clearOptions()
       {
         m_options = 0;
       }
 
+      /**
+       * @brief Set the font family.
+       *
+       * @param family The new font family.
+       */
       void setFontFamily(const std::string &family)
       {
         m_fontFamily = family;
         m_painter->setFontFamily(family);
       }
 
+      /**
+       * @brief Get the font family.
+       */
       const std::string& GetFontFamily() const
       {
         return m_fontFamily;
       }
 
+      /**
+       * @brief Set the font size.
+       *
+       * @param pointSize The font size in points.
+       * @param subscript Specify whether the size is for subscript text.
+       */
       void setFontSize(int pointSize, bool subscript = false);
+
+      /**
+       * @brief Get the font size.
+       */
       int fontSize(bool subscript = false) const;
 
-      void setAliasMode(bool b = true)
+      /**
+       * @brief Set the bond color.
+       *
+       * @param color The new bond color.
+       */
+      void setBondColor(const std::string &color)
       {
-        m_aliasMode = b;
-      }
-
-      //Color is not quite properly integrated into Depict, but is needed if
-      //element-dependent coloring is to be used.
-      void setBondColor(const std::string& scolor)
-      {
-        m_bondColor = scolor;
+        m_bondColor = color;
       }
 
     private:
@@ -195,7 +284,6 @@ namespace Helium
       double m_bondWidth;
       //bool m_drawTerminalC;
       int m_fontSize, m_subscriptSize;
-      bool m_aliasMode;
       std::string m_fontFamily;
       Color m_bondColor;
       unsigned m_options;

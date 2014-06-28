@@ -29,6 +29,11 @@ if (EIGEN3_FOUND)
   include_directories(${EIGEN3_INCLUDE_DIR})
 endif()
 
+option(ENABLE_OPENBABEL "Enable OpenBabel support" OFF)
+if (ENABLE_OPENBABEL)
+  find_package(OpenBabel2)
+endif()
+
 # Find OpenCL (optional)
 option(ENABLE_OPENCL "Enable OpenCL support" OFF)
 set(HAVE_OPENCL 0) # used by configure_file()

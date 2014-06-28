@@ -33,6 +33,11 @@
 namespace Helium {
 
   /**
+   * @file algorithms/gtd.h
+   * @brief Graph theoretical distance.
+   */
+
+  /**
    * @brief Compute the Graph Theoretical Distance.
    *
    * The Graph Theoretical Distance is, for each atom, the number of bonds plus

@@ -35,44 +35,9 @@
 namespace Helium {
 
   /**
-   * @brief Check whether an atom mask is valid.
+   * @file algorithms/dfs.h
+   * @brief Depth-first search.
    */
-  template<typename MoleculeType>
-  bool is_valid_atom_mask(const MoleculeType &mol, const std::vector<bool> &atomMask)
-  {
-    if (num_atoms(mol) != atomMask.size())
-      return false;
-    return true;
-  }
-
-  /**
-   * @brief Check whether a bond mask is valid.
-   */
-  template<typename MoleculeType>
-  bool is_valid_bond_mask(const MoleculeType &mol, const std::vector<bool> &atomMask,
-      const std::vector<bool> &bondMask)
-  {
-    typedef typename molecule_traits<MoleculeType>::atom_type atom_type;
-
-    if (!is_valid_atom_mask(mol, atomMask))
-      return false;
-    if (num_bonds(mol) != bondMask.size())
-      return false;
-
-    // if a bond should be considered, both atoms should also be considered
-    FOREACH_BOND (bond, mol) {
-      if (!bondMask[get_index(mol, *bond)])
-        continue;
-      atom_type source = get_source(mol, *bond);
-      if (!atomMask[get_index(mol, source)])
-        return false;
-      atom_type target = get_target(mol, *bond);
-      if (!atomMask[get_index(mol, target)])
-        return false;
-    }
-
-    return true;
-  }
 
   //////////////////////////////////////////////////////////////////////////////
   //
@@ -81,6 +46,7 @@ namespace Helium {
   //////////////////////////////////////////////////////////////////////////////
 
   /**
+   * @struct DFSVisitor algorithms/dfs.h <Helium/algorithms/dfs.h>
    * @brief Base class for DFS functors.
    */
   template<typename MoleculeType>
@@ -835,6 +801,7 @@ namespace Helium {
   //////////////////////////////////////////////////////////////////////////////
 
   /**
+   * @struct DFSAtomOrderVisitor algorithms/dfs.h <Helium/algorithms/dfs.h>
    * @brief A DFS visitor that records the order in which the atoms are visited.
    */
   template<typename MoleculeType>
@@ -866,6 +833,7 @@ namespace Helium {
   };
 
   /**
+   * @struct DFSBondOrderVisitor algorithms/dfs.h <Helium/algorithms/dfs.h>
    * @brief A DFS visitor that records the order in which the bonds are visited.
    */
   template<typename MoleculeType>
@@ -901,6 +869,7 @@ namespace Helium {
   };
 
   /**
+   * @struct DFSClosureRecorderVisitor algorithms/dfs.h <Helium/algorithms/dfs.h>
    * @brief A DFS visitor that records the "back" bonds.
    */
   template<typename MoleculeType>
@@ -931,6 +900,7 @@ namespace Helium {
   };
 
   /**
+   * @struct DFSDebugVisitor algorithms/dfs.h <Helium/algorithms/dfs.h>
    * @brief A DFS visitor that prints out debug information.
    */
   template<typename MoleculeType>

@@ -32,11 +32,18 @@
 namespace Helium {
 
   /**
+   * @file timeout.h
+   * @brief Timeout handling.
+   */
+
+  /**
+   * @struct timeout_error timeout.h <Helium/timeout.h>
    * @brief Timeout exception.
    */
   struct timeout_error : std::exception {};
 
   /**
+   * @class Timeout timeout.h <Helium/timeout.h>
    * @brief Class for handling timeouts.
    */
   class Timeout

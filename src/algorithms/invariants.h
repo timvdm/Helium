@@ -27,12 +27,17 @@
 #ifndef HELIUM_INVARIANTS_H
 #define HELIUM_INVARIANTS_H
 
-#include <Helium/tie.h>
 #include <Helium/molecule.h>
 
 namespace Helium {
 
   /**
+   * @file algorithms/invariants.h
+   * @brief Molecule, atom and bond invariants.
+   */
+
+  /**
+   * @class DefaultAtomInvariant algorithms/invariants.h <Helium/algorithms/invariants.h>
    * @brief Atom invariant to be used for canonical coding.
    */
   class DefaultAtomInvariant
@@ -120,6 +125,7 @@ namespace Helium {
   };
 
   /**
+   * @class DefaultBondInvariant algorithms/invariants.h <Helium/algorithms/invariants.h>
    * @brief Bond invariant to be used for canonical coding.
    */
   class DefaultBondInvariant

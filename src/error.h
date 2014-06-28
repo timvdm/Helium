@@ -30,6 +30,12 @@
 namespace Helium {
 
   /**
+   * @file error.h
+   * @brief Error class.
+   */
+
+  /**
+   * @class Error error.h <Helium/error.h>
    * @brief Class representing an error.
    */
   class Error

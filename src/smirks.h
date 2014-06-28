@@ -33,11 +33,19 @@
 #include <iostream>
 #include <boost/shared_ptr.hpp>
 
+//@cond DEV
 #define DEBUG_SMIRKS 0
+//@endcond
 
 namespace Helium {
 
   /**
+   * @file smirks.h
+   * @brief SMIRKS transformations.
+   */
+
+  /**
+   * @class SmirksError smirks.h <Helium/smirks.h>
    * @brief Class representing possible SMIRKS errors.
    */
   class SmirksError
@@ -198,6 +206,7 @@ namespace Helium {
   }
 
   /**
+   * @class Smirks smirks.h <Helium/smirks.h>
    * @brief Class for applying SMIRKS transformations.
    */
   class Smirks

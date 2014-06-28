@@ -24,8 +24,8 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-#ifndef HELIUM_FILEIO_MOLECULES_H
-#define HELIUM_FILEIO_MOLECULES_H
+#ifndef HELIUM_FILEIO_MOLECULEFILE_H
+#define HELIUM_FILEIO_MOLECULEFILE_H
 
 #include <Helium/molecule.h>
 #include <Helium/util.h>
@@ -35,6 +35,11 @@
 #include <boost/iostreams/device/mapped_file.hpp>
 
 namespace Helium {
+
+  /**
+   * @file fileio/moleculefile.h
+   * @brief Classes for reading and writing molecule files.
+   */
 
   /**
    * @brief Read a molecule from a STL input stream.
@@ -173,6 +178,136 @@ namespace Helium {
   }
 
   /**
+   * @brief Write a molecule to an STL output stream.
+   *
+   * @param os The STL output stream.
+   * @param mol The molecule to write.
+   */
+  template<typename MoleculeType>
+  void write_molecule(std::ostream &os, const MoleculeType &mol)
+  {
+    // hydrogen atoms are not written to the file
+    // create a map to map atom indices & count the number of heavy atoms
+    std::vector<unsigned short> indices(num_atoms(mol));
+    unsigned short numAtoms = 0;
+    FOREACH_ATOM (atom, mol) {
+      indices[get_index(mol, *atom)] = numAtoms;
+      if (!is_hydrogen(mol, *atom))
+        ++numAtoms;
+    }
+
+    // count the number of bonds between heavy atoms
+    unsigned short numBonds = 0;
+    FOREACH_BOND (bond, mol)
+      if (!is_hydrogen(mol, get_source(mol, *bond)) && !is_hydrogen(mol, get_target(mol, *bond)))
+        ++numBonds;
+
+    // write the number of atoms & bonds
+    write16<unsigned short>(os, numAtoms);
+    write16<unsigned short>(os, numBonds);
+
+    // write atoms (6 byte / atom)
+    FOREACH_ATOM (atom, mol) {
+      if (is_hydrogen(mol, *atom))
+        continue;
+
+      // write the element
+      write8<unsigned char>(os, get_element(mol, *atom));
+      // write cyclic property
+      write8<unsigned char>(os, 0);
+      // write aromatic property
+      write8<unsigned char>(os, is_aromatic(mol, *atom));
+      // write isotope
+      write8<unsigned char>(os, get_mass(mol, *atom));
+      // write hydrogen count
+      write8<unsigned char>(os, get_hydrogens(mol, *atom) + get_degree(mol, *atom) - get_heavy_degree(mol, *atom));
+      // write formal charge
+      write8<signed char>(os, get_charge(mol, *atom));
+    }
+  
+    // write bonds (5 byte / bond
+    FOREACH_BOND (bond, mol) {
+      if (is_hydrogen(mol, get_source(mol, *bond)) || is_hydrogen(mol, get_target(mol, *bond)))
+        continue;
+
+      // write source & target indices
+      write16<unsigned short>(os, indices[get_index(mol, get_source(mol, *bond))]);
+      write16<unsigned short>(os, indices[get_index(mol, get_target(mol, *bond))]);
+      // write bond order + aromatic & cyclic properties
+      unsigned char props = get_order(mol, *bond);
+      if (is_aromatic(mol, *bond))
+        props |= 128;
+      //if (bond->IsInRing())
+      //  props |= 64;
+      write8<unsigned char>(os, props);
+    }
+  }
+
+  /**
+   * @class MoleculeOutputFile fileio/moleculefile.h <Helium/fileio/moleculefile.h>
+   * @brief Class for writing molecule files.
+   */
+  class MoleculeOutputFile
+  {
+    public:
+      /**
+       * @brief Constructor.
+       *
+       * @param filename The filename.
+       */
+      MoleculeOutputFile(const std::string &filename) : m_file(filename)
+      {
+      }
+
+      ~MoleculeOutputFile()
+      {
+        // save the stream position where the molecule positions are stored
+        Json::UInt64 positionsPos = m_file.stream().tellp();
+
+        // write the molecule positions to the file
+        m_file.write(&m_positions[0], m_positions.size() * sizeof(std::size_t));
+
+        // create JSON header
+        Json::Value data;
+        data["filetype"] = "molecules";
+        data["num_molecules"] = Json::UInt64(m_positions.size());
+        data["molecule_indexes"] = positionsPos;
+
+        // write JSON header
+        Json::StyledWriter writer;
+        m_file.writeHeader(writer.write(data));
+      }
+
+      /**
+       * @brief Write a molecule to the file.
+       *
+       * @param mol The molecule to write.
+       */
+      template<typename MoleculeType>
+      bool writeMolecule(const MoleculeType &mol)
+      {
+        m_positions.push_back(m_file.stream().tellp());
+        write_molecule(m_file.stream(), mol);
+      }
+
+      /**
+       * @brief Get the last error.
+       *
+       * @return The last error.
+       */
+      const Error& error() const
+      {
+        return m_file.error();
+      }
+
+    private:
+      BinaryOutputFile m_file; //!< The binary output file.
+      std::vector<std::size_t> m_positions; //!< The molecule positions in the file.
+      Error m_error; //!< The last error.
+  };
+
+  /**
+   * @class MoleculeFile fileio/moleculefile.h <Helium/fileio/moleculefile.h>
    * @brief Class for reading molecules from Helium binary file.
    *
    * When load() is called, this class reads the file header and loads the
@@ -205,25 +340,39 @@ namespace Helium {
        *
        * @param filename The filename.
        */
-      void load(const std::string &filename)
+      bool load(const std::string &filename)
       {
         TIMER("MoleculeFile::load():");
 
-        m_file.open(filename);
+        // reset error
+        m_error = Error();
+
+        if (!m_file.open(filename)) {
+          m_error = m_file.error();
+          return false;
+        }
 
         // read the josn header
         Json::Reader reader;
         Json::Value data;
-        if (!reader.parse(m_file.header(), data))
-          throw std::runtime_error(reader.getFormattedErrorMessages());
+        if (!reader.parse(m_file.header(), data)) {
+          m_error = Error(reader.getFormattedErrorMessages());
+          return false;
+        }
 
         // make sure the required attributes are present
-        if (!data.isMember("filetype") || data["filetype"].asString() != "molecules")
-          throw std::runtime_error(make_string("JSON header for file ", filename, " does not contain 'filetype' attribute or is not 'molecules'"));
-        if (!data.isMember("num_molecules"))
-          throw std::runtime_error(make_string("JSON header for file ", filename, " does not contain 'num_molecules' attribute"));
-        if (!data.isMember("molecule_indexes"))
-          throw std::runtime_error(make_string("JSON header for file ", filename, " does not contain 'molecule_indexes' attribute"));
+        if (!data.isMember("filetype") || data["filetype"].asString() != "molecules") {
+          m_error = Error(make_string("JSON header for file ", filename, " does not contain 'filetype' attribute or is not 'molecules'"));
+          return false;
+        }
+        if (!data.isMember("num_molecules")) {
+          m_error = Error(make_string("JSON header for file ", filename, " does not contain 'num_molecules' attribute"));
+          return false;
+        }
+        if (!data.isMember("molecule_indexes")) {
+          m_error = Error(make_string("JSON header for file ", filename, " does not contain 'molecule_indexes' attribute"));
+          return false;
+        }
 
         // extract needed attributes
         m_numMolecules = data["num_molecules"].asUInt();
@@ -236,6 +385,8 @@ namespace Helium {
 
         // reset stream position to read first molecule
         m_file.seek(0);
+
+        return true;
       }
 
       /**
@@ -316,14 +467,26 @@ namespace Helium {
         m_positionsPos = 0;
       }
 
+      /**
+       * @brief Get the last error.
+       *
+       * @return The last error.
+       */
+      const Error& error() const
+      {
+        return m_error;
+      }
+
     private:
       BinaryInputFile m_file; //!< The binary file.
       std::vector<uint64_t> m_positions; //!< The molecule positions.
       unsigned int m_numMolecules; //!< The number of molecules.
       Json::UInt64 m_positionsPos; //!< Position of molecule positions index.
+      Error m_error; //!< The last error.
   };
 
   /**
+   * @class MemoryMappedMoleculeFile fileio/moleculefile.h <Helium/fileio/moleculefile.h>
    * @brief Class for reading molecules from Helium binary file.
    */
   class MemoryMappedMoleculeFile
@@ -353,26 +516,41 @@ namespace Helium {
        *
        * @param filename The filename.
        */
-      void load(const std::string &filename)
+      bool load(const std::string &filename)
       {
         TIMER("MemoryMappedMoleculeFile::load():");
 
+        // reset error
+        m_error = Error();
+
         // use a temporary BinaryInputFile to easily read the header
         BinaryInputFile file(filename);
+        if (file.error()) {
+          m_error = file.error();
+          return false;
+        }
 
         // read the josn header
         Json::Reader reader;
         Json::Value data;
-        if (!reader.parse(file.header(), data))
-          throw std::runtime_error(reader.getFormattedErrorMessages());
+        if (!reader.parse(file.header(), data)) {
+          m_error = Error(reader.getFormattedErrorMessages());
+          return false;
+        }
 
         // make sure the required attributes are present
-        if (!data.isMember("filetype") || data["filetype"].asString() != "molecules")
-          throw std::runtime_error(make_string("JSON header for file ", filename, " does not contain 'filetype' attribute or is not 'molecules'"));
-        if (!data.isMember("num_molecules"))
-          throw std::runtime_error(make_string("JSON header for file ", filename, " does not contain 'num_molecules' attribute"));
-        if (!data.isMember("molecule_indexes"))
-          throw std::runtime_error(make_string("JSON header for file ", filename, " does not contain 'molecule_indexes' attribute"));
+        if (!data.isMember("filetype") || data["filetype"].asString() != "molecules") {
+          m_error = Error(make_string("JSON header for file ", filename, " does not contain 'filetype' attribute or is not 'molecules'"));
+          return false;
+        }
+        if (!data.isMember("num_molecules")) {
+          m_error = Error(make_string("JSON header for file ", filename, " does not contain 'num_molecules' attribute"));
+          return false;
+        }
+        if (!data.isMember("molecule_indexes")) {
+          m_error = Error(make_string("JSON header for file ", filename, " does not contain 'molecule_indexes' attribute"));
+          return false;
+        }
 
         // extract needed attributes
         m_numMolecules = data["num_molecules"].asUInt();
@@ -387,6 +565,8 @@ namespace Helium {
         m_positions.resize(m_numMolecules);
         for (unsigned int i = 0; i < m_positions.size(); ++i)
           m_positions[i] = *reinterpret_cast<const uint64_t*>(m_mappedFile.data() + positionsPos + i * sizeof(uint64_t));
+
+        return true;
       }
 
       /**
@@ -411,10 +591,21 @@ namespace Helium {
         return true;
       }
 
+      /**
+       * @brief Get the last error.
+       *
+       * @return The last error.
+       */
+      const Error& error() const
+      {
+        return m_error;
+      }
+
     private:
       boost::iostreams::mapped_file_source m_mappedFile; //!< The memory mapped file.
       std::vector<uint64_t> m_positions; //!< The positions of the molecules in the file.
       unsigned int m_numMolecules; //!< The number of molecules in the file.
+      Error m_error; //!< The last error.
   };
 
 }

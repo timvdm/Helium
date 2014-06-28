@@ -33,17 +33,15 @@ namespace Helium {
   std::ostream& operator<<(std::ostream &os, HeMol &mol)
   {
     os << "Molecule:" << std::endl;
+
     os << "    Atoms:\tindex\telement" << std::endl;
-    molecule_traits<HeMol>::atom_iter atom, end_atoms;
-    TIE(atom, end_atoms) = mol.atoms();
-    for (; atom != end_atoms; ++atom)
+    FOREACH_ATOM (atom, mol)
       os << "          \t" << (*atom).index() << "\t" << (*atom).element() << std::endl;
 
     os << "    Bonds:\tsource\ttarget\torder" << std::endl;
-    molecule_traits<HeMol>::bond_iter bond, end_bonds;
-    TIE(bond, end_bonds) = mol.bonds();
-    for (; bond != end_bonds; ++bond)
+    FOREACH_BOND (bond, mol)
       os << "          \t" << (*bond).source().index() << "\t" << (*bond).target().index() << "\t" << (*bond).order() << std::endl;
+
     return os;
   }
 

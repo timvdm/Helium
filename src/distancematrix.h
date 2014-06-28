@@ -36,6 +36,12 @@
 namespace Helium {
 
   /**
+   * @file distancematrix.h
+   * @brief DistanceMatrix class.
+   */
+
+  /**
+   * @class DistanceMatrix distancematrix.h <Helium/distancematrix.h>
    * @brief Class representing a distance matrix.
    *
    * This is a regular distance matrix which requires n * n elements of memory.

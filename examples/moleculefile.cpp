@@ -18,10 +18,8 @@ int main(int argc, char **argv)
 
   // perpare molecule file
   MoleculeFile file;
-  try {
-    file.load(argv[1]);
-  } catch (const std::exception &e) {
-    std::cerr << "Error: " << e.what() << std::endl;
+  if (!file.load(argv[1])) {
+    std::cerr << "Error: " << file.error().what() << std::endl;
     return -1;
   }
 

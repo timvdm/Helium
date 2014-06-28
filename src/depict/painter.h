@@ -37,21 +37,46 @@
 namespace Helium {
 
   /**
-   * @class Color painter.h <Helium/depict/painter.h>
+   * @file depict/painter.h
+   * @brief Painter class used by Depict.
+   */
+
+  /**
+   * @class Color depict/painter.h <Helium/depict/painter.h>
    * @brief Color class used by Depict.
    */
   struct Color
   {
+    /**
+     * @brief Default constructor.
+     */
     Color()
     {
       *this = Color(0.0, 0.0, 0.0);
     }
 
+    /**
+     * @brief Constructor.
+     *
+     * @param _red The red component [0, 1].
+     * @param _green The green component [0, 1].
+     * @param _blue The blue component [0, 1].
+     * @param _alpha The alpha component [0, 1].
+     */
     Color(double _red, double _green, double _blue, double _alpha = 1.0) :
         red(_red), green(_green), blue(_blue), alpha(_alpha)
     {
     }
 
+    /**
+     * @brief constructor.
+     *
+     * Acceptable color strings: white, red, green, blue, yelloq, gray, cyan,
+     * purple, teal, olive, none (black). It is also possible to specify colors
+     * using hexadecimal notation using the # prefix (e.g. "#FF0000").
+     *
+     * @param color The color string.
+     */
     Color(const std::string &color)
     {
       if (color[0] == '#') {
@@ -92,29 +117,46 @@ namespace Helium {
         *this = Color(0.5, 0.5, 0.5);
     }
 
-    Color(std::vector<double> vec) : red(vec[0]), green(vec[1]), blue(vec[2]), alpha(1.0){}
+    /**
+     * @brief Constructor.
+     *
+     * @param vec The color vector (RGB).
+     */
+    Color(const std::vector<double> &vec) : red(vec[0]), green(vec[1]), blue(vec[2]), alpha(1.0)
+    {
+    }
 
+    /**
+     * @brief Inequality comparison operator.
+     *
+     * @param other The other color.
+     */
     bool operator !=(const Color& other)
     {
       return red!=other.red || green!=other.green || blue!=other.blue;
     }
 
-    double red, green, blue, alpha;
+    double red; //!< The red component.
+    double green; //!< The green component.
+    double blue; //!< The blue component.
+    double alpha; //!< The alpha component.
   };
 
   /**
-   * @class FontMetrics painter.h <Helium/depict/painter.h>
+   * @class FontMetrics depict/painter.h <Helium/depict/painter.h>
    * @brief Font metrics class used by Depict.
    */
   struct FontMetrics
   {
-    int    fontSize;
-    double ascent, descent;
-    double width, height;
+    int    fontSize; //!< The font size.
+    double ascent; //!< The ascent.
+    double descent; //!< The descent.
+    double width; //!< The width.
+    double height; //!< The height.
   };
 
   /**
-   * @class Painter painter.h <Helium/depict/painter.h>
+   * @class Painter depict/painter.h <Helium/depict/painter.h>
    * @brief Abstract painter base class used by Depict.
    */
   class Painter
@@ -132,42 +174,61 @@ namespace Helium {
        * unspecified area don't need to implement this.
        */
       virtual void newCanvas(double width, double height) = 0;
+
       /**
        * Before Depict performes any drawing operation, this method is called
        * to check if the painter is ready to start drawing. If this method
        * returns false, drawing is aborted.
        */
       virtual bool isGood() const = 0;
+
       /**
-       * Set the painter's font family.
+       * @brief Set the painter's font family.
        */
       virtual void setFontFamily(const std::string &fontFamily) = 0;
+
       /**
        * Set the painter's font point size.
        */
       virtual void setFontSize(int pointSize) = 0;
+
       /**
        * Set the painter's fill color.
        */
       virtual void setFillColor(const Color &color) = 0;
+
       /**
        * Set the painter's pen color.
        */
       virtual void setPenColor(const Color &color) = 0;
+
       /**
        * Set the painter's pen width.
        */
       virtual void setPenWidth(double width) = 0;
+
       /**
        * Get the painter's pen width.
        */
       virtual double penWidth() = 0;
+
       /**
+       * @brief Draw a line.
+       *
        * Draw a line from @p x1, @p y1 to @p x2, @p y2. The line is drawn using
        * the current pen color and width.
        */
       virtual void drawLine(double x1, double y1, double x2, double y2) = 0;
+
+      /**
+       * @brief Draw a circle.
+       *
+       * @param x The circle center x coordinate.
+       * @param y The circle center y coordinate.
+       * @param r The radius.
+       */
       virtual void drawCircle(double x, double y, double r) = 0;
+
       /**
        * Draw a polygon by connecting consecutive points. The last point will be
        * connected to the first one. The lines are drawn using the current pen
@@ -175,9 +236,24 @@ namespace Helium {
        * fill color.
        */
       virtual void drawPolygon(const std::vector<std::pair<double,double> > &points) = 0;
+
+      /**
+       * @brief Draw text.
+       *
+       * @param x The x coordinate.
+       * @param y The y coordinate.
+       * @param text The text.
+       */
       virtual void drawText(double x, double y, const std::string &text) = 0;
+
+      /**
+       * @brief Get the font metrics for a piece of text.
+       */
       virtual FontMetrics fontMetrics(const std::string &text) = 0;
 
+      /**
+       * @brief Draw a dashed line.
+       */
       void drawDashedLine(double x1, double y1, double x2, double y2, double size)
       {
         Eigen::Vector2d p1(x1, y1);

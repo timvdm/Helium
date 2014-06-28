@@ -35,6 +35,11 @@
 
 namespace Helium {
 
+  /**
+   * @file algorithms/dijkstra.h
+   * @brief Dijkstra's shortest path algorithm.
+   */
+
   namespace impl {
 
     template<typename MoleculeType>
@@ -58,6 +63,7 @@ namespace Helium {
   }
 
   /**
+   * @class Dijkstra algorithms/dijkstra.h <Helium/algorithms/dijkstra.h>
    * @brief Class for running Dijkstra's shortest path algorithm.
    *
    * The Dijkstra shortest path algorithm finds a shortest path from a source

@@ -31,39 +31,109 @@
 #include <Helium/smiles.h>
 #include <Helium/fileio/moleculefile.h>
 #include <Helium/algorithms/gtd.h>
+#include <Helium/algorithms/extendedconnectivities.h>
+#include <Helium/algorithms/canonical.h>
+#include <Helium/algorithms/components.h>
+#include <Helium/algorithms/cycles.h>
 #include <Helium/algorithms/cycles.h>
 #include <Helium/depict/svgpainter.h>
 #include <Helium/depict/depict.h>
 #include <Helium/algorithms/kekulize.h>
 
 #include <boost/timer/timer.hpp>
-#include <boost/date_time/gregorian/gregorian.hpp>
-#include <boost/date_time/posix_time/posix_time.hpp>
+//#include <boost/date_time/gregorian/gregorian.hpp>
+//#include <boost/date_time/posix_time/posix_time.hpp>
+
+#include <boost/graph/adjacency_list.hpp>
+#include <boost/graph/boyer_myrvold_planar_test.hpp>
+
 
 #include "args.h"
 
-const boost::timer::nanosecond_type one_milisecond(1000000L);
+const boost::timer::nanosecond_type one_second(1000000000L);
+const boost::timer::nanosecond_type one_millisecond(1000000L);
+//const boost::timer::nanosecond_type one_microsecond(1000L);
 
 namespace Helium {
 
+  template<typename MoleculeType>
+  bool is_planar(const MoleculeType &mol)
+  {
+    typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::undirectedS, boost::property<boost::vertex_index_t, int> > graph;
+
+    graph g(num_atoms(mol));
+    FOREACH_BOND (bond, mol)
+      add_edge(get_index(mol, get_source(mol, *bond)), get_index(mol, get_target(mol, *bond)), g);
+
+    return boost::boyer_myrvold_planarity_test(g);
+  }
+
   template<typename MoleculeType, template<typename> class Algorithm>
-  int measure_ms(MoleculeType &mol, const Algorithm<MoleculeType> &algorithm)
+  unsigned long measure_ns(MoleculeType &mol, const Algorithm<MoleculeType> &algorithm)
   {
     boost::timer::cpu_timer timer;
 
     algorithm(mol);
 
     boost::timer::cpu_times elapsed = timer.elapsed();
-    int ms = (elapsed.system + elapsed.user) / one_milisecond;
-    return ms;
+    return elapsed.wall;
   }
+
+  template<typename MoleculeType>
+  struct CycleMembership
+  {
+    void operator()(const MoleculeType &mol) const
+    {
+      std::vector<bool> atoms, bonds;
+      cycle_membership(mol, atoms, bonds);
+    }
+  };
+
+  template<typename MoleculeType>
+  struct AtomComponents
+  {
+    void operator()(const MoleculeType &mol) const
+    {
+      std::vector<unsigned int> atoms = connected_atom_components(mol);
+    }
+  };
+
+  template<typename MoleculeType>
+  struct BondComponents
+  {
+    void operator()(const MoleculeType &mol) const
+    {
+      std::vector<unsigned int> bonds = connected_bond_components(mol);
+    }
+  };
+
+  template<typename MoleculeType>
+  struct ExtendedConnectivities
+  {
+    void operator()(const MoleculeType &mol) const
+    {
+      std::vector<unsigned long> ec = extended_connectivities(mol, DefaultAtomInvariant());
+    }
+  };
+
+  template<typename MoleculeType>
+  struct Canonicalize
+  {
+    void operator()(const MoleculeType &mol) const
+    {
+      std::vector<unsigned int> atoms = connected_atom_components(mol);
+      std::vector<unsigned int> bonds = connected_bond_components(mol);
+      std::vector<unsigned long> ec = extended_connectivities(mol, DefaultAtomInvariant());
+      canonicalize(mol, ec, DefaultAtomInvariant(), DefaultBondInvariant(), atoms, bonds);
+    }
+  };
 
   template<typename MoleculeType>
   struct RelevantCycles
   {
     void operator()(const MoleculeType &mol) const
     {
-      relevant_cycles(mol);
+      relevant_cycles_vismara(mol);
     }
   };
 
@@ -85,6 +155,12 @@ namespace Helium {
     }
   };
 
+  enum Mode {
+    Individual = 1, // measure individual molecules
+    Graph = 2, // create a graph
+    LastMode
+  };
+
   class BenchmarkTool : public HeliumTool
   {
     public:
@@ -101,50 +177,99 @@ namespace Helium {
 
         HeMol mol;
         MoleculeFile file;
-        try {
-          file.load(filename);
-        } catch (const std::exception &e) {
-          std::cerr << e.what() << std::endl;
+        if (!file.load(filename)) {
+          std::cerr << file.error().what() << std::endl;
           return -1;
         }
 
         int algo = 0;
-        if (algorithm == "relevant_cycles")
+        if (algorithm == "read")
           algo = 1;
-        else if (algorithm == "kekulize")
+        else if (algorithm == "cycle_membership")
           algo = 2;
-        else if (algorithm == "generate_diagram")
+        else if (algorithm == "relevant_cycles")
           algo = 3;
+        else if (algorithm == "kekulize")
+          algo = 4;
+        else if (algorithm == "generate_diagram")
+          algo = 5;
+        else if (algorithm == "connected_atom_components")
+          algo = 6;
+        else if (algorithm == "connected_bond_components")
+          algo = 7;
+        else if (algorithm == "extended_connectivities")
+          algo = 8;
+        else if (algorithm == "canonicalize")
+          algo = 9;
 
         if (!algo) {
           std::cerr << "Unkown algorithm: " << algorithm << std::endl;
           return -1;
         }
 
-        int ms;
+        int mode = Graph;
+
+        unsigned long ns;
         boost::timer::cpu_timer timer;
 
         for (std::size_t i = 0; i < file.numMolecules(); ++i) {
           file.readMolecule(mol);
 
+          //std::cout << i << std::endl;
+
           switch (algo) {
             case 1:
-              ms = measure_ms(mol, RelevantCycles<HeMol>());
               break;
             case 2:
-              ms = measure_ms(mol, Kekulize<HeMol>());
+              ns = measure_ns(mol, CycleMembership<HeMol>());
               break;
             case 3:
-              ms = measure_ms(mol, GenerateDiagram<HeMol>());
+              ns = measure_ns(mol, RelevantCycles<HeMol>());
+              break;
+            case 4:
+              ns = measure_ns(mol, Kekulize<HeMol>());
+              break;
+            case 5:
+              ns = measure_ns(mol, GenerateDiagram<HeMol>());
+              break;
+            case 6:
+              ns = measure_ns(mol, AtomComponents<HeMol>());
+              break;
+            case 7:
+              ns = measure_ns(mol, BondComponents<HeMol>());
+              break;
+            case 8:
+              ns = measure_ns(mol, ExtendedConnectivities<HeMol>());
+              break;
+            case 9:
+              ns = measure_ns(mol, Canonicalize<HeMol>());
               break;
           }
 
-          std::cout << i << ":" << ms << " ms" << std::endl;
+          switch (mode) {
+            case Individual:
+              std::cout << i << ":" << ns << " ns" << std::endl;
+              break;
+            case Graph:
+              if ((i % 1000) == 0) {
+                boost::timer::cpu_times elapsed = timer.elapsed();
+                ns = elapsed.wall;
+                std::cout << i << "," << ns / one_millisecond << std::endl;
+              }
+              break;
+          }
         }
 
         boost::timer::cpu_times elapsed = timer.elapsed();
-        ms = (elapsed.system + elapsed.user) / one_milisecond;
-        std::cout << "total: " << ms / 1000 << " s" << std::endl;
+        ns = elapsed.wall;
+        switch (mode) {
+          case Individual:
+            std::cout << "total: " << ns / one_second << " s" << std::endl;
+            break;
+          case Graph:
+            std::cout << file.numMolecules() << "," << ns / one_millisecond << std::endl;
+            break;
+        }
 
         return 0;
       }
@@ -165,9 +290,15 @@ namespace Helium {
         ss << "Usage: " << command << " <algorithm> <molecule_file>" << std::endl;
         ss << std::endl;
         ss << "Algorithms:" << std::endl;
+        ss << "    read" << std::endl;
+        ss << "    cycle_membership" << std::endl;
         ss << "    relevant_cycles" << std::endl;
         ss << "    kekulize" << std::endl;
         ss << "    generate_diagram" << std::endl;
+        ss << "    atom_components" << std::endl;
+        ss << "    bond_components" << std::endl;
+        ss << "    extended_connectivities" << std::endl;
+        ss << "    canonicalize" << std::endl;
         ss << std::endl;
         return ss.str();
       }

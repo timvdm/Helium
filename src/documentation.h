@@ -594,19 +594,4 @@ namespace Helium {
  * @include enumeratesubgraphs.cpp
  */
 
- /**
-  * @defgroup Production Code in Production Phase
-  * @brief Code in production phase.
-  */
-
- /**
-  * @defgroup Alpha Code in Alpha Phase
-  * @brief Code in aplha phase.
-  */
-
- /**
-  * @defgroup Beta Code in Beta Phase
-  * @brief Code in beta phase.
-  */
-
 }

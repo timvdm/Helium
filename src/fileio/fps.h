@@ -32,6 +32,12 @@
 namespace Helium {
 
   /**
+   * @file fileio/fps.h
+   * @brief Read FPS fingerprint files.
+   */
+
+  /**
+   * @class FpsFile fileio/fps.h <Helium/fileio/fps.h>
    * @brief Class for reading FPS fingerprint files.
    *
    * FPS is a text format for storing fingerprints. This class can read FPS1

@@ -126,10 +126,8 @@ int main(int argc, char**argv)
 
   // open the output file
   BinaryOutputFile outputFile;
-  try {
-    outputFile.open(outFile);
-  } catch (const std::exception &e) {
-    std::cerr << e.what() << std::endl;
+  if (!outputFile.open(outFile)) {
+    std::cerr << outputFile.error().what() << std::endl;
     return -1;
   }
 

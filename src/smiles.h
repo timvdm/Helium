@@ -42,6 +42,12 @@
 namespace Helium {
 
   /**
+   * @file smiles.h
+   * @brief Read/write SMILES.
+   */
+
+  /**
+   * @class Smiles smiles.h <Helium/smiles.h>
    * @brief Class for reading SMILES.
    */
   class Smiles

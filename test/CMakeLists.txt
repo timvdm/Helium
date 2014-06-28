@@ -7,7 +7,6 @@ set(tests
   util
   components
   fingerprints
-  #maximalmatching
   isomorphism
   cycles
   smiles
@@ -20,7 +19,6 @@ set(tests
   bfs
   smarts
   smirks
-  smartcomponents
   )
 
 foreach(test ${tests})
@@ -31,7 +29,6 @@ foreach(test ${tests})
     FAIL_REGULAR_EXPRESSION "FAIL")
 endforeach(test ${tests})
 
-find_package(OpenBabel2)
 if (OPENBABEL2_FOUND)
   message(STATUS "OpenBabel found: building openbabel example")
   include_directories(${OPENBABEL2_INCLUDE_DIR})

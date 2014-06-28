@@ -29,7 +29,6 @@
 
 #include <Helium/molecule.h>
 #include <Helium/algorithms/components.h>
-#include <Helium/tie.h>
 #include <Helium/util.h>
 //#include "timeout.h"
 
@@ -41,6 +40,12 @@
 namespace Helium {
 
   /**
+   * @file algorithms/enumeratesubgraphs.h
+   * @brief Subgraph enumeration.
+   */
+
+  /**
+   * @struct Subgraph algorithms/enumeratesubgraphs.h <Helium/algorithms/enumeratesubgraph.h>
    * @brief Return type for subgraph enumeration.
    *
    * This object is passed as a parameter to the callback functor.
@@ -100,9 +105,7 @@ namespace Helium {
 
       visitedAtoms[get_index(mol, atom)] = true;
 
-      incident_iter bond, end_bonds;
-      TIE(bond, end_bonds) = get_bonds(mol, atom);
-      for (; bond != end_bonds; ++bond) {
+      FOREACH_INCIDENT (bond, atom, mol) {
         if (visitedBonds[get_index(mol, *bond)])
           continue;
         visitedBonds[get_index(mol, *bond)] = true;
@@ -125,9 +128,7 @@ namespace Helium {
       std::vector<bool> visitedAtoms(num_atoms(mol));
       std::vector<bool> visitedBonds(num_bonds(mol));
 
-      atom_iter atom, end_atoms;
-      TIE(atom, end_atoms) = get_atoms(mol);
-      for (; atom != end_atoms; ++atom) {
+      FOREACH_ATOM (atom, mol) {
         if (visitedAtoms[get_index(mol, *atom)])
           continue;
         if (is_cyclic(mol, *atom, visitedAtoms, visitedBonds))
@@ -234,167 +235,6 @@ namespace Helium {
     }
   }
 
-
-  /*
-
-  // CONTAINS A BUG!
-  //
-  // this is not a problem though, enumerate_subgraphs_correct is used for
-  // testing and the faster enumerate_subgraphs is used in production.
-
-  template<typename T>
-  class bloom_filter
-  {
-    public:
-      bloom_filter(std::size_t prime1 = 571, std::size_t prime2 = 1039, std::size_t prime3 = 2011)
-          : m_prime1(prime1), m_prime2(prime2), m_prime3(prime3), m_filter(prime3)
-      {
-      }
-
-      void add(const T &value)
-      {
-        std::size_t hash = m_hash(value);
-        m_filter[hash % m_prime1] = true;
-        m_filter[hash % m_prime2] = true;
-        m_filter[hash % m_prime3] = true;
-        m_set.insert(value);
-      }
-
-      bool contains(const T &value)
-      {
-        std::size_t hash = m_hash(value);
-        if (m_filter[hash % m_prime1] && m_filter[hash % m_prime2] && m_filter[hash % m_prime3])
-          return true;
-        return m_set.find(value) != m_set.end();
-      }
-
-      const std::set<T>& set() const
-      {
-        return m_set;
-      }
-
-    private:
-      std::size_t m_prime1;
-      std::size_t m_prime2;
-      std::size_t m_prime3;
-      boost::hash<T> m_hash;
-      std::vector<bool> m_filter;
-      std::set<T> m_set;
-  };
-
-  namespace impl {
-
-    // http://dalkescientific.com/writings/diary/archive/2011/01/10/subgraph_enumeration.html
-    struct EnumerateSubgraphsSlow
-    {
-      // Add a new bond to the subgraph when both atoms are already in the subgraph.
-      Subgraph new_subgraph_with_bond(const Subgraph &subgraph, std::size_t bond)
-      {
-        //std::cout << "new_subgraph_with_bond(" << bond << ")" << std::endl;
-        assert(!subgraph.bonds[bond]);
-        Subgraph newSubgraph(subgraph.atoms, subgraph.bonds);
-        newSubgraph.bonds[bond] = true;
-        return newSubgraph;
-      }
-
-      // Add a new atom to the subgraph, and the bond which connects it to the subgraph.
-      Subgraph new_subgraph_with_atom_and_bond(const Subgraph &subgraph, std::size_t atom, std::size_t bond)
-      {
-        //std::cout << "new_subgraph_with_atom_and_bond(" << atom << ", " << bond << ")" << std::endl;
-        assert(!subgraph.atoms[atom]);
-        assert(!subgraph.bonds[bond]);
-        Subgraph newSubgraph(subgraph.atoms, subgraph.bonds);
-        newSubgraph.atoms[atom] = true;
-        newSubgraph.bonds[bond] = true;
-        return newSubgraph;
-      }
-
-      template<typename MoleculeType, typename CallbackType>
-      void find_subgraphs(
-          MoleculeType &mol,
-          CallbackType &callback,
-          int maxSize,
-          bool trees)
-      {
-        typedef typename molecule_traits<MoleculeType>::atom_type atom_type;
-        typedef typename molecule_traits<MoleculeType>::atom_iter atom_iter;
-        typedef typename molecule_traits<MoleculeType>::bond_iter bond_iter;
-
-        std::vector<Subgraph> subgraphs;
-        bloom_filter<std::vector<bool> > filter;
-
-        // set up the initial set of subgraphs
-        atom_iter atom, end_atoms;
-        TIE(atom, end_atoms) = get_atoms(mol);
-        for (; atom != end_atoms; ++atom) {
-          // make an initial subgraph with the atom and no bonds
-          std::vector<bool> atoms(num_atoms(mol));
-          atoms[get_index(mol, *atom)] = true;
-          // add the subgraph to the collection
-          subgraphs.push_back(Subgraph(atoms, std::vector<bool>(num_bonds(mol))));
-          callback(subgraphs.back());
-        }
-
-        while (!subgraphs.empty()) {
-          // select and remove a subgraph from the collection
-          Subgraph subgraph = subgraphs.back();
-          subgraphs.pop_back();
-
-          // for each bond in the molecule
-          bond_iter bond, end_bonds;
-          TIE(bond, end_bonds) = get_bonds(mol);
-          for (; bond != end_bonds; ++bond) {
-            // skip the bond if it is already in the subgraph
-            if (subgraph.bonds[get_index(mol, *bond)])
-              continue;
-
-            atom_type newAtom = 0; // TODO molecule_traits<MoleculeType>::null_atom();
-            // if neither atom is in the subgraph, skip the bond
-            if (!subgraph.atoms[get_index(mol, get_source(mol, *bond))]) {
-              if (!subgraph.atoms[get_index(mol, get_target(mol, *bond))])
-                continue;
-              newAtom = get_source(mol, *bond);
-            } else
-              if (!subgraph.atoms[get_index(mol, get_target(mol, *bond))])
-                newAtom = get_target(mol, *bond);
-
-            // if one of the atoms is not in the subgraph and the subgraph is at maximum size, skip the bond
-            if (newAtom != 0) { // TODO null_atom();
-              if (std::count(subgraph.atoms.begin(), subgraph.atoms.end(), true) == maxSize)
-                continue;
-              // create the new subgraph with this atom and bond
-              subgraphs.push_back(new_subgraph_with_atom_and_bond(subgraph, get_index(mol, newAtom), get_index(mol, *bond)));
-              std::vector<bool> hashable(subgraphs.back().hashable());
-              if (!filter.contains(hashable)) {
-                callback(subgraphs.back());
-                filter.add(hashable);
-              }
-            } else {
-              subgraphs.push_back(new_subgraph_with_bond(subgraph, get_index(mol, *bond)));
-              std::vector<bool> hashable(subgraphs.back().hashable());
-              if (!filter.contains(hashable)) {
-                callback(subgraphs.back());
-                filter.add(hashable);
-              }
-            }
-
-
-          }
-        }
-      }
-
-    };
-
-  } // namespace impl
-
-  template<typename MoleculeType, typename CallbackType>
-  void enumerate_subgraphs_slow(const MoleculeType &mol, CallbackType &callback, int maxSize, bool trees = false)
-  {
-    impl::EnumerateSubgraphsSlow es;
-    es.find_subgraphs(mol, callback, maxSize, trees);
-  }
-  */
-
   namespace impl {
 
     typedef std::pair<unsigned int, unsigned int> SubgraphExtension;
@@ -438,9 +278,7 @@ namespace Helium {
         if (!newAtoms[i])
           continue;
 
-        incident_iter bond, end_bonds;
-        TIE(bond, end_bonds) = get_bonds(mol, get_atom(mol, i));
-        for (; bond != end_bonds; ++bond) {
+        FOREACH_INCIDENT (bond, get_atom(mol, i), mol) {
           if (visited[get_index(mol, *bond)])
             continue;
 
@@ -549,9 +387,7 @@ namespace Helium {
     // generate the initial seeds
     // seeds[i] starts with bond i and bonds 0-i will not be used to extend the seed
     // for each seed, we also keep track of all possible ways to extend it
-    bond_iter bond, end_bonds;
-    TIE(bond, end_bonds) = get_bonds(mol);
-    for (; bond != end_bonds; ++bond) {
+    FOREACH_BOND (bond, mol) {
       visited[get_index(mol, *bond)] = true;
 
       Subgraph subgraph(num_atoms(mol), num_bonds(mol));

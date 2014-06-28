@@ -33,6 +33,11 @@
 
 namespace Helium {
 
+  /**
+   * @file algorithms/extendedconnectivities.h
+   * @brief Morgan's extended-connectivities algorithm.
+   */
+
   namespace impl {
 
     /**
@@ -102,13 +107,10 @@ namespace Helium {
 
     // initial atom invariants
     std::vector<unsigned long> ec;
-    atom_iter atom, end_atoms;
-    TIE(atom, end_atoms) = get_atoms(mol);
-    for (; atom != end_atoms; ++atom)
+    FOREACH_ATOM (atom, mol)
       ec.push_back(atomInvariant(mol, *atom));
 
     // iterate
-    //unsigned int numClasses = unique_elements(ec);
     unsigned int numClasses = impl::num_symmetry_classes(ec);
     for (int i = 0; i < 100; ++i) { // should never reach 100...
       impl::extended_connectivities_iterate(mol, ec);

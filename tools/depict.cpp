@@ -99,10 +99,8 @@ namespace Helium {
 
         HeMol mol;
         MoleculeFile file;
-        try {
-          file.load(input);
-        } catch (const std::exception &e) {
-          std::cerr << e.what() << std::endl;
+        if (!file.load(input)) {
+          std::cerr << file.error().what() << std::endl;
           return -1;
         }
 

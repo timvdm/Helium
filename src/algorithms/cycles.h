@@ -38,6 +38,11 @@
 namespace Helium {
 
   /**
+   * @file cycles.h
+   * @brief Cycle detection and perception.
+   */
+
+  /**
    * @brief Get the cyclomatic number.
    *
    * The cyclomatic number is defined by \f$m - n + c\f$ where \f$n\f$ is the

@@ -35,6 +35,12 @@
 namespace Helium {
 
   /**
+   * @file algorithms/bfs.h
+   * @brief Breadth-first search.
+   */
+
+  /**
+   * @struct BFSVisitor algorithms/bfs.h <Helium/algorithms/bfs.h>
    * @brief Base class for BFS functors.
    */
   template<typename MoleculeType>
@@ -527,6 +533,7 @@ namespace Helium {
   }
 
   /**
+   * @struct BFSAtomOrderVisitor algorithms/bfs.h <Helium/algorithms/bfs.h>
    * @brief A BFS visitor that records the order in which the atoms are visited.
    */
   template<typename MoleculeType>
@@ -558,6 +565,7 @@ namespace Helium {
   };
 
   /**
+   * @struct BFSBondOrderVisitor algorithms/bfs.h <Helium/algorithms/bfs.h>
    * @brief A BFS visitor that records the order in which the bonds are visited.
    */
   template<typename MoleculeType>
@@ -593,6 +601,7 @@ namespace Helium {
   };
 
   /**
+   * @struct BFSClosureRecorderVisitor algorithms/bfs.h <Helium/algorithms/bfs.h>
    * @brief A BFS visitor that records the "back" bonds.
    */
   template<typename MoleculeType>
@@ -623,6 +632,7 @@ namespace Helium {
   };
 
   /**
+   * @struct BFSDebugVisitor algorithms/bfs.h <Helium/algorithms/bfs.h>
    * @brief A BFS visitor that prints out debug information.
    */
   template<typename MoleculeType>

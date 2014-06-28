@@ -27,7 +27,12 @@
 #include <Helium/algorithms/gtd.h>
 
 namespace Helium {
-  
+
+  /**
+   * @file diagram.h
+   * @brief 2D coordinate generation.
+   */
+
   namespace impl {
     namespace diagram {
       std::vector<std::pair<double, double> > generate_diagram(const std::vector<int> &elements,
@@ -46,7 +51,7 @@ namespace Helium {
   {
     typedef typename molecule_traits<MoleculeType>::atom_type atom_type;
     typedef typename molecule_traits<MoleculeType>::bond_type bond_type;
-    
+
     // Stereo perception should not be triggered if this function is called
     // from MDLFormat::ReadMolecule->Alias::Expand->Alias::FromNameLookup->(MCDL)groupRedraw
     // as this triggers a failure in the test suite for InChI conversion

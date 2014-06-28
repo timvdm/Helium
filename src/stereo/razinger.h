@@ -29,7 +29,6 @@
 
 #include <Helium/stereo/stereounit.h>
 #include <Helium/molecule.h>
-#include <Helium/tie.h>
 #include <Helium/contract.h>
 
 #include <iostream>

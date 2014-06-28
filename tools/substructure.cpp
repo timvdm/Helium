@@ -121,10 +121,8 @@ namespace Helium {
 
         // open fingerprint file
         InMemoryColumnMajorFingerprintStorage storage;
-        try {
-          storage.load(fingerprintFilename);
-        } catch (const std::exception &e) {
-          std::cerr << e.what() << std::endl;
+        if (!storage.load(fingerprintFilename)) {
+          std::cerr << storage.error().what() << std::endl;
           return -1;
         }
 
@@ -144,10 +142,8 @@ namespace Helium {
 
         //MoleculeFile moleculeFile;
         MemoryMappedMoleculeFile moleculeFile;
-        try {
-          moleculeFile.load(moleculeFilename);
-        } catch (const std::exception &e) {
-          std::cerr << e.what() << std::endl;
+        if (!moleculeFile.load(moleculeFilename)) {
+          std::cerr << moleculeFile.error().what() << std::endl;
           return -1;
         }
 

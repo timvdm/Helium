@@ -21,7 +21,6 @@ foreach(example ${examples})
 endforeach(example ${examples})
 
 
-find_package(OpenBabel2)
 if (OPENBABEL2_FOUND)
   message(STATUS "OpenBabel found: building openbabel example")
   include_directories(${OPENBABEL2_INCLUDE_DIR})

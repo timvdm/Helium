@@ -63,10 +63,8 @@ namespace Helium {
         // perform search
 
         MemoryMappedMoleculeFile moleculeFile;
-        try {
-          moleculeFile.load(moleculeFilename);
-        } catch (const std::exception &e) {
-          std::cerr << e.what() << std::endl;
+        if (!moleculeFile.load(moleculeFilename)) {
+          std::cerr << moleculeFile.error().what() << std::endl;
           return -1;
         }
 

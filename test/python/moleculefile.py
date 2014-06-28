@@ -11,7 +11,7 @@ class TestBinaryInputFile(unittest.TestCase):
 
     def test_molecule_file(self):
         f = helium.MoleculeFile()
-        self.assertRaises(RuntimeError, f.load, 'foo')
+        self.assertFalse(f.load('foo'))
 
         f.load(self.datadir + '/1K.hel')
         self.assertEqual(1000, f.numMolecules())
@@ -30,7 +30,7 @@ class TestBinaryInputFile(unittest.TestCase):
 
     def test_memory_mapped_molecule_file(self):
         f = helium.MemoryMappedMoleculeFile()
-        self.assertRaises(RuntimeError, f.load, 'foo')
+        self.assertFalse(f.load('foo'))
 
         f.load(self.datadir + '/1K.hel')
         self.assertEqual(1000, f.numMolecules())

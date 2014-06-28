@@ -49,6 +49,7 @@ namespace Helium {
 
   /**
    * @defgroup bitvec_group Bit Vector Functions
+   * @brief Functions for working with bit vectors.
    * @{
    */
 

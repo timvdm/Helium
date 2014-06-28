@@ -28,7 +28,6 @@
 #define HELIUM_ISOMORPHISM_H
 
 #include <Helium/molecule.h>
-#include <Helium/tie.h>
 
 #include <vector>
 #include <cassert>
@@ -41,16 +40,23 @@
 namespace Helium {
 
   /**
+   * @file algorithms/isomorphism.h
+   * @brief Subgraph isomorphism algorithm.
+   */
+
+  /**
    * Type used to represent a single isomorphism mapping.
    */
   typedef std::vector<Index> IsomorphismMapping;
+
   /**
    * Type used to represent multiple isomorphism mappings.
    */
   typedef std::vector<IsomorphismMapping> IsomorphismMappings;
 
   /**
-   * NoMapping
+   * @struct NoMapping algorithms/isomorphism.h <Helium/algorithms/isomorphism.h>
+   * @brief Do not map an isomorphism match.
    */
   struct NoMapping
   {
@@ -70,7 +76,8 @@ namespace Helium {
   };
 
   /**
-   * CountMapping
+   * @struct CountMapping algorithms/isomorphism.h <Helium/algorithms/isomorphism.h>
+   * @brief Count the number of isomorphism mappings.
    */
   struct CountMapping
   {
@@ -90,7 +97,8 @@ namespace Helium {
   };
 
   /**
-   * SingleMapping
+   * @struct SingleMapping algorithms/isomorphism.h <Helium/algorithms/isomorphism.h>
+   * @brief Record only a single isomorphism mapping.
    */
   struct SingleMapping
   {
@@ -103,7 +111,8 @@ namespace Helium {
   };
 
   /**
-   * MappingList
+   * @struct MappingList algorithms/isomorphism.h <Helium/algorithms/isomorphism.h>
+   * @brief Record all isomorphism mappings.
    */
   struct MappingList
   {
@@ -207,9 +216,7 @@ namespace Helium {
 
         void dfsBonds(query_atom_type atom, std::vector<bool> &visited)
         {
-          query_incident_iter bond, end_bonds;
-          TIE(bond, end_bonds) = get_bonds(m_query, atom);
-          for (; bond != end_bonds; ++bond) {
+          FOREACH_INCIDENT (bond, atom, m_query) {
             if (visited[get_index(m_query, *bond)])
               continue;
             visited[get_index(m_query, *bond)] = true;
@@ -260,9 +267,7 @@ namespace Helium {
             std::cout << "mapping bond: " << get_index(m_query, querySource) << "-" << get_index(m_query, queryTarget) << std::endl;
           */
 
-          incident_iter bond, end_bonds;
-          TIE(bond, end_bonds) = get_bonds(m_mol, atom);
-          for (; bond != end_bonds; ++bond) {
+          FOREACH_INCIDENT (bond, atom, m_mol) {
             if (!m_bondMatcher(m_query, queryBond, m_mol, *bond))
               continue;
 
@@ -393,16 +398,12 @@ namespace Helium {
             return;
 
           if (!num_bonds(m_query)) {
-            atom_iter atom, end_atoms;
-            TIE(atom, end_atoms) = get_atoms(m_mol);
-            for (; atom != end_atoms; ++atom)
+            FOREACH_ATOM (atom, m_mol)
               match(mapping, *atom);
           } else {
             // try to match each atom in the molecule against the first atom
             // epxression in the SMARTS
-            atom_iter atom, end_atoms;
-            TIE(atom, end_atoms) = get_atoms(m_mol);
-            for (; atom != end_atoms; ++atom)
+            FOREACH_ATOM (atom, m_mol)
               match(mapping, *atom);
           }
         }
@@ -421,6 +422,7 @@ namespace Helium {
   }
 
   /**
+   * @struct DefaultAtomMatcher algorithms/isomorphism.h <Helium/algorithms/isomorphism.h>
    * @brief The default atom matcher for isomorphism searches.
    */
   template<typename MoleculeType, typename QueryType>
@@ -453,6 +455,7 @@ namespace Helium {
   };
 
   /**
+   * @struct DefaultBondMatcher algorithms/isomorphism.h <Helium/algorithms/isomorphism.h>
    * @brief The default bond matcher for isomorphism searches.
    */
   template<typename MoleculeType, typename QueryType>

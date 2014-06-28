@@ -40,6 +40,11 @@
 namespace Helium {
 
   /**
+   * @file fingerprints/fingerprints.h
+   * @brief Compute fingerprints.
+   */
+
+  /**
    * Compute the path-based fingerprint for the specified molecule. All paths
    * in the molecular graph will be enumerated upto the specified size. For each
    * path, a canonical code is generated which is hashed using the @p hashPrime

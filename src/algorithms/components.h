@@ -28,12 +28,16 @@
 #define HELIUM_COMPONENTS_H
 
 #include <Helium/molecule.h>
-#include <Helium/tie.h>
 #include <Helium/util.h>
 
 #include <vector>
 
 namespace Helium {
+
+  /**
+   * @file algorithms/components.h
+   * @brief Connected components.
+   */
 
   namespace impl {
 
@@ -47,9 +51,7 @@ namespace Helium {
       typedef typename molecule_traits<MoleculeType>::incident_iter incident_iter;
 
       // iterator over atom's bonds
-      incident_iter bond, end_bonds;
-      TIE(bond, end_bonds) = get_bonds(mol, atom);
-      for (; bond != end_bonds; ++bond) {
+      FOREACH_INCIDENT (bond, atom, mol) {
         // skip already visited bonds
         if (components[get_index(mol, *bond)] != molecule_traits<MoleculeType>::null_index())
           continue;
@@ -80,9 +82,7 @@ namespace Helium {
     std::vector<unsigned int> components(num_bonds(mol), molecule_traits<MoleculeType>::null_index());
 
     // start searching from each (non-visited) bond
-    bond_iter bond, end_bonds;
-    TIE(bond, end_bonds) = get_bonds(mol);
-    for (; bond != end_bonds; ++bond) {
+    FOREACH_BOND (bond, mol) {
       if (components[get_index(mol, *bond)] != molecule_traits<MoleculeType>::null_index())
         continue;
       // initiate recursion for each component
@@ -111,9 +111,7 @@ namespace Helium {
 
     // convert bond components to atom components
     std::vector<unsigned int> bond_components(connected_bond_components(mol));
-    bond_iter bond, end_bonds;
-    TIE(bond, end_bonds) = get_bonds(mol);
-    for (; bond != end_bonds; ++bond) {
+    FOREACH_BOND (bond, mol) {
       unsigned int number = bond_components[get_index(mol, *bond)];
       atom_components[get_index(mol, get_source(mol, *bond))] = number;
       atom_components[get_index(mol, get_target(mol, *bond))] = number;
@@ -121,9 +119,7 @@ namespace Helium {
 
     // handle isolated atoms
     unsigned int number = unique_elements(atom_components) - 1;
-    atom_iter atom, end_atoms;
-    TIE(atom, end_atoms) = get_atoms(mol);
-    for (; atom != end_atoms; ++atom)
+    FOREACH_ATOM (atom, mol)
       if (atom_components[get_index(mol, *atom)] == molecule_traits<MoleculeType>::null_index())
         atom_components[get_index(mol, *atom)] = number++;
 

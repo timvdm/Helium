@@ -31,14 +31,21 @@
 
 #include <numeric>
 
+//@cond DEV
 #ifdef HAVE_CPP11
 #include <future>
 #endif
 
 #undef TIMER
 #define TIMER(msg)
+//@endcond
 
 namespace Helium {
+
+  /**
+   * @file fingerprints/similarity.h
+   * @brief Fingerprint similarity search.
+   */
 
   /**
    * @brief Brute force similarity search.
@@ -179,8 +186,8 @@ namespace Helium {
 #endif
 
   /**
+   * @class SimilaritySearchIndex fingerprints.h <Helium/fingerprints/fingerprints.h>
    * @brief Similarity search fingerpint index.
-   *
    */
   template<typename FingerprintStorageType>
   class SimilaritySearchIndex

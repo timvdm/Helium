@@ -27,13 +27,24 @@
 #ifndef HELIUM_CONTRACT_H
 #define HELIUM_CONTRACT_H
 
+/**
+ * @file contract.h
+ * @brief Design by contract support (i.e. pre- and post conditions).
+ */
+
 #ifndef NDEBUG
 
 #include <cassert>
 
+/**
+ * @brief Check a pre-condition.
+ */
 #define PRE(expr) \
   assert(expr)
 
+/**
+ * @brief Check a post-condition.
+ */
 #define POST(expr) \
   assert(expr)
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, Tim Vandermeersch
+ * Copyright (c) 2013-2014, Tim Vandermeersch
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,8 +27,8 @@
 #ifndef HELIUM_MOLECULE_H
 #define HELIUM_MOLECULE_H
 
-#include <Helium/tie.h>
 #include <Helium/element.h>
+#include <Helium/contract.h>
 
 #include <utility>
 #include <vector>
@@ -40,13 +40,24 @@
 namespace Helium {
 
   /**
+   * @defgroup molecule_group Molecule Concept
+   * @brief Type traits and functions for the Molecule concept.
+   * @{
+   */
+
+  /**
+   * @file molecule.h
+   * @brief Type traits and functions for the Molecule concept.
+   */
+
+  /**
    * @brief Iterate over all the atoms in a molecule.
    *
    * @param atom The atom.
    * @param mol The molecule.
    */
 #define FOREACH_ATOM(atom, mol) \
-  for (Helium::impl::ForeachAtom<BOOST_TYPEOF(mol)> atom(mol); atom.begin != atom.end; ++atom.begin)
+  for (Helium::impl::ForeachAtom<BOOST_TYPEOF(mol)> atom(mol); atom.iters.begin() != atom.iters.end(); ++atom.iters.begin())
 
   /**
    * @brief Iterate over all the bonds in a molecule.
@@ -55,7 +66,7 @@ namespace Helium {
    * @param mol The molecule.
    */
 #define FOREACH_BOND(bond, mol) \
-  for (Helium::impl::ForeachBond<BOOST_TYPEOF(mol)> bond(mol); bond.begin != bond.end; ++bond.begin)
+  for (Helium::impl::ForeachBond<BOOST_TYPEOF(mol)> bond(mol); bond.iters.begin() != bond.iters.end(); ++bond.iters.begin())
 
   /**
    * @brief Iterate over all the neighbors of an atom.
@@ -65,7 +76,7 @@ namespace Helium {
    * @param mol The molecule.
    */
 #define FOREACH_NBR(nbr, atom, mol) \
-  for (Helium::impl::ForeachNbr<BOOST_TYPEOF(mol)> nbr(mol, atom); nbr.begin != nbr.end; ++nbr.begin)
+  for (Helium::impl::ForeachNbr<BOOST_TYPEOF(mol)> nbr(mol, atom); nbr.iters.begin() != nbr.iters.end(); ++nbr.iters.begin())
 
   /**
    * @brief Iterate over all the incident bonds of an atom.
@@ -75,17 +86,7 @@ namespace Helium {
    * @param mol The molecule.
    */
 #define FOREACH_INCIDENT(bond, atom, mol) \
-  for (Helium::impl::ForeachIncident<BOOST_TYPEOF(mol)> bond(mol, atom); bond.begin != bond.end; ++bond.begin)
-
-  /**
-   * @defgroup molecule_group Molecule Concept
-   * @{
-   */
-
-  /**
-   * @file molecule.h
-   * @brief Type traits and functions for the Molecule concept.
-   */
+  for (Helium::impl::ForeachIncident<BOOST_TYPEOF(mol)> bond(mol, atom); bond.iters.begin() != bond.iters.end(); ++bond.iters.begin())
 
   /**
    * @brief Type used for atom and bond indices.
@@ -99,6 +100,7 @@ namespace Helium {
   typedef unsigned int Size;
 
   /**
+   * @struct molecule_traits molecule.h <Helium/molecule.h>
    * @brief Molecule type traits struct.
    *
    * The molecule_traits struct template is used to associate various types
@@ -190,6 +192,7 @@ namespace Helium {
   };
 
   /**
+   * @class iterator_pair molecule.h <Helium/molecule.h>
    * @brief Class representing an iterator pair (i.e. range).
    */
   template<typename IteratorType>
@@ -324,6 +327,10 @@ namespace Helium {
   /**
    * @brief Remove an atom from the molecule.
    *
+   * @pre The atom must be valid (i.e. not equal to
+   *      molecule_traits<EditableMoleculeType>::null_atom()) and must be part
+   *      of the molecule.
+   *
    * @param mol The molecule.
    * @param atom The atom to remove.
    */
@@ -395,6 +402,8 @@ namespace Helium {
   /**
    * @brief Add a bond to the molecule.
    *
+   * @pre Both source and target atoms must be valid.
+   *
    * @param mol The molecule.
    * @param source The source atom.
    * @param target The target atom.
@@ -409,6 +418,10 @@ namespace Helium {
 
   /**
    * @brief Remove a bond from the molecule.
+   *
+   * @pre The bond must be valid (i.e. not equal to
+   *      molecule_traits<EditableMoleculeType>::null_bond()) and must be part
+   *      of the molecule.
    *
    * @param mol The molecule.
    * @param bond The bond to remove.
@@ -673,7 +686,7 @@ namespace Helium {
    *
    * @pre The bond must be valid (i.e. not equal to molecule_traits<MoleculeType>::null_bond()).
    *      The specified @p atom must be one of the bond's atoms, if this is not the case
-   *      any of the returned value is undefined.
+   *      the returned value is undefined.
    *
    * @param mol The molecule.
    * @param bond The bond.
@@ -750,65 +763,63 @@ namespace Helium {
     template<typename MoleculeType>
     struct ForeachAtom
     {
-      ForeachAtom(const MoleculeType &mol)
+      ForeachAtom(const MoleculeType &mol) : iters(get_atoms(mol))
       {
-        TIE(begin, end) = get_atoms(mol);
       }
 
       typename molecule_traits<MoleculeType>::atom_type operator*()
       {
-        return *begin;
+        return *iters.begin();
       }
 
-      typename molecule_traits<MoleculeType>::atom_iter begin, end;
+      iterator_pair<typename molecule_traits<MoleculeType>::atom_iter> iters;
     };
 
     template<typename MoleculeType>
     struct ForeachBond
     {
-      ForeachBond(const MoleculeType &mol)
+      ForeachBond(const MoleculeType &mol) : iters(get_bonds(mol))
       {
-        TIE(begin, end) = get_bonds(mol);
       }
 
       typename molecule_traits<MoleculeType>::bond_type operator*()
       {
-        return *begin;
+        return *iters.begin();
       }
 
-      typename molecule_traits<MoleculeType>::bond_iter begin, end;
+      iterator_pair<typename molecule_traits<MoleculeType>::bond_iter> iters;
     };
 
     template<typename MoleculeType>
     struct ForeachNbr
     {
-      ForeachNbr(const MoleculeType &mol, typename molecule_traits<MoleculeType>::atom_type atom)
+      ForeachNbr(const MoleculeType &mol,
+          typename molecule_traits<MoleculeType>::atom_type atom) : iters(get_nbrs(mol, atom))
       {
-        TIE(begin, end) = get_nbrs(mol, atom);
       }
 
       typename molecule_traits<MoleculeType>::atom_type operator*()
       {
-        return *begin;
+        return *iters.begin();
       }
 
-      typename molecule_traits<MoleculeType>::nbr_iter begin, end;
+      iterator_pair<typename molecule_traits<MoleculeType>::nbr_iter> iters;
     };
 
     template<typename MoleculeType>
     struct ForeachIncident
     {
-      ForeachIncident(const MoleculeType &mol, typename molecule_traits<MoleculeType>::atom_type atom)
+      ForeachIncident(const MoleculeType &mol,
+          typename molecule_traits<MoleculeType>::atom_type atom) : iters(get_bonds(mol, atom))
       {
-        TIE(begin, end) = get_bonds(mol, atom);
       }
 
       typename molecule_traits<MoleculeType>::bond_type operator*()
       {
-        return *begin;
+        return *iters.begin();
       }
 
-      typename molecule_traits<MoleculeType>::incident_iter begin, end;
+      iterator_pair<typename molecule_traits<MoleculeType>::incident_iter> iters;
     };
 
   }
@@ -821,6 +832,8 @@ namespace Helium {
 
   /**
    * @brief Check if an atom is a hydrogen atom.
+   *
+   * @pre The atom must be valid (i.e. not equal to molecule_traits<MoleculeType>::null_atom()).
    *
    * @param mol The molecule.
    * @param atom The atom to check.
@@ -836,6 +849,8 @@ namespace Helium {
   /**
    * @brief Check if an atom is a carbon atom.
    *
+   * @pre The atom must be valid (i.e. not equal to molecule_traits<MoleculeType>::null_atom()).
+   *
    * @param mol The molecule.
    * @param atom The atom to check.
    *
@@ -849,6 +864,8 @@ namespace Helium {
 
   /**
    * @brief Check if an atom is a nitrogen atom.
+   *
+   * @pre The atom must be valid (i.e. not equal to molecule_traits<MoleculeType>::null_atom()).
    *
    * @param mol The molecule.
    * @param atom The atom to check.
@@ -864,6 +881,8 @@ namespace Helium {
   /**
    * @brief Check if an atom is a oxygen atom.
    *
+   * @pre The atom must be valid (i.e. not equal to molecule_traits<MoleculeType>::null_atom()).
+   *
    * @param mol The molecule.
    * @param atom The atom to check.
    *
@@ -878,6 +897,8 @@ namespace Helium {
   /**
    * @brief Check if an atom is a phosphorus atom.
    *
+   * @pre The atom must be valid (i.e. not equal to molecule_traits<MoleculeType>::null_atom()).
+   *
    * @param mol The molecule.
    * @param atom The atom to check.
    *
@@ -891,6 +912,8 @@ namespace Helium {
 
   /**
    * @brief Check if an atom is a sulfur atom.
+   *
+   * @pre The atom must be valid (i.e. not equal to molecule_traits<MoleculeType>::null_atom()).
    *
    * @param mol The molecule.
    * @param atom The atom to check.
@@ -908,6 +931,8 @@ namespace Helium {
    *
    * All atoms except hydrogen are heavy atoms.
    *
+   * @pre The atom must be valid (i.e. not equal to molecule_traits<MoleculeType>::null_atom()).
+   *
    * @param mol The molecule.
    * @param atom The atom.
    *
@@ -916,6 +941,7 @@ namespace Helium {
   template<typename MoleculeType>
   int get_heavy_degree(const MoleculeType &mol, typename molecule_traits<MoleculeType>::atom_type atom)
   {
+    PRE(atom != molecule_traits<HeMol>::null_atom());
     int degree = 0;
     FOREACH_NBR (nbr, atom, mol)
       if (get_element(mol, *nbr) > 1)
@@ -928,6 +954,8 @@ namespace Helium {
    *
    * This is the sum of the explicit bond orders.
    *
+   * @pre The atom must be valid (i.e. not equal to molecule_traits<MoleculeType>::null_atom()).
+   *
    * @param mol The molecule.
    * @param atom The atom.
    *
@@ -936,6 +964,7 @@ namespace Helium {
   template<typename MoleculeType>
   int get_bosum(const MoleculeType &mol, typename molecule_traits<MoleculeType>::atom_type atom)
   {
+    PRE(atom != molecule_traits<HeMol>::null_atom());
     double sum = 0;
     FOREACH_INCIDENT (bond, atom, mol) {
       int order = get_order(mol, *bond);
@@ -953,6 +982,8 @@ namespace Helium {
    *
    * The valence is the bond order sum of the explicit bonds + the number of hydrogens.
    *
+   * @pre The atom must be valid (i.e. not equal to molecule_traits<MoleculeType>::null_atom()).
+   *
    * @param mol The molecule.
    * @param atom The atom to check.
    *
@@ -961,6 +992,7 @@ namespace Helium {
   template<typename MoleculeType>
   int get_valence(const MoleculeType &mol, typename molecule_traits<MoleculeType>::atom_type atom)
   {
+    PRE(atom != molecule_traits<HeMol>::null_atom());
     return get_bosum(mol, atom) + get_hydrogens(mol, atom);
   }
 
@@ -970,6 +1002,8 @@ namespace Helium {
    * The connectivity is the number of attached atoms (i.e. degree) + the number of
    * implicit hydrogens.
    *
+   * @pre The atom must be valid (i.e. not equal to molecule_traits<MoleculeType>::null_atom()).
+   *
    * @param mol The molecule.
    * @param atom The atom to check.
    *
@@ -978,6 +1012,7 @@ namespace Helium {
   template<typename MoleculeType>
   int get_connectivity(const MoleculeType &mol, typename molecule_traits<MoleculeType>::atom_type atom)
   {
+    PRE(atom != molecule_traits<HeMol>::null_atom());
     return get_degree(mol, atom) + get_hydrogens(mol, atom);
   }
 
@@ -1050,6 +1085,8 @@ namespace Helium {
    * This function removes all implicit hydrogens and adds then adds implicit
    * hydrogens to match the expected valence.
    *
+   * @pre The atom must be valid (i.e. not equal to molecule_traits<MoleculeType>::null_atom()).
+   *
    * @param mol The molecule.
    * @param atom The atom.
    */
@@ -1057,6 +1094,8 @@ namespace Helium {
   void reset_implicit_hydrogens(EditableMoleculeType &mol,
       const typename molecule_traits<EditableMoleculeType>::atom_type &atom)
   {
+    PRE(atom != molecule_traits<EditableMoleculeType>::null_atom());
+
     if (!Element::addHydrogens(get_element(mol, atom)))
       return;
 
@@ -2641,10 +2680,66 @@ namespace Helium {
     return ss.str();
   }
 
-  //@}
+  /**
+   * @brief Check whether an atom mask is valid.
+   *
+   * An atom mask is valid when the @p atomMask has the same number of elements
+   * as the number of atom in the molecule.
+   *
+   * @param mol The molecule.
+   * @param atomMask The atom mask.
+   */
+  template<typename MoleculeType>
+  bool is_valid_atom_mask(const MoleculeType &mol, const std::vector<bool> &atomMask)
+  {
+    if (num_atoms(mol) != atomMask.size())
+      return false;
+    return true;
+  }
+
+  /**
+   * @brief Check whether a bond mask is valid.
+   *
+   * A bond mask is valid when the @p atomMask is valid, the @p bondMask has
+   * the same number of elements as the number of bonds in the molecule. For
+   * bonds that are not excluded, both atoms should not be excluded by the
+   * atom mask.
+   *
+   * @param mol The molecule.
+   * @param atomMask The atom mask.
+   * @param bondMask The bond mask.
+   */
+  template<typename MoleculeType>
+  bool is_valid_bond_mask(const MoleculeType &mol, const std::vector<bool> &atomMask,
+      const std::vector<bool> &bondMask)
+  {
+    typedef typename molecule_traits<MoleculeType>::atom_type atom_type;
+
+    if (!is_valid_atom_mask(mol, atomMask))
+      return false;
+    if (num_bonds(mol) != bondMask.size())
+      return false;
+
+    // if a bond should be considered, both atoms should also be considered
+    FOREACH_BOND (bond, mol) {
+      if (!bondMask[get_index(mol, *bond)])
+        continue;
+      atom_type source = get_source(mol, *bond);
+      if (!atomMask[get_index(mol, source)])
+        return false;
+      atom_type target = get_target(mol, *bond);
+      if (!atomMask[get_index(mol, target)])
+        return false;
+    }
+
+    return true;
+  }
 
   /**
    * @brief Create a substructure molecule from atom/bond masks.
+   *
+   * @pre The @p atoms must be a valid atom mask.
+   * @pre The @p bonds must be a valid bond mask.
    *
    * @param target The output molecule.
    * @param source The input molecule.
@@ -2658,6 +2753,8 @@ namespace Helium {
       const std::vector<bool> &atoms, const std::vector<bool> &bonds,
       bool adjustHydrogens = true)
   {
+    PRE(is_valid_bond_mask(mol, atoms, bonds));
+
     typedef typename molecule_traits<EditableMoleculeType>::atom_type target_atom_type;
     typedef typename molecule_traits<EditableMoleculeType>::bond_type target_bond_type;
     typedef typename molecule_traits<MoleculeType>::atom_type source_atom_type;
@@ -2710,6 +2807,7 @@ namespace Helium {
 
   }
 
+  //@}
 
 }
 

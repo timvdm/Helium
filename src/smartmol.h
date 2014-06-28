@@ -34,6 +34,11 @@
 
 namespace Helium {
 
+  /**
+   * @file smartmol.h
+   * @brief SmartMol implementation.
+   */
+
   //@cond DEV
 
   namespace impl {
@@ -785,6 +790,7 @@ namespace Helium {
   inline molecule_traits<SmartMol>::atom_type
   get_atom<SmartMol>(const SmartMol &mol, Index index)
   {
+    PRE(index < mol.numAtoms());
     return mol.atom(index);
   }
 
@@ -797,6 +803,7 @@ namespace Helium {
   template<>
   inline void remove_atom<SmartMol>(SmartMol &mol, molecule_traits<SmartMol>::atom_type atom)
   {
+    PRE(atom != molecule_traits<SmartMol>::null_atom());
     mol.removeAtom(atom);
   }
 
@@ -823,6 +830,7 @@ namespace Helium {
   inline molecule_traits<SmartMol>::bond_type
   get_bond<SmartMol>(const SmartMol &mol, Index index)
   {
+    PRE(index < mol.numBonds());
     return mol.bond(index);
   }
 
@@ -831,12 +839,15 @@ namespace Helium {
       molecule_traits<SmartMol>::atom_type source,
       molecule_traits<SmartMol>::atom_type target)
   {
+    PRE(source != molecule_traits<SmartMol>::null_atom());
+    PRE(target != molecule_traits<SmartMol>::null_atom());
     return mol.addBond(source, target);
   }
 
   template<>
   inline void remove_bond<SmartMol>(SmartMol &mol, molecule_traits<SmartMol>::bond_type bond)
   {
+    PRE(bond != molecule_traits<SmartMol>::null_bond());
     mol.removeBond(bond);
   }
 
@@ -850,6 +861,7 @@ namespace Helium {
   inline Index get_index<SmartMol>(const SmartMol &mol,
       const molecule_traits<SmartMol>::atom_type atom)
   {
+    PRE(atom != molecule_traits<SmartMol>::null_atom());
     return atom.index();
   }
 
@@ -857,6 +869,7 @@ namespace Helium {
   inline iterator_pair<molecule_traits<SmartMol>::incident_iter>
   get_bonds<SmartMol>(const SmartMol &mol, molecule_traits<SmartMol>::atom_type atom)
   {
+    PRE(atom != molecule_traits<SmartMol>::null_atom());
     return atom.bonds();
   }
 
@@ -864,6 +877,7 @@ namespace Helium {
   inline iterator_pair<molecule_traits<SmartMol>::nbr_iter>
   get_nbrs<SmartMol>(const SmartMol &mol, molecule_traits<SmartMol>::atom_type atom)
   {
+    PRE(atom != molecule_traits<SmartMol>::null_atom());
     return atom.nbrs();
   }
 
@@ -871,6 +885,7 @@ namespace Helium {
   inline bool is_aromatic<SmartMol>(const SmartMol &mol,
       const molecule_traits<SmartMol>::atom_type atom)
   {
+    PRE(atom != molecule_traits<SmartMol>::null_atom());
     return atom.isAromatic();
   }
 
@@ -878,6 +893,7 @@ namespace Helium {
   inline void set_aromatic<SmartMol>(SmartMol &mol,
       molecule_traits<SmartMol>::atom_type atom, bool value)
   {
+    PRE(atom != molecule_traits<SmartMol>::null_atom());
     atom.setAromatic(value);
   }
 
@@ -885,6 +901,7 @@ namespace Helium {
   inline int get_element<SmartMol>(const SmartMol &mol,
       const molecule_traits<SmartMol>::atom_type atom)
   {
+    PRE(atom != molecule_traits<SmartMol>::null_atom());
     return atom.element();
   }
 
@@ -892,6 +909,7 @@ namespace Helium {
   inline void set_element<SmartMol>(SmartMol &mol,
       molecule_traits<SmartMol>::atom_type atom, int value)
   {
+    PRE(atom != molecule_traits<SmartMol>::null_atom());
     atom.setElement(value);
   }
 
@@ -899,6 +917,7 @@ namespace Helium {
   inline int get_mass<SmartMol>(const SmartMol &mol,
       const molecule_traits<SmartMol>::atom_type atom)
   {
+    PRE(atom != molecule_traits<SmartMol>::null_atom());
     return atom.mass();
   }
 
@@ -906,6 +925,7 @@ namespace Helium {
   inline void set_mass<SmartMol>(SmartMol &mol,
       molecule_traits<SmartMol>::atom_type atom, int value)
   {
+    PRE(atom != molecule_traits<SmartMol>::null_atom());
     atom.setMass(value);
   }
 
@@ -913,6 +933,7 @@ namespace Helium {
   inline int get_degree<SmartMol>(const SmartMol &mol,
       const molecule_traits<SmartMol>::atom_type atom)
   {
+    PRE(atom != molecule_traits<SmartMol>::null_atom());
     return atom.degree();
   }
 
@@ -920,6 +941,7 @@ namespace Helium {
   inline int get_hydrogens<SmartMol>(const SmartMol &mol,
       const molecule_traits<SmartMol>::atom_type atom)
   {
+    PRE(atom != molecule_traits<SmartMol>::null_atom());
     return atom.hydrogens();
   }
 
@@ -927,6 +949,7 @@ namespace Helium {
   inline void set_hydrogens<SmartMol>(SmartMol &mol,
       molecule_traits<SmartMol>::atom_type atom, int value)
   {
+    PRE(atom != molecule_traits<SmartMol>::null_atom());
     atom.setHydrogens(value);
   }
 
@@ -934,6 +957,7 @@ namespace Helium {
   inline int get_charge<SmartMol>(const SmartMol &mol,
       const molecule_traits<SmartMol>::atom_type atom)
   {
+    PRE(atom != molecule_traits<SmartMol>::null_atom());
     return atom.charge();
   }
 
@@ -941,6 +965,7 @@ namespace Helium {
   inline void set_charge<SmartMol>(SmartMol &mol,
       molecule_traits<SmartMol>::atom_type atom, int value)
   {
+    PRE(atom != molecule_traits<SmartMol>::null_atom());
     atom.setCharge(value);
   }
 
@@ -954,6 +979,7 @@ namespace Helium {
   inline Index get_index<SmartMol>(const SmartMol &mol,
       const molecule_traits<SmartMol>::bond_type bond)
   {
+    PRE(bond != molecule_traits<SmartMol>::null_bond());
     return bond.index();
   }
 
@@ -962,6 +988,7 @@ namespace Helium {
   get_source<SmartMol>(const SmartMol &mol,
       const molecule_traits<SmartMol>::bond_type bond)
   {
+    PRE(bond != molecule_traits<SmartMol>::null_bond());
     return bond.source();
   }
 
@@ -970,6 +997,7 @@ namespace Helium {
   get_target<SmartMol>(const SmartMol &mol,
       const molecule_traits<SmartMol>::bond_type bond)
   {
+    PRE(bond != molecule_traits<SmartMol>::null_bond());
     return bond.target();
   }
 
@@ -979,6 +1007,8 @@ namespace Helium {
       const molecule_traits<SmartMol>::bond_type bond,
       const molecule_traits<SmartMol>::atom_type atom)
   {
+    PRE(bond != molecule_traits<SmartMol>::null_bond());
+    PRE(atom == bond.source() || atom == bond.target());
     return bond.other(atom);
   }
 
@@ -986,6 +1016,7 @@ namespace Helium {
   inline bool is_aromatic<SmartMol>(const SmartMol &mol,
       const molecule_traits<SmartMol>::bond_type bond)
   {
+    PRE(bond != molecule_traits<SmartMol>::null_bond());
     return bond.isAromatic();
   }
 
@@ -993,6 +1024,7 @@ namespace Helium {
   inline void set_aromatic<SmartMol>(SmartMol &mol,
       molecule_traits<SmartMol>::bond_type bond, bool value)
   {
+    PRE(bond != molecule_traits<SmartMol>::null_bond());
     bond.setAromatic(value);
   }
 
@@ -1000,6 +1032,7 @@ namespace Helium {
   inline int get_order<SmartMol>(const SmartMol &mol,
       const molecule_traits<SmartMol>::bond_type bond)
   {
+    PRE(bond != molecule_traits<SmartMol>::null_bond());
     return bond.order();
   }
 
@@ -1007,6 +1040,7 @@ namespace Helium {
   inline void set_order<SmartMol>(SmartMol &mol,
       molecule_traits<SmartMol>::bond_type bond, int value)
   {
+    PRE(bond != molecule_traits<SmartMol>::null_bond());
     bond.setOrder(value);
   }
 
@@ -1016,9 +1050,9 @@ namespace Helium {
       molecule_traits<SmartMol>::atom_type source,
       molecule_traits<SmartMol>::atom_type target)
   {
-    molecule_traits<SmartMol>::incident_iter bond, end_bonds;
-    TIE(bond, end_bonds) = get_bonds(mol, source);
-    for (; bond != end_bonds; ++bond)
+    PRE(source != molecule_traits<HeMol>::null_atom());
+    PRE(target != molecule_traits<HeMol>::null_atom());
+    FOREACH_INCIDENT (bond, source, mol)
       if (get_other(mol, *bond, source) == target)
         return *bond;
     return mol.null_bond();
@@ -1040,17 +1074,15 @@ namespace Helium {
   inline std::ostream& operator<<(std::ostream &os, SmartMol &mol)
   {
     os << "Molecule:" << std::endl;
+
     os << "    Atoms:\tindex\telement" << std::endl;
-    molecule_traits<SmartMol>::atom_iter atom, end_atoms;
-    TIE(atom, end_atoms) = mol.atoms();
-    for (; atom != end_atoms; ++atom)
+    FOREACH_ATOM (atom, mol)
       os << "          \t" << (*atom).index() << "\t" << (*atom).element() << std::endl;
 
     os << "    Bonds:\tsource\ttarget\torder" << std::endl;
-    molecule_traits<SmartMol>::bond_iter bond, end_bonds;
-    TIE(bond, end_bonds) = mol.bonds();
-    for (; bond != end_bonds; ++bond)
+    FOREACH_BOND (bond, mol)
       os << "          \t" << (*bond).source().index() << "\t" << (*bond).target().index() << "\t" << (*bond).order() << std::endl;
+
     return os;
   }
 

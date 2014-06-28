@@ -11,7 +11,7 @@ class TestBinaryInputFile(unittest.TestCase):
 
     def test_in_memory_row_major_fingerprint_storage(self):
         storage = helium.InMemoryRowMajorFingerprintStorage()
-        self.assertRaises(RuntimeError, storage.load, 'foo')
+        self.assertFalse(storage.load('foo'))
 
         storage.load(self.datadir + '/1K_fp_path_7_1024_row.hel')
         self.assertTrue(isinstance(storage.header(), str))
@@ -21,7 +21,7 @@ class TestBinaryInputFile(unittest.TestCase):
 
     def test_in_memory_column_major_fingerprint_storage(self):
         storage = helium.InMemoryColumnMajorFingerprintStorage()
-        self.assertRaises(RuntimeError, storage.load, 'foo')
+        self.assertFalse(storage.load('foo'))
 
         storage.load(self.datadir + '/1K_fp_path_7_1024_col.hel')
         self.assertTrue(isinstance(storage.header(), str))

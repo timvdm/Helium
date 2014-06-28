@@ -23,18 +23,14 @@ void test_cycle_membership(const CyclePerceptionAlgorithm &algorithm,
 
   //std::cout << write_smiles(mol, WriteSmiles::Order) << std::endl;
 
-  HeMol::atom_iter atom, end_atom;
-  TIE(atom, end_atom) = get_atoms(mol);
-  for (; atom != end_atom; ++atom) {
+  FOREACH_ATOM (atom, mol) {
     if (rings.isAtomInRing(*atom))
       COMPARE(true, cyclic_atoms[get_index(mol, *atom)]);
     else
       COMPARE(false, cyclic_atoms[get_index(mol, *atom)]);
   }
 
-  HeMol::bond_iter bond, end_bond;
-  TIE(bond, end_bond) = get_bonds(mol);
-  for (; bond != end_bond; ++bond) {
+  FOREACH_BOND (bond, mol) {
     if (rings.isBondInRing(*bond))
       COMPARE(true, cyclic_bonds[get_index(mol, *bond)]);
     else
@@ -225,8 +221,8 @@ int main()
   test_cycle_membership(IsomorphismCycleAlgorithm(), mol);
   test_cycle_membership(VismaraCycleAlgorithm(), mol);
 
-  test_cycle_membership(IsomorphismCycleAlgorithm(), datadir() + "100K.hel");
-  test_cycle_membership(VismaraCycleAlgorithm(), datadir() + "100K.hel");
+  test_cycle_membership(IsomorphismCycleAlgorithm(), datadir() + "10K.hel");
+  test_cycle_membership(VismaraCycleAlgorithm(), datadir() + "10K.hel");
 
 
   test_cycle_bit_matrix1();

@@ -51,7 +51,7 @@ namespace Helium
       /**
        * @brief Options.
        */
-      enum OptionType {
+      enum Options {
         /**
          * @brief Depict with black atoms.
          */
@@ -226,7 +226,7 @@ namespace Helium
       /**
        * @brief Get the font family.
        */
-      const std::string& GetFontFamily() const
+      const std::string& fontFamily() const
       {
         return m_fontFamily;
       }

@@ -13,6 +13,7 @@ set(python_SRCS
   main.cpp
   bitvec.cpp
   common.cpp
+  diagram.cpp
   distancematrix.cpp
   element.cpp
   error.cpp
@@ -37,10 +38,14 @@ set(python_SRCS
   fileio/moleculefile.cpp
   fingerprints/fingerprints.cpp
   fingerprints/similarity.cpp
+  depict/depict.cpp
   ../../src/smarts.cpp
   ../../src/smirks.cpp
   ../../src/fileio/file.cpp
   ../../src/jsoncpp.cpp
+  ../../src/diagram.cpp
+  ../../src/depict/svgpainter.cpp
+  ../../src/depict/depict.cpp
 )
 
 set(CMAKE_CXX_FLAGS "-O2")

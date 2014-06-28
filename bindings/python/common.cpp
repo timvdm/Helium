@@ -47,6 +47,7 @@ struct VectorVectorToList
 void export_common()
 {
   to_python_converter<std::pair<unsigned int, double>, PairToTuple<unsigned int, double> >();
+  to_python_converter<std::pair<double, double>, PairToTuple<double, double> >();
 
   to_python_converter<std::vector<bool>, VectorToList<bool> >();
   to_python_converter<std::vector<unsigned int>, VectorToList<unsigned int> >();

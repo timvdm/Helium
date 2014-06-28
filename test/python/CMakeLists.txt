@@ -5,6 +5,7 @@ set(python_tests
   bitvec
   canonical
   components
+  depict
   dfs
   dijkstra
   element

@@ -4,6 +4,7 @@ using namespace boost::python;
 
 void export_bitvec();
 void export_common();
+void export_diagram();
 void export_distance_matrix();
 void export_element();
 void export_error();
@@ -32,10 +33,13 @@ void export_fingerprintfiles();
 void export_fingerprints();
 void export_similarity();
 
+void export_depict();
+
 BOOST_PYTHON_MODULE(helium) {
 
   export_bitvec();
   export_common();
+  export_diagram();
   export_distance_matrix();
   export_element();
   export_error();
@@ -57,7 +61,7 @@ BOOST_PYTHON_MODULE(helium) {
   export_floyd_warshall();
   export_invariants();
 
-  //  fileio
+  // fileio
   export_file();
   export_moleculefile();
   export_fps();
@@ -66,5 +70,8 @@ BOOST_PYTHON_MODULE(helium) {
   // fingerprints
   export_fingerprints();
   export_similarity();
+
+  // depict
+  export_depict();
 
 }

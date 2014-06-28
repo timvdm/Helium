@@ -35,6 +35,7 @@ void export_moleculefile()
     .def("readMolecule", &readMolecule_1)
     .def("readMolecule", &readMolecule_2)
     .def("close", &Helium::MoleculeFile::close)
+    .def("error", &Helium::MoleculeFile::error, return_internal_reference<>())
     ;
 
   class_<Helium::MemoryMappedMoleculeFile, boost::noncopyable>("MemoryMappedMoleculeFile")
@@ -42,5 +43,6 @@ void export_moleculefile()
     .def("load", &Helium::MemoryMappedMoleculeFile::load)
     .def("numMolecules", &Helium::MemoryMappedMoleculeFile::numMolecules)
     .def("readMolecule", &readMolecule_3)
+    .def("error", &Helium::MemoryMappedMoleculeFile::error, return_internal_reference<>())
     ;
 }

@@ -28,6 +28,7 @@ options:
 
 * to build with python support: -DENABLE_PYTHON=ON
 * to build the RESTful service: -DENABLE_SERVICE=ON
+* to build with OpenBabel 2 support: -DENABLE_OPENBABEL=ON
 
 Mac OSX
 ~~~~~~~

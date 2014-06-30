@@ -24,23 +24,35 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-#ifndef HELIUM_CHEMIST_MOLECULE_H
-#define HELIUM_CHEMIST_MOLECULE_H
+#ifndef HELIUM_CHEMIST_FILEIO_H
+#define HELIUM_CHEMIST_FILEIO_H
 
-#include <Helium/smartmol.h>
-#include <Helium/element.h>
+#include <Helium/fileio/file.h>
+#include <Helium/fileio/moleculefile.h>
+#include <Helium/fileio/fingerprints.h>
+#include <Helium/fileio/fps.h>
 
 namespace Helium {
 
   namespace Chemist {
 
-    typedef SmartMol Molecule;
-    typedef Molecule::atom_type Atom;
-    typedef Molecule::bond_type Bond;
+    // file.h
+    using Helium::BinaryInputFile;
+    using Helium::BinaryOutputFile;
 
-    using Helium::Index;
-    using Helium::Size;
-    using Helium::Element;
+    // moleculefile.h
+    using Helium::MoleculeOutputFile;
+    using Helium::MoleculeFile;
+    using Helium::MemoryMappedMoleculeFile;
+
+    // fingerprints.h
+    using Helium::RowMajorFingerprintOutputFile;
+    using Helium::ColumnMajorFingerprintOutputFile;
+    using Helium::InMemoryRowMajorFingerprintStorage;
+    using Helium::InMemoryColumnMajorFingerprintStorage;
+
+    // fps.h
+    using Helium::FpsFile;
 
   }
 

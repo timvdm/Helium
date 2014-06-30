@@ -115,7 +115,7 @@ void test_atom_functions(EditableMoleculeType &mol)
   OpenBabel::OBAtom* atoms[4] = { atom1, atom2, atom3, atom4 };
 
   int i = 0;
-  FOREACH_ATOM_T (atom, mol, EditableMoleculeType) {
+  FOREACH_ATOM (atom, mol) {
     COMPARE(atoms[i], *atom);
     ++i;
   }
@@ -125,7 +125,7 @@ void test_atom_functions(EditableMoleculeType &mol)
   OpenBabel::OBAtom* targets[3] = { atom2, atom3, atom4 };
 
   i = 0;
-  FOREACH_BOND_T (bond, mol, EditableMoleculeType) {
+  FOREACH_BOND (bond, mol) {
     COMPARE(sources[i], get_source(mol, *bond));
     COMPARE(targets[i], get_target(mol, *bond));
     ++i;
@@ -135,7 +135,7 @@ void test_atom_functions(EditableMoleculeType &mol)
   OpenBabel::OBAtom* nbrs[3] = { atom1, atom3, atom4 };
 
   i = 0;
-  FOREACH_NBR_T (nbr, atom2, mol, EditableMoleculeType) {
+  FOREACH_NBR (nbr, atom2, mol) {
     COMPARE(nbrs[i], *nbr);
     ++i;
   }
@@ -144,7 +144,7 @@ void test_atom_functions(EditableMoleculeType &mol)
   OpenBabel::OBBond* bonds[3] = { bond1, bond2, bond3 };
 
   i = 0;
-  FOREACH_INCIDENT_T (bond, atom2, mol, EditableMoleculeType) {
+  FOREACH_INCIDENT (bond, atom2, mol) {
     COMPARE(bonds[i], *bond);
     ++i;
   }

@@ -14,6 +14,7 @@ void export_smiles();
 void export_smirks();
 void export_rings();
 
+void export_aromaticity();
 void export_bfs();
 void export_canonical();
 void export_components();
@@ -50,6 +51,7 @@ BOOST_PYTHON_MODULE(helium) {
   export_rings();
 
   // algorithms
+  export_aromaticity();
   export_bfs();
   export_canonical();
   export_components();

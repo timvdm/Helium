@@ -41,6 +41,7 @@ set(HELIUM_ALGORITHMS_HDRS
   algorithms/floydwarshall.h
   algorithms/smartcomponents.h
   algorithms/kekulize.h
+  algorithms/aromatize.h
 )
 
 set(HELIUM_UTIL_HDRS
@@ -82,8 +83,10 @@ set(HELIUM_CHEMIST_HDRS
   chemist/smiles.h
   chemist/smarts.h
   chemist/smirks.h
-  chemist/dfs.h
-  chemist/bfs.h
+  chemist/fileio.h
+  chemist/fingerprints.h
+  chemist/depict.h
+  chemist/algorithms.h
 )
 
 set(HELIUM_JSON_HDRS
@@ -163,5 +166,5 @@ install(FILES ${HELIUM_STEREO_HDRS} DESTINATION "${INCLUDE_INSTALL_DIR}/Helium/s
 install(FILES ${HELIUM_TOOLKITS_HDRS} DESTINATION "${INCLUDE_INSTALL_DIR}/Helium/toolkits")
 install(FILES ${HELIUM_JSON_HDRS} DESTINATION "${INCLUDE_INSTALL_DIR}/Helium/json")
 install(FILES ${HELIUM_CHEMIST_HDRS} DESTINATION "${INCLUDE_INSTALL_DIR}/Helium/chemist")
-install(FILES ${HELIUM_CHEMIST_HDRS} DESTINATION "${INCLUDE_INSTALL_DIR}/Helium/depict")
+install(FILES ${HELIUM_DEPICT_HDRS} DESTINATION "${INCLUDE_INSTALL_DIR}/Helium/depict")
 install(FILES ${CMAKE_BINARY_DIR}/include/Helium/config.h DESTINATION "${INCLUDE_INSTALL_DIR}/Helium")

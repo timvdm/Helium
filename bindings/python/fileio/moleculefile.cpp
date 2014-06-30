@@ -28,6 +28,11 @@ bool readMolecule_3(Helium::MemoryMappedMoleculeFile &file, unsigned int index, 
 void export_moleculefile()
 {
 
+  class_<Helium::MoleculeOutputFile, boost::noncopyable>("MoleculeOutputFile", init<const std::string&>())
+    .def("writeMolecule", &Helium::MoleculeOutputFile::writeMolecule<Molecule>)
+    .def("error", &Helium::MoleculeOutputFile::error, return_value_policy<copy_const_reference>())
+    ;
+
   class_<Helium::MoleculeFile, boost::noncopyable>("MoleculeFile")
     .def(init<const std::string&>())
     .def("load", &Helium::MoleculeFile::load)

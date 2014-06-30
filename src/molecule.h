@@ -1016,6 +1016,16 @@ namespace Helium {
     return get_degree(mol, atom) + get_hydrogens(mol, atom);
   }
 
+  template<typename MoleculeType>
+  int get_total_hydrogens(const MoleculeType &mol, typename molecule_traits<MoleculeType>::atom_type atom)
+  {
+    int numH = get_hydrogens(mol, atom);
+    FOREACH_NBR (nbr, atom, mol)
+      if (is_hydrogen(mol, atom))
+        numH++;
+    return numH;
+  }
+
   /**
    * @brief Make all hydrogens explicit.
    *

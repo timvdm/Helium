@@ -1016,6 +1016,16 @@ namespace Helium {
     return get_degree(mol, atom) + get_hydrogens(mol, atom);
   }
 
+  /**
+   * @brief Get the total number of hydrogens attached to atom.
+   *
+   * @pre The atom must be valid (i.e. not equal to molecule_traits<MoleculeType>::null_atom()).
+   *
+   * @param mol The molecule.
+   * @param atom The atom.
+   *
+   * @return The total number of hydrogens attached to the atom.
+   */
   template<typename MoleculeType>
   int get_total_hydrogens(const MoleculeType &mol, typename molecule_traits<MoleculeType>::atom_type atom)
   {

@@ -1,6 +1,10 @@
 cmake_minimum_required(VERSION 2.6)
 project(Helium)
 
+set(HELIUM_MAJOR 0)
+set(HELIUM_MINOR 2)
+set(HELIUM_PATCH 0)
+
 # set the module path
 set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake)
 
@@ -128,8 +132,6 @@ set(TEST_PATH ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
 add_subdirectory(test)
 
 add_subdirectory(tools)
-add_subdirectory(examples)
-add_subdirectory(benchmark)
 
 ############################################################
 #
@@ -164,3 +166,35 @@ option(ENABLE_SERVICE "Enable the RESTful service" OFF)
 if (ENABLE_SERVICE)
   add_subdirectory(service)
 endif()
+
+############################################################
+#
+# CPack
+#
+############################################################
+
+set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Helium")
+set(CPACK_PACKAGE_VENDOR "Tim Vandermeersch")
+set(CPACK_PACKAGE_VERSION_MAJOR ${HELIUM_MAJOR})
+set(CPACK_PACKAGE_VERSION_MINOR ${HELIUM_MINOR})
+set(CPACK_PACKAGE_VERSION_PATCH ${HELIUM_PATCH})
+SET(CPACK_SOURCE_PACKAGE_FILE_NAME "helium-${HELIUM_MAJOR}.${HELIUM_MINOR}.${HELIUM_PATCH}")
+
+set(ignore_files
+  .git
+  .gitignore
+  .DS_Store
+  build
+  build-*
+  devel
+  docs
+  examples
+  data/100K.smi
+  data/100K.hel
+  data/1M.smi
+  data/1M.hel
+)
+
+set(CPACK_SOURCE_IGNORE_FILES "${ignore_files}")
+
+include(CPack)

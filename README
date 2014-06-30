@@ -8,7 +8,11 @@ Website: http://www.moldb.net
 Build Instructions
 ------------------
 
-The only external dependencies are the Boost C++ libraries.
+Dependencies
+~~~~~~~~~~~~
+
+Boost C++ libraries: http://www.boost.org
+Eigen3: http://eigen.tuxfamily.org/
 
 Linux
 ~~~~~

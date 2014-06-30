@@ -35,10 +35,10 @@
 #include <Helium/algorithms/canonical.h>
 #include <Helium/algorithms/components.h>
 #include <Helium/algorithms/cycles.h>
-#include <Helium/algorithms/cycles.h>
 #include <Helium/depict/svgpainter.h>
 #include <Helium/depict/depict.h>
 #include <Helium/algorithms/kekulize.h>
+#include <Helium/algorithms/dijkstra.h>
 
 #include <boost/timer/timer.hpp>
 //#include <boost/date_time/gregorian/gregorian.hpp>
@@ -138,6 +138,24 @@ namespace Helium {
   };
 
   template<typename MoleculeType>
+  struct DijkstraAlg
+  {
+    void operator()(const MoleculeType &mol) const
+    {
+      Dijkstra<HeMol> dijkstra(mol, get_atom(mol, 0));
+    }
+  };
+
+  template<typename MoleculeType>
+  struct FloydWarshall
+  {
+    void operator()(const MoleculeType &mol) const
+    {
+      floyd_warshall(mol);
+    }
+  };
+
+  template<typename MoleculeType>
   struct Kekulize
   {
     void operator()(MoleculeType &mol) const
@@ -158,6 +176,7 @@ namespace Helium {
   enum Mode {
     Individual = 1, // measure individual molecules
     Graph = 2, // create a graph
+    Sizes = 3, // create size graph
     LastMode
   };
 
@@ -176,11 +195,6 @@ namespace Helium {
         std::string filename = args.GetArgString("filename");
 
         HeMol mol;
-        MoleculeFile file;
-        if (!file.load(filename)) {
-          std::cerr << file.error().what() << std::endl;
-          return -1;
-        }
 
         int algo = 0;
         if (algorithm == "read")
@@ -201,16 +215,27 @@ namespace Helium {
           algo = 8;
         else if (algorithm == "canonicalize")
           algo = 9;
+        else if (algorithm == "dijkstra")
+          algo = 10;
+        else if (algorithm == "floyd_warshall")
+          algo = 11;
 
         if (!algo) {
           std::cerr << "Unkown algorithm: " << algorithm << std::endl;
           return -1;
         }
 
-        int mode = Graph;
+        int mode = Sizes;
+
 
         unsigned long ns;
         boost::timer::cpu_timer timer;
+
+        MoleculeFile file;
+        if (!file.load(filename)) {
+          std::cerr << file.error().what() << std::endl;
+          return -1;
+        }
 
         for (std::size_t i = 0; i < file.numMolecules(); ++i) {
           file.readMolecule(mol);
@@ -244,6 +269,12 @@ namespace Helium {
             case 9:
               ns = measure_ns(mol, Canonicalize<HeMol>());
               break;
+            case 10:
+              ns = measure_ns(mol, DijkstraAlg<HeMol>());
+              break;
+            case 11:
+              ns = measure_ns(mol, FloydWarshall<HeMol>());
+              break;
           }
 
           switch (mode) {
@@ -257,6 +288,8 @@ namespace Helium {
                 std::cout << i << "," << ns / one_millisecond << std::endl;
               }
               break;
+            default:
+              break;
           }
         }
 
@@ -269,7 +302,13 @@ namespace Helium {
           case Graph:
             std::cout << file.numMolecules() << "," << ns / one_millisecond << std::endl;
             break;
+          case Sizes:
+            std::cout << file.numMolecules() << "," << (ns / one_millisecond) << std::endl;
+            break;
+          default:
+            break;
         }
+
 
         return 0;
       }
@@ -299,6 +338,8 @@ namespace Helium {
         ss << "    bond_components" << std::endl;
         ss << "    extended_connectivities" << std::endl;
         ss << "    canonicalize" << std::endl;
+        ss << "    dijkstra" << std::endl;
+        ss << "    floyd_warshall" << std::endl;
         ss << std::endl;
         return ss.str();
       }

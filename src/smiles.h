@@ -321,7 +321,6 @@ namespace Helium {
             smiles << ".";
         }
 
-
         if (explicitBond)
           smiles << explicitBond;
         explicitBond = 0;
@@ -348,6 +347,10 @@ namespace Helium {
         if (atomClass != atomClasses.end())
           needBrackets = true;
 
+        // handle pyrrole [nH]
+        if (is_aromatic(mol, atom) && is_nitrogen(mol, atom) && get_total_hydrogens(mol, atom) == 1)
+          needBrackets = true;
+
         if (needBrackets)
           smiles << "[";
 
@@ -357,8 +360,11 @@ namespace Helium {
         smiles << element;
 
         int numH = get_hydrogens(mol, atom);
-        if (needBrackets && (flags & Smiles::Hydrogens) && numH)
-          smiles << "H" << numH;
+        if (needBrackets && (flags & Smiles::Hydrogens) && numH) {
+          smiles << "H";
+          if (numH > 1)
+            smiles << numH;
+        }
 
         if ((flags & Smiles::Charge) && get_charge(mol, atom)) {
           int charge = get_charge(mol, atom);

@@ -22,6 +22,7 @@ set(python_SRCS
   smarts.cpp
   smiles.cpp
   smirks.cpp
+  algorithms/aromaticity.cpp
   algorithms/bfs.cpp
   algorithms/canonical.cpp
   algorithms/dfs.cpp

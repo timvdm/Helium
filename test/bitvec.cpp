@@ -14,15 +14,19 @@ int main()
   std::pair<Word*, int> bitvec = bitvec_from_hex("0000000000000000");
   COMPARE(*bitvec.first, 0);
   COMPARE(bitvec.second, 1);
+  delete [] bitvec.first;
 
   bitvec = bitvec_from_hex("0123456789abcdef");
   COMPARE("0123456789abcdef", bitvec_to_hex(bitvec.first, 1));
+  delete [] bitvec.first;
 
   bitvec = bitvec_from_hex("01ab02cd03ef");
   COMPARE("01ab02cd03ef0000", bitvec_to_hex(bitvec.first, 1));
+  delete [] bitvec.first;
 
   bitvec = bitvec_from_hex("01ab02cd03efabcdef");
   COMPARE(2, bitvec.second);
+  delete [] bitvec.first;
 
   // |          |          |          |
   //    12  40      80        14x

@@ -24,20 +24,42 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-#ifndef HELIUM_CHEMIST_DFS_H
-#define HELIUM_CHEMIST_DFS_H
+#ifndef HELIUM_CHEMIST_FINGERPRINTS_H
+#define HELIUM_CHEMIST_FINGERPRINTS_H
 
-#include <Helium/algorithms/dfs.h>
+#include <Helium/bitvec.h>
+#include <Helium/fingerprints/similarity.h>
+#include <Helium/fingerprints/fingerprints.h>
 
 namespace Helium {
 
   namespace Chemist {
 
-    using Helium::DFSVisitor;
-    using Helium::DFSAtomOrderVisitor;
-    using Helium::DFSBondOrderVisitor;
-    using Helium::DFSClosureRecorderVisitor;
-    using Helium::DFSDebugVisitor;
+    using Helium::bitvec_num_words_for_bits;
+    using Helium::bitvec_zero;
+    using Helium::bitvec_copy;
+    using Helium::bitvec_get;
+    using Helium::bitvec_set;
+    using Helium::bitvec_reset;
+    using Helium::bitvec_is_subset_superset;
+    using Helium::bitvec_count;
+    using Helium::bitvec_union_count;
+    using Helium::bitvec_tanimoto;
+    using Helium::bitvec_cosine;
+    using Helium::bitvec_hamming;
+    using Helium::bitvec_russell_rao;
+    using Helium::bitvec_forbes;
+    using Helium::bitvec_write_size;
+    using Helium::bitvec_read_size;
+    using Helium::bitvec_write;
+    using Helium::bitvec_read;
+    using Helium::bitvec_to_binary;
+    using Helium::bitvec_from_binary;
+    using Helium::bitvec_print;
+    using Helium::bitvec_to_hex;
+    using Helium::bitvec_from_hex;
+
+    using Helium::SimilaritySearchIndex;
 
   }
 

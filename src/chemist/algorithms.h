@@ -24,20 +24,65 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-#ifndef HELIUM_CHEMIST_BFS_H
-#define HELIUM_CHEMIST_BFS_H
+#ifndef HELIUM_CHEMIST_ALGORITHMS_H
+#define HELIUM_CHEMIST_ALGORITHMS_H
 
+#include <Helium/distancematrix.h>
 #include <Helium/algorithms/bfs.h>
+#include <Helium/algorithms/canonical.h>
+#include <Helium/algorithms/components.h>
+#include <Helium/algorithms/dfs.h>
+#include <Helium/algorithms/dijkstra.h>
+#include <Helium/algorithms/enumeratepaths.h>
+#include <Helium/algorithms/enumeratesubgraphs.h>
+#include <Helium/algorithms/extendedconnectivities.h>
+#include <Helium/algorithms/floydwarshall.h>
+#include <Helium/algorithms/gtd.h>
+#include <Helium/algorithms/invariants.h>
+#include <Helium/algorithms/isomorphism.h>
+#include <Helium/algorithms/kekulize.h>
+#include <Helium/algorithms/aromatize.h>
 
 namespace Helium {
 
   namespace Chemist {
 
+    // distancematrix.h
+    using Helium::DistanceMatrix;
+
+    // bfs.h
     using Helium::BFSVisitor;
     using Helium::BFSAtomOrderVisitor;
     using Helium::BFSBondOrderVisitor;
     using Helium::BFSClosureRecorderVisitor;
     using Helium::BFSDebugVisitor;
+
+    // dfs.h
+    using Helium::DFSVisitor;
+    using Helium::DFSAtomOrderVisitor;
+    using Helium::DFSBondOrderVisitor;
+    using Helium::DFSClosureRecorderVisitor;
+    using Helium::DFSDebugVisitor;
+
+    // dijkstra.h
+    using Helium::Dijkstra;
+
+    // enumeratesubgraphs.h
+    using Helium::Subgraph;
+
+    // invariants.h
+    using Helium::DefaultAtomInvariant;
+    using Helium::DefaultBondInvariant;
+
+    // isomorphism.h
+    using Helium::IsomorphismMapping;
+    using Helium::IsomorphismMappings;
+    using Helium::NoMapping;
+    using Helium::CountMapping;
+    using Helium::SingleMapping;
+    using Helium::MappingList;
+    using Helium::DefaultAtomMatcher;
+    using Helium::DefaultBondMatcher;
 
   }
 

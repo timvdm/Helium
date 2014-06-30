@@ -16,7 +16,7 @@ class SVGPainter : public Helium::SVGPainter
 
     std::string output()
     {
-      return m_os.str();
+      return m_os.str() + "</svg>";
     }
 
   private:
@@ -47,7 +47,7 @@ void export_depict()
     .def("output", &SVGPainter::output)
     ;
 
-  class_<Helium::Depict, boost::noncopyable>("Depict", no_init)
+  scope in_Depict = class_<Helium::Depict, boost::noncopyable>("Depict", no_init)
     //.def(init<SVGPainter*>())
     .def("__init__", make_constructor(&Depict_ctor))
     .def("drawMolecule", &draw_molecule)

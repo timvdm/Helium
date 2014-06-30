@@ -28,6 +28,8 @@
 #define HELIUM_KEKULIZE_H
 
 #include <Helium/molecule.h>
+#include <Helium/ring.h>
+#include <Helium/algorithms/cycles.h>
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/max_cardinality_matching.hpp>
 
@@ -112,8 +114,14 @@ namespace Helium {
 
     // mark all aromatic bonds as single
     FOREACH_BOND (bond, mol)
-      if (is_aromatic(mol, *bond))
+      if (is_aromatic(mol, *bond)) {
         set_order(mol, *bond, 1);
+        set_aromatic(mol, *bond, false);
+      }
+
+    // mark all atoms ad non-aromatic
+    FOREACH_ATOM (atom, mol)
+      set_aromatic(mol, *atom, false);
 
     // mark all bonds in the maximum matching as double
     boost::graph_traits<graph_type>::vertex_iterator vi, vi_end;
@@ -127,21 +135,7 @@ namespace Helium {
   }
 
   /**
-   * @brief Kekulize a molecule.
-   *
-   * This algorithm changes aromatic bonds to alternating single and double bonds.
-   * It uses Edmonds' maximum matching algorithm on the graph of aromatic bonds
-   * with some bonds excluded.
-   *
-   * Exclude bonds around hetero atoms in 5-membered rings if the atom is:
-   * - oxygen (e.g. furan)
-   * - sulfur (e.g. thiophene)
-   * - nitrogen with: charge = 0 and (1 implicit hydrogen or degree 3)
-   *   (e.g. pyrrole)
-   *
-   * @param mol The molecule.
-   *
-   * @return True if successful.
+   * @overload
    */
   template<typename EditableMoleculeType>
   bool kekulize(EditableMoleculeType &mol)

@@ -4,7 +4,7 @@ import os
 
 class TestBinaryInputFile(unittest.TestCase):
 
-    datadir = os.getenv('HEDATADIR', os.getenv('HOME') + '/Helium/data')
+    datadir = os.getenv('HEDATADIR', os.getenv('HOME', 'c:/') + '/Helium/data')
 
     def test_depict(self):
         SMILES = helium.Smiles()

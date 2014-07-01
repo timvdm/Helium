@@ -32,7 +32,7 @@ class BFSTestVisitor(helium.BFSVisitor):
 
 class TestBFS(unittest.TestCase):
 
-    datadir = os.getenv('HEDATADIR', os.getenv('HOME') + '/Helium/data')
+    datadir = os.getenv('HEDATADIR', os.getenv('HOME', 'c:/') + '/Helium/data')
 
     def test_data_dir(self):
         self.assertTrue(os.path.isdir(self.datadir))

@@ -7,11 +7,17 @@
 using Helium::Chemist::Molecule;
 using namespace boost::python;
 
+// strange bug on win32... :(
+#ifdef WIN32
+std::stringstream m_os;
+#endif
+
 class SVGPainter : public Helium::SVGPainter
 {
   public:
     SVGPainter() : Helium::SVGPainter(m_os)
     {
+      m_os.str("");
     }
 
     std::string output()
@@ -19,8 +25,10 @@ class SVGPainter : public Helium::SVGPainter
       return m_os.str() + "</svg>";
     }
 
+#ifndef WIN32
   private:
     std::stringstream m_os;
+#endif
 };
 
 bool draw_molecule(Helium::Depict &self, const Molecule &mol, const Helium::RingSet<Molecule> &rings, const list &origCoords)

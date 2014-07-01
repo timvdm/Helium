@@ -27,6 +27,7 @@
 #ifndef HELIUM_MOLECULE_H
 #define HELIUM_MOLECULE_H
 
+#include <Helium/config.h>
 #include <Helium/element.h>
 #include <Helium/contract.h>
 
@@ -974,7 +975,7 @@ namespace Helium {
         sum += order;
     }
 
-    return sum;
+    return static_cast<int>(sum);
   }
 
   /**

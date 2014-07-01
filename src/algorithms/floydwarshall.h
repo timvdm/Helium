@@ -27,11 +27,11 @@
 #ifndef HELIUM_FLOYDWARSHALL_H
 #define HELIUM_FLOYDWARSHALL_H
 
-#include <vector>
-#include <limits>
-
 #include <Helium/molecule.h>
 #include <Helium/distancematrix.h>
+
+#include <vector>
+#include <limits>
 
 namespace Helium {
 

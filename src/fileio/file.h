@@ -27,6 +27,7 @@
 #ifndef HELIUM_FILEIO_FILE_H
 #define HELIUM_FILEIO_FILE_H
 
+#include <Helium/config.h>
 #include <Helium/util.h>
 #include <Helium/error.h>
 

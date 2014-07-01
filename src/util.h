@@ -27,17 +27,18 @@
 #ifndef HELIUM_UTIL_H
 #define HELIUM_UTIL_H
 
+#include <Helium/config.h>
+#include <cmath>
 #include <string>
 #include <sstream>
 #include <vector>
 #include <set>
 #include <algorithm>
 #include <cassert>
-#include <cmath>
 
 #include <iostream>
 
-#include <Helium/config.h>
+
 #include <Helium/util/typetraits.h>
 #include <Helium/util/fileio.h>
 #include <Helium/util/string.h>

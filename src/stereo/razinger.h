@@ -31,6 +31,7 @@
 #include <Helium/molecule.h>
 #include <Helium/contract.h>
 
+#include <iterator>
 #include <iostream>
 
 #define DEBUG_RAZINGER 1

@@ -370,10 +370,13 @@ namespace Helium {
   */
 
 
-  void Depict::drawWobblyBond(Eigen::Vector2d begin, Eigen::Vector2d end,
+  void Depict::drawWobblyBond(const Eigen::Vector2d &begin_, const Eigen::Vector2d &end_,
       bool beginLbl, bool endLbl)
   {
-    Eigen::Vector2d vb = end - begin;
+	Eigen::Vector2d begin(begin_);
+	Eigen::Vector2d end(end_);
+
+	Eigen::Vector2d vb = end - begin;
 
     if (beginLbl)
       begin += 0.33 * vb;
@@ -407,9 +410,12 @@ namespace Helium {
     }
   }
 
-  void Depict::drawWedge(Eigen::Vector2d begin, Eigen::Vector2d end,
+  void Depict::drawWedge(const Eigen::Vector2d &begin_, const Eigen::Vector2d &end_,
       bool beginLbl, bool endLbl)
   {
+	Eigen::Vector2d begin(begin_);
+	Eigen::Vector2d end(end_);
+
     Eigen::Vector2d vb = end - begin;
 
     if (beginLbl)
@@ -430,9 +436,12 @@ namespace Helium {
     m_painter->drawPolygon(points);
   }
 
-  void Depict::drawHash(Eigen::Vector2d begin, Eigen::Vector2d end,
+  void Depict::drawHash(const Eigen::Vector2d &begin_, const Eigen::Vector2d &end_,
       bool beginLbl, bool endLbl)
   {
+	Eigen::Vector2d begin(begin_);
+	Eigen::Vector2d end(end_);
+
     Eigen::Vector2d vb = end - begin;
 
     if (beginLbl)
@@ -460,10 +469,13 @@ namespace Helium {
     m_painter->setPenWidth(oldwidth);
   }
 
-  void Depict::drawSimpleBond(Eigen::Vector2d begin, Eigen::Vector2d end,
+  void Depict::drawSimpleBond(const Eigen::Vector2d &begin_, const Eigen::Vector2d &end_,
       bool beginLbl, bool endLbl, int beginValence, int endValence, int order,
       bool crossed_dbl_bond)
   {
+	Eigen::Vector2d begin(begin_);
+	Eigen::Vector2d end(end_);
+
     Eigen::Vector2d vb = end - begin;
     vb.normalize();
 
@@ -536,10 +548,13 @@ namespace Helium {
     }
   }
 
-  void Depict::drawRingBond(Eigen::Vector2d begin, Eigen::Vector2d end,
+  void Depict::drawRingBond(const Eigen::Vector2d &begin_, const Eigen::Vector2d &end_,
       bool beginLbl, bool endLbl, int beginValence, int endValence, int order,
       const Eigen::Vector2d &center)
   {
+	Eigen::Vector2d begin(begin_);
+	Eigen::Vector2d end(end_);
+
     if (order != 2) {
       drawSimpleBond(begin, end, beginLbl, endLbl, beginValence, endValence, order);
       return;

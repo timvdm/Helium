@@ -27,6 +27,7 @@
 
 #include <Helium/depict/svgpainter.h>
 
+#include <cctype>
 #include <iostream>
 #include <sstream>
 

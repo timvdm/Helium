@@ -255,23 +255,24 @@ namespace Helium
       }
 
     private:
-      void drawSimpleBond(Eigen::Vector2d begin, Eigen::Vector2d end,
+      void drawSimpleBond(const Eigen::Vector2d &begin, const Eigen::Vector2d &end,
           bool beginLbl, bool endLbl, int beginValence, int endValence, int order,
           bool crossed_dbl_bond = false);
-      void drawRingBond(Eigen::Vector2d begin, Eigen::Vector2d end,
+      void drawRingBond(const Eigen::Vector2d &begin, const Eigen::Vector2d &end,
           bool beginLbl, bool endLbl, int beginValence, int endValence, int order,
           const Eigen::Vector2d &center);
-      void drawWedge(Eigen::Vector2d begin, Eigen::Vector2d end,
+      void drawWedge(const Eigen::Vector2d &begin, const Eigen::Vector2d &end,
           bool beginLbl, bool endLbl);
-      void drawHash(Eigen::Vector2d begin, Eigen::Vector2d end,
+      void drawHash(const Eigen::Vector2d &begin, const Eigen::Vector2d &end,
           bool beginLbl, bool endLbl);
-      void drawWobblyBond(Eigen::Vector2d begin, Eigen::Vector2d end,
+      void drawWobblyBond(const Eigen::Vector2d &begin, const Eigen::Vector2d &end,
           bool beginLbl, bool endLbl);
       void drawAtomLabel(const std::string &label, int alignment, const Eigen::Vector2d &pos);
-
+	  
       template<typename MoleculeType>
       void drawRing(const MoleculeType &mol, const Ring<MoleculeType> &ring,
           const std::vector<Eigen::Vector2d> &coords, std::vector<bool> &drawnBonds);
+
 
       template<typename MoleculeType, typename AtomType>
       bool hasLabel(const MoleculeType &mol, const AtomType &atom);

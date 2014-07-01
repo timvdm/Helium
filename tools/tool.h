@@ -27,6 +27,8 @@
 #ifndef HELIUM_HELIUMTOOL_H
 #define HELIUM_HELIUMTOOL_H
 
+#include <Helium/config.h>
+
 #include <string>
 #include <vector>
 

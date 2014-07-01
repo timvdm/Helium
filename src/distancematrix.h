@@ -27,11 +27,11 @@
 #ifndef HELIUM_DISTANCEMATRIX_H
 #define HELIUM_DISTANCEMATRIX_H
 
+#include <Helium/molecule.h>
+
 #include <vector>
 #include <limits>
 #include <iostream>
-
-#include <Helium/molecule.h>
 
 namespace Helium {
 

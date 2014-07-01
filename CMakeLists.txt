@@ -23,10 +23,20 @@ include_directories(${CMAKE_BINARY_DIR}/include)
 include_directories(${CMAKE_SOURCE_DIR}/src/thirdparty)
 
 # Find and setup boost (required)
+if (MSVC)
+  add_definitions(-D_USE_MATH_DEFINES)
+  add_definitions(-DBOOST_PYTHON_STATIC_LIB)
+endif()
+set(Boost_USE_STATIC_LIBS ON)
+set(Boost_USE_MULTITHREADED ON)
+set(Boost_USE_STATIC_RUNTIME ON)
 find_package(Boost 1.48 COMPONENTS chrono timer system iostreams filesystem REQUIRED)
 include_directories(${Boost_INCLUDE_DIR})
 
 # Find and setup Eigen3 (optional)
+if (MSVC)
+  add_definitions(-DEIGEN_DONT_ALIGN_STATICALLY=1)
+endif()
 find_package(Eigen3 REQUIRED)
 if (EIGEN3_FOUND)
   message(STATUS "Eigen3 found: ${EIGEN3_INCLUDE_DIR}")
@@ -58,6 +68,14 @@ endif()
 
 # compiler options
 if (MSVC)
+  set(CompilerFlags
+    CMAKE_CXX_FLAGS
+    CMAKE_CXX_FLAGS_DEBUG
+    CMAKE_CXX_FLAGS_RELEASE
+  )
+  foreach(CompilerFlag ${CompilerFlags})
+    string(REPLACE "/MD" "/MT" ${CompilerFlag} "${${CompilerFlag}}")
+  endforeach()
 else()
   set(CMAKE_CXX_FLAGS "-g -pedantic -Wall -Wno-long-long -Wno-sign-compare ${CMAKE_CXX_FLAGS}")
 endif()

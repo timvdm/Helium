@@ -18,8 +18,8 @@ std::vector<T> vector_from_list(const list &l)
 {
   std::vector<T> result;
 
-  ssize_t size = len(l);
-  for (ssize_t i = 0; i < size; ++i)
+  boost::python::ssize_t size = len(l);
+  for (boost::python::ssize_t i = 0; i < size; ++i)
     result.push_back(extract<T>(l[i]));
 
   return result;
@@ -32,8 +32,8 @@ std::map<Key, Value> map_from_dict(const dict &d)
 
   list keys = d.keys();
 
-  ssize_t size = len(keys);
-  for (ssize_t i = 0; i < size; ++i)
+  boost::python::ssize_t size = len(keys);
+  for (boost::python::ssize_t i = 0; i < size; ++i)
     result[extract<Key>(keys[i])] = extract<Value>(d[keys[i]]);
 
   return result;

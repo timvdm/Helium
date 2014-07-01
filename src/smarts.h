@@ -27,8 +27,7 @@
 #ifndef HELIUM_SMARTS_H
 #define HELIUM_SMARTS_H
 
-#include <iostream>
-
+#include <Helium/config.h>
 #include <Helium/hemol.h>
 #include <Helium/ring.h>
 #include <Helium/algorithms/isomorphism.h>
@@ -36,6 +35,8 @@
 #include <Helium/algorithms/cycles.h>
 #include <Helium/error.h>
 #include <Helium/smiley.h>
+
+#include <iostream>
 
 namespace Helium {
 

@@ -62,8 +62,15 @@ namespace Helium {
 
   std::string separator()
   {
+#ifdef WIN32
+	return "\\";
+#else
+	return "/";
+#endif
+	/*
     boost::filesystem::path slash("/");
     return slash.make_preferred().native();
+	*/
   }
 
   class DepictTool : public HeliumTool

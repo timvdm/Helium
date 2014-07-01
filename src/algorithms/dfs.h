@@ -27,10 +27,10 @@
 #ifndef HELIUM_DFS_H
 #define HELIUM_DFS_H
 
-#include <iostream>
-
 #include <Helium/molecule.h>
 #include <Helium/util.h>
+
+#include <iostream>
 
 namespace Helium {
 

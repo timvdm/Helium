@@ -27,11 +27,11 @@
 #ifndef HELIUM_DIJKSTRA_H
 #define HELIUM_DIJKSTRA_H
 
+#include <Helium/molecule.h>
+
 #include <vector>
 #include <limits>
 #include <algorithm>
-
-#include <Helium/molecule.h>
 
 namespace Helium {
 

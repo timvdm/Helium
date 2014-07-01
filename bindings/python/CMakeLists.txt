@@ -3,6 +3,9 @@ find_package(PythonLibs REQUIRED)
 include_directories(${PYTHON_INCLUDE_DIRS})
 
 # Find and setup boost (required)
+set(Boost_USE_STATIC_LIBS ON)
+set(Boost_USE_MULTITHREADED ON)
+set(Boost_USE_STATIC_RUNTIME ON)
 find_package(Boost 1.48 COMPONENTS python iostreams REQUIRED)
 include_directories(${BOOST_INCLUDE_DIR})
 
@@ -49,12 +52,16 @@ set(python_SRCS
   ../../src/depict/depict.cpp
 )
 
-set(CMAKE_CXX_FLAGS "-O2")
+if (WIN32)
+  set(PYTHON_MODULE_SUFFIX ".pyd")
+else()
+  set(PYTHON_MODULE_SUFFIX ".so")
+endif()
 
 add_library(PyHelium SHARED ${python_SRCS})
 set_target_properties(PyHelium PROPERTIES
   PREFIX ""
-  SUFFIX ".so"
+  SUFFIX ${PYTHON_MODULE_SUFFIX}
   OUTPUT_NAME helium)
 target_link_libraries(PyHelium ${PYTHON_LIBRARIES} ${Boost_LIBRARIES})
 if (NOT WIN32)

@@ -59,7 +59,6 @@ namespace Helium {
   bool aromatize(EditableMoleculeType &mol, const RingSet<EditableMoleculeType> &rings)
   {
     typedef typename molecule_traits<EditableMoleculeType>::atom_type atom_type;
-    typedef typename molecule_traits<EditableMoleculeType>::bond_type bond_type;
 
     for (std::size_t i = 0; i < rings.size(); ++i) {
       const Ring<EditableMoleculeType> &ring = rings.ring(i);

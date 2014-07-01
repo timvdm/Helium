@@ -21,7 +21,7 @@ search(const Helium::SimilaritySearchIndex<Helium::InMemoryRowMajorFingerprintSt
   return storage.search(query.data, threshold, maxResults);
 }
 
-BOOST_PYTHON_FUNCTION_OVERLOADS(search_overloads, search, 3, 4);
+BOOST_PYTHON_FUNCTION_OVERLOADS(search_overloads, search, 3, 4)
 
 void export_similarity()
 {

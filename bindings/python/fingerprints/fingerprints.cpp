@@ -28,9 +28,9 @@ Fingerprint* subgraph_fingerprint(const Molecule &mol, int size = 7, int numWord
   return new Fingerprint(fp, numWords, true);
 }
 
-BOOST_PYTHON_FUNCTION_OVERLOADS(path_fingerprint_overloads, path_fingerprint, 1, 4);
-BOOST_PYTHON_FUNCTION_OVERLOADS(tree_fingerprint_overloads, tree_fingerprint, 1, 4);
-BOOST_PYTHON_FUNCTION_OVERLOADS(subgraph_fingerprint_overloads, subgraph_fingerprint, 1, 4);
+BOOST_PYTHON_FUNCTION_OVERLOADS(path_fingerprint_overloads, path_fingerprint, 1, 4)
+BOOST_PYTHON_FUNCTION_OVERLOADS(tree_fingerprint_overloads, tree_fingerprint, 1, 4)
+BOOST_PYTHON_FUNCTION_OVERLOADS(subgraph_fingerprint_overloads, subgraph_fingerprint, 1, 4)
 
 void export_fingerprints()
 {

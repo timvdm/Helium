@@ -81,9 +81,9 @@ struct BFSDebugVisitorWrapper : Helium::BFSDebugVisitor<Molecule>
   std::stringstream ss;
 };
 
-DATA_MEMBER_TO_FUNCTION(Helium::BFSAtomOrderVisitor<Molecule>, std::vector<unsigned int>, atoms);
-DATA_MEMBER_TO_FUNCTION(Helium::BFSBondOrderVisitor<Molecule>, std::vector<unsigned int>, bonds);
-DATA_MEMBER_TO_FUNCTION(Helium::BFSClosureRecorderVisitor<Molecule>, std::vector<unsigned int>, back_bonds);
+DATA_MEMBER_TO_FUNCTION(Helium::BFSAtomOrderVisitor<Molecule>, std::vector<unsigned int>, atoms)
+DATA_MEMBER_TO_FUNCTION(Helium::BFSBondOrderVisitor<Molecule>, std::vector<unsigned int>, bonds)
+DATA_MEMBER_TO_FUNCTION(Helium::BFSClosureRecorderVisitor<Molecule>, std::vector<unsigned int>, back_bonds)
 
 template<typename BFSVisitorType>
 void breadth_first_search_1(const Molecule &mol, BFSVisitorType &visitor)

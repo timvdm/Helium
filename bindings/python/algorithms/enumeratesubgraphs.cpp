@@ -7,8 +7,8 @@
 using Helium::Chemist::Molecule;
 using namespace boost::python;
 
-DATA_MEMBER_TO_FUNCTION(Helium::Subgraph, std::vector<bool>, atoms);
-DATA_MEMBER_TO_FUNCTION(Helium::Subgraph, std::vector<bool>, bonds);
+DATA_MEMBER_TO_FUNCTION(Helium::Subgraph, std::vector<bool>, atoms)
+DATA_MEMBER_TO_FUNCTION(Helium::Subgraph, std::vector<bool>, bonds)
 
 struct SubgraphCallback
 {
@@ -34,7 +34,7 @@ void enumerate_subgraphs(const Molecule &mol, SubgraphCallback &callback,
   Helium::enumerate_subgraphs(mol, callback, maxSize, trees);
 }
 
-BOOST_PYTHON_FUNCTION_OVERLOADS(enumerate_subgraphs_overload, enumerate_subgraphs, 3, 4);
+BOOST_PYTHON_FUNCTION_OVERLOADS(enumerate_subgraphs_overload, enumerate_subgraphs, 3, 4)
 
 void export_enumerate_subgraphs()
 {

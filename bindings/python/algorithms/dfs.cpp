@@ -81,9 +81,9 @@ struct DFSDebugVisitorWrapper : Helium::DFSDebugVisitor<Molecule>
   std::stringstream ss;
 };
 
-DATA_MEMBER_TO_FUNCTION(Helium::DFSAtomOrderVisitor<Molecule>, std::vector<unsigned int>, atoms);
-DATA_MEMBER_TO_FUNCTION(Helium::DFSBondOrderVisitor<Molecule>, std::vector<unsigned int>, bonds);
-DATA_MEMBER_TO_FUNCTION(Helium::DFSClosureRecorderVisitor<Molecule>, std::vector<unsigned int>, back_bonds);
+DATA_MEMBER_TO_FUNCTION(Helium::DFSAtomOrderVisitor<Molecule>, std::vector<unsigned int>, atoms)
+DATA_MEMBER_TO_FUNCTION(Helium::DFSBondOrderVisitor<Molecule>, std::vector<unsigned int>, bonds)
+DATA_MEMBER_TO_FUNCTION(Helium::DFSClosureRecorderVisitor<Molecule>, std::vector<unsigned int>, back_bonds)
 
 template<typename DFSVisitorType>
 void depth_first_search_1(const Molecule &mol, DFSVisitorType &visitor)

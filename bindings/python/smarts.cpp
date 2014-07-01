@@ -23,10 +23,10 @@ bool findMapping_4(Helium::Smarts &smarts, const Molecule &mol, const Helium::Ri
     Helium::MappingList &mapping, bool uniqueComponents = true)
 {  return smarts.findMapping(mol, rings, mapping, uniqueComponents); }
 
-BOOST_PYTHON_FUNCTION_OVERLOADS(findMapping_overloads_1, findMapping_1, 4, 5);
-BOOST_PYTHON_FUNCTION_OVERLOADS(findMapping_overloads_2, findMapping_2, 4, 5);
-BOOST_PYTHON_FUNCTION_OVERLOADS(findMapping_overloads_3, findMapping_3, 4, 5);
-BOOST_PYTHON_FUNCTION_OVERLOADS(findMapping_overloads_4, findMapping_4, 4, 5);
+BOOST_PYTHON_FUNCTION_OVERLOADS(findMapping_overloads_1, findMapping_1, 4, 5)
+BOOST_PYTHON_FUNCTION_OVERLOADS(findMapping_overloads_2, findMapping_2, 4, 5)
+BOOST_PYTHON_FUNCTION_OVERLOADS(findMapping_overloads_3, findMapping_3, 4, 5)
+BOOST_PYTHON_FUNCTION_OVERLOADS(findMapping_overloads_4, findMapping_4, 4, 5)
 
 bool findMapping_5(Helium::Smarts &smarts, const Molecule &mol,
     Helium::NoMapping &mapping, bool uniqueComponents = true)
@@ -44,10 +44,10 @@ bool findMapping_8(Helium::Smarts &smarts, const Molecule &mol,
     Helium::MappingList &mapping, bool uniqueComponents = true)
 {  return smarts.findMapping(mol, mapping, uniqueComponents); }
 
-BOOST_PYTHON_FUNCTION_OVERLOADS(findMapping_overloads_5, findMapping_5, 3, 4);
-BOOST_PYTHON_FUNCTION_OVERLOADS(findMapping_overloads_6, findMapping_6, 3, 4);
-BOOST_PYTHON_FUNCTION_OVERLOADS(findMapping_overloads_7, findMapping_7, 3, 4);
-BOOST_PYTHON_FUNCTION_OVERLOADS(findMapping_overloads_8, findMapping_8, 3, 4);
+BOOST_PYTHON_FUNCTION_OVERLOADS(findMapping_overloads_5, findMapping_5, 3, 4)
+BOOST_PYTHON_FUNCTION_OVERLOADS(findMapping_overloads_6, findMapping_6, 3, 4)
+BOOST_PYTHON_FUNCTION_OVERLOADS(findMapping_overloads_7, findMapping_7, 3, 4)
+BOOST_PYTHON_FUNCTION_OVERLOADS(findMapping_overloads_8, findMapping_8, 3, 4)
 
 bool find_1(Helium::Smarts &smarts, const Molecule &mol, const Helium::RingSet<Molecule> &rings,
     bool uniqueComponents = true)
@@ -65,10 +65,10 @@ bool find_4(Helium::Smarts &smarts, const Molecule &mol, const Helium::RingSet<M
     bool uniqueComponents = true)
 {  return smarts.find(mol, rings, uniqueComponents); }
 
-BOOST_PYTHON_FUNCTION_OVERLOADS(find_overloads_1, find_1, 3, 4);
-BOOST_PYTHON_FUNCTION_OVERLOADS(find_overloads_2, find_2, 3, 4);
-BOOST_PYTHON_FUNCTION_OVERLOADS(find_overloads_3, find_3, 3, 4);
-BOOST_PYTHON_FUNCTION_OVERLOADS(find_overloads_4, find_4, 3, 4);
+BOOST_PYTHON_FUNCTION_OVERLOADS(find_overloads_1, find_1, 3, 4)
+BOOST_PYTHON_FUNCTION_OVERLOADS(find_overloads_2, find_2, 3, 4)
+BOOST_PYTHON_FUNCTION_OVERLOADS(find_overloads_3, find_3, 3, 4)
+BOOST_PYTHON_FUNCTION_OVERLOADS(find_overloads_4, find_4, 3, 4)
 
 bool find_5(Helium::Smarts &smarts, const Molecule &mol,
     bool uniqueComponents = true)
@@ -86,13 +86,13 @@ bool find_8(Helium::Smarts &smarts, const Molecule &mol,
     bool uniqueComponents = true)
 {  return smarts.find(mol, uniqueComponents); }
 
-BOOST_PYTHON_FUNCTION_OVERLOADS(find_overloads_5, find_5, 2, 3);
-BOOST_PYTHON_FUNCTION_OVERLOADS(find_overloads_6, find_6, 2, 3);
-BOOST_PYTHON_FUNCTION_OVERLOADS(find_overloads_7, find_7, 2, 3);
-BOOST_PYTHON_FUNCTION_OVERLOADS(find_overloads_8, find_8, 2, 3);
+BOOST_PYTHON_FUNCTION_OVERLOADS(find_overloads_5, find_5, 2, 3)
+BOOST_PYTHON_FUNCTION_OVERLOADS(find_overloads_6, find_6, 2, 3)
+BOOST_PYTHON_FUNCTION_OVERLOADS(find_overloads_7, find_7, 2, 3)
+BOOST_PYTHON_FUNCTION_OVERLOADS(find_overloads_8, find_8, 2, 3)
 
-DATA_MEMBER_TO_FUNCTION(Helium::SingleMapping, std::vector<unsigned int>, map);
-DATA_MEMBER_TO_FUNCTION(Helium::MappingList, std::vector<std::vector<unsigned int> >, maps);
+DATA_MEMBER_TO_FUNCTION(Helium::SingleMapping, std::vector<unsigned int>, map)
+DATA_MEMBER_TO_FUNCTION(Helium::MappingList, std::vector<std::vector<unsigned int> >, maps)
 
 void export_smarts()
 {

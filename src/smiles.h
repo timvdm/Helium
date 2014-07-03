@@ -489,6 +489,8 @@ namespace Helium {
     impl::SmileyCallback<EditableMoleculeType> callback(mol);
     Smiley::Parser<impl::SmileyCallback<EditableMoleculeType> > parser(callback);
 
+    parser.disableExceptions(Smiley::InvalidChiralValence);
+
     try {
       parser.parse(smiles);
     } catch (Smiley::Exception &e) {

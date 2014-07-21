@@ -469,11 +469,11 @@ void test_bond_ring()
   COMPARE(Smiley::BE_Single, root->right->type);
 }
 
-void test_smarts_match(const std::string &smarts, const std::string &smiles, bool expected = true)
+void test_smarts_match(const std::string &smarts, const std::string &smiles, bool expected = true, int mode = Smarts::OpenEye)
 {
   std::cout << "Testing: " << smarts << " in " << smiles << std::endl;
   Smarts s;
-  if (!s.init(smarts)) {
+  if (!s.init(smarts, mode)) {
     std::cerr << s.error().what();
     return;
   }
@@ -611,12 +611,12 @@ void test_simple_atom_match()
   test_smarts_match("[h1]", "C#C"); // implicit
 
   // ring membership
-  test_smarts_match("[R1]", "C1CC1");
-  test_smarts_match("[R1]", "CCC", false);
-  test_smarts_match("[R2]", "C12CC1CC2");
-  test_smarts_match("[R2]", "C1CC1", false);
-  test_smarts_match("[R3]", "C123CCC1CCC2CCC3");
-  test_smarts_match("[R3]", "C12CC1CC2", false);
+  test_smarts_match("[R1]", "C1CC1", true, Smarts::RelevantCycles);
+  test_smarts_match("[R1]", "CCC", false, Smarts::RelevantCycles);
+  test_smarts_match("[R2]", "C12CC1CC2", true, Smarts::RelevantCycles);
+  test_smarts_match("[R2]", "C1CC1", false, Smarts::RelevantCycles);
+  test_smarts_match("[R3]", "C123CCC1CCC2CCC3", true, Smarts::RelevantCycles);
+  test_smarts_match("[R3]", "C12CC1CC2", false, Smarts::RelevantCycles);
 
   // ring size
   test_smarts_match("[r3]", "C1CC1");
@@ -1035,6 +1035,139 @@ void test_recursive()
   test_smarts_match("C[$(aaO);$(aaaN)]", "Cc1c(O)ccc(N)c1"); // 2O,5N
 }
 
+void test_requires_ring_set(const std::string &smarts, int mode, bool expected)
+{
+  std::cout << "Testing requiresRingSet: " << smarts << " [ mode = ";
+  switch (mode) {
+    case Smarts::SSSR:
+      std::cout << "SSSR ] " << std::endl;
+      break;
+    case Smarts::RelevantCycles:
+      std::cout << "RelevantCycles ] " << std::endl;
+      break;
+    case Smarts::OpenEye:
+      std::cout << "OpenEye ] " << std::endl;
+      break;
+  }
+
+  Smarts s;
+  if (!s.init(smarts, mode)) {
+    std::cerr << s.error().what();
+    return;
+  }
+
+  COMPARE(expected, s.requiresRingSet());
+}
+
+void test_requires_cyclicity(const std::string &smarts, int mode, bool expected)
+{
+  std::cout << "Testing requiresCyclicity: " << smarts << " [ mode = ";
+  switch (mode) {
+    case Smarts::SSSR:
+      std::cout << "SSSR ] " << std::endl;
+      break;
+    case Smarts::RelevantCycles:
+      std::cout << "RelevantCycles ] " << std::endl;
+      break;
+    case Smarts::OpenEye:
+      std::cout << "OpenEye ] " << std::endl;
+      break;
+  }
+
+  Smarts s;
+  if (!s.init(smarts, mode)) {
+    std::cerr << s.error().what();
+    return;
+  }
+
+  COMPARE(expected, s.requiresCyclicity());
+}
+
+void test_modes()
+{
+  // r<n> - requires ring set for all modes
+  test_requires_ring_set("[r5]", Smarts::SSSR, true);
+  test_requires_ring_set("[Nr5]", Smarts::SSSR, true);
+  test_requires_ring_set("[C&r5]", Smarts::SSSR, true);
+  test_requires_ring_set("[C;r5]", Smarts::SSSR, true);
+  test_requires_ring_set("[C,r5]", Smarts::SSSR, true);
+  test_requires_ring_set("[!r5]", Smarts::SSSR, true);
+
+  test_requires_ring_set("[r5]", Smarts::RelevantCycles, true);
+  test_requires_ring_set("[Nr5]", Smarts::RelevantCycles, true);
+  test_requires_ring_set("[C&r5]", Smarts::RelevantCycles, true);
+  test_requires_ring_set("[C;r5]", Smarts::RelevantCycles, true);
+  test_requires_ring_set("[C,r5]", Smarts::RelevantCycles, true);
+  test_requires_ring_set("[!r5]", Smarts::RelevantCycles, true);
+
+  test_requires_ring_set("[r5]", Smarts::OpenEye, true);
+  test_requires_ring_set("[Nr5]", Smarts::OpenEye, true);
+  test_requires_ring_set("[C&r5]", Smarts::OpenEye, true);
+  test_requires_ring_set("[C;r5]", Smarts::OpenEye, true);
+  test_requires_ring_set("[C,r5]", Smarts::OpenEye, true);
+  test_requires_ring_set("[!r5]", Smarts::OpenEye, true);
+
+  // x<n> - does not require ring set for all modes
+  test_requires_ring_set("[x2]", Smarts::SSSR, false);
+  test_requires_ring_set("[x2]", Smarts::RelevantCycles, false);
+  test_requires_ring_set("[x2]", Smarts::OpenEye, false);
+
+  // R<n> - requires ring set for SSSR and RelevantCycles mode
+  test_requires_ring_set("[R2]", Smarts::SSSR, true);
+  test_requires_ring_set("[R2]", Smarts::RelevantCycles, true);
+  test_requires_ring_set("[R2]", Smarts::OpenEye, false);
+
+  // R - does not require ring set for all modes
+  test_requires_ring_set("[R]", Smarts::SSSR, false);
+  test_requires_ring_set("[R]", Smarts::RelevantCycles, false);
+  test_requires_ring_set("[R]", Smarts::OpenEye, false);
+
+  // R0 - does not require ring set for all modes
+  test_requires_ring_set("[R0]", Smarts::SSSR, false);
+  test_requires_ring_set("[R0]", Smarts::RelevantCycles, false);
+  test_requires_ring_set("[R0]", Smarts::OpenEye, false);
+
+  // *@* - does not require ring set for all modes
+  test_requires_ring_set("*@*", Smarts::SSSR, false);
+  test_requires_ring_set("*@*", Smarts::RelevantCycles, false);
+  test_requires_ring_set("*@*", Smarts::OpenEye, false);
+
+  // query without any ring primitive
+  test_requires_ring_set("C", Smarts::SSSR, false);
+  test_requires_ring_set("C", Smarts::RelevantCycles, false);
+  test_requires_ring_set("C", Smarts::OpenEye, false);
+
+  // x<n> - requires cyclicity for all modes
+  test_requires_cyclicity("[x2]", Smarts::SSSR, true);
+  test_requires_cyclicity("[x2]", Smarts::RelevantCycles, true);
+  test_requires_cyclicity("[x2]", Smarts::OpenEye, true);
+
+  // R<n> - requires ring set for OpenEye
+  test_requires_cyclicity("[R2]", Smarts::SSSR, false);
+  test_requires_cyclicity("[R2]", Smarts::RelevantCycles, false);
+  test_requires_cyclicity("[R2]", Smarts::OpenEye, true);
+
+  // R - does requires cyclicity for all modes
+  test_requires_cyclicity("[R]", Smarts::SSSR, true);
+  test_requires_cyclicity("[R]", Smarts::RelevantCycles, true);
+  test_requires_cyclicity("[R]", Smarts::OpenEye, true);
+
+  // R0 - does requires cyclicity for all modes
+  test_requires_cyclicity("[R0]", Smarts::SSSR, true);
+  test_requires_cyclicity("[R0]", Smarts::RelevantCycles, true);
+  test_requires_cyclicity("[R0]", Smarts::OpenEye, true);
+
+  // *@* - does requires cyclicity for all modes
+  test_requires_cyclicity("*@*", Smarts::SSSR, true);
+  test_requires_cyclicity("*@*", Smarts::RelevantCycles, true);
+  test_requires_cyclicity("*@*", Smarts::OpenEye, true);
+
+  // query without any ring primitive
+  test_requires_cyclicity("C", Smarts::SSSR, false);
+  test_requires_cyclicity("C", Smarts::RelevantCycles, false);
+  test_requires_cyclicity("C", Smarts::OpenEye, false);
+}
+
 int main()
 {
   // test special case: [H]
@@ -1110,6 +1243,11 @@ int main()
   //
   test_recursive_parsing();
   test_recursive();
+
+  //
+  // SMARTS cycle matching modes
+  //
+  test_modes();
 
   //print_smarts("[A$(CCC)R]");
 }

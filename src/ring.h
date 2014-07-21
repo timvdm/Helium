@@ -282,6 +282,24 @@ namespace Helium {
       }
 
       /**
+       * @brief Constructor.
+       *
+       * Using this contructor, a ring set can be created that only contains cyclicity
+       * information. On such a ring set, only the following functions should be called:
+       * isAtomInRing(), isBondInRing(), numRingNbrs().
+       *
+       * @param mol The molecule.
+       * @param cyclicAtoms The cyclic atoms.
+       * @param cyclicBonds The cyclic bonds.
+       */
+      RingSet(const MoleculeType &mol, const std::vector<bool> &cyclicAtoms,
+          const std::vector<bool> &cyclicBonds) : m_mol(mol)
+      {
+        m_cyclicAtoms = cyclicAtoms;
+        m_cyclicBonds = cyclicBonds;
+      }
+
+      /**
        * @brief Get the number of rings in the set.
        *
        * @return The number of rings in the set.

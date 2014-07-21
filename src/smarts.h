@@ -287,9 +287,9 @@ namespace Helium {
         typedef typename molecule_traits<QueryType>::atom_type query_atom_type;
 
         SmartsAtomMatcher(const std::vector<SmartsAtomExpr*> &atoms, const RingSet<MoleculeType> &rings,
-            const std::vector<HeMol> &recursiveMols, const std::vector<SmartsTrees> &recursiveTrees)
+            const std::vector<HeMol> &recursiveMols, const std::vector<SmartsTrees> &recursiveTrees, int mode)
           : m_atoms(atoms), m_rings(rings), m_recursiveMols(recursiveMols),
-            m_recursiveTrees(recursiveTrees)
+            m_recursiveTrees(recursiveTrees), m_mode(mode)
         {
         }
 
@@ -344,7 +344,15 @@ namespace Helium {
               else
                 return get_hydrogens(mol, atom) == expr->value;
             case Smiley::AE_RingMembership:
-              return m_rings.numRings(atom) == expr->value;
+              if (m_mode == 3 /*Smarts::OpenEye*/) {
+                // R<n> same as x<n>
+                if (expr->value == -1) // default: at least 1
+                  return m_rings.numRingNbrs(atom) >= 1;
+                else
+                  return m_rings.numRingNbrs(atom) == expr->value;
+              } else {
+                return m_rings.numRings(atom) == expr->value;
+              }
             case Smiley::AE_RingSize:
               return m_rings.isAtomInRingSize(atom, expr->value);
             case Smiley::AE_RingConnectivity:
@@ -363,7 +371,7 @@ namespace Helium {
                 assert(expr->value < m_recursiveMols.size());
                 assert(expr->value < m_recursiveTrees.size());
                 impl::SmartsAtomMatcher<HeMol, MoleculeType> atomMatcher(m_recursiveTrees[expr->value].atoms(),
-                    m_rings, m_recursiveMols, m_recursiveTrees);
+                    m_rings, m_recursiveMols, m_recursiveTrees, m_mode);
                 impl::SmartsBondMatcher<HeMol, MoleculeType> bondMatcher(m_recursiveTrees[expr->value].bonds(), m_rings);
                 NoMapping mapping;
                 return isomorphism_search(mol, atom, m_recursiveMols[expr->value], mapping, atomMatcher, bondMatcher);
@@ -385,6 +393,7 @@ namespace Helium {
         const RingSet<MoleculeType> &m_rings;
         const std::vector<HeMol> &m_recursiveMols;
         const std::vector<SmartsTrees> &m_recursiveTrees;
+        int m_mode;
     };
 
     template<typename QueryType, typename MoleculeType>
@@ -456,13 +465,37 @@ namespace Helium {
   {
     public:
       /**
+       * @brief SMARTS cycle matching modes.
+       */
+      enum Modes {
+        /**
+         * @brief Use the SSSR ring set for matching the R<n> atom primitive.
+         */
+        SSSR = 1,
+        /**
+         * @brief Use the relevant cycles ring set for matching the R<n> atom primitive.
+         */
+        RelevantCycles = 2,
+        /**
+         * @brief Use OpenEye R<n> semmantics (i.e. R<n> is the same as x<n>).
+         */
+        OpenEye = 3
+      };
+
+      /**
        * @brief Initialize with the specified SMARTS.
        *
+       * The default cycle match mode is OpenEye (i.e. R<n> is the same as x<n>).
+       * Setting the mode to SSSR or RelevantCycles will only have effect when the
+       * overloaded find functions are used without explicit ring set or cyclic atoms
+       * parameters in which case the correct ring set is computed when necessary.
+       *
        * @param smarts The SMARTS string.
+       * @param mode The cycle matching mode (i.e. Smarts::Modes).
        *
        * @return True when succesfull. Use error() when false is returned.
        */
-      bool init(const std::string &smarts);
+      bool init(const std::string &smarts, int mode = OpenEye);
 
       /**
        * @brief Get the query molecule.
@@ -530,27 +563,68 @@ namespace Helium {
       int atomClass(Index index) const;
 
       /**
-       * @brief Check if the SMARTS has cycle atom/bond primitives elements.
+       * @brief Check if the SMARTS has atom primitives that require a ring set.
        *
-       * Examples are [R3], [r5], [x2], *@*.
+       * In OpenEye mode, the only atom primitive that requires a ring set is
+       * the r<n> primitive (e.g. [r5], [r6], ...). In other modes the R<n>
+       * atom primitive also requires a ring set.
        *
        * @return True if the SMARTS has cylce atom/bond primitives.
        */
-      bool requiresCycles() const;
+      bool requiresRingSet() const
+      {
+        // computed and cached in init()
+        return m_requiresRingSet;
+      }
+
+      /**
+       * @brief Check if the SMARTS has cycle atom/bond primitives elements that
+       *        require cyclicity information.
+       *
+       * Examples are [R3], [x2], *@*.
+       *
+       * @return True if the SMARTS has cylce atom/bond primitives.
+       */
+      bool requiresCyclicity() const
+      {
+        // computed and cached in init()
+        return m_requiresCyclicity;
+      }
 
       /**
        * @brief Check if the SMARTS has explicit hydrogens.
        *
        * @return True if the SMARTS has explicit hydrogens.
        */
-      bool requiresExplicitHydrogens() const;
+      bool requiresExplicitHydrogens() const
+      {
+        // computed and cached in init()
+        return m_requiresExplicitHydrogens;
+      }
+
+      /**
+       * @brief Get the cycle match mode.
+       */
+      int mode() const
+      {
+        return m_mode;
+      }
 
       /**
        * @brief Perform a SMARTS search on the specified molecule.
        *
+       * This function requires a ring set as argument which is needed to match
+       * the r<n> atom primitive. This ring set can be any ring set but the used
+       * ring set determines the matching behavior of the R<n> atom primitive
+       * (unless OpenEyeMode is used). When OpenEyeMode is used, OpenEye
+       * semantics will be used for R<n> (i.e. R<n> is the same as x<n>).
+       * Other cycle information will also be derived from the ring set.
+       *
+       * This function should be used when requiresRingSet() returns true.
+       *
        * @param mol The queried molecule.
-       * @param mapping The mapping to store the result.
        * @param rings The ring set (needed for R<n>, r<n>, ...).
+       * @param mapping The mapping to store the result.
        * @param uniqueComponents If true, an additional check will be performed
        *        to ensure the resulting MappingList(s) contain only unique maps.
        *        For example, SMARTS 'C.C' matched against 'C.C' will give 2
@@ -566,13 +640,62 @@ namespace Helium {
           MappingType &mapping, bool uniqueComponents = false);
 
       /**
+       * @brief Perform a SMARTS search on the specified molecule.
+       *
+       * When OpenEyeMode is set, OpenEye semantics will be used for R<n>
+       * (i.e. R<n> is the same as x<n>).
+       *
+       * This function should be used when requiresRingSet() returns false but
+       * requiresCyclicity() return true.
+       *
+       * @param mol The queried molecule.
+       * @param cyclicAtoms The cyclic atoms.
+       * @param cyclicBonds The cyclic bonds.
+       * @param mapping The mapping to store the result.
+       * @param uniqueComponents If true, an additional check will be performed
+       *        to ensure the resulting MappingList(s) contain only unique maps.
+       *        For example, SMARTS 'C.C' matched against 'C.C' will give 2
+       *        mappings with uniqueComponents set to false and only 1 with
+       *        uniqueComponents set to true. Similarly, SMARTS 'CO.CO.CC' will
+       *        result in 4 maps for SMILES 'OCCCCCO' with uniqueComponents set
+       *        to true and only 2 when set to false.
+       *
+       * @return True if the SMARTS matches the molecule.
+       */
+      template<typename MoleculeType, typename MappingType>
+      bool findMapping(const MoleculeType &mol, const std::vector<bool> &cyclicAtoms,
+          const std::vector<bool> &cyclicBonds, MappingType &mapping,
+          bool uniqueComponents = false)
+      {
+        RingSet<MoleculeType> rings(mol, cyclicAtoms, cyclicBonds);
+        return findMapping(mol, rings, mapping, uniqueComponents);
+      }
+
+      /**
        * @overload
        */
       template<typename MoleculeType, typename MappingType>
       bool findMapping(const MoleculeType &mol, MappingType &mapping,
           bool uniqueComponents = false)
       {
-        return findMapping(mol, relevant_cycles(mol), mapping, uniqueComponents);
+        typedef typename molecule_traits<MoleculeType>::atom_type atom_type;
+
+        switch (m_mode) {
+          case SSSR:
+            return findMapping(mol, relevant_cycles(mol), mapping, uniqueComponents); // FIXME
+          case RelevantCycles:
+            return findMapping(mol, relevant_cycles(mol), mapping, uniqueComponents);
+          default:
+          case OpenEye:
+            {
+              // get cycle membership
+              std::vector<bool> cyclicAtoms(num_atoms(mol));
+              std::vector<bool> cyclicBonds(num_bonds(mol));
+              cycle_membership(mol, cyclicAtoms, cyclicBonds);
+
+              return findMapping(mol, cyclicAtoms, cyclicBonds, mapping, uniqueComponents);
+            }
+        };
       }
 
       /**
@@ -584,6 +707,17 @@ namespace Helium {
       {
         NoMapping mapping;
         return findMapping(mol, rings, mapping, uniqueComponents);
+      }
+
+      /**
+       * @overload
+       */
+      template<typename MoleculeType>
+      bool find(const MoleculeType &mol, const std::vector<bool> &cyclicAtoms,
+          const std::vector<bool> &cyclicBonds, bool uniqueComponents = false)
+      {
+        NoMapping mapping;
+        return findMapping(mol, cyclicBonds, cyclicAtoms, mapping, uniqueComponents);
       }
 
       /**
@@ -606,6 +740,10 @@ namespace Helium {
       std::vector<std::vector<Index> > m_atomMaps; //!< m_components atom index to original smarts index
       //std::vector<std::vector<Index> > m_bondMaps; //!< m_components bond index to original smarts index
       Error m_error;
+      int m_mode;
+      bool m_requiresRingSet;
+      bool m_requiresCyclicity;
+      bool m_requiresExplicitHydrogens;
   };
 
   namespace impl {
@@ -670,7 +808,7 @@ namespace Helium {
     if (m_components.size() == 1) {
       // simple case: single SMARTS fragment
       impl::SmartsAtomMatcher<HeMol, MoleculeType> atomMatcher(m_componentTrees[0].atoms(),
-          rings, m_recursiveMols, m_recursiveTrees);
+          rings, m_recursiveMols, m_recursiveTrees, m_mode);
       impl::SmartsBondMatcher<HeMol, MoleculeType> bondMatcher(m_componentTrees[0].bonds(), rings);
       return isomorphism_search(mol, m_components[0], mapping, atomMatcher, bondMatcher);
     } else {
@@ -680,7 +818,7 @@ namespace Helium {
       for (std::size_t i = 0; i < m_components.size(); ++i) {
         numQueryAtoms += num_atoms(m_components[i]);
         impl::SmartsAtomMatcher<HeMol, MoleculeType> atomMatcher(m_componentTrees[i].atoms(),
-            rings, m_recursiveMols, m_recursiveTrees);
+            rings, m_recursiveMols, m_recursiveTrees, m_mode);
         impl::SmartsBondMatcher<HeMol, MoleculeType> bondMatcher(m_componentTrees[i].bonds(), rings);
         if (!isomorphism_search(mol, m_components[i], mappings[i], atomMatcher, bondMatcher))
           return false;

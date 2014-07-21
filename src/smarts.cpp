@@ -471,7 +471,7 @@ namespace Helium {
           m_states.pop_back();
         }
 
-    private:
+      private:
         HeMol &m_mol;
         SmartsTrees &m_trees;
         std::vector<HeMol> &m_recursiveMols;
@@ -479,12 +479,91 @@ namespace Helium {
         std::vector<State> m_states;
     };
 
+
+    // OpenEye mode: SMARTS contains r<n>
+    // other modes: SMARTS contains r<n> and/or R<n>
+    bool smarts_requires_ring_set(const SmartsTrees &trees, const std::vector<SmartsTrees> &recursiveTrees, int mode)
+    {
+      for (std::size_t i = 0; i < trees.atoms().size(); ++i) {
+        if (smarts_expr_contains(trees.atom(i), Smiley::AE_RingSize)) // r<n>
+          return true;
+        if (mode != Smarts::OpenEye && smarts_expr_contains(trees.atom(i), Smiley::AE_RingMembership)) // R<n>
+          return true;
+      }
+
+      for (std::size_t i = 0; i < recursiveTrees.size(); ++i) {
+        for (std::size_t j = 0; j < recursiveTrees[i].atoms().size(); ++j) {
+          if (smarts_expr_contains(recursiveTrees[i].atom(j), Smiley::AE_RingSize)) // r<n>
+            return true;
+          if (mode != Smarts::OpenEye && smarts_expr_contains(recursiveTrees[i].atom(j), Smiley::AE_RingMembership)) // R<n>
+            return true;
+        }
+      }
+
+      return false;
+    }
+
+    // OpenEye mode: SMARTS contains R<n>, x<n>, R0, R, *@*
+    // other modes: SMARTS contains x<n>, R0, R, *@*
+    bool smarts_requires_cyclicity(const SmartsTrees &trees, const std::vector<SmartsTrees> &recursiveTrees, int mode)
+    {
+      for (std::size_t i = 0; i < trees.atoms().size(); ++i) {
+        if (smarts_expr_contains(trees.atom(i), Smiley::AE_Cyclic)) // R
+          return true;
+        if (smarts_expr_contains(trees.atom(i), Smiley::AE_Acyclic)) // R0
+          return true;
+        if (mode == Smarts::OpenEye && smarts_expr_contains(trees.atom(i), Smiley::AE_RingMembership)) // R<n>
+          return true;
+        if (smarts_expr_contains(trees.atom(i), Smiley::AE_RingConnectivity)) // x<n>
+          return true;
+      }
+
+      for (std::size_t i = 0; i < trees.bonds().size(); ++i)
+        if (smarts_expr_contains(trees.bond(i), Smiley::BE_Ring)) // *@*
+          return true;
+
+      for (std::size_t i = 0; i < recursiveTrees.size(); ++i) {
+        for (std::size_t j = 0; j < recursiveTrees[i].atoms().size(); ++j) {
+          if (smarts_expr_contains(recursiveTrees[i].atom(j), Smiley::AE_Cyclic)) // R
+            return true;
+          if (smarts_expr_contains(recursiveTrees[i].atom(j), Smiley::AE_Acyclic)) // R0
+            return true;
+          if (mode == Smarts::OpenEye && smarts_expr_contains(recursiveTrees[i].atom(j), Smiley::AE_RingMembership)) // R<n>
+            return true;
+          if (smarts_expr_contains(recursiveTrees[i].atom(j), Smiley::AE_RingConnectivity)) // x<n>
+            return true;
+        }
+      }
+
+      for (std::size_t i = 0; i < recursiveTrees.size(); ++i)
+        for (std::size_t j = 0; j < recursiveTrees[i].bonds().size(); ++j)
+          if (smarts_expr_contains(recursiveTrees[i].bond(j), Smiley::BE_Ring)) // *@*
+            return true;
+
+      return false;
+    }
+
+    bool smarts_requires_explicit_hydrogens(const SmartsTrees &trees, const std::vector<SmartsTrees> &recursiveTrees)
+    {
+      for (std::size_t i = 0; i < trees.atoms().size(); ++i)
+        if (smarts_expr_contains(trees.atom(i), Smiley::AE_AliphaticElement, 1))
+          return true;
+
+      for (std::size_t i = 0; i < recursiveTrees.size(); ++i)
+        for (std::size_t j = 0; j < recursiveTrees[i].atoms().size(); ++j)
+          if (smarts_expr_contains(recursiveTrees[i].atom(j), Smiley::AE_AliphaticElement, 1))
+            return true;
+
+      return false;
+    }
+
   }
 
-  bool Smarts::init(const std::string &smarts)
+  bool Smarts::init(const std::string &smarts, int mode)
   {
     // clear error, ...
     m_error = Error();
+    m_mode = mode;
 
     m_query.clear();
     m_trees.clear();
@@ -575,63 +654,11 @@ namespace Helium {
       }
     }
 
+    m_requiresRingSet = impl::smarts_requires_ring_set(m_trees, m_recursiveTrees, m_mode);
+    m_requiresCyclicity = impl::smarts_requires_cyclicity(m_trees, m_recursiveTrees, m_mode);
+    m_requiresExplicitHydrogens = impl::smarts_requires_explicit_hydrogens(m_trees, m_recursiveTrees);
+
     return true;
-  }
-
-  bool Smarts::requiresCycles() const
-  {
-    for (std::size_t i = 0; i < m_trees.atoms().size(); ++i) {
-      if (impl::smarts_expr_contains(m_trees.atom(i), Smiley::AE_Cyclic))
-        return true;
-      if (impl::smarts_expr_contains(m_trees.atom(i), Smiley::AE_Acyclic))
-        return true;
-      if (impl::smarts_expr_contains(m_trees.atom(i), Smiley::AE_RingMembership))
-        return true;
-      if (impl::smarts_expr_contains(m_trees.atom(i), Smiley::AE_RingSize))
-        return true;
-      if (impl::smarts_expr_contains(m_trees.atom(i), Smiley::AE_RingConnectivity))
-        return true;
-    }
-
-    for (std::size_t i = 0; i < m_trees.bonds().size(); ++i)
-      if (impl::smarts_expr_contains(m_trees.bond(i), Smiley::BE_Ring))
-        return true;
-
-    for (std::size_t i = 0; i < m_recursiveTrees.size(); ++i) {
-      for (std::size_t j = 0; j < m_recursiveTrees[i].atoms().size(); ++j) {
-        if (impl::smarts_expr_contains(m_recursiveTrees[i].atom(j), Smiley::AE_Cyclic))
-          return true;
-        if (impl::smarts_expr_contains(m_recursiveTrees[i].atom(j), Smiley::AE_Acyclic))
-          return true;
-        if (impl::smarts_expr_contains(m_recursiveTrees[i].atom(j), Smiley::AE_RingMembership))
-          return true;
-        if (impl::smarts_expr_contains(m_recursiveTrees[i].atom(j), Smiley::AE_RingSize))
-          return true;
-        if (impl::smarts_expr_contains(m_recursiveTrees[i].atom(j), Smiley::AE_RingConnectivity))
-          return true;
-      }
-    }
-
-    for (std::size_t i = 0; i < m_recursiveTrees.size(); ++i)
-      for (std::size_t j = 0; j < m_recursiveTrees[i].bonds().size(); ++j)
-        if (impl::smarts_expr_contains(m_recursiveTrees[i].bond(j), Smiley::BE_Ring))
-          return true;
-
-    return false;
-  }
-
-  bool Smarts::requiresExplicitHydrogens() const
-  {
-    for (std::size_t i = 0; i < m_trees.atoms().size(); ++i)
-      if (impl::smarts_expr_contains(m_trees.atom(i), Smiley::AE_AliphaticElement, 1))
-        return true;
-
-    for (std::size_t i = 0; i < m_recursiveTrees.size(); ++i)
-      for (std::size_t j = 0; j < m_recursiveTrees[i].atoms().size(); ++j)
-        if (impl::smarts_expr_contains(m_recursiveTrees[i].atom(j), Smiley::AE_AliphaticElement, 1))
-          return true;
-
-    return false;
   }
 
   namespace impl {

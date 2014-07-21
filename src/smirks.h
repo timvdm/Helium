@@ -311,15 +311,23 @@ namespace Helium {
       }
 
       /**
-       * @brief Check if the reactant SMARTS has cycle atom/bond primitives elements.
+       * @brief Check if the reactant SMARTS requires a ring set.
        *
-       * Examples are [R3], [r5], [x2], *@*.
-       *
-       * @return True if the reactant SMARTS has cylce atom/bond primitives.
+       * See Smarts::requiresRingSet() for details.
        */
-      bool requiresCycles()
+      bool requiresRingSet()
       {
-        return m_reactant.requiresCycles();
+        return m_reactant.requiresRingSet();
+      }
+
+      /**
+       * @brief Check if the reactant SMARTS requires cyclicity.
+       *
+       * See Smarts::requiresCyclicity() for details.
+       */
+      bool requiresCyclicity()
+      {
+        return m_reactant.requiresCyclicity();
       }
 
       /**

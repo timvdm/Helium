@@ -74,11 +74,7 @@ namespace Helium {
         for (unsigned int i = 0; i < moleculeFile.numMolecules(); ++i) {
           moleculeFile.readMolecule(i, mol);
 
-          bool found = false;
-          if (s.requiresCycles())
-            found = s.find(mol, relevant_cycles(mol));
-          else
-            found = s.find(mol, RingSet<HeMol>(mol));
+          bool found = s.find(mol);
 
           if (found) {
             result.push_back(i);

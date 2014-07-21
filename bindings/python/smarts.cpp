@@ -7,6 +7,16 @@
 using Helium::Chemist::Molecule;
 using namespace boost::python;
 
+bool Smarts_init_1(Helium::Smarts &self, const std::string &smarts)
+{
+  return self.init(smarts);
+}
+
+bool Smarts_init_2(Helium::Smarts &self, const std::string &smarts, int mode)
+{
+  return self.init(smarts, mode);
+}
+
 bool findMapping_1(Helium::Smarts &smarts, const Molecule &mol, const Helium::RingSet<Molecule> &rings,
     Helium::NoMapping &mapping, bool uniqueComponents = true)
 {  return smarts.findMapping(mol, rings, mapping, uniqueComponents); }
@@ -114,9 +124,11 @@ void export_smarts()
     ;
 
   class_<Helium::Smarts>("Smarts")
-    .def("init", &Helium::Smarts::init)
+    .def("init", &Smarts_init_1)
+    .def("init", &Smarts_init_2)
     .def("error", &Helium::Smarts::error, return_internal_reference<>())
-    .def("requiresCycles", &Helium::Smarts::requiresCycles)
+    .def("requiresRingSet", &Helium::Smarts::requiresRingSet)
+    .def("requiresCyclicity", &Helium::Smarts::requiresCyclicity)
     .def("requiresExplicitHydrogens", &Helium::Smarts::requiresExplicitHydrogens)
     .def("findMapping", (bool(*)(Helium::Smarts&, const Molecule&, const Helium::RingSet<Molecule>&, Helium::NoMapping&, bool)) 0,
         findMapping_overloads_1())

@@ -40,14 +40,14 @@ class TestSmarts(unittest.TestCase):
         self.assertEqual('O', SMILES.write(mol))
 
 
-    def test_requires_cycles(self):
+    def test_requires_ring_set(self):
         smirks = helium.Smirks()
 
         smirks.init('[C:1]', '[N:1]')
-        self.assertFalse(smirks.requiresCycles())
+        self.assertFalse(smirks.requiresRingSet())
 
-        smirks.init('[CR:1]', '[N:1]')
-        self.assertTrue(smirks.requiresCycles())
+        smirks.init('[Nr5:1]', '[C:1]')
+        self.assertTrue(smirks.requiresRingSet())
 
     def test_requires_explicit_hydrogens(self):
         smirks = helium.Smirks()

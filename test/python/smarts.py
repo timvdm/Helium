@@ -105,14 +105,14 @@ class TestSmarts(unittest.TestCase):
         self.assertEqual(2, len(mapping.maps[1]))
         self.assertEqual(2, len(mapping.maps[2]))
 
-    def test_requires_cycles(self):
+    def test_requires_ring_set(self):
         smarts = helium.Smarts()
 
         smarts.init('C')
-        self.assertFalse(smarts.requiresCycles())
+        self.assertFalse(smarts.requiresRingSet())
 
-        smarts.init('[CR]')
-        self.assertTrue(smarts.requiresCycles())
+        smarts.init('[Nr5]')
+        self.assertTrue(smarts.requiresRingSet())
 
     def test_requires_explicit_hydrogens(self):
         smarts = helium.Smarts()

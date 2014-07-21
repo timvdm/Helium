@@ -16,7 +16,7 @@ for line in lines:
         continue
 
     columns = ' '.join(line[:-1].split()).split(' ')
-    if len(columns) != 9:
+    if len(columns) != 15:
         print 'Error: incorrect number of columns for line:'
         print line
         exit(-1)
@@ -63,7 +63,7 @@ print '      }'
 print ''
 
 print '      /**'
-print '       * @brief Get the valence for an atom.'
+print '       * @brief Get the average mass for an atom.'
 print '       *'
 print '       * @param element The atom element number.'
 print '       *'
@@ -109,37 +109,38 @@ print '       * @brief Get the valence for an atom'
 print '       *'
 print '       * @param element The atom element number.'
 print '       * @param charge The atom charge.'
-print '       * @param degree The current atom degree.'
+print '       * @param currentValence The current atom valence.'
 print '       *'
 print '       * @return The valence.'
 print '       */'
-print '      static int valence(int element, int charge, int degree)'
+print '      static int valence(int element, int charge, int currentValence)'
 print '      {'
-print '        if (charge < -2 || charge > 2)'
+print '        if (charge < -4 || charge > 6)'
 print '          return 0;'
 print '        switch (element) {'
 for element in elements.keys():
     print '          case ' + str(element) + ':'
     allDashes = True
-    for charge in range(5):
+    for charge in range(11):
         if elements[element][4 + charge] != '-':
             allDashes = False
     if allDashes:
         print '            return 0;'
         continue
     print '            switch (charge) {'
-    for charge in range(5):
-        print '              case ' + str(charge - 2) + ':'
+    for charge in range(11):
         if elements[element][4 + charge] == '-':
-            print '                return 0;'
-        else:
-            valences = elements[element][4 + charge].split(',')
-            for valence in valences:
-                if len(valence) == 2:
-                    continue
-                print '                if (degree <= ' + valence + ')'
-                print '                  return ' + valence + ';'
-            print '                return 0;'
+            continue
+        print '              case ' + str(charge - 4) + ':'
+        valences = elements[element][4 + charge].split(',')
+        for valence in valences:
+            if len(valence) == 2:
+                continue
+            print '                if (currentValence <= ' + valence + ')'
+            print '                  return ' + valence + ';'
+        print '                return 0;'
+    print '              default:'
+    print '                return 0;'
     print '            }'
 print '          default:'
 print '            return 0;'

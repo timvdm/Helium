@@ -207,8 +207,22 @@ namespace Helium {
           set_mass(mol, atom, Element::averageMass(element));
         if (hCount != -1)
           set_hydrogens(mol, atom, hCount);
-        else
-          set_hydrogens(mol, atom, 99);
+        else {
+          switch (element) {
+            case 5:
+            case 6:
+            case 7:
+            case 8:
+            case 9:
+            case 17:
+            case 35:
+            case 53:
+              set_hydrogens(mol, atom, 99);
+              break;
+            default:
+              break;
+          }
+        }
         set_charge(mol, atom, charge);
       }
 
@@ -340,8 +354,20 @@ namespace Helium {
           int charge = (flags & Smiles::Charge) ? get_charge(mol, atom) : 0;
           //std::cout << get_valence(mol, atom) << " != " << Element::valence(get_element(mol, atom), charge, get_degree(mol, atom)) << std::endl;
           //std::cout << "#H: " << get_hydrogens(mol, atom) << std::endl;
-          if (get_valence(mol, atom) != Element::valence(get_element(mol, atom), charge, get_degree(mol, atom)))
+          if (get_valence(mol, atom) < Element::valence(get_element(mol, atom), charge, get_valence(mol, atom)))
             needBrackets = true;
+          // special case: halogens with implicit hydrogens and valence >= 3
+          if (get_hydrogens(mol, atom) && get_valence(mol, atom) >= 3) {
+            switch (get_element(mol, atom)) {
+              case 9:
+              case 17:
+              case 35:
+              case 53:
+                needBrackets = true;
+              default:
+                break;
+            }
+          }
         }
         std::map<Index, int>::const_iterator atomClass = atomClasses.find(get_index(mol, atom));
         if (atomClass != atomClasses.end())
@@ -359,11 +385,15 @@ namespace Helium {
 
         smiles << element;
 
-        int numH = get_hydrogens(mol, atom);
-        if (needBrackets && (flags & Smiles::Hydrogens) && numH) {
-          smiles << "H";
-          if (numH > 1)
-            smiles << numH;
+        // do not write implicit H for hydrogen
+        // place it as an explicit hydrogen next...
+        if (get_element(mol, atom) != 1) {
+          int numH = get_hydrogens(mol, atom);
+          if (needBrackets && (flags & Smiles::Hydrogens) && numH) {
+            smiles << "H";
+            if (numH > 1)
+              smiles << numH;
+          }
         }
 
         if ((flags & Smiles::Charge) && get_charge(mol, atom)) {
@@ -375,7 +405,7 @@ namespace Helium {
           else if (charge > 0)
             smiles << "+" << charge;
           else
-            smiles << "-" << charge;
+            smiles << charge;
         }
 
         if (atomClass != atomClasses.end())
@@ -384,6 +414,9 @@ namespace Helium {
         if (needBrackets)
           smiles << "]";
 
+        // handle molecular hydrogen
+        if (get_element(mol, atom) == 1 && get_hydrogens(mol, atom) == 1)
+          smiles << "[H]";
 
         typename std::map<atom_type, std::vector<int> >::const_iterator rings = ringNumbers.find(atom);
         if (rings != ringNumbers.end()) {
@@ -478,6 +511,47 @@ namespace Helium {
       int flags;
     };
 
+    inline int smiles_valence(int element, int valence)
+    {
+      switch (element) {
+        case 5: // B
+          return 3;
+        case 6: // C
+          return 4;
+        case 7: // N
+          if (valence <= 3)
+            return 3;
+          if (valence <= 5)
+            return 5;
+          return 0;
+        case 8: // O
+          return 2;
+        case 15: // P
+          if (valence <= 3)
+            return 3;
+          if (valence <= 5)
+            return 5;
+          return 0;
+        case 16: // S
+          if (valence <= 2)
+            return 2;
+          if (valence <= 4)
+            return 4;
+          if (valence <= 6)
+            return 6;
+          return 0;
+        case 9: // F
+        case 17: // Cl
+        case 35: // Br
+        case 53: // I
+          if (valence <= 1)
+            return 1;
+          return 0;
+        default:
+          return 0;
+      }
+    }
+
   } // namespace impl
 
   template<typename EditableMoleculeType>
@@ -526,7 +600,10 @@ namespace Helium {
           ++explicitH;
 
       int valence = get_valence(mol, *atom);
-      int expValence = Element::valence(get_element(mol, *atom), get_charge(mol, *atom), valence);
+      assert(get_charge(mol, *atom) == 0);
+      //int expValence = Element::valence(get_element(mol, *atom), get_charge(mol, *atom), valence);
+      int expValence = impl::smiles_valence(get_element(mol, *atom), valence);
+
       //std::cout << "val: " << valence << "  deg: " << get_degree(mol, *atom) << " explH: " << explicitH << " H: " << get_hydrogens(mol, *atom) << std::endl;
       if (expValence > valence - explicitH)
         set_hydrogens(mol, *atom, expValence - valence);

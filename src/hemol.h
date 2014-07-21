@@ -490,7 +490,7 @@ namespace Helium {
         std::vector<std::vector<bond_type> > m_adjList;
         std::vector<bool> m_atomAromatic;
         std::vector<unsigned char> m_element;
-        std::vector<unsigned char> m_mass;
+        std::vector<unsigned short> m_mass;
         std::vector<unsigned char> m_hydrogens;
         std::vector<signed char> m_charge;
 

@@ -27,7 +27,9 @@
 #ifndef HELIUM_ELEMENT_H
 #define HELIUM_ELEMENT_H
 
+#include <Helium/config.h>
 #include <string>
+#include <cassert>
 
 namespace Helium {
 
@@ -277,13 +279,357 @@ namespace Helium {
             return "Rg";
           case 112:
             return "Cn";
+          case 114:
+            return "Fl";
+          case 116:
+            return "Lv";
           default:
             return "Xx";
         }
       }
 
+      static int element(const std::string &symbol)
+      {
+        assert(symbol.size() >= 1 && symbol.size() <= 2);
+
+        switch (symbol[0]) {
+          case 'H':
+            if (symbol.size() == 1)
+              return 1;
+            switch (symbol[1]) {
+              case 'e':
+                return 2;
+              case 'f':
+                return 72;
+              case 'g':
+                return 80;
+              case 's':
+                return 108;
+              case 'o':
+                return 67;
+            }
+            break;
+          case 'L':
+            if (symbol.size() == 1)
+              break;
+            switch (symbol[1]) {
+              case 'i':
+                return 3;
+              case 'a':
+                return 57;
+              case 'u':
+                return 71;
+              case 'r':
+                return 103;
+              case 'v':
+                return 116;
+            }
+            break;
+          case 'B':
+            if (symbol.size() == 1)
+              return 5;
+            switch (symbol[1]) {
+              case 'e':
+                return 4;
+              case 'r':
+                return 35;
+              case 'a':
+                return 56;
+              case 'i':
+                return 83;
+              case 'h':
+                return 107;
+              case 'k':
+                return 97;
+            }
+            break;
+          case 'C':
+            if (symbol.size() == 1)
+              return 6;
+            switch (symbol[1]) {
+              case 'l':
+                return 17;
+              case 'a':
+                return 20;
+              case 'r':
+                return 24;
+              case 'o':
+                return 27;
+              case 'u':
+                return 29;
+              case 'd':
+                return 48;
+              case 's':
+                return 55;
+              case 'e':
+                return 58;
+              case 'm':
+                return 96;
+              case 'f':
+                return 98;
+              case 'n':
+                return 112;
+            }
+            break;
+          case 'N':
+            if (symbol.size() == 1)
+              return 7;
+            switch (symbol[1]) {
+              case 'e':
+                return 10;
+              case 'a':
+                return 11;
+              case 'i':
+                return 28;
+              case 'b':
+                return 41;
+              case 'd':
+                return 60;
+              case 'p':
+                return 93;
+              case 'o':
+                return 102;
+            }
+            break;
+          case 'O':
+            if (symbol.size() == 1)
+              return 8;
+            if (symbol[1] == 's')
+              return 76;
+            break;
+          case 'F':
+            if (symbol.size() == 1)
+              return 9;
+            switch (symbol[1]) {
+              case 'e':
+                return 26;
+              case 'r':
+                return 87;
+              case 'm':
+                return 100;
+              case 'l':
+                return 114;
+            }
+            break;
+          case 'M':
+            if (symbol.size() == 1)
+              break;
+            switch (symbol[1]) {
+              case 'n':
+                return 25;
+              case 'o':
+                return 42;
+              case 't':
+                return 109;
+              case 'd':
+                return 101;
+              case 'g':
+                return 12;
+            }
+            break;
+          case 'A':
+            if (symbol.size() == 1)
+              break;
+            switch (symbol[1]) {
+              case 'l':
+                return 13;
+              case 'r':
+                return 18;
+              case 's':
+                return 33;
+              case 'g':
+                return 47;
+              case 'u':
+                return 79;
+              case 't':
+                return 85;
+              case 'c':
+                return 89;
+              case 'm':
+                return 95;
+            }
+            break;
+          case 'S':
+            if (symbol.size() == 1)
+              return 16;
+            switch (symbol[1]) {
+              case 'i':
+                return 14;
+              case 'c':
+                return 21;
+              case 'e':
+                return 34;
+              case 'r':
+                return 38;
+              case 'n':
+                return 50;
+              case 'b':
+                return 51;
+              case 'g':
+                return 106;
+              case 'm':
+                return 62;
+            }
+            break;
+          case 'P':
+            if (symbol.size() == 1)
+              return 15;
+            switch (symbol[1]) {
+              case 'd':
+                return 46;
+              case 't':
+                return 78;
+              case 'b':
+                return 82;
+              case 'o':
+                return 84;
+              case 'r':
+                return 59;
+              case 'm':
+                return 61;
+              case 'a':
+                return 91;
+              case 'u':
+                return 94;
+            }
+            break;
+          case 'K':
+            if (symbol.size() == 1)
+              return 19;
+            if (symbol[1] == 'r')
+              return 36;
+            break;
+          case 'T':
+            if (symbol.size() == 1)
+              return 1;
+            switch (symbol[1]) {
+              case 'i':
+                return 22;
+              case 'c':
+                return 43;
+              case 'e':
+                return 52;
+              case 'a':
+                return 73;
+              case 'l':
+                return 81;
+              case 'b':
+                return 65;
+              case 'm':
+                return 69;
+              case 'h':
+                return 90;
+            }
+            break;
+          case 'V':
+            if (symbol.size() == 1)
+              return 23;
+            break;
+          case 'Z':
+            if (symbol.size() == 1)
+              break;
+            switch (symbol[1]) {
+              case 'n':
+                return 30;
+              case 'r':
+                return 40;
+            }
+            break;
+          case 'G':
+            if (symbol.size() == 1)
+              break;
+            switch (symbol[1]) {
+              case 'a':
+                return 31;
+              case 'e':
+                return 32;
+              case 'd':
+                return 64;
+            }
+            break;
+          case 'R':
+            if (symbol.size() == 1)
+              break;
+            switch (symbol[1]) {
+              case 'b':
+                return 37;
+              case 'u':
+                return 44;
+              case 'h':
+                return 45;
+              case 'e':
+                return 75;
+              case 'n':
+                return 86;
+              case 'a':
+                return 88;
+              case 'f':
+                return 104;
+              case 'g':
+                return 111;
+            }
+            break;
+          case 'Y':
+            if (symbol.size() == 1)
+              return 39;
+            if (symbol[1] == 'b')
+              return 70;
+            break;
+          case 'I':
+            if (symbol.size() == 1)
+              return 53;
+            switch (symbol[1]) {
+              case 'n':
+                return 49;
+              case 'r':
+                return 77;
+            }
+            break;
+          case 'X':
+            if (symbol.size() == 1)
+              break;
+            if (symbol[1] == 'e')
+              return 54;
+            break;
+          case 'W':
+            if (symbol.size() == 1)
+              return 74;
+            break;
+          case 'D':
+            if (symbol.size() == 1)
+              return 1;
+            switch (symbol[1]) {
+              case 'b':
+                return 105;
+              case 's':
+                return 110;
+              case 'y':
+                return 66;
+            }
+            break;
+          case 'E':
+            if (symbol.size() == 1)
+              break;
+            switch (symbol[1]) {
+              case 'u':
+                return 63;
+              case 'r':
+                return 68;
+              case 's':
+                return 99;
+            }
+            break;
+          case 'U':
+            if (symbol.size() == 1)
+              return 92;
+            break;
+        }
+
+        return 0; // unknown
+      }
+
       /**
-       * @brief Get the valence for an atom.
+       * @brief Get the average mass for an atom.
        *
        * @param element The atom element number.
        *
@@ -576,2098 +922,1949 @@ namespace Helium {
       }
 
       /**
-       * @brief Get the valence for an atom
+       * @brief Get the valence for an atom.
+       *
+       * This function will return the expected valence for an atom based on
+       * the atom's element, charge and current valence. The values returned by
+       * this function are based on the MDL and InChI valences.
        *
        * @param element The atom element number.
        * @param charge The atom charge.
-       * @param degree The current atom degree.
+       * @param currentValence The current atom valence.
        *
        * @return The valence.
        */
-      static int valence(int element, int charge, int degree)
+      static int valence(int element, int charge, int currentValence)
       {
-        if (charge < -2 || charge > 2)
+        if (charge < -4 || charge > 6)
           return 0;
+
         switch (element) {
           case 1:
-            return 0;
+            switch (charge) {
+              case 0:
+                if (currentValence <= 1)
+                  return 1;
+                return 0;
+              default:
+                return 0;
+            }
           case 2:
             return 0;
           case 3:
             switch (charge) {
-              case -2:
-                return 0;
-              case -1:
-                return 0;
               case 0:
-                if (degree <= 1)
+                if (currentValence <= 1)
                   return 1;
                 return 0;
-              case 1:
-                return 0;
-              case 2:
+              default:
                 return 0;
             }
           case 4:
             switch (charge) {
-              case -2:
-                return 0;
-              case -1:
-                return 0;
               case 0:
-                if (degree <= 2)
+                if (currentValence <= 2)
                   return 2;
                 return 0;
               case 1:
-                if (degree <= 1)
+                if (currentValence <= 1)
                   return 1;
                 return 0;
-              case 2:
+              default:
                 return 0;
             }
           case 5:
             switch (charge) {
+              case -4:
+                if (currentValence <= 1)
+                  return 1;
+                return 0;
+              case -3:
+                if (currentValence <= 2)
+                  return 2;
+                return 0;
               case -2:
-                if (degree <= 3)
+                if (currentValence <= 3)
                   return 3;
+                if (currentValence <= 5)
+                  return 5;
                 return 0;
               case -1:
-                if (degree <= 4)
+                if (currentValence <= 4)
                   return 4;
                 return 0;
               case 0:
-                if (degree <= 3)
+                if (currentValence <= 3)
                   return 3;
                 return 0;
               case 1:
-                if (degree <= 2)
+                if (currentValence <= 2)
                   return 2;
                 return 0;
               case 2:
-                if (degree <= 1)
+                if (currentValence <= 1)
                   return 1;
+                return 0;
+              default:
                 return 0;
             }
           case 6:
             switch (charge) {
+              case -3:
+                if (currentValence <= 1)
+                  return 1;
+                return 0;
               case -2:
-                if (degree <= 2)
+                if (currentValence <= 2)
                   return 2;
                 return 0;
               case -1:
-                if (degree <= 3)
+                if (currentValence <= 3)
                   return 3;
+                if (currentValence <= 5)
+                  return 5;
                 return 0;
               case 0:
-                if (degree <= 4)
+                if (currentValence <= 4)
                   return 4;
                 return 0;
               case 1:
-                if (degree <= 3)
+                if (currentValence <= 3)
                   return 3;
                 return 0;
               case 2:
-                if (degree <= 2)
+                if (currentValence <= 2)
                   return 2;
+                return 0;
+              case 3:
+                if (currentValence <= 1)
+                  return 1;
+                return 0;
+              default:
                 return 0;
             }
           case 7:
             switch (charge) {
               case -2:
-                if (degree <= 1)
+                if (currentValence <= 1)
                   return 1;
                 return 0;
               case -1:
-                if (degree <= 2)
+                if (currentValence <= 2)
                   return 2;
                 return 0;
               case 0:
-                if (degree <= 3)
+                if (currentValence <= 3)
                   return 3;
                 return 0;
               case 1:
-                if (degree <= 4)
+                if (currentValence <= 4)
                   return 4;
                 return 0;
               case 2:
-                if (degree <= 3)
+                if (currentValence <= 3)
                   return 3;
+                return 0;
+              case 3:
+                if (currentValence <= 2)
+                  return 2;
+                return 0;
+              case 4:
+                if (currentValence <= 1)
+                  return 1;
+                return 0;
+              default:
                 return 0;
             }
           case 8:
             switch (charge) {
-              case -2:
-                return 0;
               case -1:
-                if (degree <= 1)
+                if (currentValence <= 1)
                   return 1;
                 return 0;
               case 0:
-                if (degree <= 2)
+                if (currentValence <= 2)
                   return 2;
                 return 0;
               case 1:
-                if (degree <= 3)
+                if (currentValence <= 3)
                   return 3;
-                if (degree <= 5)
+                if (currentValence <= 5)
                   return 5;
                 return 0;
               case 2:
-                if (degree <= 4)
+                if (currentValence <= 4)
                   return 4;
+                return 0;
+              case 3:
+                if (currentValence <= 3)
+                  return 3;
+                return 0;
+              case 4:
+                if (currentValence <= 2)
+                  return 2;
+                return 0;
+              case 5:
+                if (currentValence <= 1)
+                  return 1;
+                return 0;
+              default:
                 return 0;
             }
           case 9:
             switch (charge) {
-              case -2:
-                return 0;
-              case -1:
-                return 0;
               case 0:
-                if (degree <= 1)
+                if (currentValence <= 1)
                   return 1;
                 return 0;
               case 1:
-                if (degree <= 2)
+                if (currentValence <= 2)
                   return 2;
                 return 0;
               case 2:
-                if (degree <= 3)
+                if (currentValence <= 3)
                   return 3;
-                if (degree <= 5)
+                if (currentValence <= 5)
                   return 5;
+                return 0;
+              case 3:
+                if (currentValence <= 4)
+                  return 4;
+                return 0;
+              case 4:
+                if (currentValence <= 3)
+                  return 3;
+                return 0;
+              case 5:
+                if (currentValence <= 2)
+                  return 2;
+                return 0;
+              case 6:
+                if (currentValence <= 1)
+                  return 1;
+                return 0;
+              default:
                 return 0;
             }
           case 10:
             return 0;
           case 11:
             switch (charge) {
-              case -2:
-                return 0;
-              case -1:
-                return 0;
               case 0:
-                if (degree <= 1)
+                if (currentValence <= 1)
                   return 1;
                 return 0;
-              case 1:
-                return 0;
-              case 2:
+              default:
                 return 0;
             }
           case 12:
             switch (charge) {
-              case -2:
-                return 0;
-              case -1:
-                return 0;
               case 0:
-                if (degree <= 2)
+                if (currentValence <= 2)
                   return 2;
                 return 0;
               case 1:
-                if (degree <= 1)
+                if (currentValence <= 1)
                   return 1;
                 return 0;
-              case 2:
+              default:
                 return 0;
             }
           case 13:
             switch (charge) {
-              case -2:
-                if (degree <= 3)
+              case -4:
+                if (currentValence <= 1)
+                  return 1;
+                if (currentValence <= 3)
                   return 3;
-                if (degree <= 5)
+                if (currentValence <= 5)
+                  return 5;
+                if (currentValence <= 7)
+                  return 7;
+                return 0;
+              case -3:
+                if (currentValence <= 2)
+                  return 2;
+                if (currentValence <= 4)
+                  return 4;
+                if (currentValence <= 6)
+                  return 6;
+                return 0;
+              case -2:
+                if (currentValence <= 3)
+                  return 3;
+                if (currentValence <= 5)
                   return 5;
                 return 0;
               case -1:
-                if (degree <= 4)
+                if (currentValence <= 4)
                   return 4;
                 return 0;
               case 0:
-                if (degree <= 3)
+                if (currentValence <= 3)
                   return 3;
                 return 0;
               case 1:
-                if (degree <= 2)
+                if (currentValence <= 2)
                   return 2;
                 return 0;
               case 2:
-                if (degree <= 1)
+                if (currentValence <= 1)
                   return 1;
+                return 0;
+              default:
                 return 0;
             }
           case 14:
             switch (charge) {
+              case -3:
+                if (currentValence <= 1)
+                  return 1;
+                if (currentValence <= 3)
+                  return 3;
+                if (currentValence <= 5)
+                  return 5;
+                if (currentValence <= 7)
+                  return 7;
+                return 0;
               case -2:
-                if (degree <= 2)
+                if (currentValence <= 2)
                   return 2;
+                if (currentValence <= 4)
+                  return 4;
+                if (currentValence <= 6)
+                  return 6;
                 return 0;
               case -1:
-                if (degree <= 3)
+                if (currentValence <= 3)
                   return 3;
-                if (degree <= 5)
+                if (currentValence <= 5)
                   return 5;
                 return 0;
               case 0:
-                if (degree <= 4)
+                if (currentValence <= 4)
                   return 4;
                 return 0;
               case 1:
-                if (degree <= 3)
+                if (currentValence <= 3)
                   return 3;
                 return 0;
               case 2:
-                if (degree <= 2)
+                if (currentValence <= 2)
                   return 2;
+                return 0;
+              case 3:
+                if (currentValence <= 1)
+                  return 1;
+                return 0;
+              default:
                 return 0;
             }
           case 15:
             switch (charge) {
               case -2:
-                if (degree <= 1)
+                if (currentValence <= 1)
                   return 1;
-                if (degree <= 3)
+                if (currentValence <= 3)
                   return 3;
-                if (degree <= 5)
+                if (currentValence <= 5)
                   return 5;
-                if (degree <= 7)
+                if (currentValence <= 7)
                   return 7;
                 return 0;
               case -1:
-                if (degree <= 2)
+                if (currentValence <= 2)
                   return 2;
-                if (degree <= 4)
+                if (currentValence <= 4)
                   return 4;
-                if (degree <= 6)
+                if (currentValence <= 6)
                   return 6;
                 return 0;
               case 0:
-                if (degree <= 3)
+                if (currentValence <= 3)
                   return 3;
-                if (degree <= 5)
+                if (currentValence <= 5)
                   return 5;
                 return 0;
               case 1:
-                if (degree <= 4)
+                if (currentValence <= 4)
                   return 4;
                 return 0;
               case 2:
-                if (degree <= 3)
+                if (currentValence <= 3)
                   return 3;
+                return 0;
+              case 3:
+                if (currentValence <= 2)
+                  return 2;
+                return 0;
+              case 4:
+                if (currentValence <= 1)
+                  return 1;
+                return 0;
+              default:
                 return 0;
             }
           case 16:
             switch (charge) {
-              case -2:
-                return 0;
               case -1:
-                if (degree <= 1)
+                if (currentValence <= 1)
                   return 1;
-                if (degree <= 3)
+                if (currentValence <= 3)
                   return 3;
-                if (degree <= 5)
+                if (currentValence <= 5)
                   return 5;
-                if (degree <= 7)
+                if (currentValence <= 7)
                   return 7;
                 return 0;
               case 0:
-                if (degree <= 2)
+                if (currentValence <= 2)
                   return 2;
-                if (degree <= 6)
+                if (currentValence <= 6)
                   return 6;
                 return 0;
               case 1:
-                if (degree <= 3)
+                if (currentValence <= 3)
                   return 3;
-                if (degree <= 5)
+                if (currentValence <= 5)
                   return 5;
                 return 0;
               case 2:
-                if (degree <= 4)
+                if (currentValence <= 4)
                   return 4;
+                return 0;
+              case 3:
+                if (currentValence <= 3)
+                  return 3;
+                return 0;
+              case 4:
+                if (currentValence <= 2)
+                  return 2;
+                return 0;
+              case 5:
+                if (currentValence <= 1)
+                  return 1;
+                return 0;
+              default:
                 return 0;
             }
           case 17:
             switch (charge) {
-              case -2:
-                return 0;
-              case -1:
-                return 0;
               case 0:
-                if (degree <= 1)
+                if (currentValence <= 1)
                   return 1;
-                if (degree <= 3)
+                if (currentValence <= 3)
                   return 3;
-                if (degree <= 5)
+                if (currentValence <= 5)
                   return 5;
-                if (degree <= 7)
+                if (currentValence <= 7)
                   return 7;
                 return 0;
               case 1:
-                if (degree <= 2)
+                if (currentValence <= 2)
                   return 2;
-                if (degree <= 4)
+                if (currentValence <= 4)
                   return 4;
-                if (degree <= 6)
+                if (currentValence <= 6)
                   return 6;
                 return 0;
               case 2:
-                if (degree <= 3)
+                if (currentValence <= 3)
                   return 3;
-                if (degree <= 5)
+                if (currentValence <= 5)
                   return 5;
+                return 0;
+              case 3:
+                if (currentValence <= 4)
+                  return 4;
+                return 0;
+              case 4:
+                if (currentValence <= 3)
+                  return 3;
+                return 0;
+              case 5:
+                if (currentValence <= 2)
+                  return 2;
+                return 0;
+              case 6:
+                if (currentValence <= 1)
+                  return 1;
+                return 0;
+              default:
                 return 0;
             }
           case 18:
             return 0;
           case 19:
             switch (charge) {
-              case -2:
-                return 0;
-              case -1:
-                return 0;
               case 0:
-                if (degree <= 1)
+                if (currentValence <= 1)
                   return 1;
                 return 0;
-              case 1:
-                return 0;
-              case 2:
+              default:
                 return 0;
             }
           case 20:
             switch (charge) {
-              case -2:
-                return 0;
-              case -1:
-                return 0;
               case 0:
-                if (degree <= 2)
+                if (currentValence <= 2)
                   return 2;
                 return 0;
               case 1:
-                if (degree <= 1)
+                if (currentValence <= 1)
                   return 1;
                 return 0;
-              case 2:
+              default:
                 return 0;
             }
           case 21:
             switch (charge) {
-              case -2:
-                return 0;
-              case -1:
-                return 0;
               case 0:
-                if (degree <= 3)
+                if (currentValence <= 3)
                   return 3;
                 return 0;
-              case 1:
-                return 0;
-              case 2:
+              default:
                 return 0;
             }
           case 22:
             switch (charge) {
-              case -2:
-                return 0;
-              case -1:
-                return 0;
               case 0:
-                if (degree <= 3)
+                if (currentValence <= 3)
                   return 3;
-                if (degree <= 4)
+                if (currentValence <= 4)
                   return 4;
                 return 0;
-              case 1:
-                return 0;
-              case 2:
+              default:
                 return 0;
             }
           case 23:
             switch (charge) {
-              case -2:
-                return 0;
-              case -1:
-                return 0;
               case 0:
-                if (degree <= 2)
+                if (currentValence <= 2)
                   return 2;
-                if (degree <= 3)
+                if (currentValence <= 3)
                   return 3;
-                if (degree <= 4)
+                if (currentValence <= 4)
                   return 4;
-                if (degree <= 5)
+                if (currentValence <= 5)
                   return 5;
                 return 0;
-              case 1:
-                return 0;
-              case 2:
+              default:
                 return 0;
             }
           case 24:
             switch (charge) {
-              case -2:
-                return 0;
-              case -1:
-                return 0;
               case 0:
-                if (degree <= 2)
+                if (currentValence <= 2)
                   return 2;
-                if (degree <= 3)
+                if (currentValence <= 3)
                   return 3;
-                if (degree <= 6)
+                if (currentValence <= 6)
                   return 6;
                 return 0;
-              case 1:
-                return 0;
-              case 2:
+              default:
                 return 0;
             }
           case 25:
             switch (charge) {
-              case -2:
-                return 0;
-              case -1:
-                return 0;
               case 0:
-                if (degree <= 2)
+                if (currentValence <= 2)
                   return 2;
-                if (degree <= 3)
+                if (currentValence <= 3)
                   return 3;
-                if (degree <= 4)
+                if (currentValence <= 4)
                   return 4;
-                if (degree <= 6)
+                if (currentValence <= 6)
                   return 6;
                 return 0;
-              case 1:
-                return 0;
-              case 2:
+              default:
                 return 0;
             }
           case 26:
             switch (charge) {
-              case -2:
-                return 0;
-              case -1:
-                return 0;
               case 0:
-                if (degree <= 2)
+                if (currentValence <= 2)
                   return 2;
-                if (degree <= 3)
+                if (currentValence <= 3)
                   return 3;
-                if (degree <= 4)
+                if (currentValence <= 4)
                   return 4;
-                if (degree <= 6)
+                if (currentValence <= 6)
                   return 6;
                 return 0;
-              case 1:
-                return 0;
-              case 2:
+              default:
                 return 0;
             }
           case 27:
             switch (charge) {
-              case -2:
-                return 0;
-              case -1:
-                return 0;
               case 0:
-                if (degree <= 2)
+                if (currentValence <= 2)
                   return 2;
-                if (degree <= 3)
+                if (currentValence <= 3)
                   return 3;
                 return 0;
-              case 1:
-                return 0;
-              case 2:
+              default:
                 return 0;
             }
           case 28:
             switch (charge) {
-              case -2:
-                return 0;
-              case -1:
-                return 0;
               case 0:
-                if (degree <= 2)
+                if (currentValence <= 2)
                   return 2;
-                if (degree <= 3)
+                if (currentValence <= 3)
                   return 3;
                 return 0;
-              case 1:
-                return 0;
-              case 2:
+              default:
                 return 0;
             }
           case 29:
             switch (charge) {
-              case -2:
-                return 0;
-              case -1:
-                return 0;
               case 0:
-                if (degree <= 1)
+                if (currentValence <= 1)
                   return 1;
-                if (degree <= 2)
+                if (currentValence <= 2)
                   return 2;
                 return 0;
-              case 1:
-                return 0;
-              case 2:
+              default:
                 return 0;
             }
           case 30:
             switch (charge) {
-              case -2:
-                return 0;
-              case -1:
-                return 0;
               case 0:
-                if (degree <= 2)
+                if (currentValence <= 2)
                   return 2;
                 return 0;
-              case 1:
-                return 0;
-              case 2:
+              default:
                 return 0;
             }
           case 31:
             switch (charge) {
-              case -2:
-                if (degree <= 3)
+              case -4:
+                if (currentValence <= 1)
+                  return 1;
+                if (currentValence <= 3)
                   return 3;
-                if (degree <= 5)
+                if (currentValence <= 5)
+                  return 5;
+                if (currentValence <= 7)
+                  return 7;
+                return 0;
+              case -3:
+                if (currentValence <= 2)
+                  return 2;
+                if (currentValence <= 4)
+                  return 4;
+                if (currentValence <= 6)
+                  return 6;
+                return 0;
+              case -2:
+                if (currentValence <= 3)
+                  return 3;
+                if (currentValence <= 5)
                   return 5;
                 return 0;
               case -1:
-                if (degree <= 4)
+                if (currentValence <= 4)
                   return 4;
                 return 0;
               case 0:
-                if (degree <= 3)
+                if (currentValence <= 3)
                   return 3;
                 return 0;
-              case 1:
-                return 0;
               case 2:
-                if (degree <= 1)
+                if (currentValence <= 1)
                   return 1;
+                return 0;
+              default:
                 return 0;
             }
           case 32:
             switch (charge) {
+              case -3:
+                if (currentValence <= 1)
+                  return 1;
+                if (currentValence <= 3)
+                  return 3;
+                if (currentValence <= 5)
+                  return 5;
+                if (currentValence <= 7)
+                  return 7;
+                return 0;
               case -2:
-                if (degree <= 2)
+                if (currentValence <= 2)
                   return 2;
-                if (degree <= 4)
+                if (currentValence <= 4)
                   return 4;
-                if (degree <= 6)
+                if (currentValence <= 6)
                   return 6;
                 return 0;
               case -1:
-                if (degree <= 3)
+                if (currentValence <= 3)
                   return 3;
-                if (degree <= 5)
+                if (currentValence <= 5)
                   return 5;
                 return 0;
               case 0:
-                if (degree <= 4)
+                if (currentValence <= 4)
                   return 4;
                 return 0;
               case 1:
-                if (degree <= 3)
+                if (currentValence <= 3)
                   return 3;
                 return 0;
-              case 2:
+              case 3:
+                if (currentValence <= 1)
+                  return 1;
+                return 0;
+              default:
                 return 0;
             }
           case 33:
             switch (charge) {
               case -2:
-                if (degree <= 1)
+                if (currentValence <= 1)
                   return 1;
-                if (degree <= 3)
+                if (currentValence <= 3)
                   return 3;
-                if (degree <= 5)
+                if (currentValence <= 5)
                   return 5;
-                if (degree <= 7)
+                if (currentValence <= 7)
                   return 7;
                 return 0;
               case -1:
-                if (degree <= 2)
+                if (currentValence <= 2)
                   return 2;
-                if (degree <= 4)
+                if (currentValence <= 4)
                   return 4;
-                if (degree <= 6)
+                if (currentValence <= 6)
                   return 6;
                 return 0;
               case 0:
-                if (degree <= 3)
+                if (currentValence <= 3)
                   return 3;
-                if (degree <= 5)
+                if (currentValence <= 5)
                   return 5;
                 return 0;
               case 1:
-                if (degree <= 4)
+                if (currentValence <= 4)
                   return 4;
                 return 0;
               case 2:
-                if (degree <= 3)
+                if (currentValence <= 3)
                   return 3;
+                return 0;
+              case 4:
+                if (currentValence <= 1)
+                  return 1;
+                return 0;
+              default:
                 return 0;
             }
           case 34:
             switch (charge) {
-              case -2:
-                return 0;
               case -1:
-                if (degree <= 1)
+                if (currentValence <= 1)
                   return 1;
-                if (degree <= 3)
+                if (currentValence <= 3)
                   return 3;
-                if (degree <= 5)
+                if (currentValence <= 5)
                   return 5;
-                if (degree <= 7)
+                if (currentValence <= 7)
                   return 7;
                 return 0;
               case 0:
-                if (degree <= 2)
+                if (currentValence <= 2)
                   return 2;
-                if (degree <= 4)
+                if (currentValence <= 4)
                   return 4;
-                if (degree <= 6)
+                if (currentValence <= 6)
                   return 6;
                 return 0;
               case 1:
-                if (degree <= 3)
+                if (currentValence <= 3)
                   return 3;
-                if (degree <= 5)
+                if (currentValence <= 5)
                   return 5;
                 return 0;
               case 2:
-                if (degree <= 4)
+                if (currentValence <= 4)
                   return 4;
+                return 0;
+              case 3:
+                if (currentValence <= 3)
+                  return 3;
+                return 0;
+              case 5:
+                if (currentValence <= 1)
+                  return 1;
+                return 0;
+              default:
                 return 0;
             }
           case 35:
             switch (charge) {
-              case -2:
-                return 0;
-              case -1:
-                return 0;
               case 0:
-                if (degree <= 1)
+                if (currentValence <= 1)
                   return 1;
-                if (degree <= 3)
+                if (currentValence <= 3)
                   return 3;
-                if (degree <= 5)
+                if (currentValence <= 5)
                   return 5;
-                if (degree <= 7)
+                if (currentValence <= 7)
                   return 7;
                 return 0;
               case 1:
-                if (degree <= 2)
+                if (currentValence <= 2)
                   return 2;
-                if (degree <= 4)
+                if (currentValence <= 4)
                   return 4;
-                if (degree <= 6)
+                if (currentValence <= 6)
                   return 6;
                 return 0;
               case 2:
-                if (degree <= 3)
+                if (currentValence <= 3)
                   return 3;
-                if (degree <= 5)
+                if (currentValence <= 5)
                   return 5;
+                return 0;
+              case 3:
+                if (currentValence <= 4)
+                  return 4;
+                return 0;
+              case 4:
+                if (currentValence <= 3)
+                  return 3;
+                return 0;
+              case 6:
+                if (currentValence <= 1)
+                  return 1;
+                return 0;
+              default:
                 return 0;
             }
           case 36:
             return 0;
           case 37:
             switch (charge) {
-              case -2:
-                return 0;
-              case -1:
-                return 0;
               case 0:
-                if (degree <= 1)
+                if (currentValence <= 1)
                   return 1;
                 return 0;
-              case 1:
-                return 0;
-              case 2:
+              default:
                 return 0;
             }
           case 38:
             switch (charge) {
-              case -2:
-                return 0;
-              case -1:
-                return 0;
               case 0:
-                if (degree <= 2)
+                if (currentValence <= 2)
                   return 2;
                 return 0;
               case 1:
-                if (degree <= 1)
+                if (currentValence <= 1)
                   return 1;
                 return 0;
-              case 2:
+              default:
                 return 0;
             }
           case 39:
             switch (charge) {
-              case -2:
-                return 0;
-              case -1:
-                return 0;
               case 0:
-                if (degree <= 3)
+                if (currentValence <= 3)
                   return 3;
                 return 0;
-              case 1:
-                return 0;
-              case 2:
+              default:
                 return 0;
             }
           case 40:
             switch (charge) {
-              case -2:
-                return 0;
-              case -1:
-                return 0;
               case 0:
-                if (degree <= 4)
+                if (currentValence <= 4)
                   return 4;
                 return 0;
-              case 1:
-                return 0;
-              case 2:
+              default:
                 return 0;
             }
           case 41:
             switch (charge) {
-              case -2:
-                return 0;
-              case -1:
-                return 0;
               case 0:
-                if (degree <= 3)
+                if (currentValence <= 3)
                   return 3;
-                if (degree <= 5)
+                if (currentValence <= 5)
                   return 5;
                 return 0;
-              case 1:
-                return 0;
-              case 2:
+              default:
                 return 0;
             }
           case 42:
             switch (charge) {
-              case -2:
-                return 0;
-              case -1:
-                return 0;
               case 0:
-                if (degree <= 3)
+                if (currentValence <= 3)
                   return 3;
-                if (degree <= 4)
+                if (currentValence <= 4)
                   return 4;
-                if (degree <= 5)
+                if (currentValence <= 5)
                   return 5;
-                if (degree <= 6)
+                if (currentValence <= 6)
                   return 6;
                 return 0;
-              case 1:
-                return 0;
-              case 2:
+              default:
                 return 0;
             }
           case 43:
             switch (charge) {
-              case -2:
-                return 0;
-              case -1:
-                return 0;
               case 0:
-                if (degree <= 7)
+                if (currentValence <= 7)
                   return 7;
                 return 0;
-              case 1:
-                return 0;
-              case 2:
+              default:
                 return 0;
             }
           case 44:
             switch (charge) {
-              case -2:
-                return 0;
-              case -1:
-                return 0;
               case 0:
-                if (degree <= 2)
+                if (currentValence <= 2)
                   return 2;
-                if (degree <= 3)
+                if (currentValence <= 3)
                   return 3;
-                if (degree <= 4)
+                if (currentValence <= 4)
                   return 4;
-                if (degree <= 6)
+                if (currentValence <= 6)
                   return 6;
                 return 0;
-              case 1:
-                return 0;
-              case 2:
+              default:
                 return 0;
             }
           case 45:
             switch (charge) {
-              case -2:
-                return 0;
-              case -1:
-                return 0;
               case 0:
-                if (degree <= 2)
+                if (currentValence <= 2)
                   return 2;
-                if (degree <= 3)
+                if (currentValence <= 3)
                   return 3;
-                if (degree <= 4)
+                if (currentValence <= 4)
                   return 4;
                 return 0;
-              case 1:
-                return 0;
-              case 2:
+              default:
                 return 0;
             }
           case 46:
             switch (charge) {
-              case -2:
-                return 0;
-              case -1:
-                return 0;
               case 0:
-                if (degree <= 2)
+                if (currentValence <= 2)
                   return 2;
-                if (degree <= 4)
+                if (currentValence <= 4)
                   return 4;
                 return 0;
-              case 1:
-                return 0;
-              case 2:
+              default:
                 return 0;
             }
           case 47:
             switch (charge) {
-              case -2:
-                return 0;
-              case -1:
-                return 0;
               case 0:
-                if (degree <= 1)
+                if (currentValence <= 1)
                   return 1;
                 return 0;
-              case 1:
-                return 0;
-              case 2:
+              default:
                 return 0;
             }
           case 48:
             switch (charge) {
-              case -2:
-                return 0;
-              case -1:
-                return 0;
               case 0:
-                if (degree <= 2)
+                if (currentValence <= 2)
                   return 2;
                 return 0;
-              case 1:
-                return 0;
-              case 2:
+              default:
                 return 0;
             }
           case 49:
             switch (charge) {
-              case -2:
-                if (degree <= 3)
+              case -4:
+                if (currentValence <= 1)
+                  return 1;
+                if (currentValence <= 3)
                   return 3;
-                if (degree <= 5)
+                if (currentValence <= 5)
+                  return 5;
+                if (currentValence <= 7)
+                  return 7;
+                return 0;
+              case -3:
+                if (currentValence <= 2)
+                  return 2;
+                if (currentValence <= 4)
+                  return 4;
+                if (currentValence <= 6)
+                  return 6;
+                return 0;
+              case -2:
+                if (currentValence <= 3)
+                  return 3;
+                if (currentValence <= 5)
                   return 5;
                 return 0;
               case -1:
-                if (degree <= 2)
+                if (currentValence <= 2)
                   return 2;
-                if (degree <= 4)
+                if (currentValence <= 4)
                   return 4;
                 return 0;
               case 0:
-                if (degree <= 3)
+                if (currentValence <= 3)
                   return 3;
                 return 0;
-              case 1:
-                return 0;
               case 2:
-                if (degree <= 1)
+                if (currentValence <= 1)
                   return 1;
+                return 0;
+              default:
                 return 0;
             }
           case 50:
             switch (charge) {
+              case -3:
+                if (currentValence <= 1)
+                  return 1;
+                if (currentValence <= 3)
+                  return 3;
+                if (currentValence <= 5)
+                  return 5;
+                if (currentValence <= 7)
+                  return 7;
+                return 0;
               case -2:
-                if (degree <= 2)
+                if (currentValence <= 2)
                   return 2;
-                if (degree <= 4)
+                if (currentValence <= 4)
                   return 4;
-                if (degree <= 6)
+                if (currentValence <= 6)
                   return 6;
                 return 0;
               case -1:
-                if (degree <= 3)
+                if (currentValence <= 3)
                   return 3;
-                if (degree <= 5)
+                if (currentValence <= 5)
                   return 5;
                 return 0;
               case 0:
-                if (degree <= 2)
+                if (currentValence <= 2)
                   return 2;
-                if (degree <= 4)
+                if (currentValence <= 4)
                   return 4;
                 return 0;
               case 1:
-                if (degree <= 3)
+                if (currentValence <= 3)
                   return 3;
                 return 0;
-              case 2:
+              case 3:
+                if (currentValence <= 1)
+                  return 1;
+                return 0;
+              default:
                 return 0;
             }
           case 51:
             switch (charge) {
               case -2:
-                if (degree <= 1)
+                if (currentValence <= 1)
                   return 1;
-                if (degree <= 3)
+                if (currentValence <= 3)
                   return 3;
-                if (degree <= 5)
+                if (currentValence <= 5)
                   return 5;
-                if (degree <= 7)
+                if (currentValence <= 7)
                   return 7;
                 return 0;
               case -1:
-                if (degree <= 2)
+                if (currentValence <= 2)
                   return 2;
-                if (degree <= 4)
+                if (currentValence <= 4)
                   return 4;
-                if (degree <= 6)
+                if (currentValence <= 6)
                   return 6;
                 return 0;
               case 0:
-                if (degree <= 3)
+                if (currentValence <= 3)
                   return 3;
-                if (degree <= 5)
+                if (currentValence <= 5)
                   return 5;
                 return 0;
               case 1:
-                if (degree <= 2)
+                if (currentValence <= 2)
                   return 2;
-                if (degree <= 4)
+                if (currentValence <= 4)
                   return 4;
                 return 0;
               case 2:
-                if (degree <= 3)
+                if (currentValence <= 3)
                   return 3;
+                return 0;
+              case 4:
+                if (currentValence <= 1)
+                  return 1;
+                return 0;
+              default:
                 return 0;
             }
           case 52:
             switch (charge) {
-              case -2:
-                return 0;
               case -1:
-                if (degree <= 1)
+                if (currentValence <= 1)
                   return 1;
-                if (degree <= 3)
+                if (currentValence <= 3)
                   return 3;
-                if (degree <= 5)
+                if (currentValence <= 5)
                   return 5;
-                if (degree <= 7)
+                if (currentValence <= 7)
                   return 7;
                 return 0;
               case 0:
-                if (degree <= 2)
+                if (currentValence <= 2)
                   return 2;
-                if (degree <= 4)
+                if (currentValence <= 4)
                   return 4;
-                if (degree <= 6)
+                if (currentValence <= 6)
                   return 6;
                 return 0;
               case 1:
-                if (degree <= 3)
+                if (currentValence <= 3)
                   return 3;
-                if (degree <= 5)
+                if (currentValence <= 5)
                   return 5;
                 return 0;
               case 2:
-                if (degree <= 2)
+                if (currentValence <= 2)
                   return 2;
-                if (degree <= 4)
+                if (currentValence <= 4)
                   return 4;
+                return 0;
+              case 3:
+                if (currentValence <= 3)
+                  return 3;
+                return 0;
+              case 5:
+                if (currentValence <= 1)
+                  return 1;
+                return 0;
+              default:
                 return 0;
             }
           case 53:
             switch (charge) {
-              case -2:
-                return 0;
-              case -1:
-                return 0;
               case 0:
-                if (degree <= 1)
+                if (currentValence <= 1)
                   return 1;
-                if (degree <= 3)
+                if (currentValence <= 3)
                   return 3;
-                if (degree <= 5)
+                if (currentValence <= 5)
                   return 5;
-                if (degree <= 7)
+                if (currentValence <= 7)
                   return 7;
                 return 0;
               case 1:
-                if (degree <= 2)
+                if (currentValence <= 2)
                   return 2;
-                if (degree <= 4)
+                if (currentValence <= 4)
                   return 4;
-                if (degree <= 6)
+                if (currentValence <= 6)
                   return 6;
                 return 0;
               case 2:
-                if (degree <= 3)
+                if (currentValence <= 3)
                   return 3;
-                if (degree <= 5)
+                if (currentValence <= 5)
                   return 5;
+                return 0;
+              case 3:
+                if (currentValence <= 2)
+                  return 2;
+                if (currentValence <= 4)
+                  return 4;
+                return 0;
+              case 4:
+                if (currentValence <= 3)
+                  return 3;
+                return 0;
+              case 6:
+                if (currentValence <= 1)
+                  return 1;
+                return 0;
+              default:
                 return 0;
             }
           case 54:
             return 0;
           case 55:
             switch (charge) {
-              case -2:
-                return 0;
-              case -1:
-                return 0;
               case 0:
-                if (degree <= 1)
+                if (currentValence <= 1)
                   return 1;
                 return 0;
-              case 1:
-                return 0;
-              case 2:
+              default:
                 return 0;
             }
           case 56:
             switch (charge) {
-              case -2:
-                return 0;
-              case -1:
-                return 0;
               case 0:
-                if (degree <= 2)
+                if (currentValence <= 2)
                   return 2;
                 return 0;
               case 1:
-                if (degree <= 1)
+                if (currentValence <= 1)
                   return 1;
                 return 0;
-              case 2:
+              default:
                 return 0;
             }
           case 57:
             switch (charge) {
-              case -2:
-                return 0;
-              case -1:
-                return 0;
               case 0:
-                if (degree <= 3)
+                if (currentValence <= 3)
                   return 3;
                 return 0;
-              case 1:
-                return 0;
-              case 2:
+              default:
                 return 0;
             }
           case 58:
             switch (charge) {
-              case -2:
-                return 0;
-              case -1:
-                return 0;
               case 0:
-                if (degree <= 3)
+                if (currentValence <= 3)
                   return 3;
-                if (degree <= 4)
+                if (currentValence <= 4)
                   return 4;
                 return 0;
-              case 1:
-                return 0;
-              case 2:
+              default:
                 return 0;
             }
           case 59:
             switch (charge) {
-              case -2:
-                return 0;
-              case -1:
-                return 0;
               case 0:
-                if (degree <= 3)
+                if (currentValence <= 3)
                   return 3;
-                if (degree <= 4)
+                if (currentValence <= 4)
                   return 4;
                 return 0;
-              case 1:
-                return 0;
-              case 2:
+              default:
                 return 0;
             }
           case 60:
             switch (charge) {
-              case -2:
-                return 0;
-              case -1:
-                return 0;
               case 0:
-                if (degree <= 3)
+                if (currentValence <= 3)
                   return 3;
                 return 0;
-              case 1:
-                return 0;
-              case 2:
+              default:
                 return 0;
             }
           case 61:
             switch (charge) {
-              case -2:
-                return 0;
-              case -1:
-                return 0;
               case 0:
-                if (degree <= 3)
+                if (currentValence <= 3)
                   return 3;
                 return 0;
-              case 1:
-                return 0;
-              case 2:
+              default:
                 return 0;
             }
           case 62:
             switch (charge) {
-              case -2:
-                return 0;
-              case -1:
-                return 0;
               case 0:
-                if (degree <= 2)
+                if (currentValence <= 2)
                   return 2;
-                if (degree <= 3)
+                if (currentValence <= 3)
                   return 3;
                 return 0;
-              case 1:
-                return 0;
-              case 2:
+              default:
                 return 0;
             }
           case 63:
             switch (charge) {
-              case -2:
-                return 0;
-              case -1:
-                return 0;
               case 0:
-                if (degree <= 2)
+                if (currentValence <= 2)
                   return 2;
-                if (degree <= 3)
+                if (currentValence <= 3)
                   return 3;
                 return 0;
-              case 1:
-                return 0;
-              case 2:
+              default:
                 return 0;
             }
           case 64:
             switch (charge) {
-              case -2:
-                return 0;
-              case -1:
-                return 0;
               case 0:
-                if (degree <= 3)
+                if (currentValence <= 3)
                   return 3;
                 return 0;
-              case 1:
-                return 0;
-              case 2:
+              default:
                 return 0;
             }
           case 65:
             switch (charge) {
-              case -2:
-                return 0;
-              case -1:
-                return 0;
               case 0:
-                if (degree <= 3)
+                if (currentValence <= 3)
                   return 3;
-                if (degree <= 4)
+                if (currentValence <= 4)
                   return 4;
                 return 0;
-              case 1:
-                return 0;
-              case 2:
+              default:
                 return 0;
             }
           case 66:
             switch (charge) {
-              case -2:
-                return 0;
-              case -1:
-                return 0;
               case 0:
-                if (degree <= 3)
+                if (currentValence <= 3)
                   return 3;
                 return 0;
-              case 1:
-                return 0;
-              case 2:
+              default:
                 return 0;
             }
           case 67:
             switch (charge) {
-              case -2:
-                return 0;
-              case -1:
-                return 0;
               case 0:
-                if (degree <= 3)
+                if (currentValence <= 3)
                   return 3;
                 return 0;
-              case 1:
-                return 0;
-              case 2:
+              default:
                 return 0;
             }
           case 68:
             switch (charge) {
-              case -2:
-                return 0;
-              case -1:
-                return 0;
               case 0:
-                if (degree <= 3)
+                if (currentValence <= 3)
                   return 3;
                 return 0;
-              case 1:
-                return 0;
-              case 2:
+              default:
                 return 0;
             }
           case 69:
             switch (charge) {
-              case -2:
-                return 0;
-              case -1:
-                return 0;
               case 0:
-                if (degree <= 2)
+                if (currentValence <= 2)
                   return 2;
-                if (degree <= 3)
+                if (currentValence <= 3)
                   return 3;
                 return 0;
-              case 1:
-                return 0;
-              case 2:
+              default:
                 return 0;
             }
           case 70:
             switch (charge) {
-              case -2:
-                return 0;
-              case -1:
-                return 0;
               case 0:
-                if (degree <= 2)
+                if (currentValence <= 2)
                   return 2;
-                if (degree <= 3)
+                if (currentValence <= 3)
                   return 3;
                 return 0;
-              case 1:
-                return 0;
-              case 2:
+              default:
                 return 0;
             }
           case 71:
             switch (charge) {
-              case -2:
-                return 0;
-              case -1:
-                return 0;
               case 0:
-                if (degree <= 3)
+                if (currentValence <= 3)
                   return 3;
                 return 0;
-              case 1:
-                return 0;
-              case 2:
+              default:
                 return 0;
             }
           case 72:
             switch (charge) {
-              case -2:
-                return 0;
-              case -1:
-                return 0;
               case 0:
-                if (degree <= 4)
+                if (currentValence <= 4)
                   return 4;
                 return 0;
-              case 1:
-                return 0;
-              case 2:
+              default:
                 return 0;
             }
           case 73:
             switch (charge) {
-              case -2:
-                return 0;
-              case -1:
-                return 0;
               case 0:
-                if (degree <= 5)
+                if (currentValence <= 5)
                   return 5;
                 return 0;
-              case 1:
-                return 0;
-              case 2:
+              default:
                 return 0;
             }
           case 74:
             switch (charge) {
-              case -2:
-                return 0;
-              case -1:
-                return 0;
               case 0:
-                if (degree <= 3)
+                if (currentValence <= 3)
                   return 3;
-                if (degree <= 4)
+                if (currentValence <= 4)
                   return 4;
-                if (degree <= 5)
+                if (currentValence <= 5)
                   return 5;
-                if (degree <= 6)
+                if (currentValence <= 6)
                   return 6;
                 return 0;
-              case 1:
-                return 0;
-              case 2:
+              default:
                 return 0;
             }
           case 75:
             switch (charge) {
-              case -2:
-                return 0;
-              case -1:
-                return 0;
               case 0:
-                if (degree <= 2)
+                if (currentValence <= 2)
                   return 2;
-                if (degree <= 4)
+                if (currentValence <= 4)
                   return 4;
-                if (degree <= 6)
+                if (currentValence <= 6)
                   return 6;
-                if (degree <= 7)
+                if (currentValence <= 7)
                   return 7;
                 return 0;
-              case 1:
-                return 0;
-              case 2:
+              default:
                 return 0;
             }
           case 76:
             switch (charge) {
-              case -2:
-                return 0;
-              case -1:
-                return 0;
               case 0:
-                if (degree <= 2)
+                if (currentValence <= 2)
                   return 2;
-                if (degree <= 3)
+                if (currentValence <= 3)
                   return 3;
-                if (degree <= 4)
+                if (currentValence <= 4)
                   return 4;
-                if (degree <= 6)
+                if (currentValence <= 6)
                   return 6;
                 return 0;
-              case 1:
-                return 0;
-              case 2:
+              default:
                 return 0;
             }
           case 77:
             switch (charge) {
-              case -2:
-                return 0;
-              case -1:
-                return 0;
               case 0:
-                if (degree <= 2)
+                if (currentValence <= 2)
                   return 2;
-                if (degree <= 3)
+                if (currentValence <= 3)
                   return 3;
-                if (degree <= 4)
+                if (currentValence <= 4)
                   return 4;
-                if (degree <= 6)
+                if (currentValence <= 6)
                   return 6;
                 return 0;
-              case 1:
-                return 0;
-              case 2:
+              default:
                 return 0;
             }
           case 78:
             switch (charge) {
-              case -2:
-                return 0;
-              case -1:
-                return 0;
               case 0:
-                if (degree <= 2)
+                if (currentValence <= 2)
                   return 2;
-                if (degree <= 4)
+                if (currentValence <= 4)
                   return 4;
                 return 0;
-              case 1:
-                return 0;
-              case 2:
+              default:
                 return 0;
             }
           case 79:
             switch (charge) {
-              case -2:
-                return 0;
-              case -1:
-                return 0;
               case 0:
-                if (degree <= 1)
+                if (currentValence <= 1)
                   return 1;
-                if (degree <= 3)
+                if (currentValence <= 3)
                   return 3;
                 return 0;
-              case 1:
-                return 0;
-              case 2:
+              default:
                 return 0;
             }
           case 80:
             switch (charge) {
-              case -2:
-                return 0;
-              case -1:
-                return 0;
               case 0:
-                if (degree <= 1)
+                if (currentValence <= 1)
                   return 1;
-                if (degree <= 2)
+                if (currentValence <= 2)
                   return 2;
                 return 0;
-              case 1:
-                return 0;
-              case 2:
+              default:
                 return 0;
             }
           case 81:
             switch (charge) {
-              case -2:
-                if (degree <= 3)
+              case -4:
+                if (currentValence <= 1)
+                  return 1;
+                if (currentValence <= 3)
                   return 3;
-                if (degree <= 5)
+                if (currentValence <= 5)
+                  return 5;
+                if (currentValence <= 7)
+                  return 7;
+                return 0;
+              case -3:
+                if (currentValence <= 2)
+                  return 2;
+                if (currentValence <= 4)
+                  return 4;
+                if (currentValence <= 6)
+                  return 6;
+                return 0;
+              case -2:
+                if (currentValence <= 3)
+                  return 3;
+                if (currentValence <= 5)
                   return 5;
                 return 0;
               case -1:
-                if (degree <= 2)
+                if (currentValence <= 2)
                   return 2;
-                if (degree <= 4)
+                if (currentValence <= 4)
                   return 4;
                 return 0;
               case 0:
-                if (degree <= 1)
+                if (currentValence <= 1)
                   return 1;
-                if (degree <= 3)
+                if (currentValence <= 3)
                   return 3;
                 return 0;
-              case 1:
-                return 0;
-              case 2:
+              default:
                 return 0;
             }
           case 82:
             switch (charge) {
+              case -3:
+                if (currentValence <= 1)
+                  return 1;
+                if (currentValence <= 3)
+                  return 3;
+                if (currentValence <= 5)
+                  return 5;
+                if (currentValence <= 7)
+                  return 7;
+                return 0;
               case -2:
-                if (degree <= 2)
+                if (currentValence <= 2)
                   return 2;
-                if (degree <= 4)
+                if (currentValence <= 4)
                   return 4;
-                if (degree <= 6)
+                if (currentValence <= 6)
                   return 6;
                 return 0;
               case -1:
-                if (degree <= 3)
+                if (currentValence <= 3)
                   return 3;
-                if (degree <= 5)
+                if (currentValence <= 5)
                   return 5;
                 return 0;
               case 0:
-                if (degree <= 2)
+                if (currentValence <= 2)
                   return 2;
-                if (degree <= 4)
+                if (currentValence <= 4)
                   return 4;
                 return 0;
               case 1:
-                if (degree <= 3)
+                if (currentValence <= 3)
                   return 3;
                 return 0;
-              case 2:
+              case 3:
+                if (currentValence <= 1)
+                  return 1;
+                return 0;
+              default:
                 return 0;
             }
           case 83:
             switch (charge) {
               case -2:
-                if (degree <= 1)
+                if (currentValence <= 1)
                   return 1;
-                if (degree <= 3)
+                if (currentValence <= 3)
                   return 3;
-                if (degree <= 5)
+                if (currentValence <= 5)
                   return 5;
-                if (degree <= 7)
+                if (currentValence <= 7)
                   return 7;
                 return 0;
               case -1:
-                if (degree <= 2)
+                if (currentValence <= 2)
                   return 2;
-                if (degree <= 4)
+                if (currentValence <= 4)
                   return 4;
-                if (degree <= 6)
+                if (currentValence <= 6)
                   return 6;
                 return 0;
               case 0:
-                if (degree <= 3)
+                if (currentValence <= 3)
                   return 3;
-                if (degree <= 5)
+                if (currentValence <= 5)
                   return 5;
                 return 0;
               case 1:
-                if (degree <= 2)
+                if (currentValence <= 2)
                   return 2;
-                if (degree <= 4)
+                if (currentValence <= 4)
                   return 4;
                 return 0;
               case 2:
-                if (degree <= 3)
+                if (currentValence <= 3)
                   return 3;
+                return 0;
+              case 4:
+                if (currentValence <= 1)
+                  return 1;
+                return 0;
+              default:
                 return 0;
             }
           case 84:
             switch (charge) {
-              case -2:
-                return 0;
               case -1:
-                if (degree <= 1)
+                if (currentValence <= 1)
                   return 1;
-                if (degree <= 3)
+                if (currentValence <= 3)
                   return 3;
-                if (degree <= 5)
+                if (currentValence <= 5)
                   return 5;
-                if (degree <= 7)
+                if (currentValence <= 7)
                   return 7;
                 return 0;
               case 0:
-                if (degree <= 2)
+                if (currentValence <= 2)
                   return 2;
-                if (degree <= 4)
+                if (currentValence <= 4)
                   return 4;
-                if (degree <= 6)
+                if (currentValence <= 6)
                   return 6;
                 return 0;
               case 1:
-                if (degree <= 3)
+                if (currentValence <= 3)
                   return 3;
-                if (degree <= 5)
+                if (currentValence <= 5)
                   return 5;
                 return 0;
               case 2:
-                if (degree <= 2)
+                if (currentValence <= 2)
                   return 2;
-                if (degree <= 4)
+                if (currentValence <= 4)
                   return 4;
+                return 0;
+              case 3:
+                if (currentValence <= 3)
+                  return 3;
+                return 0;
+              case 5:
+                if (currentValence <= 1)
+                  return 1;
+                return 0;
+              default:
                 return 0;
             }
           case 85:
             switch (charge) {
-              case -2:
-                return 0;
-              case -1:
-                return 0;
               case 0:
-                if (degree <= 1)
+                if (currentValence <= 1)
                   return 1;
-                if (degree <= 3)
+                if (currentValence <= 3)
                   return 3;
-                if (degree <= 5)
+                if (currentValence <= 5)
                   return 5;
-                if (degree <= 7)
+                if (currentValence <= 7)
                   return 7;
                 return 0;
               case 1:
-                if (degree <= 2)
+                if (currentValence <= 2)
                   return 2;
-                if (degree <= 4)
+                if (currentValence <= 4)
                   return 4;
-                if (degree <= 6)
+                if (currentValence <= 6)
                   return 6;
                 return 0;
               case 2:
-                if (degree <= 3)
+                if (currentValence <= 3)
                   return 3;
-                if (degree <= 5)
+                if (currentValence <= 5)
                   return 5;
+                return 0;
+              case 3:
+                if (currentValence <= 2)
+                  return 2;
+                if (currentValence <= 4)
+                  return 4;
+                return 0;
+              case 4:
+                if (currentValence <= 3)
+                  return 3;
+                return 0;
+              case 6:
+                if (currentValence <= 1)
+                  return 1;
+                return 0;
+              default:
                 return 0;
             }
           case 86:
             return 0;
           case 87:
             switch (charge) {
-              case -2:
-                return 0;
-              case -1:
-                return 0;
               case 0:
-                if (degree <= 1)
+                if (currentValence <= 1)
                   return 1;
                 return 0;
-              case 1:
-                return 0;
-              case 2:
+              default:
                 return 0;
             }
           case 88:
             switch (charge) {
-              case -2:
-                return 0;
-              case -1:
-                return 0;
               case 0:
-                if (degree <= 2)
+                if (currentValence <= 2)
                   return 2;
                 return 0;
               case 1:
-                if (degree <= 1)
+                if (currentValence <= 1)
                   return 1;
                 return 0;
-              case 2:
+              default:
                 return 0;
             }
           case 89:
             switch (charge) {
-              case -2:
-                return 0;
-              case -1:
-                return 0;
               case 0:
-                if (degree <= 3)
+                if (currentValence <= 3)
                   return 3;
                 return 0;
-              case 1:
-                return 0;
-              case 2:
+              default:
                 return 0;
             }
           case 90:
             switch (charge) {
-              case -2:
-                return 0;
-              case -1:
-                return 0;
               case 0:
-                if (degree <= 3)
+                if (currentValence <= 3)
                   return 3;
-                if (degree <= 4)
+                if (currentValence <= 4)
                   return 4;
                 return 0;
-              case 1:
-                return 0;
-              case 2:
+              default:
                 return 0;
             }
           case 91:
             switch (charge) {
-              case -2:
-                return 0;
-              case -1:
-                return 0;
               case 0:
-                if (degree <= 3)
+                if (currentValence <= 3)
                   return 3;
-                if (degree <= 4)
+                if (currentValence <= 4)
                   return 4;
-                if (degree <= 5)
+                if (currentValence <= 5)
                   return 5;
                 return 0;
-              case 1:
-                return 0;
-              case 2:
+              default:
                 return 0;
             }
           case 92:
             switch (charge) {
-              case -2:
-                return 0;
-              case -1:
-                return 0;
               case 0:
-                if (degree <= 3)
+                if (currentValence <= 3)
                   return 3;
-                if (degree <= 4)
+                if (currentValence <= 4)
                   return 4;
-                if (degree <= 5)
+                if (currentValence <= 5)
                   return 5;
-                if (degree <= 6)
+                if (currentValence <= 6)
                   return 6;
                 return 0;
-              case 1:
-                return 0;
-              case 2:
+              default:
                 return 0;
             }
           case 93:
             switch (charge) {
-              case -2:
-                return 0;
-              case -1:
-                return 0;
               case 0:
-                if (degree <= 3)
+                if (currentValence <= 3)
                   return 3;
-                if (degree <= 4)
+                if (currentValence <= 4)
                   return 4;
-                if (degree <= 5)
+                if (currentValence <= 5)
                   return 5;
-                if (degree <= 6)
+                if (currentValence <= 6)
                   return 6;
                 return 0;
-              case 1:
-                return 0;
-              case 2:
+              default:
                 return 0;
             }
           case 94:
             switch (charge) {
-              case -2:
-                return 0;
-              case -1:
-                return 0;
               case 0:
-                if (degree <= 3)
+                if (currentValence <= 3)
                   return 3;
-                if (degree <= 4)
+                if (currentValence <= 4)
                   return 4;
-                if (degree <= 5)
+                if (currentValence <= 5)
                   return 5;
-                if (degree <= 6)
+                if (currentValence <= 6)
                   return 6;
                 return 0;
-              case 1:
-                return 0;
-              case 2:
+              default:
                 return 0;
             }
           case 95:
             switch (charge) {
-              case -2:
-                return 0;
-              case -1:
-                return 0;
               case 0:
-                if (degree <= 3)
+                if (currentValence <= 3)
                   return 3;
-                if (degree <= 4)
+                if (currentValence <= 4)
                   return 4;
-                if (degree <= 5)
+                if (currentValence <= 5)
                   return 5;
-                if (degree <= 6)
+                if (currentValence <= 6)
                   return 6;
                 return 0;
-              case 1:
-                return 0;
-              case 2:
+              default:
                 return 0;
             }
           case 96:
             switch (charge) {
-              case -2:
-                return 0;
-              case -1:
-                return 0;
               case 0:
-                if (degree <= 3)
+                if (currentValence <= 3)
                   return 3;
                 return 0;
-              case 1:
-                return 0;
-              case 2:
+              default:
                 return 0;
             }
           case 97:
             switch (charge) {
-              case -2:
-                return 0;
-              case -1:
-                return 0;
               case 0:
-                if (degree <= 3)
+                if (currentValence <= 3)
                   return 3;
-                if (degree <= 4)
+                if (currentValence <= 4)
                   return 4;
                 return 0;
-              case 1:
-                return 0;
-              case 2:
+              default:
                 return 0;
             }
           case 98:
             switch (charge) {
-              case -2:
-                return 0;
-              case -1:
-                return 0;
               case 0:
-                if (degree <= 3)
+                if (currentValence <= 3)
                   return 3;
                 return 0;
-              case 1:
-                return 0;
-              case 2:
+              default:
                 return 0;
             }
           case 99:
             switch (charge) {
-              case -2:
-                return 0;
-              case -1:
-                return 0;
               case 0:
-                if (degree <= 3)
+                if (currentValence <= 3)
                   return 3;
                 return 0;
-              case 1:
-                return 0;
-              case 2:
+              default:
                 return 0;
             }
           case 100:
             switch (charge) {
-              case -2:
-                return 0;
-              case -1:
-                return 0;
               case 0:
-                if (degree <= 3)
+                if (currentValence <= 3)
                   return 3;
                 return 0;
-              case 1:
-                return 0;
-              case 2:
+              default:
                 return 0;
             }
           case 101:
             switch (charge) {
-              case -2:
-                return 0;
-              case -1:
-                return 0;
               case 0:
-                if (degree <= 3)
+                if (currentValence <= 3)
                   return 3;
                 return 0;
-              case 1:
-                return 0;
-              case 2:
+              default:
                 return 0;
             }
           case 102:
             switch (charge) {
-              case -2:
-                return 0;
-              case -1:
-                return 0;
               case 0:
-                if (degree <= 2)
+                if (currentValence <= 2)
                   return 2;
                 return 0;
-              case 1:
-                return 0;
-              case 2:
+              default:
                 return 0;
             }
           case 103:
             switch (charge) {
-              case -2:
-                return 0;
-              case -1:
-                return 0;
               case 0:
-                if (degree <= 3)
+                if (currentValence <= 3)
                   return 3;
                 return 0;
-              case 1:
-                return 0;
-              case 2:
+              default:
                 return 0;
             }
           case 104:
             switch (charge) {
-              case -2:
-                return 0;
-              case -1:
-                return 0;
               case 0:
-                if (degree <= 4)
+                if (currentValence <= 4)
                   return 4;
                 return 0;
-              case 1:
-                return 0;
-              case 2:
+              default:
                 return 0;
             }
           case 105:
             switch (charge) {
-              case -2:
-                return 0;
-              case -1:
-                return 0;
               case 0:
-                if (degree <= 5)
+                if (currentValence <= 5)
                   return 5;
                 return 0;
-              case 1:
-                return 0;
-              case 2:
+              default:
                 return 0;
             }
           case 106:
             switch (charge) {
-              case -2:
-                return 0;
-              case -1:
-                return 0;
               case 0:
-                if (degree <= 6)
+                if (currentValence <= 6)
                   return 6;
                 return 0;
-              case 1:
-                return 0;
-              case 2:
+              default:
                 return 0;
             }
           case 107:
             switch (charge) {
-              case -2:
-                return 0;
-              case -1:
-                return 0;
               case 0:
-                if (degree <= 7)
+                if (currentValence <= 7)
                   return 7;
                 return 0;
-              case 1:
-                return 0;
-              case 2:
+              default:
                 return 0;
             }
           case 108:
             switch (charge) {
-              case -2:
-                return 0;
-              case -1:
-                return 0;
               case 0:
-                if (degree <= 1)
+                if (currentValence <= 1)
                   return 1;
                 return 0;
-              case 1:
-                return 0;
-              case 2:
+              default:
                 return 0;
             }
           case 109:
             switch (charge) {
-              case -2:
-                return 0;
-              case -1:
-                return 0;
               case 0:
-                if (degree <= 1)
+                if (currentValence <= 1)
                   return 1;
                 return 0;
-              case 1:
-                return 0;
-              case 2:
+              default:
                 return 0;
             }
           case 110:
             switch (charge) {
-              case -2:
-                return 0;
-              case -1:
-                return 0;
               case 0:
-                if (degree <= 1)
+                if (currentValence <= 1)
                   return 1;
                 return 0;
-              case 1:
-                return 0;
-              case 2:
+              default:
                 return 0;
             }
           case 111:
             switch (charge) {
-              case -2:
-                return 0;
-              case -1:
-                return 0;
               case 0:
-                if (degree <= 1)
+                if (currentValence <= 1)
                   return 1;
                 return 0;
-              case 1:
-                return 0;
-              case 2:
+              default:
                 return 0;
             }
           case 112:
             switch (charge) {
-              case -2:
-                return 0;
-              case -1:
-                return 0;
               case 0:
-                if (degree <= 1)
+                if (currentValence <= 1)
                   return 1;
                 return 0;
-              case 1:
-                return 0;
-              case 2:
+              default:
                 return 0;
             }
           default:
             return 0;
         }
       }
+
   };
 
 }

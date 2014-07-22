@@ -832,6 +832,19 @@ namespace Helium {
   //////////////////////////////////////////////////////////////////////////////
 
   /**
+   * @brief Check if two atoms are connected.
+   *
+   * @param mol The molecule.
+   * @param atom1 The first atom.
+   * @param atom2 The second atom.
+   */
+  template<typename MoleculeType, typename AtomType>
+  bool is_connected(const MoleculeType &mol, AtomType atom1, AtomType atom2)
+  {
+    return get_bond(mol, atom1, atom2) != molecule_traits<MoleculeType>::null_bond();
+  }
+
+  /**
    * @brief Check if an atom is a hydrogen atom.
    *
    * @pre The atom must be valid (i.e. not equal to molecule_traits<MoleculeType>::null_atom()).

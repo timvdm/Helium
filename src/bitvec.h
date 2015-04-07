@@ -387,10 +387,10 @@ namespace Helium {
       orCount += __builtin_popcountll(orbv);
 #else
       for (; andbv; andbv = andbv << 1)
-        if(andbv < 0)
+        if(static_cast<int64_t>(andbv) < 0)
           ++andCount;
       for (; orbv; orbv = orbv << 1)
-        if(orbv < 0)
+        if(static_cast<int64_t>(orbv) < 0)
           ++orCount;
 #endif
     }

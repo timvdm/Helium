@@ -154,9 +154,9 @@ namespace Helium {
             return false;
           // atom symbol
           std::string symbol = buffer.substr(31, 3);
-          while (symbol.front() == ' ')
+          while (symbol[0] == ' ')
             symbol = symbol.substr(1);
-          while (symbol.back() == ' ')
+          while (symbol[symbol.size() - 1] == ' ')
             symbol.resize(symbol.size() - 1);
           int element = Element::element(symbol);
           // mass difference

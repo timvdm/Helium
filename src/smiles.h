@@ -368,13 +368,13 @@ namespace Helium {
                 break;
             }
           }
+
+          // handle pyrrole [nH]
+          if (is_aromatic(mol, atom) && is_nitrogen(mol, atom) && get_total_hydrogens(mol, atom) == 1)
+            needBrackets = true;
         }
         std::map<Index, int>::const_iterator atomClass = atomClasses.find(get_index(mol, atom));
         if (atomClass != atomClasses.end())
-          needBrackets = true;
-
-        // handle pyrrole [nH]
-        if (is_aromatic(mol, atom) && is_nitrogen(mol, atom) && get_total_hydrogens(mol, atom) == 1)
           needBrackets = true;
 
         if (needBrackets)

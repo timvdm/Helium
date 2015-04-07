@@ -320,7 +320,7 @@ namespace Helium
 
       const double bias = -0.1; //towards left-alignment, which is more natural
       int alignment = 0;
-      if ((get_valence(mol, atom) == 2) && (abs(direction.y()) > abs(direction.x()))) {
+      if ((get_valence(mol, atom) == 2) && (std::abs(direction.y()) > std::abs(direction.x()))) {
         if (direction.y() <= 0.0)
           alignment = Up;
         else
@@ -586,8 +586,8 @@ namespace Helium
         }*/
         std::stringstream ss;
         if (charge) {
-          if (abs(charge) != 1)
-            ss << abs(charge);
+          if (std::abs(charge) != 1)
+            ss << std::abs(charge);
           if (charge > 0)
             ss << '+';
           else if (charge<-1) //use underscore for single negative charge and minus if multiple

@@ -8,7 +8,7 @@ using Helium::Chemist::Molecule;
 using namespace boost::python;
 
 template<typename AtomInvariantType, typename BondInvariantType>
-PyObject* canonicalize_component(const Molecule &mol, const list &symmetry,
+object canonicalize_component(const Molecule &mol, const list &symmetry,
       const AtomInvariantType &atomInvariant, const BondInvariantType &bondInvariant)
 {
   if (len(symmetry) != mol.numAtoms())
@@ -17,12 +17,12 @@ PyObject* canonicalize_component(const Molecule &mol, const list &symmetry,
   std::pair<std::vector<Helium::Index>, std::vector<unsigned long> > result;
   result = Helium::canonicalize_component(mol, vector_from_list<unsigned long>(symmetry),
       atomInvariant, bondInvariant);
-  tuple *t = new tuple(make_tuple(result.first, result.second));
-  return t->ptr();
+
+  return boost::python::make_tuple(result.first, result.second);
 }
 
 template<typename AtomInvariantType, typename BondInvariantType>
-PyObject* canonicalize(const Molecule &mol, const list &symmetry,
+object canonicalize(const Molecule &mol, const list &symmetry,
     const AtomInvariantType &atomInvariant, const BondInvariantType &bondInvariant,
     const list &atomComponents, const list &bondComponents)
 {
@@ -37,8 +37,8 @@ PyObject* canonicalize(const Molecule &mol, const list &symmetry,
   result = Helium::canonicalize(mol, vector_from_list<unsigned long>(symmetry),
       atomInvariant, bondInvariant, vector_from_list<unsigned int>(atomComponents),
       vector_from_list<unsigned int>(bondComponents));
-  tuple *t = new tuple(make_tuple(result.first, result.second));
-  return t->ptr();
+
+  return boost::python::make_tuple(result.first, result.second);
 }
 
 void export_canonical()

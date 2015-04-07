@@ -27,7 +27,7 @@ object cycle_membership(const Molecule &mol)
 
   Helium::cycle_membership(mol, cycleAtoms, cycleBonds);
 
-  return make_tuple(cycleAtoms, cycleBonds);
+  return boost::python::make_tuple(cycleAtoms, cycleBonds);
 }
 
 Helium::RingSet<Molecule> relevant_cycles_1(const Molecule &mol, Helium::Size cyclomaticNumber,

@@ -23,18 +23,18 @@ void test_cycle_membership(const CyclePerceptionAlgorithm &algorithm,
 
   //std::cout << write_smiles(mol, WriteSmiles::Order) << std::endl;
 
-  FOREACH_ATOM (atom, mol) {
-    if (rings.isAtomInRing(*atom))
-      COMPARE(true, cyclic_atoms[get_index(mol, *atom)]);
+  for (auto &atom : get_atoms(mol)) {
+    if (rings.isAtomInRing(atom))
+      COMPARE(true, cyclic_atoms[get_index(mol, atom)]);
     else
-      COMPARE(false, cyclic_atoms[get_index(mol, *atom)]);
+      COMPARE(false, cyclic_atoms[get_index(mol, atom)]);
   }
 
-  FOREACH_BOND (bond, mol) {
-    if (rings.isBondInRing(*bond))
-      COMPARE(true, cyclic_bonds[get_index(mol, *bond)]);
+  for (auto &bond : get_bonds(mol)) {
+    if (rings.isBondInRing(bond))
+      COMPARE(true, cyclic_bonds[get_index(mol, bond)]);
     else
-      COMPARE(false, cyclic_bonds[get_index(mol, *bond)]);
+      COMPARE(false, cyclic_bonds[get_index(mol, bond)]);
   }
 }
 

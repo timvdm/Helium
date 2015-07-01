@@ -359,11 +359,11 @@ namespace Helium {
         const std::vector<bool> &cyclicAtoms, const std::vector<bool> &cyclicBonds)
     {
       // check if all cyclic atoms/bonds are covered
-      FOREACH_ATOM (atom, mol)
-        if (cyclicAtoms[get_index(mol, *atom)] && !rings.isAtomInRing(*atom))
+      for (auto &atom : get_atoms(mol))
+        if (cyclicAtoms[get_index(mol, atom)] && !rings.isAtomInRing(atom))
           return false;
-      FOREACH_BOND (bond, mol)
-        if (cyclicBonds[get_index(mol, *bond)] && !rings.isBondInRing(*bond))
+      for (auto &bond : get_bonds(mol))
+        if (cyclicBonds[get_index(mol, bond)] && !rings.isBondInRing(bond))
           return false;
       return true;
     }
@@ -422,10 +422,10 @@ namespace Helium {
       // find all cycles of size
       MappingList mappings;
       impl::CycleBondMatcher<MoleculeType, HeMol> bondMatcher;
-      FOREACH_ATOM (atom, mol) {
-        impl::CycleAtomMatcher<MoleculeType, HeMol> atomMatcher(get_index(mol, *atom));
+      for (auto &atom : get_atoms(mol)) {
+        impl::CycleAtomMatcher<MoleculeType, HeMol> atomMatcher(get_index(mol, atom));
 
-        if (isomorphism_search(mol, *atom, cycleMol, mappings, atomMatcher, bondMatcher)) {
+        if (isomorphism_search(mol, atom, cycleMol, mappings, atomMatcher, bondMatcher)) {
           for (std::size_t i = 0; i < mappings.maps.size(); ++i) {
 
             impl::IsomorphismCycle cycle(mol, mappings.maps[i]);
@@ -668,21 +668,21 @@ namespace Helium {
     std::vector<impl::CycleFamily> families;
 
     // for all r in V do
-    FOREACH_ATOM (r, mol) {
+    for (auto &r : get_atoms(mol)) {
       // compute Vr and for all t in Vr find a shortest path P(r, t) from r to t
       /*
-      std::vector<bool> atomMask(get_index(mol, *r) + 1, true);
+      std::vector<bool> atomMask(get_index(mol, r) + 1, true);
       atomMask.resize(num_atoms(mol));
       */
       std::vector<bool> atomMask(num_atoms(mol));
-      for (std::size_t i = 0; i < get_index(mol, *r) + 1; ++i)
+      for (std::size_t i = 0; i < get_index(mol, r) + 1; ++i)
         atomMask[i] = cyclicAtoms[i];
-      Dijkstra<MoleculeType> dijkstra(mol, *r, atomMask);
+      Dijkstra<MoleculeType> dijkstra(mol, r, atomMask);
 
       //std::cout << atomMask << std::endl;
 
       std::vector<Index> Vr;
-      for (std::size_t i = 0; i <= get_index(mol, *r); ++i)
+      for (std::size_t i = 0; i <= get_index(mol, r); ++i)
         if (dijkstra.distance(get_atom(mol, i)) < dijkstra.infinity())
           Vr.push_back(i);
 
@@ -699,32 +699,32 @@ namespace Helium {
         std::vector<atom_type> S;
 
         // for all z in Vr such that z is adjacent to y
-        FOREACH_NBR (z, y, mol) {
-          if (!std::binary_search(Vr.begin(), Vr.end(), get_index(mol, *z)))
+        for (auto &z : get_nbrs(mol, y)) {
+          if (!std::binary_search(Vr.begin(), Vr.end(), get_index(mol, z)))
             continue;
 
           // if d(r, z) + w((z, y)) = d(r, y) then
-          if (dijkstra.distance(*z) + 1 == dijkstra.distance(y)) {
+          if (dijkstra.distance(z) + 1 == dijkstra.distance(y)) {
             // S <- S U {z}
-            S.push_back(*z);
-            //std::cout << "edge: (" << get_index(mol, y) << ", " << get_index(mol, *z) << ")" << std::endl;
-            Dr.set(get_index(mol, y), get_index(mol, *z), true);
+            S.push_back(z);
+            //std::cout << "edge: (" << get_index(mol, y) << ", " << get_index(mol, z) << ")" << std::endl;
+            Dr.set(get_index(mol, y), get_index(mol, z), true);
           // else if d(r, z) != d(r, y) + w((z, y))
           //     and pi(z) < pi(y)
           //     and P(r, y) ^ P(r, z) = {r}
           // then
-          } else if (dijkstra.distance(*z) != dijkstra.distance(y)  + 1 &&
-                     get_index(mol, *z) < get_index(mol, y) &&
-                     impl::paths_intersection_is_source(dijkstra, mol, y, *z)) {
+          } else if (dijkstra.distance(z) != dijkstra.distance(y)  + 1 &&
+                     get_index(mol, z) < get_index(mol, y) &&
+                     impl::paths_intersection_is_source(dijkstra, mol, y, z)) {
             // add to CI' the odd cycle C = P(r, y) + P(r, z) + (z, y)
-            //std::cout << "odd cycle family: " << get_index(mol, *r) << ", "
-            //          << get_index(mol, y) << ", " << get_index(mol, *z) << std::endl;
+            //std::cout << "odd cycle family: " << get_index(mol, r) << ", "
+            //          << get_index(mol, y) << ", " << get_index(mol, z) << std::endl;
             //std::cout << "    |P(r, y)| = " << dijkstra.distance(y) << std::endl;
-            //std::cout << "    |P(r, z)| = " << dijkstra.distance(*z) << std::endl;
+            //std::cout << "    |P(r, z)| = " << dijkstra.distance(z) << std::endl;
 
             std::vector<Index> prototype;
             std::vector<atom_type> Py = dijkstra.path(y);
-            std::vector<atom_type> Pz = dijkstra.path(*z);
+            std::vector<atom_type> Pz = dijkstra.path(z);
             for (std::size_t j = 0; j < Py.size(); ++j)
               prototype.push_back(get_index(mol, Py[j]));
             for (std::size_t j = Pz.size() - 1; j > 0; --j)
@@ -732,8 +732,8 @@ namespace Helium {
 
             assert(prototype.size() == Py.size() + Pz.size() - 1);
 
-            families.push_back(impl::CycleFamily(get_index(mol, *r), get_index(mol, y),
-                get_index(mol, *z), prototype));
+            families.push_back(impl::CycleFamily(get_index(mol, r), get_index(mol, y),
+                get_index(mol, z), prototype));
           }
         }
 
@@ -746,7 +746,7 @@ namespace Helium {
               continue;
 
             // add to CI' the even cycle C = P(r, p) + P(r, q) + (p, y, q)
-            //std::cout << "even cycle family: " << get_index(mol, *r) << ", "
+            //std::cout << "even cycle family: " << get_index(mol, r) << ", "
             //          << get_index(mol, p) << ", " << get_index(mol, y) << ", "
             //          << get_index(mol, q) << std::endl;
 
@@ -761,7 +761,7 @@ namespace Helium {
 
             assert(prototype.size() == Pp.size() + Pq.size());
 
-            families.push_back(impl::CycleFamily(get_index(mol, *r), get_index(mol, p),
+            families.push_back(impl::CycleFamily(get_index(mol, r), get_index(mol, p),
                 get_index(mol, q), get_index(mol, y), prototype));
           }
       }

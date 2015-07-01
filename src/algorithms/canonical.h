@@ -335,8 +335,8 @@ namespace Helium {
             }
 
           // initiate the dfs search
-          FOREACH_ATOM (atom, m_mol) {
-            if (m_symmetry[get_index(m_mol, *atom)] != symClass)
+          for (auto &atom : get_atoms(m_mol)) {
+            if (m_symmetry[get_index(m_mol, atom)] != symClass)
               continue;
 
             assert(std::find(m_visited.begin(), m_visited.end(), true) == m_visited.end());
@@ -345,9 +345,9 @@ namespace Helium {
             assert(m_from.empty());
             assert(m_code.empty());
 
-            m_atoms.push_back(get_index(m_mol, *atom));
-            m_code.push_back(m_atomInvariant(m_mol, *atom));
-            next(*atom);
+            m_atoms.push_back(get_index(m_mol, atom));
+            m_code.push_back(m_atomInvariant(m_mol, atom));
+            next(atom);
             m_atoms.pop_back();
             m_code.pop_back();
           }
@@ -418,16 +418,16 @@ namespace Helium {
             // still need to sort [1 3] and [1 4]
             std::vector<Closure> closures; // [(bond index, other atom index)]
 
-            FOREACH_INCIDENT (bond, atom, m_mol) {
+            for (auto &bond : get_bonds(m_mol, atom)) {
               // a closure bond is a bond not found while generating the FROM spanning tree.
-              if (!m_visited[get_index(m_mol, *bond)]) {
-                atom_type other = get_other(m_mol, *bond, atom);
+              if (!m_visited[get_index(m_mol, bond)]) {
+                atom_type other = get_other(m_mol, bond, atom);
                 Index source = std::find(m_atoms.begin(), m_atoms.end(), get_index(m_mol, atom)) - m_atoms.begin();
                 Index target = std::find(m_atoms.begin(), m_atoms.end(), get_index(m_mol, other)) - m_atoms.begin();
                 if (target < source)
                   std::swap(source, target);
-                closures.push_back(Closure(get_index(m_mol, *bond), source, target));
-                m_visited[get_index(m_mol, *bond)] = true;
+                closures.push_back(Closure(get_index(m_mol, bond), source, target));
+                m_visited[get_index(m_mol, bond)] = true;
               }
             }
 
@@ -524,21 +524,21 @@ namespace Helium {
             std::vector<std::pair<bond_type, atom_type> > bonds;
 
             // find all unvisited bonds around the current atom
-            FOREACH_INCIDENT (bond, atom, m_mol) {
-              atom_type other = get_other(m_mol, *bond, atom);
-              if (m_visited[get_index(m_mol, *bond)])
+            for (auto &bond : get_bonds(m_mol, atom)) {
+              atom_type other = get_other(m_mol, bond, atom);
+              if (m_visited[get_index(m_mol, bond)])
                 continue;
               if (std::find(m_atoms.begin(), m_atoms.end(), get_index(m_mol, other)) != m_atoms.end())
                 continue;
-              bonds.push_back(std::make_pair(*bond, other));
+              bonds.push_back(std::make_pair(bond, other));
             }
 
             if (bonds.empty()) {
               for (std::size_t i = 0; i < m_atoms.size(); ++i) {
                 atom_type nextAtom = get_atom(m_mol, m_atoms[i]);
-                FOREACH_INCIDENT (bond, nextAtom, m_mol) {
-                  atom_type other = get_other(m_mol, *bond, nextAtom);
-                  if (m_visited[get_index(m_mol, *bond)])
+                for (auto &bond : get_bonds(m_mol, nextAtom)) {
+                  atom_type other = get_other(m_mol, bond, nextAtom);
+                  if (m_visited[get_index(m_mol, bond)])
                     continue;
                   if (std::find(m_atoms.begin(), m_atoms.end(), get_index(m_mol, other)) != m_atoms.end())
                     continue;
@@ -677,13 +677,13 @@ namespace Helium {
 
       for (unsigned int color = 0; color < numColors; ++color) {
         std::vector<std::map<unsigned int, std::vector<Index> > > terminals;
-        FOREACH_ATOM (atom, mol) {
-          if (symmetry[get_index(mol, *atom)] != color)
+        for (auto &atom : get_atoms(mol)) {
+          if (symmetry[get_index(mol, atom)] != color)
             continue;
           terminals.resize(terminals.size() + 1);
-          FOREACH_NBR (nbr, *atom, mol) {
-            if (get_degree(mol, *nbr) == 1)
-              terminals.back()[symmetry[get_index(mol, *nbr)]].push_back(get_index(mol, *nbr));
+          for (auto &nbr : get_nbrs(mol, atom)) {
+            if (get_degree(mol, nbr) == 1)
+              terminals.back()[symmetry[get_index(mol, nbr)]].push_back(get_index(mol, nbr));
           }
         }
 

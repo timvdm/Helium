@@ -110,8 +110,8 @@ namespace Helium {
     template<typename MoleculeType>
     bool may_have_tetrahedral_stereo(const MoleculeType &mol)
     {
-      FOREACH_ATOM (atom, mol)
-        if (get_heavy_degree(mol, *atom) >= 3)
+      for (auto &atom : get_atoms(mol))
+        if (get_heavy_degree(mol, atom) >= 3)
           return true;
       return false;
     }
@@ -119,8 +119,8 @@ namespace Helium {
     template<typename MoleculeType>
     bool may_have_cistrans_stereo(const MoleculeType &mol)
     {
-      FOREACH_BOND (bond, mol)
-        if (get_order(mol, *bond) == 2)
+      for (auto &bond : get_bonds(mol))
+        if (get_order(mol, bond) == 2)
           return true;
       return false;
     }
@@ -291,8 +291,8 @@ namespace Helium {
     int classify_tetrahedral_nbr_symmetry_classes(const MoleculeType &mol, AtomType atom, const std::vector<unsigned long> &ec)
     {
       std::vector<unsigned long> nbrClasses, nbrClassesCopy, uniqueClasses;
-      FOREACH_NBR (nbr, atom, mol)
-        nbrClasses.push_back(ec.at(get_index(mol, *nbr)));
+      for (auto &nbr : get_nbrs(mol, atom))
+        nbrClasses.push_back(ec.at(get_index(mol, nbr)));
       // add an implicit ref if there are only 3 explicit
       if (nbrClasses.size() == 3)
         nbrClasses.push_back(Stereo::implRef());
@@ -327,9 +327,9 @@ namespace Helium {
     int classify_cis_trans_nbr_symmetry_classes(const MoleculeType &mol, const std::vector<unsigned long> &ec, BondType bond, AtomType atom)
     {
       std::vector<unsigned long> nbrClasses, uniqueClasses;
-      FOREACH_NBR (nbr, atom, mol) {
-        if (get_index(mol, *nbr) != get_index(mol, get_other(mol, bond, atom)))
-          nbrClasses.push_back(ec.at(get_index(mol, *nbr)));
+      for (auto &nbr : get_nbrs(mol, atom)) {
+        if (get_index(mol, nbr) != get_index(mol, get_other(mol, bond, atom)))
+          nbrClasses.push_back(ec.at(get_index(mol, nbr)));
       }
 
       if (nbrClasses.size() == 1)
@@ -353,8 +353,8 @@ namespace Helium {
       // find the duplicated symmetry class
       unsigned long duplicatedSymClass = -1; // OBGraphSym::NoSymmetryClass; // FIXME
       std::vector<unsigned long> nbrSymClasses;
-      FOREACH_NBR (nbr, atom, mol) {
-        nbrSymClasses.push_back(ec.at(get_index(mol, *nbr)));
+      for (auto &nbr : get_nbrs(mol, atom)) {
+        nbrSymClasses.push_back(ec.at(get_index(mol, nbr)));
       }
 
       for (std::size_t i = 0; i < nbrSymClasses.size(); ++i) {
@@ -378,8 +378,8 @@ namespace Helium {
         unsigned long &duplicated1, unsigned long &duplicated2)
     {
       std::vector<unsigned long> nbrSymClasses;
-      FOREACH_NBR (nbr, atom, mol)
-        nbrSymClasses.push_back(ec.at(get_index(mol, *nbr)));
+      for (auto &nbr : get_nbrs(mol, atom))
+        nbrSymClasses.push_back(ec.at(get_index(mol, nbr)));
       std::sort(nbrSymClasses.begin(), nbrSymClasses.end());
       duplicated1 = nbrSymClasses[0];
       duplicated2 = nbrSymClasses[2];
@@ -396,9 +396,9 @@ namespace Helium {
     AtomType find_atom_with_symmetry_class(const MoleculeType &mol, AtomType atom, unsigned long symClass, const std::vector<unsigned long> &ec)
     {
       AtomType ligandAtom = molecule_traits<MoleculeType>::null_atom();
-      FOREACH_NBR (nbr, atom, mol)
-        if (ec.at(get_index(mol, *nbr)) == symClass)
-          ligandAtom = *nbr;
+      for (auto &nbr : get_nbrs(mol, atom))
+        if (ec.at(get_index(mol, nbr)) == symClass)
+          ligandAtom = nbr;
       return ligandAtom;
     }
 
@@ -408,17 +408,17 @@ namespace Helium {
     template<typename MoleculeType, typename AtomType>
     void add_nbrs(const MoleculeType &mol, std::vector<bool> &fragment, AtomType atom, AtomType skip)
     {
-      FOREACH_NBR (nbr, atom, mol) {
+      for (auto &nbr : get_nbrs(mol, atom)) {
         // don't pass through skip
-        if (get_index(mol, *nbr) == get_index(mol, skip))
+        if (get_index(mol, nbr) == get_index(mol, skip))
           continue;
         // skip visited atoms
-        if (fragment[get_index(mol, *nbr)])
+        if (fragment[get_index(mol, nbr)])
           continue;
         // add the neighbor atom to the fragment
-        fragment[get_index(mol, *nbr)] = true;
+        fragment[get_index(mol, nbr)] = true;
         // recurse...
-        add_nbrs(mol, fragment, *nbr, skip);
+        add_nbrs(mol, fragment, nbr, skip);
       }
     }
 
@@ -813,8 +813,8 @@ namespace Helium {
      * - have four different symmetry classes for the ligands to the central atom
      */
     bool ischiral;
-    FOREACH_ATOM (atom, mol) {
-      if (!impl::is_potential_tetrahedral(mol, rings, *atom))
+    for (auto &atom : get_atoms(mol)) {
+      if (!impl::is_potential_tetrahedral(mol, rings, atom))
         continue;
 
       // list containing neighbor symmetry classes
@@ -822,27 +822,27 @@ namespace Helium {
       ischiral = true;
 
       // check neighbors to see if this atom is stereogenic
-      FOREACH_NBR (nbr, *atom, mol) {
+      for (auto &nbr : get_nbrs(mol, atom)) {
         // check if we already have a neighbor with this symmetry class
         std::vector<unsigned long>::iterator k;
         for (k = tlist.begin(); k != tlist.end(); ++k)
-          if (ec[get_index(mol, *nbr)] == *k) {
+          if (ec[get_index(mol, nbr)] == *k) {
             ischiral = false;
             // if so, might still be a para-stereocenter
-            paraAtoms.push_back(get_index(mol, *atom));
+            paraAtoms.push_back(get_index(mol, atom));
           }
 
         if (ischiral)
           // keep track of all neighbors, so we can detect duplicates
-          tlist.push_back(ec[get_index(mol, *nbr)]);
+          tlist.push_back(ec[get_index(mol, nbr)]);
         else
           break;
       }
 
       if (ischiral) {
         // true-stereocenter found
-        stereoAtoms.push_back(get_index(mol, *atom));
-        units.push_back(StereoUnit(Stereo::Tetrahedral, get_index(mol, *atom)));
+        stereoAtoms.push_back(get_index(mol, atom));
+        units.push_back(StereoUnit(Stereo::Tetrahedral, get_index(mol, atom)));
       }
     }
 
@@ -851,13 +851,13 @@ namespace Helium {
      * - each terminal has two different symmetry classes for it's ligands
      */
     bool isCisTransBond;
-    FOREACH_BOND (bond, mol) {
-      if (rings.isBondInRing(*bond) && aromaticBonds[get_index(mol, *bond)])
+    for (auto &bond : get_bonds(mol)) {
+      if (rings.isBondInRing(bond) && aromaticBonds[get_index(mol, bond)])
         continue; // Exclude C=C in phenyl rings for example
 
-      if (get_order(mol, *bond) == 2) {
-        atom_type begin = get_source(mol, *bond);
-        atom_type end = get_target(mol, *bond);
+      if (get_order(mol, bond) == 2) {
+        atom_type begin = get_source(mol, bond);
+        atom_type end = get_target(mol, bond);
         if (begin == molecule_traits<MoleculeType>::null_atom() || end == molecule_traits<MoleculeType>::null_atom())
           continue;
 
@@ -881,23 +881,23 @@ namespace Helium {
         } else if (get_degree(mol, begin) == 3) {
           std::vector<Index> tlist;
 
-          FOREACH_NBR (nbr, begin, mol) {
+          for (auto &nbr : get_nbrs(mol, begin)) {
             // skip end atom
-            if (get_index(mol, *nbr) == get_index(mol, end))
+            if (get_index(mol, nbr) == get_index(mol, end))
               continue;
             // do we already have an atom with this symmetry class?
             if (tlist.size()) {
               // compare second with first
-              if (ec[get_index(mol, *nbr)] == tlist.at(0)) {
+              if (ec[get_index(mol, nbr)] == tlist.at(0)) {
                 isCisTransBond = false;
                 // if same, might still be a para-stereocenter
-                paraBonds.push_back(get_index(mol, *bond));
+                paraBonds.push_back(get_index(mol, bond));
               }
               break;
             }
 
             // save first symmetry class
-            tlist.push_back(ec[get_index(mol, *nbr)]);
+            tlist.push_back(ec[get_index(mol, nbr)]);
           }
         } else {
           // Valence is not 2 or 3, for example SR3=NR
@@ -914,23 +914,23 @@ namespace Helium {
         } else if (get_degree(mol, end) == 3) {
           std::vector<Index> tlist;
 
-          FOREACH_NBR (nbr, end, mol) {
-            // skip end atom
-            if (get_index(mol, *nbr) == get_index(mol, begin))
+          for (auto &nbr : get_nbrs(mol, end)) {
+            // skip begin atom
+            if (get_index(mol, nbr) == get_index(mol, begin))
               continue;
             // do we already have an atom with this symmetry class?
             if (tlist.size()) {
               // compare second with first
-              if (ec[get_index(mol, *nbr)] == tlist.at(0)) {
+              if (ec[get_index(mol, nbr)] == tlist.at(0)) {
                 // if same, might still be a para-stereocenter
-                paraBonds.push_back(get_index(mol, *bond));
+                paraBonds.push_back(get_index(mol, bond));
                 isCisTransBond = false;
               }
               break;
             }
 
             // save first symmetry class
-            tlist.push_back(ec[get_index(mol, *nbr)]);
+            tlist.push_back(ec[get_index(mol, nbr)]);
           }
         } else {
           // Valence is not 2 or 3, for example SR3=NR
@@ -939,7 +939,7 @@ namespace Helium {
 
         if (isCisTransBond)
           // true-stereocenter found
-          units.push_back(StereoUnit(Stereo::CisTrans, get_index(mol, *bond)));
+          units.push_back(StereoUnit(Stereo::CisTrans, get_index(mol, bond)));
       }
     }
 
@@ -986,11 +986,11 @@ namespace Helium {
           atom_type atom = get_atom(mol, paraAtoms[j]);
           ring.paraAtoms.push_back(impl::ParaAtom<MoleculeType>(paraAtoms[j]));
 
-          FOREACH_NBR (nbr, atom, mol) {
-            if (rings.ring(i).containsAtom(*nbr))
-              ring.paraAtoms.back().insideNbrs.push_back(*nbr);
+          for (auto &nbr : get_nbrs(mol, atom)) {
+            if (rings.ring(i).containsAtom(nbr))
+              ring.paraAtoms.back().insideNbrs.push_back(nbr);
             else
-              ring.paraAtoms.back().outsideNbrs.push_back(*nbr);
+              ring.paraAtoms.back().outsideNbrs.push_back(nbr);
           }
 
           //cout << "  ParaAtom(idx = " << ring.paraAtoms.back().inIdx << ", outside = " << ring.paraAtoms.back().outsideNbrs.size() << ")" << endl;
@@ -1007,15 +1007,15 @@ namespace Helium {
         if (rings.ring(i).containsAtom(get_atom(mol, beginIdx))) {
           ring.paraBonds.push_back(impl::ParaBond<MoleculeType>(get_index(mol, bond), beginIdx, endIdx));
 
-          FOREACH_NBR (nbr, get_source(mol, bond), mol) {
-            if (get_index(mol, *nbr) == endIdx)
+          for (auto &nbr : get_nbrs(mol, get_source(mol, bond))) {
+            if (get_index(mol, nbr) == endIdx)
               continue;
-            ring.paraBonds.back().insideNbrs.push_back(*nbr);
+            ring.paraBonds.back().insideNbrs.push_back(nbr);
           }
-          FOREACH_NBR (nbr, get_target(mol, bond), mol) {
-            if (get_index(mol, *nbr) == beginIdx)
+          for (auto &nbr : get_nbrs(mol, get_target(mol, bond))) {
+            if (get_index(mol, nbr) == beginIdx)
               continue;
-            ring.paraBonds.back().outsideNbrs.push_back(*nbr);
+            ring.paraBonds.back().outsideNbrs.push_back(nbr);
           }
 
           //cout << "  ParaBond(inIdx = " << beginIdx << ", outIdx = " << endIdx << ", outside = " << ring.paraBonds.back().outsideNbrs.size() << ")" << endl;
@@ -1026,15 +1026,15 @@ namespace Helium {
         if (rings.ring(i).containsAtom(get_atom(mol, endIdx))) {
           ring.paraBonds.push_back(impl::ParaBond<MoleculeType>(get_index(mol, bond), endIdx, beginIdx));
 
-          FOREACH_NBR (nbr, get_target(mol, bond), mol) {
-            if (get_index(mol, *nbr) == beginIdx)
+          for (auto &nbr : get_nbrs(mol, get_target(mol, bond))) {
+            if (get_index(mol, nbr) == beginIdx)
               continue;
-            ring.paraBonds.back().insideNbrs.push_back(*nbr);
+            ring.paraBonds.back().insideNbrs.push_back(nbr);
           }
-          FOREACH_NBR (nbr, get_source(mol, bond), mol) {
-            if (get_index(mol, *nbr) == endIdx)
+          for (auto &nbr : get_nbrs(mol, get_source(mol, bond))) {
+            if (get_index(mol, nbr) == endIdx)
               continue;
-            ring.paraBonds.back().outsideNbrs.push_back(*nbr);
+            ring.paraBonds.back().outsideNbrs.push_back(nbr);
           }
 
           //cout << "  ParaBond(inIdx = " << endIdx << ", outIdx = " << beginIdx << ", outside = " << ring.paraBonds.back().outsideNbrs.size() << ")" << endl;
@@ -1162,9 +1162,9 @@ namespace Helium {
           {
             // find the ligand
             atom_type ligandAtom = molecule_traits<MoleculeType>::null_atom();
-            FOREACH_NBR (nbr, begin, mol) {
-              if ((get_index(mol, *nbr) != get_index(mol, begin)) && (get_index(mol, *nbr) != get_index(mol, end))) {
-                ligandAtom = *nbr;
+            for (auto &nbr : get_nbrs(mol, begin)) {
+              if ((get_index(mol, nbr) != get_index(mol, begin)) && (get_index(mol, nbr) != get_index(mol, end))) {
+                ligandAtom = nbr;
                 break;
               }
             }
@@ -1199,9 +1199,9 @@ namespace Helium {
           {
             // find the ligand
             atom_type ligandAtom = molecule_traits<MoleculeType>::null_atom();
-            FOREACH_NBR (nbr, end, mol) {
-              if ((get_index(mol, *nbr) != get_index(mol, begin)) && (get_index(mol, *nbr) != get_index(mol, end))) {
-                ligandAtom = *nbr;
+            for (auto &nbr : get_nbrs(mol, end)) {
+              if ((get_index(mol, nbr) != get_index(mol, begin)) && (get_index(mol, nbr) != get_index(mol, end))) {
+                ligandAtom = nbr;
                 break;
               }
             }

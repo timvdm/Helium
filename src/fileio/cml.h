@@ -12,18 +12,18 @@ namespace Helium {
     os << "<molecule xmlns=\"http://www.xml-cml.org/schema\">" << std::endl;
 
     os << " <atomArray>" << std::endl;
-    FOREACH_ATOM (atom, mol, MoleculeType) {
+    for (auto &atom : get_atoms(mol)) {
       os << "  <atom ";
-      os << "id=\"a" << get_index(mol, *atom) + 1 << "\" ";
-      os << "elementType=\"" << Element::symbol(get_element(mol, *atom)) << "\" ";
-      os << "x2=\"" << coords[get_index(mol, *atom)].x() << "\" ";
-      os << "y2=\"" << coords[get_index(mol, *atom)].y() << "\"";
+      os << "id=\"a" << get_index(mol, atom) + 1 << "\" ";
+      os << "elementType=\"" << Element::symbol(get_element(mol, atom)) << "\" ";
+      os << "x2=\"" << coords[get_index(mol, atom)].x() << "\" ";
+      os << "y2=\"" << coords[get_index(mol, atom)].y() << "\"";
       os << "/>" << std::endl;
     }
     os << " </atomArray>" << std::endl;
 
     os << " <bondArray>" << std::endl;
-    FOREACH_BOND (bond, mol, MoleculeType) {
+    for (auto &bond : get_bonds(mol)) {
       os << "  <bond ";
       os << "atomRefs2=\"a" << get_index(mol, get_source(mol, *bond)) + 1 << " a" << get_index(mol, get_target(mol, *bond)) + 1 << "\" ";
       os << "order=\"" << get_order(mol, *bond) << "\"";

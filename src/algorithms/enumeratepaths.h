@@ -69,9 +69,9 @@ namespace Helium {
         std::vector<std::vector<unsigned int> > paths()
         {
           // enumerate the paths starting from each atom
-          FOREACH_ATOM (atom, m_mol) {
+          for (auto &atom : get_atoms(m_mol)) {
             std::vector<unsigned int> path;
-            enumerate(*atom, path);
+            enumerate(atom, path);
           }
 
           // convert the internal stored paths to the right datastructure
@@ -101,12 +101,12 @@ namespace Helium {
           // if the maximum path size is reached the path isn't extended
           if (path.size() < m_size) {
             // create new paths by adding neighbors of atom
-            FOREACH_NBR (nbr, atom, m_mol) {
-              if (std::find(path.begin(), path.end(), get_index(m_mol, *nbr)) != path.end())
+            for (auto &nbr : get_nbrs(m_mol, atom)) {
+              if (std::find(path.begin(), path.end(), get_index(m_mol, nbr)) != path.end())
                 continue;
 
               // recursive call
-              enumerate(*nbr, path);
+              enumerate(nbr, path);
             }
           }
 

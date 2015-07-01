@@ -386,12 +386,16 @@ namespace Helium {
       andCount += __builtin_popcountll(andbv);
       orCount += __builtin_popcountll(orbv);
 #else
+      andCount += bitvec_count(andbv);
+      orCount += bitvec_count(orbv);
+      /*
       for (; andbv; andbv = andbv << 1)
-        if(static_cast<int64_t>(andbv) < 0)
+        if (static_cast<int64_t>(andbv) < 0)
           ++andCount;
       for (; orbv; orbv = orbv << 1)
-        if(static_cast<int64_t>(orbv) < 0)
+        if (static_cast<int64_t>(orbv) < 0)
           ++orCount;
+      */
 #endif
     }
 

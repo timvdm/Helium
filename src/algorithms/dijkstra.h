@@ -95,8 +95,8 @@ namespace Helium {
       {
         // add all atoms in mol to Q
         std::vector<AtomType> Q;
-        FOREACH_ATOM (atom, mol)
-          Q.push_back(*atom);
+        for (auto &atom : get_atoms(mol))
+          Q.push_back(atom);
 
         std::vector<bool> atomMask(num_atoms(mol), true);
         dijkstra(mol, source, Q, atomMask);
@@ -117,9 +117,9 @@ namespace Helium {
       {
         // add all atoms in mol to Q
         std::vector<AtomType> Q;
-        FOREACH_ATOM (atom, mol)
-          if (atomMask[get_index(mol, *atom)])
-            Q.push_back(*atom);
+        for (auto &atom : get_atoms(mol))
+          if (atomMask[get_index(mol, atom)])
+            Q.push_back(atom);
 
         dijkstra(mol, source, Q, atomMask);
       }
@@ -229,15 +229,15 @@ namespace Helium {
             // all remaining atoms are inaccessible from source
             break;
 
-          FOREACH_NBR (v, u, mol) {
-            if (!atomMask[get_index(mol, *v)])
+          for (auto &v : get_nbrs(mol, u)) {
+            if (!atomMask[get_index(mol, v)])
               continue;
 
             Size alt = m_dist[get_index(mol, u)] + 1;
 
-            if (alt < m_dist[get_index(mol, *v)]) {
-              m_dist[get_index(mol, *v)] = alt;
-              m_prev[get_index(mol, *v)] = u;
+            if (alt < m_dist[get_index(mol, v)]) {
+              m_dist[get_index(mol, v)] = alt;
+              m_prev[get_index(mol, v)] = u;
               // [heap implementation only]
               std::make_heap(Q.begin(), Q.end(), HeapCompare(mol, m_dist));
             }

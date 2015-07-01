@@ -228,8 +228,8 @@ namespace Helium {
 
         // create list of neighbors
         std::set<Index> nbrs;
-        FOREACH_NBR (nbr, atom, molecule())
-          nbrs.insert(get_index(molecule(), *nbr));
+        for (auto &nbr : get_nbrs(molecule(), u))
+          nbrs.insert(get_index(molecule(), nbr));
 
         // keep track of visited neighbors
         std::set<Index> visitedNbrs;

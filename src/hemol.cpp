@@ -35,12 +35,12 @@ namespace Helium {
     os << "Molecule:" << std::endl;
 
     os << "    Atoms:\tindex\telement" << std::endl;
-    FOREACH_ATOM (atom, mol)
-      os << "          \t" << (*atom).index() << "\t" << (*atom).element() << std::endl;
+    for (auto &atom : get_atoms(mol))
+      os << "          \t" << atom.index() << "\t" << atom.element() << std::endl;
 
     os << "    Bonds:\tsource\ttarget\torder" << std::endl;
-    FOREACH_BOND (bond, mol)
-      os << "          \t" << (*bond).source().index() << "\t" << (*bond).target().index() << "\t" << (*bond).order() << std::endl;
+    for (auto &bond : get_bonds(mol))
+      os << "          \t" << bond.source().index() << "\t" << bond.target().index() << "\t" << bond.order() << std::endl;
 
     return os;
   }

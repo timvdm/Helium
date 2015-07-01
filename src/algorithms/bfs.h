@@ -186,27 +186,27 @@ namespace Helium {
         }
 
         // add unvisited neighbors to queue
-        FOREACH_INCIDENT (bond, next.atom, mol) {
+        for (auto &bond : get_bonds(mol, next.atom)) {
           if (visitor.stop())
             return;
 
-          if (visited[num_atoms(mol) + get_index(mol, *bond)])
+          if (visited[num_atoms(mol) + get_index(mol, bond)])
             continue;
 
-          atom_type nbr = get_other(mol, *bond, next.atom);
+          atom_type nbr = get_other(mol, bond, next.atom);
 
           // is the neighbor atom already visited?
           if (visited[get_index(mol, nbr)]) {
             // if the bond is not visited yet, it is a back bond
-            if (!visited[num_atoms(mol) + get_index(mol, *bond)])
-              visitor.back_bond(mol, *bond);
+            if (!visited[num_atoms(mol) + get_index(mol, bond)])
+              visitor.back_bond(mol, bond);
             // mark the back bond as visited
-            visited[num_atoms(mol) + get_index(mol, *bond)] = true;
+            visited[num_atoms(mol) + get_index(mol, bond)] = true;
             continue;
           }
 
           // push neighbor to stack
-          queue.push(QueueItem(*bond, get_other(mol, *bond, next.atom), next.depth + 1));
+          queue.push(QueueItem(bond, get_other(mol, bond, next.atom), next.depth + 1));
         }
       }
     }
@@ -243,10 +243,10 @@ namespace Helium {
     std::queue<QueueItem> queue;
 
     int component = 0;
-    FOREACH_ATOM (atom, mol) {
-      if (!visited[get_index(mol, *atom)]) {
+    for (auto &atom : get_atoms(mol)) {
+      if (!visited[get_index(mol, atom)]) {
         // push initial component atom to stack
-        queue.push(QueueItem(molecule_traits<MoleculeType>::null_bond(), *atom, 0));
+        queue.push(QueueItem(molecule_traits<MoleculeType>::null_bond(), atom, 0));
 
         // start new compoenent
         visitor.component(component++);
@@ -297,8 +297,8 @@ namespace Helium {
         visited[i] = true;
         // mark bonds around atom as visited
         atom_type atom = get_atom(mol, i);
-        FOREACH_INCIDENT (bond, atom, mol)
-          visited[num_atoms(mol) + get_index(mol, *bond)] = true;
+        for (auto &bond : get_bonds(mol, atom))
+          visited[num_atoms(mol) + get_index(mol, bond)] = true;
       }
 
     visitor.initialize(mol);
@@ -306,10 +306,10 @@ namespace Helium {
     std::queue<QueueItem> queue;
 
     int component = 0;
-    FOREACH_ATOM (atom, mol) {
-      if (!visited[get_index(mol, *atom)]) {
+    for (auto &atom : get_atoms(mol)) {
+      if (!visited[get_index(mol, atom)]) {
         // push initial component atom to stack
-        queue.push(QueueItem(molecule_traits<MoleculeType>::null_bond(), *atom, 0));
+        queue.push(QueueItem(molecule_traits<MoleculeType>::null_bond(), atom, 0));
 
         // start new compoenent
         visitor.component(component++);
@@ -366,10 +366,10 @@ namespace Helium {
     std::queue<QueueItem> queue;
 
     int component = 0;
-    FOREACH_ATOM (atom, mol) {
-      if (!visited[get_index(mol, *atom)]) {
+    for (auto &atom : get_atoms(mol)) {
+      if (!visited[get_index(mol, atom)]) {
         // push initial component atom to stack
-        queue.push(QueueItem(molecule_traits<MoleculeType>::null_bond(), *atom, 0));
+        queue.push(QueueItem(molecule_traits<MoleculeType>::null_bond(), atom, 0));
 
         // start new compoenent
         visitor.component(component++);
@@ -459,8 +459,8 @@ namespace Helium {
         visited[i] = true;
         // mark bonds around atom as visited
         atom_type atom = get_atom(mol, i);
-        FOREACH_INCIDENT (bond, atom, mol)
-          visited[num_atoms(mol) + get_index(mol, *bond)] = true;
+        for (auto &bond : get_bonds(mol, atom))
+          visited[num_atoms(mol) + get_index(mol, bond)] = true;
       }
 
     visitor.initialize(mol);

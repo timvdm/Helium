@@ -397,8 +397,8 @@ namespace Helium {
       int numRingNbrs(atom_type atom) const
       {
         int result = 0;
-        FOREACH_NBR (nbr, atom, m_mol)
-          if (isAtomInRing(*nbr))
+        for (auto &nbr : get_nbrs(m_mol, atom))
+          if (isAtomInRing(nbr))
             ++result;
         return result;
       }

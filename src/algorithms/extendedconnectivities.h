@@ -48,9 +48,9 @@ namespace Helium {
     {
       std::vector<unsigned long> next = ec;
 
-      FOREACH_ATOM (atom, mol)
-        FOREACH_NBR (nbr, *atom, mol)
-          next[get_index(mol, *atom)] += ec[get_index(mol, *nbr)];
+      for (auto &atom : get_atoms(mol))
+        for (auto &nbr : get_nbrs(mol, atom))
+          next[get_index(mol, atom)] += ec[get_index(mol, nbr)];
 
       ec.swap(next);
     }
@@ -105,8 +105,8 @@ namespace Helium {
   {
     // initial atom invariants
     std::vector<unsigned long> ec;
-    FOREACH_ATOM (atom, mol)
-      ec.push_back(atomInvariant(mol, *atom));
+    for (auto &atom : get_atoms(mol))
+      ec.push_back(atomInvariant(mol, atom));
 
     // iterate
     unsigned int numClasses = impl::num_symmetry_classes(ec);

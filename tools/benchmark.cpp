@@ -62,8 +62,8 @@ namespace Helium {
     typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::undirectedS, boost::property<boost::vertex_index_t, int> > graph;
 
     graph g(num_atoms(mol));
-    FOREACH_BOND (bond, mol)
-      add_edge(get_index(mol, get_source(mol, *bond)), get_index(mol, get_target(mol, *bond)), g);
+    for (auto &bond : get_bonds(mol))
+      add_edge(get_index(mol, get_source(mol, bond)), get_index(mol, get_target(mol, bond)), g);
 
     return boost::boyer_myrvold_planarity_test(g);
   }

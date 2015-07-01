@@ -279,8 +279,8 @@ namespace Helium {
           if (buffer.substr(0, 6) == "M  CHG") {
             // reset all charges if this is the first charge property
             if (firstCharge) {
-              FOREACH_ATOM (atom, mol)
-                set_charge(mol, *atom, 0);
+              for (auto &atom : get_atoms(mol))
+                set_charge(mol, atom, 0);
               firstCharge = false;
             }
 
@@ -318,19 +318,19 @@ namespace Helium {
         //
         // adjust hydrogens based on valences
         //
-        FOREACH_ATOM (atom, mol) {
-          if (!addHydrogens(get_element(mol, *atom)))
+        for (auto &atom : get_atoms(mol)) {
+          if (!addHydrogens(get_element(mol, atom)))
             continue;
-          int valence = valences[get_index(mol, *atom)];
+          int valence = valences[get_index(mol, atom)];
           if (valence == 15)
             continue;
           if (valence == 0)
-            valence = Element::valence(get_element(mol, *atom),
-                get_charge(mol, *atom), get_valence(mol, *atom));
+            valence = Element::valence(get_element(mol, atom),
+                get_charge(mol, atom), get_valence(mol, atom));
 
-          int numH = valence - get_valence(mol, *atom);
+          int numH = valence - get_valence(mol, atom);
           if (numH > 0)
-            set_hydrogens(mol, *atom, numH);
+            set_hydrogens(mol, atom, numH);
         }
 
 

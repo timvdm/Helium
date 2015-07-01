@@ -587,26 +587,26 @@ namespace Helium {
     }
 
     // add hydrogens
-    FOREACH_ATOM (atom, mol) {
-      if (get_hydrogens(mol, *atom) != 99)
+    for (auto &atom : get_atoms(mol)) {
+      if (get_hydrogens(mol, atom) != 99)
         continue;
-      set_hydrogens(mol, *atom, 0);
-      if (!Element::addHydrogens(get_element(mol, *atom)))
+      set_hydrogens(mol, atom, 0);
+      if (!Element::addHydrogens(get_element(mol, atom)))
         continue;
 
       int explicitH = 0;
-      FOREACH_NBR (nbr, *atom, mol)
-        if (get_element(mol, *nbr) == 1)
+      for (auto &nbr : get_nbrs(mol, atom))
+        if (get_element(mol, nbr) == 1)
           ++explicitH;
 
-      int valence = get_valence(mol, *atom);
-      assert(get_charge(mol, *atom) == 0);
-      //int expValence = Element::valence(get_element(mol, *atom), get_charge(mol, *atom), valence);
-      int expValence = impl::smiles_valence(get_element(mol, *atom), valence);
+      int valence = get_valence(mol, atom);
+      assert(get_charge(mol, atom) == 0);
+      //int expValence = Element::valence(get_element(mol, atom), get_charge(mol, atom), valence);
+      int expValence = impl::smiles_valence(get_element(mol, atom), valence);
 
-      //std::cout << "val: " << valence << "  deg: " << get_degree(mol, *atom) << " explH: " << explicitH << " H: " << get_hydrogens(mol, *atom) << std::endl;
+      //std::cout << "val: " << valence << "  deg: " << get_degree(mol, atom) << " explH: " << explicitH << " H: " << get_hydrogens(mol, atom) << std::endl;
       if (expValence > valence - explicitH)
-        set_hydrogens(mol, *atom, expValence - valence);
+        set_hydrogens(mol, atom, expValence - valence);
     }
 
     return true;

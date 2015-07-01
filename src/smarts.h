@@ -333,8 +333,8 @@ namespace Helium {
             case Smiley::AE_TotalH:
               {
                 int h = 0;
-                FOREACH_NBR (nbr, atom, mol)
-                  if (get_element(mol, *nbr) == 1)
+                for (auto &nbr : get_nbrs(mol, atom))
+                  if (get_element(mol, nbr) == 1)
                     ++h;
                 return (h + get_hydrogens(mol, atom)) == expr->value;
               }

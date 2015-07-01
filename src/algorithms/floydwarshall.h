@@ -50,8 +50,8 @@ namespace Helium {
   {
     DistanceMatrix dist(num_atoms(mol), 0, DistanceMatrix::infinity());
 
-    FOREACH_BOND (bond, mol)
-      dist(get_index(mol, get_source(mol, *bond)), get_index(mol, get_target(mol, *bond))) = 1;
+    for (auto &bond : get_bonds(mol))
+      dist(get_index(mol, get_source(mol, bond)), get_index(mol, get_target(mol, bond))) = 1;
 
     for (Size k = 0; k < num_atoms(mol); ++k)
       for (Size i = 0; i < num_atoms(mol); ++i)
@@ -82,8 +82,8 @@ namespace Helium {
         m_dist[get_index(mol, source)] = 0;
         // add all atoms in mol to Q
         std::vector<AtomType> Q;
-        FOREACH_ATOM (atom, mol)
-          Q.push_back(*atom);
+        for (auto &atom : get_atoms(mol))
+          Q.push_back(atom);
 
         while (Q.size()) {
           // find atom in Q with smallest distance in m_dist
@@ -99,12 +99,12 @@ namespace Helium {
             // all remaining atoms are inaccessible from source
             break;
 
-          FOREACH_NBR (v, u, mol) {
+          for (auto &v : get_nbrs(mol, u)) {
             Size alt = m_dist[get_index(mol, u)] + 1;
 
-            if (alt < m_dist[get_index(mol, *v)]) {
-              m_dist[get_index(mol, *v)] = alt;
-              m_prev[get_index(mol, *v)] = u;
+            if (alt < m_dist[get_index(mol, v)]) {
+              m_dist[get_index(mol, v)] = alt;
+              m_prev[get_index(mol, v)] = u;
             }
           }
         }

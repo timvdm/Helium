@@ -656,8 +656,8 @@ namespace Helium {
           case Smiley::AE_TotalH:
             {
               int explicitH = 0;
-              FOREACH_NBR (nbr, atom, mol)
-                if (is_hydrogen(mol, *nbr))
+              for (auto &nbr : get_nbrs(mol, atom))
+                if (is_hydrogen(mol, nbr))
                   ++explicitH;
               set_hydrogens(mol, atom, expr->value - explicitH);
             }
@@ -734,9 +734,9 @@ namespace Helium {
         for (std::size_t i = 0; i < removeAtoms.size(); ++i) {
           if (m_fixHydrogens) {
             // increment number of hydrogens of neighbros
-            FOREACH_NBR (nbr, get_atom(mol, removeAtoms[i]), mol)
-              if (std::find(fixHydrogenAtoms.begin(), fixHydrogenAtoms.end(), *nbr) == fixHydrogenAtoms.end())
-                set_hydrogens(mol, *nbr, get_hydrogens(mol, *nbr) + 1);
+            for (auto &nbr : get_nbrs(mol, get_atom(mol, removeAtoms[i])))
+              if (std::find(fixHydrogenAtoms.begin(), fixHydrogenAtoms.end(), nbr) == fixHydrogenAtoms.end())
+                set_hydrogens(mol, nbr, get_hydrogens(mol, nbr) + 1);
           }
           remove_atom(mol, get_atom(mol, removeAtoms[i]));
         }

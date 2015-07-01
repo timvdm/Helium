@@ -103,14 +103,14 @@ namespace Helium {
     {
       visitedAtoms[get_index(mol, atom)] = true;
 
-      FOREACH_INCIDENT (bond, atom, mol) {
-        if (visitedBonds[get_index(mol, *bond)])
+      for (auto &bond : get_bonds(mol, atom)) {
+        if (visitedBonds[get_index(mol, bond)])
           continue;
-        visitedBonds[get_index(mol, *bond)] = true;
+        visitedBonds[get_index(mol, bond)] = true;
 
-        if (visitedAtoms[get_index(mol, get_other(mol, *bond, atom))])
+        if (visitedAtoms[get_index(mol, get_other(mol, bond, atom))])
           return true;
-        if (is_cyclic(mol, get_other(mol, *bond, atom), visitedAtoms, visitedBonds))
+        if (is_cyclic(mol, get_other(mol, bond, atom), visitedAtoms, visitedBonds))
           return true;
       }
       return false;
@@ -124,10 +124,10 @@ namespace Helium {
       std::vector<bool> visitedAtoms(num_atoms(mol));
       std::vector<bool> visitedBonds(num_bonds(mol));
 
-      FOREACH_ATOM (atom, mol) {
-        if (visitedAtoms[get_index(mol, *atom)])
+      for (auto &atom : get_atoms(mol)) {
+        if (visitedAtoms[get_index(mol, atom)])
           continue;
-        if (is_cyclic(mol, *atom, visitedAtoms, visitedBonds))
+        if (is_cyclic(mol, atom, visitedAtoms, visitedBonds))
           return true;
       }
 
@@ -273,17 +273,17 @@ namespace Helium {
         if (!newAtoms[i])
           continue;
 
-        FOREACH_INCIDENT (bond, get_atom(mol, i), mol) {
-          if (visited[get_index(mol, *bond)])
+        for (auto &bond : get_bonds(mol, get_atom(mol, i))) {
+          if (visited[get_index(mol, bond)])
             continue;
 
-          atom_type other = get_other(mol, *bond, get_atom(mol, i));
+          atom_type other = get_other(mol, bond, get_atom(mol, i));
           if (allAtoms[get_index(mol, other)])
             // this is an unconsidered bond going to another atom in the same graph
             // this bond will appear twice so prevent duplicates
-            internalExtensions.insert(get_index(mol, *bond));
+            internalExtensions.insert(get_index(mol, bond));
           else
-            extensions.push_back(std::make_pair(get_index(mol, *bond), get_index(mol, other)));
+            extensions.push_back(std::make_pair(get_index(mol, bond), get_index(mol, other)));
         }
       }
 
@@ -380,13 +380,13 @@ namespace Helium {
     // generate the initial seeds
     // seeds[i] starts with bond i and bonds 0-i will not be used to extend the seed
     // for each seed, we also keep track of all possible ways to extend it
-    FOREACH_BOND (bond, mol) {
-      visited[get_index(mol, *bond)] = true;
+    for (auto &bond : get_bonds(mol)) {
+      visited[get_index(mol, bond)] = true;
 
       Subgraph subgraph(num_atoms(mol), num_bonds(mol));
-      subgraph.atoms[get_index(mol, get_source(mol, *bond))] = true;
-      subgraph.atoms[get_index(mol, get_target(mol, *bond))] = true;
-      subgraph.bonds[get_index(mol, *bond)] = true;
+      subgraph.atoms[get_index(mol, get_source(mol, bond))] = true;
+      subgraph.atoms[get_index(mol, get_target(mol, bond))] = true;
+      subgraph.bonds[get_index(mol, bond)] = true;
 
       callback(subgraph);
 

@@ -68,8 +68,8 @@ namespace Helium {
         atom_type atom = ring.atom(j);
 
         bool hasDoubleBond = false;
-        FOREACH_INCIDENT (bond, atom, mol)
-          if (get_order(mol, *bond) == 2) {
+        for (auto &bond : get_bonds(mol, atom))
+          if (get_order(mol, bond) == 2) {
             hasDoubleBond = true;
             break;
           }

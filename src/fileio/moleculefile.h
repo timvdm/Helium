@@ -190,16 +190,16 @@ namespace Helium {
     // create a map to map atom indices & count the number of heavy atoms
     std::vector<unsigned short> indices(num_atoms(mol));
     unsigned short numAtoms = 0;
-    FOREACH_ATOM (atom, mol) {
-      indices[get_index(mol, *atom)] = numAtoms;
-      if (!is_hydrogen(mol, *atom))
+    for (auto &atom : get_atoms(mol)) {
+      indices[get_index(mol, atom)] = numAtoms;
+      if (!is_hydrogen(mol, atom))
         ++numAtoms;
     }
 
     // count the number of bonds between heavy atoms
     unsigned short numBonds = 0;
-    FOREACH_BOND (bond, mol)
-      if (!is_hydrogen(mol, get_source(mol, *bond)) && !is_hydrogen(mol, get_target(mol, *bond)))
+    for (auto &bond : get_bonds(mol))
+      if (!is_hydrogen(mol, get_source(mol, bond)) && !is_hydrogen(mol, get_target(mol, bond)))
         ++numBonds;
 
     // write the number of atoms & bonds
@@ -207,35 +207,35 @@ namespace Helium {
     write16<unsigned short>(os, numBonds);
 
     // write atoms (6 byte / atom)
-    FOREACH_ATOM (atom, mol) {
-      if (is_hydrogen(mol, *atom))
+    for (auto &atom : get_atoms(mol)) {
+      if (is_hydrogen(mol, atom))
         continue;
 
       // write the element
-      write8<unsigned char>(os, get_element(mol, *atom));
+      write8<unsigned char>(os, get_element(mol, atom));
       // write cyclic property
       write8<unsigned char>(os, 0);
       // write aromatic property
-      write8<unsigned char>(os, is_aromatic(mol, *atom));
+      write8<unsigned char>(os, is_aromatic(mol, atom));
       // write isotope
-      write8<unsigned char>(os, get_mass(mol, *atom));
+      write8<unsigned char>(os, get_mass(mol, atom));
       // write hydrogen count
-      write8<unsigned char>(os, get_hydrogens(mol, *atom) + get_degree(mol, *atom) - get_heavy_degree(mol, *atom));
+      write8<unsigned char>(os, get_hydrogens(mol, atom) + get_degree(mol, atom) - get_heavy_degree(mol, atom));
       // write formal charge
-      write8<signed char>(os, get_charge(mol, *atom));
+      write8<signed char>(os, get_charge(mol, atom));
     }
   
     // write bonds (5 byte / bond
-    FOREACH_BOND (bond, mol) {
-      if (is_hydrogen(mol, get_source(mol, *bond)) || is_hydrogen(mol, get_target(mol, *bond)))
+    for (auto &bond : get_bonds(mol)) {
+      if (is_hydrogen(mol, get_source(mol, bond)) || is_hydrogen(mol, get_target(mol, bond)))
         continue;
 
       // write source & target indices
-      write16<unsigned short>(os, indices[get_index(mol, get_source(mol, *bond))]);
-      write16<unsigned short>(os, indices[get_index(mol, get_target(mol, *bond))]);
+      write16<unsigned short>(os, indices[get_index(mol, get_source(mol, bond))]);
+      write16<unsigned short>(os, indices[get_index(mol, get_target(mol, bond))]);
       // write bond order + aromatic & cyclic properties
-      unsigned char props = get_order(mol, *bond);
-      if (is_aromatic(mol, *bond))
+      unsigned char props = get_order(mol, bond);
+      if (is_aromatic(mol, bond))
         props |= 128;
       //if (bond->IsInRing())
       //  props |= 64;

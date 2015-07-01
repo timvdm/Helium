@@ -80,18 +80,12 @@ else()
   set(CMAKE_CXX_FLAGS "-g -pedantic -Wall -Wno-long-long -Wno-sign-compare ${CMAKE_CXX_FLAGS}")
 endif()
 
-# C++11 (optional) [only seems to work with clang on mac for now]
-option(ENABLE_CPP11 "Enable C++11 features" OFF)
-if (ENABLE_CPP11)
-  if (CMAKE_COMPILER_IS_GNUCXX)
-    set(CMAKE_CXX_FLAGS "-std=c++11 ${CMAKE_CXX_FLAGS}")
-  else()
-    set(CMAKE_CXX_FLAGS "-std=c++11 -stdlib=libc++ ${CMAKE_CXX_FLAGS}")
-  endif()
-  add_definitions(-DHAVE_CPP11)
-  set(HAVE_CPP11 1) # used by configure_file()
-else()
-  set(HAVE_CPP11 0) # used by configure_file()
+# C++11
+if (CMAKE_COMPILER_IS_GNUCXX)
+  set(CMAKE_CXX_FLAGS "-std=c++11 ${CMAKE_CXX_FLAGS}")
+elseif(UNIX)
+  # asume clang++
+  set(CMAKE_CXX_FLAGS "-std=c++11 -stdlib=libc++ ${CMAKE_CXX_FLAGS}")
 endif()
 
 if (ENABLE_COVERAGE)

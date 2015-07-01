@@ -216,16 +216,16 @@ namespace Helium {
 
         void dfsBonds(query_atom_type atom, std::vector<bool> &visited)
         {
-          FOREACH_INCIDENT (bond, atom, m_query) {
-            if (visited[get_index(m_query, *bond)])
+          for (auto &bond : get_bonds(m_query, atom)) {
+            if (visited[get_index(m_query, bond)])
               continue;
-            visited[get_index(m_query, *bond)] = true;
+            visited[get_index(m_query, bond)] = true;
 
-            bool swap = get_source(m_query, *bond) != atom;
+            bool swap = get_source(m_query, bond) != atom;
             m_bondSwap.push_back(swap);
 
-            m_dfsBonds.push_back(get_index(m_query, *bond));
-            dfsBonds(swap ? get_source(m_query, *bond) : get_target(m_query, *bond), visited);
+            m_dfsBonds.push_back(get_index(m_query, bond));
+            dfsBonds(swap ? get_source(m_query, bond) : get_target(m_query, bond), visited);
           }
         }
 
@@ -267,11 +267,11 @@ namespace Helium {
             std::cout << "mapping bond: " << get_index(m_query, querySource) << "-" << get_index(m_query, queryTarget) << std::endl;
           */
 
-          FOREACH_INCIDENT (bond, atom, m_mol) {
-            if (!m_bondMatcher(m_query, queryBond, m_mol, *bond))
+          for (auto &bond : get_bonds(m_mol, atom)) {
+            if (!m_bondMatcher(m_query, queryBond, m_mol, bond))
               continue;
 
-            atom_type nbrAtom = get_other(m_mol, *bond, atom);
+            atom_type nbrAtom = get_other(m_mol, bond, atom);
 
             if (isRingClosure) {
               /*
@@ -398,13 +398,13 @@ namespace Helium {
             return;
 
           if (!num_bonds(m_query)) {
-            FOREACH_ATOM (atom, m_mol)
-              match(mapping, *atom);
+            for (auto &atom : get_atoms(m_mol))
+              match(mapping, atom);
           } else {
             // try to match each atom in the molecule against the first atom
             // epxression in the SMARTS
-            FOREACH_ATOM (atom, m_mol)
-              match(mapping, *atom);
+            for (auto &atom : get_atoms(m_mol))
+              match(mapping, atom);
           }
         }
 

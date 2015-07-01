@@ -49,14 +49,14 @@ namespace Helium {
         unsigned int number, std::vector<unsigned int> &components)
     {
       // iterator over atom's bonds
-      FOREACH_INCIDENT (bond, atom, mol) {
+      for (auto &bond : get_bonds(mol, atom)) {
         // skip already visited bonds
-        if (components[get_index(mol, *bond)] != molecule_traits<MoleculeType>::null_index())
+        if (components[get_index(mol, bond)] != molecule_traits<MoleculeType>::null_index())
           continue;
         // assign component to bond
-        components[get_index(mol, *bond)] = number;
+        components[get_index(mol, bond)] = number;
         // recursive call
-        connected_bond_components(mol, get_other(mol, *bond, atom), number, components);
+        connected_bond_components(mol, get_other(mol, bond, atom), number, components);
       }
     }
 
@@ -78,11 +78,11 @@ namespace Helium {
     std::vector<unsigned int> components(num_bonds(mol), molecule_traits<MoleculeType>::null_index());
 
     // start searching from each (non-visited) bond
-    FOREACH_BOND (bond, mol) {
-      if (components[get_index(mol, *bond)] != molecule_traits<MoleculeType>::null_index())
+    for (auto &bond : get_bonds(mol)) {
+      if (components[get_index(mol, bond)] != molecule_traits<MoleculeType>::null_index())
         continue;
       // initiate recursion for each component
-      impl::connected_bond_components(mol, get_source(mol, *bond), number++, components);
+      impl::connected_bond_components(mol, get_source(mol, bond), number++, components);
     }
 
     return components;
@@ -104,17 +104,17 @@ namespace Helium {
 
     // convert bond components to atom components
     std::vector<unsigned int> bond_components(connected_bond_components(mol));
-    FOREACH_BOND (bond, mol) {
-      unsigned int number = bond_components[get_index(mol, *bond)];
-      atom_components[get_index(mol, get_source(mol, *bond))] = number;
-      atom_components[get_index(mol, get_target(mol, *bond))] = number;
+    for (auto &bond : get_bonds(mol)) {
+      unsigned int number = bond_components[get_index(mol, bond)];
+      atom_components[get_index(mol, get_source(mol, bond))] = number;
+      atom_components[get_index(mol, get_target(mol, bond))] = number;
     }
 
     // handle isolated atoms
     unsigned int number = unique_elements(atom_components) - 1;
-    FOREACH_ATOM (atom, mol)
-      if (atom_components[get_index(mol, *atom)] == molecule_traits<MoleculeType>::null_index())
-        atom_components[get_index(mol, *atom)] = number++;
+    for (auto &atom : get_atoms(mol))
+      if (atom_components[get_index(mol, atom)] == molecule_traits<MoleculeType>::null_index())
+        atom_components[get_index(mol, atom)] = number++;
 
     return atom_components;
   }

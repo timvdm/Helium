@@ -52,44 +52,6 @@ namespace Helium {
    */
 
   /**
-   * @brief Iterate over all the atoms in a molecule.
-   *
-   * @param atom The atom.
-   * @param mol The molecule.
-   */
-#define FOREACH_ATOM(atom, mol) \
-  for (Helium::impl::ForeachAtom<BOOST_TYPEOF(mol)> atom(mol); atom.iters.begin() != atom.iters.end(); ++atom.iters.begin())
-
-  /**
-   * @brief Iterate over all the bonds in a molecule.
-   *
-   * @param bond The bond.
-   * @param mol The molecule.
-   */
-#define FOREACH_BOND(bond, mol) \
-  for (Helium::impl::ForeachBond<BOOST_TYPEOF(mol)> bond(mol); bond.iters.begin() != bond.iters.end(); ++bond.iters.begin())
-
-  /**
-   * @brief Iterate over all the neighbors of an atom.
-   *
-   * @param nbr The neighbor atom.
-   * @param atom The center atom.
-   * @param mol The molecule.
-   */
-#define FOREACH_NBR(nbr, atom, mol) \
-  for (Helium::impl::ForeachNbr<BOOST_TYPEOF(mol)> nbr(mol, atom); nbr.iters.begin() != nbr.iters.end(); ++nbr.iters.begin())
-
-  /**
-   * @brief Iterate over all the incident bonds of an atom.
-   *
-   * @param bond The incident bond.
-   * @param atom The center atom.
-   * @param mol The molecule.
-   */
-#define FOREACH_INCIDENT(bond, atom, mol) \
-  for (Helium::impl::ForeachIncident<BOOST_TYPEOF(mol)> bond(mol, atom); bond.iters.begin() != bond.iters.end(); ++bond.iters.begin())
-
-  /**
    * @brief Type used for atom and bond indices.
    */
   typedef unsigned int Index;
@@ -755,78 +717,6 @@ namespace Helium {
 
   //////////////////////////////////////////////////////////////////////////////
   //
-  // Iterator helpers Functions
-  //
-  //////////////////////////////////////////////////////////////////////////////
-
-  namespace impl {
-
-    template<typename MoleculeType>
-    struct ForeachAtom
-    {
-      ForeachAtom(const MoleculeType &mol) : iters(get_atoms(mol))
-      {
-      }
-
-      typename molecule_traits<MoleculeType>::atom_type operator*()
-      {
-        return *iters.begin();
-      }
-
-      iterator_pair<typename molecule_traits<MoleculeType>::atom_iter> iters;
-    };
-
-    template<typename MoleculeType>
-    struct ForeachBond
-    {
-      ForeachBond(const MoleculeType &mol) : iters(get_bonds(mol))
-      {
-      }
-
-      typename molecule_traits<MoleculeType>::bond_type operator*()
-      {
-        return *iters.begin();
-      }
-
-      iterator_pair<typename molecule_traits<MoleculeType>::bond_iter> iters;
-    };
-
-    template<typename MoleculeType>
-    struct ForeachNbr
-    {
-      ForeachNbr(const MoleculeType &mol,
-          typename molecule_traits<MoleculeType>::atom_type atom) : iters(get_nbrs(mol, atom))
-      {
-      }
-
-      typename molecule_traits<MoleculeType>::atom_type operator*()
-      {
-        return *iters.begin();
-      }
-
-      iterator_pair<typename molecule_traits<MoleculeType>::nbr_iter> iters;
-    };
-
-    template<typename MoleculeType>
-    struct ForeachIncident
-    {
-      ForeachIncident(const MoleculeType &mol,
-          typename molecule_traits<MoleculeType>::atom_type atom) : iters(get_bonds(mol, atom))
-      {
-      }
-
-      typename molecule_traits<MoleculeType>::bond_type operator*()
-      {
-        return *iters.begin();
-      }
-
-      iterator_pair<typename molecule_traits<MoleculeType>::incident_iter> iters;
-    };
-
-  }
-
-  //////////////////////////////////////////////////////////////////////////////
-  //
   // Utility Functions
   //
   //////////////////////////////////////////////////////////////////////////////
@@ -957,8 +847,8 @@ namespace Helium {
   {
     PRE(atom != molecule_traits<MoleculeType>::null_atom());
     int degree = 0;
-    FOREACH_NBR (nbr, atom, mol)
-      if (get_element(mol, *nbr) > 1)
+    for (auto &nbr : get_nbrs(mol, atom))
+      if (get_element(mol, nbr) > 1)
         ++degree;
     return degree;
   }
@@ -980,8 +870,8 @@ namespace Helium {
   {
     PRE(atom != molecule_traits<MoleculeType>::null_atom());
     double sum = 0;
-    FOREACH_INCIDENT (bond, atom, mol) {
-      int order = get_order(mol, *bond);
+    for (auto &bond : get_bonds(mol, atom)) {
+      int order = get_order(mol, bond);
       if (order == 5)
         sum += 1.5;
       else
@@ -1044,8 +934,8 @@ namespace Helium {
   int get_total_hydrogens(const MoleculeType &mol, typename molecule_traits<MoleculeType>::atom_type atom)
   {
     int numH = get_hydrogens(mol, atom);
-    FOREACH_NBR (nbr, atom, mol)
-      if (is_hydrogen(mol, atom))
+    for (auto &nbr : get_nbrs(mol, atom))
+      if (is_hydrogen(mol, nbr))
         numH++;
     return numH;
   }
@@ -1063,11 +953,11 @@ namespace Helium {
 
     // create a list of atoms that need hydrogens to be added
     std::vector<std::pair<atom_type, int> > hydrogens;
-    FOREACH_ATOM (atom, mol) {
-      if (is_hydrogen(mol, *atom))
+    for (auto &atom : get_atoms(mol)) {
+      if (is_hydrogen(mol, atom))
         continue;
-      if (get_hydrogens(mol, *atom))
-        hydrogens.push_back(std::make_pair(*atom, get_hydrogens(mol, *atom)));
+      if (get_hydrogens(mol, atom))
+        hydrogens.push_back(std::make_pair(atom, get_hydrogens(mol, atom)));
     }
 
     // add the hydrogens
@@ -1093,19 +983,19 @@ namespace Helium {
   {
     std::vector<Index> hydrogens;
 
-    FOREACH_ATOM (atom, mol) {
-      if (is_hydrogen(mol, *atom)) {
-        hydrogens.push_back(get_index(mol, *atom));
+    for (auto &atom : get_atoms(mol)) {
+      if (is_hydrogen(mol, atom)) {
+        hydrogens.push_back(get_index(mol, atom));
         continue;
       }
 
       int explicitH = 0;
-      FOREACH_NBR (nbr, *atom, mol) {
-        if (is_hydrogen(mol, *nbr))
+      for (auto &nbr : get_nbrs(mol, atom)) {
+        if (is_hydrogen(mol, nbr))
           ++explicitH;
       }
 
-      set_hydrogens(mol, *atom, get_hydrogens(mol, *atom) + explicitH);
+      set_hydrogens(mol, atom, get_hydrogens(mol, atom) + explicitH);
     }
 
     std::sort(hydrogens.begin(), hydrogens.end(), std::greater<Index>());
@@ -1136,8 +1026,8 @@ namespace Helium {
     set_hydrogens(mol, atom, 0);
 
     int explicitH = 0;
-    FOREACH_NBR (nbr, atom, mol)
-      if (is_hydrogen(mol, *nbr))
+    for (auto &nbr : get_nbrs(mol, atom))
+      if (is_hydrogen(mol, nbr))
         ++explicitH;
 
     int valence = get_valence(mol, atom);
@@ -1161,8 +1051,8 @@ namespace Helium {
   void reset_implicit_hydrogens(EditableMoleculeType &mol)
   {
     // add hydrogens
-    FOREACH_ATOM (atom, mol)
-      reset_implicit_hydrogens(mol, *atom);
+    for (auto &atom : get_atoms(mol))
+      reset_implicit_hydrogens(mol, atom);
   }
 
   //////////////////////////////////////////////////////////////////////////////
@@ -2496,8 +2386,8 @@ namespace Helium {
   template<typename MoleculeType, typename AtomPredicateType>
   bool molecule_has_atom(const MoleculeType &mol, const AtomPredicateType &predicate)
   {
-    FOREACH_ATOM (atom, mol)
-      if (predicate(mol, *atom))
+    for (auto &atom : get_atoms(mol))
+      if (predicate(mol, atom))
         return true;
     return false;
   }
@@ -2515,9 +2405,9 @@ namespace Helium {
   molecule_get_atoms(const MoleculeType &mol, const AtomPredicateType &predicate)
   {
     std::vector<typename molecule_traits<MoleculeType>::atom_type> atoms;
-    FOREACH_ATOM (atom, mol)
-      if (predicate(mol, *atom))
-        atoms.push_back(*atom);
+    for (auto &atom : get_atoms(mol))
+      if (predicate(mol, atom))
+        atoms.push_back(atom);
     return atoms;
   }
 
@@ -2532,8 +2422,8 @@ namespace Helium {
   template<typename MoleculeType, typename BondPredicateType>
   bool molecule_has_bond(const MoleculeType &mol, const BondPredicateType &predicate)
   {
-    FOREACH_BOND (bond, mol)
-      if (predicate(mol, *bond))
+    for (auto &bond : get_bonds(mol))
+      if (predicate(mol, bond))
         return true;
     return false;
   }
@@ -2551,9 +2441,9 @@ namespace Helium {
   molecule_get_bonds(const MoleculeType &mol, const BondPredicateType &predicate)
   {
     std::vector<typename molecule_traits<MoleculeType>::bond_type> bonds;
-    FOREACH_BOND (bond, mol)
-      if (predicate(mol, *bond))
-        bonds.push_back(*bond);
+    for (auto &bond : get_bonds(mol))
+      if (predicate(mol, bond))
+        bonds.push_back(bond);
     return bonds;
   }
 
@@ -2569,8 +2459,8 @@ namespace Helium {
   template<typename MoleculeType, typename AtomPredicateType>
   bool atom_has_nbr(const MoleculeType &mol, typename molecule_traits<MoleculeType>::atom_type atom, const AtomPredicateType &predicate)
   {
-    FOREACH_NBR (nbr, atom, mol)
-      if (predicate(mol, *nbr))
+    for (auto &nbr : get_nbrs(mol, atom))
+      if (predicate(mol, nbr))
         return true;
     return false;
   }
@@ -2589,9 +2479,9 @@ namespace Helium {
   atom_get_nbrs(const MoleculeType &mol, typename molecule_traits<MoleculeType>::atom_type atom, const AtomPredicateType &predicate)
   {
     std::vector<typename molecule_traits<MoleculeType>::atom_type> atoms;
-    FOREACH_NBR (nbr, atom, mol)
-      if (predicate(mol, *atom))
-        atoms.push_back(*atom);
+    for (auto &nbr : get_nbrs(mol, atom))
+      if (predicate(mol, nbr))
+        atoms.push_back(nbr);
     return atoms;
   }
 
@@ -2607,8 +2497,8 @@ namespace Helium {
   template<typename MoleculeType, typename BondPredicateType>
   bool atom_has_bond(const MoleculeType &mol, typename molecule_traits<MoleculeType>::atom_type atom, const BondPredicateType &predicate)
   {
-    FOREACH_INCIDENT (bond, atom, mol)
-      if (predicate(mol, *bond))
+    for (auto &bond : get_bonds(mol, atom))
+      if (predicate(mol, bond))
         return true;
     return false;
   }
@@ -2627,9 +2517,9 @@ namespace Helium {
   atom_get_bonds(const MoleculeType &mol, typename molecule_traits<MoleculeType>::atom_type atom, const BondPredicateType &predicate)
   {
     std::vector<typename molecule_traits<MoleculeType>::bond_type> bonds;
-    FOREACH_INCIDENT (bond, atom, mol)
-      if (predicate(mol, *bond))
-        bonds.push_back(*bond);
+    for (auto &bond : get_bonds(mol, atom))
+      if (predicate(mol, bond))
+        bonds.push_back(bond);
     return bonds;
   }
 
@@ -2755,13 +2645,13 @@ namespace Helium {
       return false;
 
     // if a bond should be considered, both atoms should also be considered
-    FOREACH_BOND (bond, mol) {
-      if (!bondMask[get_index(mol, *bond)])
+    for (auto &bond : get_bonds(mol)) {
+      if (!bondMask[get_index(mol, bond)])
         continue;
-      atom_type source = get_source(mol, *bond);
+      atom_type source = get_source(mol, bond);
       if (!atomMask[get_index(mol, source)])
         return false;
-      atom_type target = get_target(mol, *bond);
+      atom_type target = get_target(mol, bond);
       if (!atomMask[get_index(mol, target)])
         return false;
     }
@@ -2808,8 +2698,8 @@ namespace Helium {
       // count the number of neighbers that are not part of the substructure
       int deltaH = 0;
       if (adjustHydrogens)
-        FOREACH_NBR (nbr, sAtom, source)
-          if (!atoms[(*nbr).index()])
+        for (auto &nbr : get_nbrs(source, sAtom))
+          if (!atoms[nbr.index()])
             deltaH++;
 
       set_aromatic(target, tAtom, is_aromatic(source, sAtom));

@@ -163,29 +163,29 @@ namespace Helium {
       visitor.atom(mol, prev, atom);
 
       // call dfs_visit for all unvisited neighbors of v
-      FOREACH_INCIDENT (bond, atom, mol) {
+      for (auto &bond : get_bonds(mol, atom)) {
         if (visitor.stop())
           return;
 
-        if (visited[num_atoms(mol) + get_index(mol, *bond)])
+        if (visited[num_atoms(mol) + get_index(mol, bond)])
           continue;
 
-        atom_type nbr = get_other(mol, *bond, atom);
+        atom_type nbr = get_other(mol, bond, atom);
 
         if (visited[get_index(mol, nbr)]) {
           // if this bond has not been visited before, a back_bond has been found
-          if (!visited[num_atoms(mol) + get_index(mol, *bond)]) {
-            visitor.back_bond(mol, *bond);
+          if (!visited[num_atoms(mol) + get_index(mol, bond)]) {
+            visitor.back_bond(mol, bond);
             // mark bond as visited
-            visited[num_atoms(mol) + get_index(mol, *bond)] = true;
+            visited[num_atoms(mol) + get_index(mol, bond)] = true;
           }
           continue;
         }
 
         // mark bond as visited
-        visited[num_atoms(mol) + get_index(mol, *bond)] = true;
+        visited[num_atoms(mol) + get_index(mol, bond)] = true;
         // invoke bond visitor
-        visitor.bond(mol, prev, *bond);
+        visitor.bond(mol, prev, bond);
 
         dfs_visit(mol, nbr, visitor, visited, atom);
       }
@@ -221,13 +221,13 @@ namespace Helium {
     std::vector<bool> visited(num_atoms(mol) + num_bonds(mol));
 
     int c = 0;
-    FOREACH_ATOM (atom, mol) {
+    for (auto &atom : get_atoms(mol)) {
       if (visitor.stop())
         return;
 
-      if (!visited[get_index(mol, *atom)]) {
+      if (!visited[get_index(mol, atom)]) {
         visitor.component(c++);
-        impl::dfs_visit(mol, *atom, visitor, visited);
+        impl::dfs_visit(mol, atom, visitor, visited);
       }
     }
   }
@@ -274,20 +274,20 @@ namespace Helium {
         visited[i] = true;
         // mark bonds around atom as visited
         atom_type atom = get_atom(mol, i);
-        FOREACH_INCIDENT (bond, atom, mol)
-          visited[num_atoms(mol) + get_index(mol, *bond)] = true;
+        for (auto &bond : get_bonds(mol, atom))
+          visited[num_atoms(mol) + get_index(mol, bond)] = true;
       }
 
     int c = 0;
-    FOREACH_ATOM (atom, mol) {
+    for (auto &atom : get_atoms(mol)) {
       if (visitor.stop())
         return;
 
-      if (!visited[get_index(mol, *atom)]) {
+      if (!visited[get_index(mol, atom)]) {
         // let the visitor know a new component (i.e. tree) starts
         visitor.component(c++);
         // initiate recursive search
-        impl::dfs_visit(mol, *atom, visitor, visited);
+        impl::dfs_visit(mol, atom, visitor, visited);
       }
     }
   }
@@ -335,15 +335,15 @@ namespace Helium {
         visited[num_atoms(mol) + i] = true;
 
     int c = 0;
-    FOREACH_ATOM (atom, mol) {
+    for (auto &atom : get_atoms(mol)) {
       if (visitor.stop())
         return;
 
-      if (!visited[get_index(mol, *atom)]) {
+      if (!visited[get_index(mol, atom)]) {
         // let the visitor know a new component (i.e. tree) starts
         visitor.component(c++);
         // initiate recursive search
-        impl::dfs_visit(mol, *atom, visitor, visited);
+        impl::dfs_visit(mol, atom, visitor, visited);
       }
     }
   }
@@ -420,8 +420,8 @@ namespace Helium {
         visited[i] = true;
         // mark bonds around atom as visited
         atom_type atom = get_atom(mol, i);
-        FOREACH_INCIDENT (bond, atom, mol)
-          visited[num_atoms(mol) + get_index(mol, *bond)] = true;
+        for (auto &bond : get_bonds(mol, atom))
+          visited[num_atoms(mol) + get_index(mol, bond)] = true;
       }
 
     visitor.component(0);
@@ -500,12 +500,12 @@ namespace Helium {
       visitor.atom(mol, prev, atom);
 
       std::vector<std::pair<std::size_t, bond_type> > bonds;
-      FOREACH_INCIDENT (bond, atom, mol) {
-        if (visited[num_atoms(mol) + get_index(mol, *bond)])
+      for (auto &bond : get_bonds(mol, atom)) {
+        if (visited[num_atoms(mol) + get_index(mol, bond)])
           continue;
-        atom_type nbr = get_other(mol, *bond, atom);
+        atom_type nbr = get_other(mol, bond, atom);
         bonds.push_back(std::make_pair(std::find(order.begin(), order.end(),
-                get_index(mol, nbr)) - order.begin(), *bond));
+                get_index(mol, nbr)) - order.begin(), bond));
       }
 
       std::sort(bonds.begin(), bonds.end(), compare_first<std::size_t, bond_type>());
@@ -624,8 +624,8 @@ namespace Helium {
         visited[i] = true;
         // mark bonds around atom as visited
         atom_type atom = get_atom(mol, i);
-        FOREACH_INCIDENT (bond, atom, mol)
-          visited[num_atoms(mol) + get_index(mol, *bond)] = true;
+        for (auto &bond : get_bonds(mol, atom))
+          visited[num_atoms(mol) + get_index(mol, bond)] = true;
       }
 
     int c = 0;
@@ -721,9 +721,9 @@ namespace Helium {
 
       // create list of bonds to visit next
       std::vector<bond_type> bonds;
-      FOREACH_INCIDENT (bond, atom, mol) {
-        if (!visited[num_atoms(mol) + get_index(mol, *bond)])
-          bonds.push_back(*bond);
+      for (auto &bond : get_bonds(mol, atom)) {
+        if (!visited[num_atoms(mol) + get_index(mol, bond)])
+          bonds.push_back(bond);
       }
 
       // sort the list of bonds

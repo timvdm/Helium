@@ -315,8 +315,8 @@ namespace Helium
 
       // compute the sum of the bond vectors, this gives
       Eigen::Vector2d direction(Eigen::Vector2d::Zero());
-      FOREACH_NBR (nbr, atom, mol)
-        direction += coords[get_index(mol, atom)] - coords[get_index(mol, *nbr)];
+      for (auto &nbr : get_nbrs(mol, atom))
+        direction += coords[get_index(mol, atom)] - coords[get_index(mol, nbr)];
 
       const double bias = -0.1; //towards left-alignment, which is more natural
       int alignment = 0;
@@ -443,9 +443,9 @@ namespace Helium
 
       // scale bond lengths and invert the y coordinate (both SVG and Cairo use top left as the origin)
       double bondLengthSum = 0.0;
-      FOREACH_BOND (bond, mol) {
-        Index source = get_index(mol, get_source(mol, *bond));
-        Index target = get_index(mol, get_target(mol, *bond));
+      for (auto &bond : get_bonds(mol)) {
+        Index source = get_index(mol, get_source(mol, bond));
+        Index target = get_index(mol, get_target(mol, bond));
         bondLengthSum += (coords[source] - coords[target]).norm();
       }
       const double averageBondLength = bondLengthSum / num_bonds(mol);
@@ -499,9 +499,9 @@ namespace Helium
     }
 
     // draw bonds
-    FOREACH_BOND (bond, mol) {
-      atom_type source = get_source(mol, *bond);
-      atom_type target = get_target(mol, *bond);
+    for (auto &bond : get_bonds(mol)) {
+      atom_type source = get_source(mol, bond);
+      atom_type target = get_target(mol, bond);
 
       m_painter->setPenColor(m_bondColor);
 
@@ -520,7 +520,7 @@ namespace Helium
         }
       }
       else */
-      if (!ringBonds[get_index(mol, *bond)]) { // Ring bonds are handled below
+      if (!ringBonds[get_index(mol, bond)]) { // Ring bonds are handled below
         bool crossed_dbl_bond = false;
         /* FIXME: stereo
         OBStereoFacade sf(d->mol);
@@ -532,7 +532,7 @@ namespace Helium
         */
         drawSimpleBond(coords[get_index(mol, source)], coords[get_index(mol, target)],
             hasLabel(mol, source), hasLabel(mol, target), get_valence(mol, source),
-            get_valence(mol, target), get_order(mol, *bond), crossed_dbl_bond);
+            get_valence(mol, target), get_order(mol, bond), crossed_dbl_bond);
       }
     }
 
@@ -554,11 +554,11 @@ namespace Helium
     }
 
     // draw atom labels
-    FOREACH_ATOM (atom, mol) {
-      double x = coords[get_index(mol, *atom)].x();
-      double y = coords[get_index(mol, *atom)].y();
+    for (auto &atom : get_atoms(mol)) {
+      double x = coords[get_index(mol, atom)].x();
+      double y = coords[get_index(mol, atom)].y();
 
-      int alignment = impl::labelAlignment(mol, *atom, coords);
+      int alignment = impl::labelAlignment(mol, atom, coords);
       bool rightAligned = false;
       switch (alignment) {
         case Right:
@@ -570,14 +570,14 @@ namespace Helium
       if (m_options & BlackWhiteAtoms)
         m_painter->setPenColor(m_bondColor);
       else
-        m_painter->setPenColor(impl::elementColor(get_element(mol, *atom)));
+        m_painter->setPenColor(impl::elementColor(get_element(mol, atom)));
 
       //charge and radical
-      int charge = get_charge(mol, *atom);
+      int charge = get_charge(mol, atom);
       int spin = 0; //atom->GetSpinMultiplicity(); FIXME: radical
       if (charge || spin) {
         FontMetrics metrics = m_painter->fontMetrics("N");
-        double yoffset = hasLabel(mol, *atom) ? -0.2 * metrics.height : -0.2 * metrics.height;
+        double yoffset = hasLabel(mol, atom) ? -0.2 * metrics.height : -0.2 * metrics.height;
         /*switch (GetLabelAlignment(atom)) {
           case Up:
           case Left:
@@ -609,11 +609,11 @@ namespace Helium
         m_painter->setFontSize(metrics.fontSize);//restore
       }
 
-      if (is_carbon(mol, *atom)) {
+      if (is_carbon(mol, atom)) {
         if (!(m_options & DrawAllC)) {
-          if (get_valence(mol, *atom) > 1)
+          if (get_valence(mol, atom) > 1)
             continue;
-          if ((get_valence(mol, *atom) == 1) && !(m_options & DrawTermC))//!d->drawTerminalC)
+          if ((get_valence(mol, atom) == 1) && !(m_options & DrawTermC))//!d->drawTerminalC)
             continue;
         }
       }
@@ -621,17 +621,17 @@ namespace Helium
       std::stringstream ss;
 
       // atoms with element 0 are output as Rn
-      if (get_element(mol, *atom) == 0) {
+      if (get_element(mol, atom) == 0) {
         ss << 'R';
         m_painter->setPenColor(Color("black"));
       } else {
         std::string atomSymbol;
-        if (is_hydrogen(mol, *atom) && get_mass(mol, *atom) > 1)
-          atomSymbol = get_mass(mol, *atom) == 2 ? "D" : "T";
+        if (is_hydrogen(mol, atom) && get_mass(mol, atom) > 1)
+          atomSymbol = get_mass(mol, atom) == 2 ? "D" : "T";
         else
-          atomSymbol = Element::symbol(get_element(mol, *atom));
+          atomSymbol = Element::symbol(get_element(mol, atom));
 
-        unsigned int hCount = get_hydrogens(mol, *atom);
+        unsigned int hCount = get_hydrogens(mol, atom);
         // rightAligned:
         //   false  CH3
         //   true   H3C

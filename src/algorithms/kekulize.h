@@ -67,9 +67,9 @@ namespace Helium {
 
     // create a list of aromatic bonds
     std::vector<bool> bonds(num_bonds(mol));
-    FOREACH_BOND (bond, mol)
-      if (is_aromatic(mol, *bond))
-        bonds[get_index(mol, *bond)] = true;
+    for (auto &bond : get_bonds(mol))
+      if (is_aromatic(mol, bond))
+        bonds[get_index(mol, bond)] = true;
 
     // exclude bonds around hetero atoms in 5-membered rings if the atom is:
     // - oxygen (e.g. furan)
@@ -94,8 +94,8 @@ namespace Helium {
           exclude = true;
 
         if (exclude) {
-          FOREACH_INCIDENT (bond, atom, mol)
-            bonds[get_index(mol, *bond)] = false;
+          for (auto &bond : get_bonds(mol, atom))
+            bonds[get_index(mol, bond)] = false;
         }
       }
     }
@@ -103,9 +103,9 @@ namespace Helium {
     // create boost graph
     graph_type g(num_atoms(mol));
 
-    FOREACH_BOND (bond, mol)
-      if (bonds[get_index(mol, *bond)])
-        boost::add_edge(get_index(mol, get_source(mol, *bond)), get_index(mol, get_target(mol, *bond)), g);
+    for (auto &bond : get_bonds(mol))
+      if (bonds[get_index(mol, bond)])
+        boost::add_edge(get_index(mol, get_source(mol, bond)), get_index(mol, get_target(mol, bond)), g);
 
     // run maximum matching algorithm
     std::vector<boost::graph_traits<graph_type>::vertex_descriptor> mate(num_atoms(mol));
@@ -113,15 +113,15 @@ namespace Helium {
       return false;
 
     // mark all aromatic bonds as single
-    FOREACH_BOND (bond, mol)
-      if (is_aromatic(mol, *bond)) {
-        set_order(mol, *bond, 1);
-        set_aromatic(mol, *bond, false);
+    for (auto &bond : get_bonds(mol))
+      if (is_aromatic(mol, bond)) {
+        set_order(mol, bond, 1);
+        set_aromatic(mol, bond, false);
       }
 
     // mark all atoms ad non-aromatic
-    FOREACH_ATOM (atom, mol)
-      set_aromatic(mol, *atom, false);
+    for (auto &atom : get_atoms(mol))
+      set_aromatic(mol, atom, false);
 
     // mark all bonds in the maximum matching as double
     boost::graph_traits<graph_type>::vertex_iterator vi, vi_end;

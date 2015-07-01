@@ -987,9 +987,9 @@ namespace Helium {
     PRE(source != molecule_traits<HeMol>::null_atom());
     PRE(target != molecule_traits<HeMol>::null_atom());
 
-    FOREACH_INCIDENT (bond, source, mol)
-      if (get_other(mol, *bond, source) == target)
-        return *bond;
+    for (auto &bond : get_bonds(mol, source))
+      if (get_other(mol, bond, source) == target)
+        return bond;
     return mol.null_bond();
   }
 

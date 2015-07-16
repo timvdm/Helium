@@ -678,8 +678,6 @@ namespace Helium {
       bool findMapping(const MoleculeType &mol, MappingType &mapping,
           bool uniqueComponents = false)
       {
-        typedef typename molecule_traits<MoleculeType>::atom_type atom_type;
-
         switch (m_mode) {
           case SSSR:
             return findMapping(mol, relevant_cycles(mol), mapping, uniqueComponents); // FIXME

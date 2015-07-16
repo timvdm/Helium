@@ -36,7 +36,6 @@
 #include <sstream>
 #include <algorithm>
 #include <map>
-#include <boost/typeof/typeof.hpp>
 
 namespace Helium {
 

@@ -30,12 +30,9 @@
 #include <Helium/molecule.h>
 #include <Helium/algorithms/components.h>
 #include <Helium/util.h>
-//#include "timeout.h"
 
 #include <set>
 #include <iterator>
-
-//#include <boost/functional/hash.hpp>
 
 namespace Helium {
 

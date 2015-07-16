@@ -31,7 +31,7 @@
 #include <Helium/algorithms/cycles.h>
 
 #include <iostream>
-#include <boost/shared_ptr.hpp>
+#include <memory>
 
 //@cond DEV
 #define DEBUG_SMIRKS 0
@@ -407,13 +407,13 @@ namespace Helium {
        * @return True if changes were made to the molecule.
        */
       template<typename EditableMoleculeType>
-      std::vector<boost::shared_ptr<EditableMoleculeType> > react(const EditableMoleculeType &mol,
+      std::vector<std::shared_ptr<EditableMoleculeType> > react(const EditableMoleculeType &mol,
           const RingSet<EditableMoleculeType> &rings, int min = 1, int max = 1)
       {
         if (DEBUG_SMIRKS)
           std::cout << "Smirks::apply()" << std::endl;
 
-        std::vector<boost::shared_ptr<EditableMoleculeType> > products;
+        std::vector<std::shared_ptr<EditableMoleculeType> > products;
 
         MappingList mapping;
         if (!m_reactant.findMapping(mol, rings, mapping, true))
@@ -439,7 +439,7 @@ namespace Helium {
             // cleanup: remove planned atoms/bonds + fix hydrogens
             cleanup(*product, fixHydrogenAtoms, removeBonds, removeAtoms);
 
-            products.push_back(boost::shared_ptr<EditableMoleculeType>(product));
+            products.push_back(std::shared_ptr<EditableMoleculeType>(product));
           } while (next_combination(comb.begin(), comb.begin() + size, comb.end()));
 
         return products;
@@ -460,7 +460,7 @@ namespace Helium {
        * @return True if changes were made to the molecule.
        */
       template<typename EditableMoleculeType>
-      std::vector<boost::shared_ptr<EditableMoleculeType> > react(const EditableMoleculeType &mol, int min = 1, int max = 1)
+      std::vector<std::shared_ptr<EditableMoleculeType> > react(const EditableMoleculeType &mol, int min = 1, int max = 1)
       {
         return react(mol, relevant_cycles(mol), min, max);
       }

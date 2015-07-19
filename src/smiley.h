@@ -2509,6 +2509,7 @@ namespace Smiley {
               parsedOp = 0;
 
               m_callback.bondOperation(OP_Not);
+              parsedOp = OP_Not;
               ++m_pos();
               break;
           }

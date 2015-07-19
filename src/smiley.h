@@ -2180,7 +2180,7 @@ namespace Smiley {
           }
           // valence ::= ':' NUMBER
           parseClass();
-          if (atomPrimitiveCallback(AE_AtomClass, m_class, -1, parsedOp, first_primitive)) {
+          if (atomPrimitiveCallback(AE_AtomClass, m_class, 0, parsedOp, first_primitive)) {
             first_primitive = false;
             continue;
           }
@@ -2356,7 +2356,7 @@ namespace Smiley {
         m_charge = 0;
         m_chiral = NotChiral;
         m_hCount = -1;
-        m_class = -1;
+        m_class = 0;
         m_aromatic = false;
 
         switch (m_str()[m_pos()]) {

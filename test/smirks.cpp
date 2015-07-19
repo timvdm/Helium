@@ -321,8 +321,6 @@ void test_complex()
       "C1CC=NC1.[C-]#[N+]CCC.c1cc(Cl)ccc1C(=O)O", "CCCNC(=O)C1CCCN1C(=O)c2ccc(Cl)cc2");
   test_smirks("[C:1](=[O:2])[Cl:3].[H:99][N:4]([H:100])[C:5]>>[C:1](=[O:2])[N:4]([H:100])[C:5].[Cl:3][H:99]",
       "CCCCN.CCCC(=O)Cl", "CCCCNC(=O)CCC.Cl");
-  test_smirks("[C:1](=[O:2])[Cl:3].[H:99][N:4]([H:100])[C:0]>>[C:1](=[O:2])[N:4]([H:100])[C:0].[Cl:3][H:99]",
-      "CCCCN.CCCC(=O)Cl", "CCCCNC(=O)CCC.Cl");
   test_smirks("[*:1][C:2]([H:3])([O:4][H:5])[C:6]([H:7])([O:8][H:9])[*:10]>>[*:1][C:2](=[O:4])[C:6](=[O:8])[*:10].[H:3][H:5].[H:7][H:9]",
       "C1CC(O)C(O)CC1", "O=C1CCCCC1=O");
   test_smirks("[*:1][CH:2]([OH:3])[*:4].[I:5][SiH2:6][I:7]>>[*:1][CH:2]([I:5])[*:4].[OH:3][SiH2:6][I:7]",

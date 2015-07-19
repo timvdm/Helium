@@ -33,6 +33,7 @@
 #include <sstream>
 #include <vector>
 #include <set>
+#include <map>
 #include <algorithm>
 #include <cassert>
 
@@ -81,6 +82,16 @@ namespace std {
   std::ostream& operator<<(std::ostream &os, const std::pair<T1, T2> &p)
   {
     os << "( " << p.first << " " << p.second << " )";
+    return os;
+  }
+
+  template<typename Key, typename Value>
+  std::ostream& operator<<(std::ostream &os, const std::map<Key, Value> &m)
+  {
+    os << "map[ ";
+    for (auto &i : m)
+      os << i.first << " => " << i.second << " ";
+    os << "]";
     return os;
   }
 

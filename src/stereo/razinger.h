@@ -27,7 +27,7 @@
 #ifndef HELIUM_RAZINGER_H
 #define HELIUM_RAZINGER_H
 
-#include <Helium/stereo/stereounit.h>
+#include <Helium/stereo.h>
 #include <Helium/molecule.h>
 #include <Helium/contract.h>
 

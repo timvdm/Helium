@@ -386,32 +386,36 @@ namespace Smiley {
      */
     TrailingDot = 10,
     /**
+     * Example: "C-", "C/"
+     */
+    TrailingExplicitBond = 11,
+    /**
      * Example: "C%123CC%123", "C%CC%"
      */
-    InvalidRingBondNumber = 11,
+    InvalidRingBondNumber = 12,
     //////////////////
     // SMARTS
     //////////////////
     /**
      * Example: "[&C]"
      */
-    BinaryOpWithoutLeftOperand = 12,
+    BinaryOpWithoutLeftOperand = 13,
     /**
      * Example: "[C&]"
      */
-    BinaryOpWithoutRightOperand = 13,
+    BinaryOpWithoutRightOperand = 14,
     /**
      * Example: "[C!]"
      */
-    UnaryOpWithoutArgument = 14,
+    UnaryOpWithoutArgument = 15,
     /**
      * Example: "[Q]"
      */
-    InvalidAtomPrimitive = 15,
+    InvalidAtomPrimitive = 16,
     /**
      * Example: "C^C"
      */
-    InvalidBondPrimitive = 16,
+    InvalidBondPrimitive = 17,
     ////////////////////////////////////////
     //
     // SemanticsError
@@ -578,6 +582,8 @@ namespace Smiley {
     BE_Up,
     BE_Down,
     BE_Ring,
+    BE_UpUnspecified = BE_Single,
+    BE_DownUnspecified = BE_Single,
     BE_Any = BE_True
   };
 
@@ -2424,13 +2430,35 @@ namespace Smiley {
               processBondPrimitive(BE_Aromatic, firstPrimitive, parsedOp);
               break;
             case '/':
+            {
+              std::size_t nextPos = m_pos();
+              nextPos++;
+              if (nextPos < m_str().size()) { // bounds checking
+                if (m_str()[nextPos] == '?') { // check the next character
+                  ++m_pos(); // move the current position forward
+                  processBondPrimitive(BE_UpUnspecified, firstPrimitive, parsedOp); // parse a new bond primitive
+                  break;
+                }
+              }
               m_isUp = true;
               processBondPrimitive(BE_Up, firstPrimitive, parsedOp);
               break;
+            }
             case '\\':
+            {
+              std::size_t nextPos = m_pos();
+              nextPos++;
+              if (nextPos < m_str().size()) { // bounds checking
+                if (m_str()[nextPos] == '?') { // check the next character
+                  ++m_pos(); // move the current position forward
+                  processBondPrimitive(BE_DownUnspecified, firstPrimitive, parsedOp); // parse a new bond primitive
+                  break;
+                }
+              }
               m_isDown = true;
               processBondPrimitive(BE_Down, firstPrimitive, parsedOp);
               break;
+            }
             case '~':
               if (m_mode == SmilesMode)
                 break;
@@ -2808,6 +2836,9 @@ namespace Smiley {
       {
         parseChain();
 
+        if (m_explicitBond)
+          throw Exception(Exception::SyntaxError, TrailingExplicitBond,
+              "Trailing explicit bond, expected atom", m_str().size(), 1);
         if (m_branches().size())
           throw Exception(Exception::SyntaxError, UnmatchedBranchOpening,
               "Unmatched branch opening", m_branches().back().pos, m_str().size() - m_branches().back().pos);

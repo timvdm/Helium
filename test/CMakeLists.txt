@@ -20,6 +20,8 @@ set(tests
   smarts
   smirks
   sdf
+  substructure
+  stereo
   )
 
 foreach(test ${tests})

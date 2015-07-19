@@ -23,6 +23,8 @@ set(HELIUM_HDRS
   smarts.h
   smirks.h
   smartmol.h
+  substructure.h
+  stereo.h
 )
 
 set(HELIUM_ALGORITHMS_HDRS
@@ -66,7 +68,6 @@ set(HELIUM_FINGERPRINTS_HDRS
 )
 
 set(HELIUM_STEREO_HDRS
-  stereo/stereounit.h
   stereo/razinger.h
 )
 

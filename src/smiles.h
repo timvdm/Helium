@@ -32,6 +32,7 @@
 #include <Helium/algorithms/canonical.h>
 #include <Helium/algorithms/components.h>
 #include <Helium/algorithms/extendedconnectivities.h>
+#include <Helium/stereo.h>
 #include <Helium/element.h>
 #include <Helium/error.h>
 #include <Helium/smiley.h>
@@ -75,7 +76,15 @@ namespace Helium {
        * @param mol The molecule.
        */
       template<typename EditableMoleculeType>
-      bool read(const std::string &smiles, EditableMoleculeType &mol);
+      bool read(const std::string &smiles, EditableMoleculeType &mol,
+          Stereochemistry &stereo);
+
+      template<typename EditableMoleculeType>
+      bool read(const std::string &smiles, EditableMoleculeType &mol)
+      {
+        Stereochemistry stereo;
+        return read(smiles, mol, stereo);
+      }
 
       /**
        * @brief Write a SMILES string for the molecule.
@@ -99,6 +108,13 @@ namespace Helium {
        */
       template<typename MoleculeType>
       std::string write(const MoleculeType &mol,
+          const std::map<Index, int> &atomClasses, int flags = All);
+
+      template<typename MoleculeType>
+      std::string write(const MoleculeType &mol, const Stereochemistry &stereo,
+          int flags = All);
+      template<typename MoleculeType>
+      std::string write(const MoleculeType &mol, const Stereochemistry &stereo,
           const std::map<Index, int> &atomClasses, int flags = All);
 
       /**
@@ -187,13 +203,15 @@ namespace Helium {
     template<typename EditableMoleculeType>
     struct SmileyCallback : public Smiley::CallbackBase
     {
-      SmileyCallback(EditableMoleculeType &mol_) : mol(mol_)
+      SmileyCallback(EditableMoleculeType &mol_, Stereochemistry &stereo_)
+          : mol(mol_), stereo(stereo_)
       {
       }
 
       void clear()
       {
         clear_molecule(mol);
+        stereo.clear();
       }
 
       void addAtom(int element, bool aromatic, int isotope, int hCount, int charge, int atomClass)
@@ -209,14 +227,16 @@ namespace Helium {
           set_hydrogens(mol, atom, hCount);
         else {
           switch (element) {
-            case 5:
-            case 6:
-            case 7:
-            case 8:
-            case 9:
-            case 17:
-            case 35:
-            case 53:
+            case 5: // B
+            case 6: // C
+            case 7: // N
+            case 8: // O
+            case 15: // P
+            case 16: // S
+            case 9: // F
+            case 17: // Cl
+            case 35: // Br
+            case 53: // I
               set_hydrogens(mol, atom, 99);
               break;
             default:
@@ -234,48 +254,96 @@ namespace Helium {
         set_order(mol, bond, order);
       }
 
+      void setChiral(int index, Smiley::Chirality chirality, const std::vector<int> &chiralNbrs)
+      {
+        Stereo::Ref refs[6];
+
+        switch (chirality) {
+          case Smiley::AntiClockwise:
+          case Smiley::TH1:
+            std::copy(chiralNbrs.begin(), chiralNbrs.end(), refs);
+            for (std::size_t i = 0; i < 4; ++i)
+              if (refs[i] == Smiley::implicitHydrogen())
+                refs[i] = Stereo::implRef();
+            stereo.add(StereoStorage::create(Stereo::Tetrahedral, index, refs, refs + 4));
+            break;
+          case Smiley::Clockwise:
+          case Smiley::TH2:
+            refs[0] = chiralNbrs[0];
+            std::copy(chiralNbrs.rbegin(), chiralNbrs.rbegin() + 3, refs + 1);
+            for (std::size_t i = 0; i < 4; ++i)
+              if (refs[i] == Smiley::implicitHydrogen())
+                refs[i] = Stereo::implRef();
+            stereo.add(StereoStorage::create(Stereo::Tetrahedral, index, refs, refs + 4));
+            break;
+        }
+      }
+
       EditableMoleculeType &mol;
+      Stereochemistry &stereo;
     };
 
+    struct RingNumber
+    {
+      int number; // the ring number determined by the preprocessor visitor (may be >99)
+      int atom1; // index of atom that is written first
+      int atom2; // index of atom that is written second
+      int order; // the bond order
+    };
+
+    // determines ring closure numbers and final atom output order (needed for stereochemistry)
     template<typename MoleculeType>
-    struct WriteSmilesRingNumberVisitor : public DFSVisitor<MoleculeType>
+    struct WriteSmilesPreprocessor : public DFSVisitor<MoleculeType>
     {
       typedef typename molecule_traits<MoleculeType>::atom_type atom_type;
       typedef typename molecule_traits<MoleculeType>::bond_type bond_type;
 
       void initialize(const MoleculeType &mol)
       {
+        outputIndex = 0;
         ringNumber = 0;
         ringNumbers.clear();
+        outputIndices.resize(num_atoms(mol));
+      }
+
+      void atom(const MoleculeType &mol, atom_type prev, atom_type atom)
+      {
+        outputIndices[get_index(mol, atom)] = outputIndex++;
       }
 
       void back_bond(const MoleculeType &mol, bond_type bond)
       {
         ++ringNumber;
 
-        if (ringNumbers.find(get_source(mol, bond)) == ringNumbers.end())
-          ringNumbers[get_source(mol, bond)] = std::vector<int>();
-        ringNumbers[get_source(mol, bond)].push_back(ringNumber);
+        int source = get_index(mol, get_source(mol, bond));
+        int target = get_index(mol, get_target(mol, bond));
 
-        if (ringNumbers.find(get_target(mol, bond)) == ringNumbers.end())
-          ringNumbers[get_target(mol, bond)] = std::vector<int>();
-        ringNumbers[get_target(mol, bond)].push_back(ringNumber);
+        // both source and target are already visited, use outputIndices to
+        // swap them if needed
+        if (outputIndices[target] < outputIndices[source])
+          std::swap(source, target);
 
+        int order = 0;
         if (get_order(mol, bond) == 1 && !is_aromatic(mol, bond) &&
             is_aromatic(mol, get_source(mol, bond)) && is_aromatic(mol, get_target(mol, bond)))
-          orders[ringNumber] = 1;
+          order = 1;
         else if (get_order(mol, bond) == 2 && !is_aromatic(mol, bond))
-          orders[ringNumber] = 2;
+          order = 2;
         else if (get_order(mol, bond) > 2)
-          orders[ringNumber] = get_order(mol, bond);
-        else
-          orders[ringNumber] = 0;
+          order = get_order(mol, bond);
+
+        RingNumber rn{ringNumber, source, target, order};
+
+        ringNumbers[get_source(mol, bond)].push_back(rn);
+        ringNumbers[get_target(mol, bond)].push_back(rn);
       }
 
+      int outputIndex;
       int ringNumber;
-      std::map<atom_type, std::vector<int> > ringNumbers;
-      std::map<int, int> orders;
+      std::map<atom_type, std::vector<RingNumber>> ringNumbers;
+      std::vector<int> outputIndices; // maps atom index to output index
     };
+
 
     template<typename MoleculeType>
     struct WriteSmilesVisitor : public DFSVisitor<MoleculeType>
@@ -283,10 +351,12 @@ namespace Helium {
       typedef typename molecule_traits<MoleculeType>::atom_type atom_type;
       typedef typename molecule_traits<MoleculeType>::bond_type bond_type;
 
-      WriteSmilesVisitor(const std::map<atom_type, std::vector<int> > &ringNumbers_,
-          const std::map<int, int> &orders_, const std::map<Index, int> &atomClasses_,
-          int flags_) : ringNumbers(ringNumbers_), orders(orders_),
-        atomClasses(atomClasses_), explicitBond(0), flags(flags_)
+      WriteSmilesVisitor(const Stereochemistry &stereo_,
+          const std::map<atom_type, std::vector<RingNumber>> &ringNumbers_,
+          const std::vector<int> &outputIndices_, const std::map<Index, int> &atomClasses_,
+          int flags_) : stereo(stereo_), ringNumbers(ringNumbers_),
+          outputIndices(outputIndices_), atomClasses(atomClasses_),
+          explicitBond(0), flags(flags_)
       {
       }
 
@@ -315,11 +385,57 @@ namespace Helium {
         }
       }
 
+      void writeStereo(const MoleculeType &mol, atom_type prev, atom_type atom,
+          const std::vector<RingNumber> &rings)
+      {
+        if (stereo.isTetrahedral(get_index(mol, atom))) {
+          std::map<Stereo::Ref, Stereo::Ref> indexMap; // output index -> molecule index
+
+          // check if there is a neighbor before the chiral atom and sort the other neighbors
+          // that are not ring closures by output index
+          for (auto &nbr : get_nbrs(mol, atom)) {
+            if (nbr == prev)
+              continue;
+            if (ringNumbers.find(nbr) != ringNumbers.end())
+              continue;
+            indexMap[outputIndices[get_index(mol, nbr)]] = get_index(mol, nbr);
+          }
+
+          std::vector<Stereo::Ref> refs;
+          // add prev atom (if needed)
+          if (prev != molecule_traits<MoleculeType>::null_atom())
+            refs.push_back(get_index(mol, prev));
+          // add the ring closure neighbors
+          for (auto &ring : rings)
+            refs.push_back((get_index(mol, atom) == ring.atom1) ? ring.atom2 : ring.atom1);
+          // add sorted neighbors to refs
+          for (auto i : indexMap)
+            refs.push_back(i.second);
+
+          if (refs.size() == 3) {
+            if (prev != molecule_traits<MoleculeType>::null_atom())
+              refs.insert(refs.begin() + 1, Stereo::implRef());
+            else
+              refs.insert(refs.begin(), Stereo::implRef());
+          }
+
+          assert(refs.size() == 4);
+
+          //std::cout << stereo.tetrahedral(get_index(mol, atom)) << std::endl;
+          //std::cout << "refs: " << refs << std::endl;
+
+          if (tetrahedral_class(stereo.tetrahedral(get_index(mol, atom)), refs[0], refs[1], refs[2], refs[3]) == Stereo::TH1)
+            smiles << "@";
+          else
+            smiles << "@@";
+        }
+      }
+
       void atom(const MoleculeType &mol, atom_type prev, atom_type atom)
       {
         if (prev != molecule_traits<MoleculeType>::null_atom()) {
-          typename std::map<atom_type, std::vector<int> >::const_iterator rings = ringNumbers.find(prev);
-          int numRings = rings == ringNumbers.end() ? 0 : rings->second.size();
+          auto rings = ringNumbers.find(prev);
+          int numRings = (rings == ringNumbers.end()) ? 0 : rings->second.size();
           degrees[get_index(mol, prev)]++;
 
           // the -1 comes from the previous atom of prev
@@ -335,18 +451,22 @@ namespace Helium {
             smiles << ".";
         }
 
+        // write explicit bond if needed
         if (explicitBond)
           smiles << explicitBond;
         explicitBond = 0;
 
+        // convert symbol to lower case for aromatic atoms
         std::string element = Element::symbol(get_element(mol, atom));
         if (is_aromatic(mol, atom))
           std::transform(element.begin(), element.end(), element.begin(), ::tolower);
 
-        // ignore mass 0
+        // non organic subset atoms always requre brackets
         bool needBrackets = !isOrganicSubset(get_element(mol, atom));
+        // charge requires brackets
         if (get_charge(mol, atom) && (flags & Smiles::Charge))
           needBrackets = true;
+        // ignore mass 0
         if (get_mass(mol, atom) && get_mass(mol, atom) !=
             Element::averageMass(get_element(mol, atom)) && (flags & Smiles::Mass))
           needBrackets = true;
@@ -376,6 +496,9 @@ namespace Helium {
         std::map<Index, int>::const_iterator atomClass = atomClasses.find(get_index(mol, atom));
         if (atomClass != atomClasses.end())
           needBrackets = true;
+        // stereo requires brackets
+        if (stereo.isTetrahedral(get_index(mol, atom)))
+          needBrackets = true;
 
         if (needBrackets)
           smiles << "[";
@@ -384,6 +507,14 @@ namespace Helium {
           smiles << get_mass(mol, atom);
 
         smiles << element;
+
+        auto rings = ringNumbers.find(atom);
+
+        // write chiral
+        if (rings != ringNumbers.end())
+          writeStereo(mol, prev, atom, rings->second);
+        else
+          writeStereo(mol, prev, atom, std::vector<RingNumber>());
 
         // do not write implicit H for hydrogen
         // place it as an explicit hydrogen next...
@@ -418,25 +549,11 @@ namespace Helium {
         if (get_element(mol, atom) == 1 && get_hydrogens(mol, atom) == 1)
           smiles << "[H]";
 
-        typename std::map<atom_type, std::vector<int> >::const_iterator rings = ringNumbers.find(atom);
         if (rings != ringNumbers.end()) {
-          std::vector<std::pair<int, int> > sortedRingNumbers;
-
-          bool firstAtom = false;
-          for (std::size_t i = 0; i < rings->second.size(); ++i) {
-            if (orderedRingNumbers.find(rings->second[i]) == orderedRingNumbers.end()) {
-              sortedRingNumbers.push_back(std::make_pair(orderedRingNumbers.size() + 1, orders[rings->second[i]]));
-              orderedRingNumbers[rings->second[i]] = sortedRingNumbers.back();
-              firstAtom = true;
-            } else
-              sortedRingNumbers.push_back(orderedRingNumbers[rings->second[i]]);
-          }
-
-          std::sort(sortedRingNumbers.begin(), sortedRingNumbers.end(), compare_first<int, int>());
-
-          for (std::size_t i = 0; i < sortedRingNumbers.size(); ++i) {
+          for (auto &ring : rings->second) {
+            bool firstAtom = (get_index(mol, atom) == ring.atom1);
             if (flags & Smiles::Order && firstAtom)
-              switch (sortedRingNumbers[i].second) {
+              switch (ring.order) {
                 case 1:
                   smiles << "-";
                   break;
@@ -453,10 +570,10 @@ namespace Helium {
                   break;
               }
 
-            if (sortedRingNumbers[i].first > 9)
-              smiles << "%" << sortedRingNumbers[i].first;
+            if (ring.number > 9)
+              smiles << "%" << ring.number;
             else
-              smiles << sortedRingNumbers[i].first;
+              smiles << ring.number;
           }
         }
       }
@@ -500,9 +617,11 @@ namespace Helium {
       {
       }
 
-      const std::map<atom_type, std::vector<int> > &ringNumbers;
-      std::map<int, std::pair<int, int> > orderedRingNumbers;
-      std::map<int, int> orders;
+      const Stereochemistry &stereo;
+      const std::map<atom_type, std::vector<RingNumber> > &ringNumbers; // atom -> ring numbers
+      std::map<int, std::pair<int, int> > orderedRingNumbers; // ring number -> (final ring number, bond order)
+      std::map<int, int> closureBondOrders;
+      const std::vector<int> &outputIndices;
       std::vector<int> degrees;
       std::vector<Index> branches;
       std::stringstream smiles;
@@ -555,12 +674,12 @@ namespace Helium {
   } // namespace impl
 
   template<typename EditableMoleculeType>
-  bool Smiles::read(const std::string &smiles, EditableMoleculeType &mol)
+  bool Smiles::read(const std::string &smiles, EditableMoleculeType &mol, Stereochemistry &stereo)
   {
     // reset error
     m_error = Error();
 
-    impl::SmileyCallback<EditableMoleculeType> callback(mol);
+    impl::SmileyCallback<EditableMoleculeType> callback(mol, stereo);
     Smiley::Parser<impl::SmileyCallback<EditableMoleculeType> > parser(callback);
 
     parser.disableExceptions(Smiley::InvalidChiralValence);
@@ -613,31 +732,53 @@ namespace Helium {
   }
 
   template<typename MoleculeType>
-  std::string Smiles::write(const MoleculeType &mol, const std::map<Index, int> &atomClasses, int flags)
+  std::string Smiles::write(const MoleculeType &mol, const Stereochemistry &stereo,
+      const std::map<Index, int> &atomClasses, int flags)
   {
-    impl::WriteSmilesRingNumberVisitor<MoleculeType> ringNumbers;
-    depth_first_search(mol, ringNumbers);
+    // determine ring closures and final output order
+    impl::WriteSmilesPreprocessor<MoleculeType> preprocessor;
+    depth_first_search(mol, preprocessor);
 
-    impl::WriteSmilesVisitor<MoleculeType> smilesWriter(ringNumbers.ringNumbers, ringNumbers.orders, atomClasses, flags);
+    impl::WriteSmilesVisitor<MoleculeType> smilesWriter(stereo, preprocessor.ringNumbers,
+        preprocessor.outputIndices, atomClasses, flags);
     depth_first_search(mol, smilesWriter);
 
     return smilesWriter.smiles.str();
   }
 
   template<typename MoleculeType>
-  std::string Smiles::write(const MoleculeType &mol, int flags)
+  std::string Smiles::write(const MoleculeType &mol, const std::map<Index, int> &atomClasses,
+      int flags)
   {
-    std::map<Index, int> atomClasses;
-    return write(mol, atomClasses, flags);
+    Stereochemistry stereo;
+    return write(mol, stereo, atomClasses, flags);
   }
 
   template<typename MoleculeType>
-  std::string Smiles::write(const MoleculeType &mol, const std::vector<Index> &order, const std::map<Index, int> &atomClasses, int flags)
+  std::string Smiles::write(const MoleculeType &mol, const Stereochemistry &stereo, int flags)
   {
-    impl::WriteSmilesRingNumberVisitor<MoleculeType> ringNumbers;
-    ordered_depth_first_search(mol, order, ringNumbers);
+    std::map<Index, int> atomClasses;
+    return write(mol, stereo, atomClasses, flags);
+  }
 
-    impl::WriteSmilesVisitor<MoleculeType> smilesWriter(ringNumbers.ringNumbers, ringNumbers.orders, atomClasses, flags);
+  template<typename MoleculeType>
+  std::string Smiles::write(const MoleculeType &mol, int flags)
+  {
+    Stereochemistry stereo;
+    std::map<Index, int> atomClasses;
+    return write(mol, stereo, atomClasses, flags);
+  }
+
+  template<typename MoleculeType>
+  std::string Smiles::write(const MoleculeType &mol, const std::vector<Index> &order,
+      const std::map<Index, int> &atomClasses, int flags)
+  {
+    impl::WriteSmilesPreprocessor<MoleculeType> preprocessor;
+    ordered_depth_first_search(mol, order, preprocessor);
+
+    Stereochemistry stereo;
+    impl::WriteSmilesVisitor<MoleculeType> smilesWriter(stereo, preprocessor.ringNumbers,
+        preprocessor.outputIndices, atomClasses, flags);
     ordered_depth_first_search(mol, order, smilesWriter);
 
     return smilesWriter.smiles.str();

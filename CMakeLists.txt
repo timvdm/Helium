@@ -77,7 +77,7 @@ if (MSVC)
     string(REPLACE "/MD" "/MT" ${CompilerFlag} "${${CompilerFlag}}")
   endforeach()
 else()
-  set(CMAKE_CXX_FLAGS "-g -pedantic -Wall -Wno-long-long -Wno-sign-compare ${CMAKE_CXX_FLAGS}")
+  set(CMAKE_CXX_FLAGS "-g -pedantic -Wall -Wno-long-long -Wno-sign-compare -Wno-deprecated-register  ${CMAKE_CXX_FLAGS}")
 endif()
 
 # C++11

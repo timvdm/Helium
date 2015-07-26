@@ -7,7 +7,6 @@
 set(HELIUM_HDRS
   bitvec.h
   contract.h
-  concepts.h
   concurrent.h
   diagram.h
   element.h

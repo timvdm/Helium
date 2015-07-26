@@ -1,6 +1,5 @@
 #include "../src/substructure.h"
 #include "../src/smiles.h"
-#include "../src/concepts.h"
 
 #include "test.h"
 

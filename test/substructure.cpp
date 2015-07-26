@@ -66,8 +66,10 @@ int main()
 
   // test get_atoms
   unsigned int numAtoms = 0;
-  for (auto &atom : get_atoms(substruct))
+  for (auto &atom : get_atoms(substruct)) {
+    HEUNUSED(atom);
     ++numAtoms;
+  }
   COMPARE(3, numAtoms);
 
   // test get_atom
@@ -80,8 +82,10 @@ int main()
 
   // test get_bonds
   unsigned int numBonds = 0;
-  for (auto &bond : get_bonds(substruct))
+  for (auto &bond : get_bonds(substruct)) {
+    HEUNUSED(bond);
     ++numBonds;
+  }
   COMPARE(2, numBonds);
 
   // test get_bond
@@ -104,34 +108,46 @@ int main()
 
   // test get_bonds
   numBonds = 0;
-  for (auto &bond : get_bonds(substruct, get_atom(substruct, 0)))
+  for (auto &bond : get_bonds(substruct, get_atom(substruct, 0))) {
+    HEUNUSED(bond);
     ++numBonds;
+  }
   COMPARE(1, numBonds);
 
   numBonds = 0;
-  for (auto &bond : get_bonds(substruct, get_atom(substruct, 1)))
+  for (auto &bond : get_bonds(substruct, get_atom(substruct, 1))) {
+    HEUNUSED(bond);
     ++numBonds;
+  }
   COMPARE(2, numBonds);
 
   numBonds = 0;
-  for (auto &bond : get_bonds(substruct, get_atom(substruct, 2)))
+  for (auto &bond : get_bonds(substruct, get_atom(substruct, 2))) {
+    HEUNUSED(bond);
     ++numBonds;
+  }
   COMPARE(1, numBonds);
 
   // test get_nbrs
   unsigned int numNbrs = 0;
-  for (auto &nbr : get_nbrs(substruct, get_atom(substruct, 0)))
+  for (auto &nbr : get_nbrs(substruct, get_atom(substruct, 0))) {
+    HEUNUSED(nbr);
     ++numNbrs;
+  }
   COMPARE(1, numNbrs);
 
   numNbrs = 0;
-  for (auto &nbr : get_nbrs(substruct, get_atom(substruct, 1)))
+  for (auto &nbr : get_nbrs(substruct, get_atom(substruct, 1))) {
+    HEUNUSED(nbr);
     ++numNbrs;
+  }
   COMPARE(2, numNbrs);
 
   numNbrs = 0;
-  for (auto &nbr : get_nbrs(substruct, get_atom(substruct, 2)))
+  for (auto &nbr : get_nbrs(substruct, get_atom(substruct, 2))) {
+    HEUNUSED(nbr);
     ++numNbrs;
+  }
   COMPARE(1, numNbrs);
 
   // test get_degree

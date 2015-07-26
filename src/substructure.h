@@ -559,8 +559,10 @@ namespace Helium {
       typename molecule_traits<Substructure<MoleculeType> >::atom_type atom)
   {
     int d = 0;
-    for (auto &bond : get_bonds(const_cast<Substructure<MoleculeType>&>(mol), atom))
+    for (auto &bond : get_bonds(const_cast<Substructure<MoleculeType>&>(mol), atom)) {
+      HEUNUSED(bond);
       ++d;
+    }
     return d;
   }
 

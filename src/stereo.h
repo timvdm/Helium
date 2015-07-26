@@ -42,31 +42,23 @@ namespace Helium {
 
     enum Type {
       None,
-      TetraPlanar = 1, //!< 4 planar ligands (i.e. square planar, cis/trans)
-      TetraNonPlanar = 2, //!< 4 non-planar ligands (i.e. tetrahedral, allene-like)
-      TrigonalBipyramidal = 4, //!< 5 ligands, two axial with the remaning on a plane
-      Octahedral = 8, //!< 6 ligands, 3 axes
-      CisTrans = 1 + 16,
-      SquarePlanar = 1 + 32,
-      Tetrahedral = 2 + 64,
-      Allene = 2 + 128,
+      Tetrahedral, //!< 4 ligands around center atom
+      TrigonalBipyramidal, //!< 5 ligands, two axial with the remaning on a plane
+      Octahedral, //!< 6 ligands, 3 axes
+      CisTrans, //!< cis/trans double bond stereochemistry
+      SquarePlanar, //!< 4 ligands on a plane
+      Allene, //!< 4 ligands at the end of even number of double bonds
     };
 
     enum Class {
-      TH1,
-      TH2
-    };
-
-    enum View
-    {
-      ViewFrom,
-      ViewTowards
-    };
-
-    enum Winding
-    {
-      Clockwise,
-      AntiClockwise
+      TH1, TH2,
+      AL1, AL2,
+      SP1, SP2, SP3,
+      TB1, TB2, TB3, TB4, TB5, TB6, TB7, TB8, TB9,
+      TB10, TB11, TB12, TB13, TB14, TB15, TB16, TB17, TB18, TB19, TB20,
+      OH1, OH2, OH3, OH4, OH5, OH6, OH7, OH8, OH9, OH10,
+      OH11, OH12, OH13, OH14, OH15, OH16, OH17, OH18, OH19, OH20,
+      OH21, OH22, OH23, OH24, OH25, OH26, OH27, OH28, OH29, OH30
     };
 
     static Ref nullRef()
@@ -117,7 +109,7 @@ namespace Helium {
     public:
       StereoStorage(enum Stereo::Type type = Stereo::None) : m_type(type)
       {
-        std::fill(m_centers, m_centers + 2, Stereo::nullRef());
+        m_center = Stereo::nullRef();
         std::fill(m_refs, m_refs + 6, Stereo::nullRef());
       }
 
@@ -133,15 +125,8 @@ namespace Helium {
 
         // check center(s)
         switch (m_type) {
-          case Stereo::CisTrans:
-          case Stereo::Allene:
-            if (m_centers[0] == Stereo::nullRef() || m_centers[1] == Stereo::nullRef())
-              return false;
-            if (m_centers[0] == Stereo::implRef() || m_centers[1] == Stereo::implRef())
-              return false;
-            break;
           default:
-            if (m_centers[0] == Stereo::nullRef() || m_centers[0] == Stereo::implRef())
+            if (m_center == Stereo::nullRef() || m_center == Stereo::implRef())
               return false;
         }
 
@@ -151,8 +136,36 @@ namespace Helium {
           return false;
 
         int implCount = std::count(m_refs, m_refs + numRefs(), Stereo::implRef());
-        if (implCount > 1)
-          return false;
+        switch (m_type) {
+          case Stereo::Tetrahedral:
+            if (implCount > 1)
+              return false;
+            break;
+          case Stereo::Allene:
+            break;
+          case Stereo::CisTrans:
+            // each double bond atom needs at least one explicit ref
+            if (m_refs[0] == Stereo::implRef() && m_refs[1] == Stereo::implRef())
+              return false;
+            if (m_refs[2] == Stereo::implRef() && m_refs[3] == Stereo::implRef())
+              return false;
+            break;
+          case Stereo::SquarePlanar:
+            if (implCount > 3)
+              return false;
+            break;
+          case Stereo::TrigonalBipyramidal:
+          case Stereo::Octahedral:
+            // invalid if both axis atoms are hydrogens
+            //if (m_refs[0] == Stereo::implRef() && m_refs[4] == Stereo::implRef())
+            //  return false;
+            // invalid if 2 of the 3 plane atoms are hydrogens
+            //if (std::count(m_refs + 1, m_refs + 4, Stereo::implRef()) > 1)
+            //  return false;
+            break;
+          default:
+            break;
+        }
 
         return true;
       }
@@ -185,10 +198,9 @@ namespace Helium {
         }
       }
 
-      Stereo::Ref center(int index = 0) const
+      Stereo::Ref center() const
       {
-        assert(index < numCenters());
-        return m_centers[index];
+        return m_center;
       }
 
       Stereo::Ref ref(int index) const
@@ -207,52 +219,31 @@ namespace Helium {
           RefIter beginRefs, RefIter endRefs)
       {
         StereoStorage stereo(type);
-        stereo.m_centers[0] = center;
+        stereo.m_center = center;
         std::copy(beginRefs, endRefs, stereo.m_refs);
         return stereo;
       }
 
     private:
-      enum Stereo::Type m_type;
-      Stereo::Ref m_centers[2]; //!< The stereo center(s)
+      enum Stereo::Type m_type; //!< The stereo type
+      Stereo::Ref m_center; //!< The stereo center atom or bond
       Stereo::Ref m_refs[6]; //!< The 4 stereo
   };
 
-  inline std::ostream& operator<<(std::ostream &os, const StereoStorage &stereo)
-  {
-    os << "StereoStorage(";
-    switch (stereo.type()) {
-      case Stereo::Tetrahedral:
-        os << "Tetrahedral, center: center: " << stereo.center() << ", refs:";
-        for (std::size_t i = 0; i < 4; ++i)
-          os << " " << stereo.ref(i);
-        break;
-      case Stereo::CisTrans:
-        os << "CisTrans, center: " << stereo.center() << ", refs: ";
-        break;
-      case Stereo::SquarePlanar:
-        os << "SquarePlanar, center: " << stereo.center() << ", refs: ";
-        break;
-      case Stereo::Allene:
-        os << "Allene, center: " << stereo.center() << ", refs: ";
-        break;
-      case Stereo::TrigonalBipyramidal:
-        os << "TrigonalBipyramidal, center: " << stereo.center() << ", refs: ";
-        break;
-      case Stereo::Octahedral:
-        os << "Octahedral, center: " << stereo.center() << ", refs: ";
-        break;
-      default:
-        os << "None";
-        break;
-    }
-    os << ")";
-    return os;
-  }
+  std::ostream& operator<<(std::ostream &os, const StereoStorage &stereo);
 
   class Stereochemistry
   {
     public:
+      Stereochemistry()
+      {
+      }
+
+      Stereochemistry(const Stereochemistry &other)
+      {
+        copy(other);
+      }
+
       std::size_t numStereo() const
       {
         return m_stereo.size();
@@ -260,91 +251,239 @@ namespace Helium {
 
       std::size_t numTetrahedral() const
       {
-        return m_tetrahedral.size();
+        return numType(Stereo::Tetrahedral);
+      }
+
+      std::size_t numAllene() const
+      {
+        return numType(Stereo::Allene);
+      }
+
+      std::size_t numCisTrans() const
+      {
+        return numType(Stereo::CisTrans);
+      }
+
+      std::size_t numSquarePlanar() const
+      {
+        return numType(Stereo::SquarePlanar);
+      }
+
+      std::size_t numTrigonalBipyramidal() const
+      {
+        return numType(Stereo::TrigonalBipyramidal);
+      }
+
+      std::size_t numOctahedral() const
+      {
+        return numType(Stereo::Octahedral);
       }
 
       bool isTetrahedral(Stereo::Ref center) const
       {
-        for (auto stereo : m_tetrahedral)
-          if (stereo->center() == center)
-            return true;
-        return false;
+        return isType(Stereo::Tetrahedral, center);
+      }
+
+      bool isAllene(Stereo::Ref center) const
+      {
+        return isType(Stereo::Allene, center);
+      }
+
+      bool isCisTrans(Stereo::Ref bond) const
+      {
+        return isType(Stereo::CisTrans, bond);
+      }
+
+      bool isSquarePlanar(Stereo::Ref center) const
+      {
+        return isType(Stereo::SquarePlanar, center);
+      }
+
+      bool isTrigonalBipyramidal(Stereo::Ref center) const
+      {
+        return isType(Stereo::TrigonalBipyramidal, center);
+      }
+
+      bool isOctahedral(Stereo::Ref center) const
+      {
+        return isType(Stereo::Octahedral, center);
       }
 
       const StereoStorage& tetrahedral(Stereo::Ref center) const
       {
-        for (auto stereo : m_tetrahedral)
-          if (stereo->center() == center)
-            return *stereo;
-        return m_invalid;
+        return getType(Stereo::Tetrahedral, center);
+      }
+
+      const StereoStorage& allene(Stereo::Ref center) const
+      {
+        return getType(Stereo::Allene, center);
+      }
+
+      const StereoStorage& cisTrans(Stereo::Ref bond) const
+      {
+        return getType(Stereo::CisTrans, bond);
+      }
+
+      const StereoStorage& squarePlanar(Stereo::Ref center) const
+      {
+        return getType(Stereo::SquarePlanar, center);
+      }
+
+      const StereoStorage& trigonalBipyramidal(Stereo::Ref center) const
+      {
+        return getType(Stereo::TrigonalBipyramidal, center);
+      }
+
+      const StereoStorage& octahedral(Stereo::Ref center) const
+      {
+        return getType(Stereo::Octahedral, center);
+      }
+
+      const std::vector<StereoStorage>& allStereo() const
+      {
+        return m_stereo;
       }
 
       void clear()
       {
         m_stereo.clear();
-        m_tetrahedral.clear();
-        m_cistrans.clear();
       }
 
       void add(const StereoStorage &stereo)
       {
         m_stereo.push_back(stereo);
-        switch (stereo.type()) {
-          case Stereo::Tetrahedral:
-            m_tetrahedral.push_back(&m_stereo.back());
-            break;
-          default:
-            break;
-        }
+      }
+
+      Stereochemistry& operator=(const Stereochemistry &other)
+      {
+        copy(other);
+        return *this;
       }
 
 
     private:
+      void copy(const Stereochemistry &other)
+      {
+        m_invalid = other.m_invalid;
+        m_stereo = other.m_stereo;
+      }
+
+      std::size_t numType(enum Stereo::Type type) const
+      {
+        std::size_t result = 0;
+        for (auto stereo : m_stereo)
+          if (stereo.type() == type)
+            ++result;
+        return result;
+      }
+
+      bool isType(enum Stereo::Type type, Stereo::Ref center) const
+      {
+        for (auto stereo : m_stereo)
+          if (stereo.type() == type && stereo.center() == center)
+            return true;
+        return false;
+      }
+
+      const StereoStorage& getType(enum Stereo::Type type, Stereo::Ref center) const
+      {
+        for (auto &stereo : m_stereo)
+          if (stereo.type() == type && stereo.center() == center)
+            return stereo;
+        return m_invalid;
+      }
+
       StereoStorage m_invalid;
       std::vector<StereoStorage> m_stereo;
-      std::vector<StereoStorage*> m_tetrahedral;
-      std::vector<StereoStorage*> m_cistrans;
   };
 
-  namespace impl {
+  Stereo::Class tetrahedral_class(const StereoStorage &storage, Stereo::Ref ref1,
+      Stereo::Ref ref2, Stereo::Ref ref3, Stereo::Ref ref4);
 
-    inline unsigned int stereo_num_inversions(const Stereo::Ref *refs, std::size_t size)
-    {
-      unsigned int result = 0;
-      for (std::size_t i = 0; i < size; ++i)
-        for (std::size_t j = i + 1; j < size; ++j)
-          if (refs[j] < refs[i])
-            ++result;
-      return result;
-    }
+  Stereo::Class squareplanar_class(const StereoStorage &storage, Stereo::Ref ref1,
+      Stereo::Ref ref2, Stereo::Ref ref3, Stereo::Ref ref4);
 
-    inline bool stereo_has_even_parity(const Stereo::Ref *refs, std::size_t size)
-    {
-      return (stereo_num_inversions(refs, size) % 2) == 0;
-    }
+  Stereo::Class trigonalbipyramidal_class(const StereoStorage &storage, Stereo::Ref ref1,
+      Stereo::Ref ref2, Stereo::Ref ref3, Stereo::Ref ref4, Stereo::Ref ref5);
 
-  } // namespace impl
+  Stereo::Class octahedral_class(const StereoStorage &storage, Stereo::Ref ref1,
+      Stereo::Ref ref2, Stereo::Ref ref3, Stereo::Ref ref4, Stereo::Ref ref5, Stereo::Ref ref6);
 
-  inline Stereo::Class tetrahedral_class(const StereoStorage &storage, Stereo::Ref ref1,
-      Stereo::Ref ref2, Stereo::Ref ref3, Stereo::Ref ref4)
+  template<typename MoleculeType>
+  class CisTransHelper
   {
-    assert(std::find(strorage.refs(), storage.refs() + 4, ref1) != storage.refs() + 4);
-    assert(std::find(strorage.refs(), storage.refs() + 4, ref2) != storage.refs() + 4);
-    assert(std::find(strorage.refs(), storage.refs() + 4, ref3) != storage.refs() + 4);
-    assert(std::find(strorage.refs(), storage.refs() + 4, ref4) != storage.refs() + 4);
+    public:
+      typedef typename molecule_traits<MoleculeType>::atom_type atom_type;
+      typedef typename molecule_traits<MoleculeType>::bond_type bond_type;
 
-    Stereo::Ref refs[4] = {ref1, ref2, ref3, ref4};
-    auto pos = std::find(refs, refs + 4, storage.ref(0)) - refs;
-    std::swap(refs[0], refs[pos]);
+      CisTransHelper(const MoleculeType &mol, const StereoStorage &stereo) : m_mol(mol), m_stereo(stereo)
+      {
+        assert(m_stereo.center() < num_bonds(m_mol));
+        m_bond = get_bond(mol, m_stereo.center());
+        auto source = get_source(mol, m_bond);
+        auto target = get_target(mol, m_bond);
 
-    bool invert = (pos != 0);
-    bool parity1 = impl::stereo_has_even_parity(storage.refs() + 1, 3);
-    bool parity2 = impl::stereo_has_even_parity(refs + 1, 3);
+        if (m_stereo.ref(0) != Stereo::implRef()) {
+          auto a = refAtom(0);
+          if (get_bond(mol, source, a) == molecule_traits<MoleculeType>::null_bond())
+            std::swap(source, target);
+        } else {
+          assert(m_stereo.ref(1) != Stereo::implRef());
+          auto b = refAtom(1);
+          if (get_bond(mol, source, b) == molecule_traits<MoleculeType>::null_bond())
+            std::swap(source, target);
+        }
 
-    if (parity1 != parity2)
-      invert = !invert;
-    return invert ? Stereo::TH2 : Stereo::TH1;
-  }
+        m_source = source;
+        m_target = target;
+      }
+
+      atom_type refAtom(int index) const
+      {
+        assert(index < 4);
+        if (m_stereo.ref(index) == Stereo::implRef())
+          return molecule_traits<MoleculeType>::null_atom();
+        assert(m_stereo.ref(index) < num_atoms(m_mol));
+        return get_atom(m_mol, m_stereo.ref(index));
+      }
+
+      atom_type source() const
+      {
+        return m_source;
+      }
+
+      atom_type target() const
+      {
+        return m_target;
+      }
+
+      atom_type atomAboveSource() const
+      {
+        return refAtom(0);
+      }
+
+      atom_type atomBelowSource() const
+      {
+        return refAtom(1);
+      }
+
+      atom_type atomAboveTarget() const
+      {
+        return refAtom(3);
+      }
+
+      atom_type atomBelowTarget() const
+      {
+        return refAtom(2);
+      }
+
+    private:
+      const MoleculeType &m_mol;
+      const StereoStorage &m_stereo;
+      bond_type m_bond; // the double bond
+      atom_type m_source; // ref nbrs 0 & 1
+      atom_type m_target; // ref nbrs 2 & 3
+  };
 
 }
 

@@ -143,6 +143,7 @@ set(HELIUM_SRCS
   smirks.cpp
   jsoncpp.cpp
   diagram.cpp
+  stereo.cpp
   depict/svgpainter.cpp
   depict/depict.cpp
 )

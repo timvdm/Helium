@@ -42,16 +42,16 @@
 
 #define HEDATADIR "@HEDATADIR@"
 
+#define HEUNUSED(var) (void)var
+
 #cmakedefine HAVE_CPP11
 #cmakedefine HAVE_OPENCL
 
 #ifdef _MSC_VER
-
   // Supress warning on forcing int etc. value to bool 'true' or 'false' (performance warning)
- #pragma warning( disable : 4800 )
- // compare signed/unsigned mismatch
- #pragma warning( disable : 4018 )
-
+  #pragma warning( disable : 4800 )
+  // compare signed/unsigned mismatch
+  #pragma warning( disable : 4018 )
 #endif  // _MSC_VER
 
 namespace Color {

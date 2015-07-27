@@ -7,7 +7,7 @@ using namespace Helium;
 void test_tetrahedral_class()
 {
   Stereo::Ref refs[4] = {0, 3, 2, 1};
-  auto storage = StereoStorage::create(Stereo::Tetrahedral, 4, refs, refs + 4);
+  auto storage = StereoStorage(Stereo::Tetrahedral, 4, refs, refs + 4);
 
   COMPARE(Stereo::TH1, tetrahedral_class(storage, 0, 3, 2, 1));
   COMPARE(Stereo::TH1, tetrahedral_class(storage, 0, 2, 1, 3));
@@ -41,7 +41,7 @@ void test_tetrahedral_class()
 void test_squareplanar_class()
 {
   Stereo::Ref refs[4] = {0, 1, 2, 3};
-  auto storage = StereoStorage::create(Stereo::SquarePlanar, 4, refs, refs + 4);
+  auto storage = StereoStorage(Stereo::SquarePlanar, 4, refs, refs + 4);
 
   COMPARE(Stereo::SP1, squareplanar_class(storage, 0, 1, 2, 3));
   COMPARE(Stereo::SP1, squareplanar_class(storage, 1, 2, 3, 0));
@@ -74,7 +74,7 @@ void test_squareplanar_class()
 void test_trigonalbipyramidal_class()
 {
   Stereo::Ref refs[5] = {0, 1, 2, 3, 4};
-  auto storage = StereoStorage::create(Stereo::TrigonalBipyramidal, 5, refs, refs + 5);
+  auto storage = StereoStorage(Stereo::TrigonalBipyramidal, 5, refs, refs + 5);
 
   // TB1
   COMPARE(Stereo::TB1, trigonalbipyramidal_class(storage, 0, 1, 2, 3, 4)); // a-e
@@ -221,7 +221,7 @@ void test_trigonalbipyramidal_class()
 void test_octahedral_class()
 {
   Stereo::Ref refs[6] = {0, 1, 2, 3, 4, 5};
-  auto storage = StereoStorage::create(Stereo::Octahedral, 6, refs, refs + 6);
+  auto storage = StereoStorage(Stereo::Octahedral, 6, refs, refs + 6);
 
   COMPARE(Stereo::OH1, octahedral_class(storage, 0, 1, 2, 3, 4, 5));
   COMPARE(Stereo::OH1, octahedral_class(storage, 0, 2, 3, 4, 1, 5));

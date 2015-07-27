@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2012, Tim Vandermeersch
+ * Copyright (c) 2012-2015, Tim Vandermeersch
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -1620,6 +1620,11 @@ namespace Smiley {
         if (m_str()[m_pos()] != '@')
           return;
 
+        // @?
+        if (checkNextChar('?')) {
+          ++m_pos();
+          return;
+        }
         // @@
         if (checkNextChar('@')) {
           m_chiral = Clockwise;
@@ -1633,7 +1638,7 @@ namespace Smiley {
               m_chiral = TH1;
             else if (checkNextChar('2'))
               m_chiral = TH2;
-            else
+            else if (!checkNextChar('?'))
               throw Exception(Exception::SyntaxError, InvalidChirality,
                   "Invalid chiral specified, expected 1 or 2", m_pos() + 1, 1);
             ++m_pos();
@@ -1641,6 +1646,12 @@ namespace Smiley {
           }
           // @TB1 ... @TB20
           if (checkNextChar('B')) {
+            // handle TB?
+            if (checkNextChar('?')) {
+              ++m_pos();
+              return;
+            }
+            // get TB number
             std::size_t pos = m_pos();
             int tb = 0;
             if (std::isdigit(m_str()[m_pos() + 1])) {
@@ -1673,7 +1684,7 @@ namespace Smiley {
             m_chiral = AL1;
           else if (checkNextChar('2'))
             m_chiral = AL2;
-          else
+          else if (!checkNextChar('?'))
             throw Exception(Exception::SyntaxError,  InvalidChirality,
                 "Invalid chiral specified, expected 1 or 2", m_pos() + 1, 1);
           ++m_pos();
@@ -1690,7 +1701,7 @@ namespace Smiley {
             m_chiral = SP2;
           else if (checkNextChar('3'))
             m_chiral = SP3;
-          else
+          else if (!checkNextChar('?'))
             throw Exception(Exception::SyntaxError, InvalidChirality,
                 "Invalid chiral specified, expected 1, 2 or 3", m_pos() + 1, 1);
           ++m_pos();
@@ -1701,7 +1712,12 @@ namespace Smiley {
           if (!checkNextChar('H'))
             throw Exception(Exception::SyntaxError, InvalidChirality,
                 "Invalid chiral specifier, expected H", m_pos() + 1, 1);
-
+          // handle OH?
+          if (checkNextChar('?')) {
+            ++m_pos();
+            return;
+          }
+          // get OH number
           std::size_t pos = m_pos();
           int oh = 0;
           if (std::isdigit(m_str()[m_pos() + 1])) {
@@ -2235,13 +2251,33 @@ namespace Smiley {
         parseCharge();
         parseClass();
 
-        m_chiralInfo().back().chiral = static_cast<Chirality>(m_chiral);
-        if (m_hCount >= 1)
-          m_chiralInfo().back().nbrs.push_back(implicitHydrogen());
-        if (m_hCount > 1 && m_chiral && m_exceptions & InvalidChiralHydrogenCount) {
-          throw Exception(Exception::SemanticsError, InvalidChiralHydrogenCount,
-              "Chiral atoms can only have one hydrogen", m_chiralInfo().back().pos, 1);
+        // check number of implicit hydrogens
+        switch (m_chiral) {
+          //case AntiClockwise:
+          //case Clockwise:
+          case TH1:
+          case TH2:
+            if (m_hCount > 1 && m_exceptions & InvalidChiralHydrogenCount) {
+              throw Exception(Exception::SemanticsError, InvalidChiralHydrogenCount,
+                  "Tetrahedral chiral atoms can only have one hydrogen", m_chiralInfo().back().pos, 1);
+            }
+            break;
+          case SP1:
+          case SP2:
+          case SP3:
+            if (m_hCount > 2 && m_exceptions & InvalidChiralHydrogenCount) {
+              throw Exception(Exception::SemanticsError, InvalidChiralHydrogenCount,
+                  "Square-planar chiral atoms can only have two hydrogen", m_chiralInfo().back().pos, 1);
+            }
+            break;
+          default:
+            break;
         }
+
+        m_chiralInfo().back().chiral = static_cast<Chirality>(m_chiral);
+        for (int i = 0; i < m_hCount; ++i)
+          m_chiralInfo().back().nbrs.push_back(implicitHydrogen());
+
 
         if (m_str()[m_pos()] != ']')
           throw Exception(Exception::SyntaxError, TrailingCharInBracketAtom,
@@ -2431,6 +2467,12 @@ namespace Smiley {
               break;
             case '/':
             {
+              if (checkNextChar('?')) {
+                processBondPrimitive(BE_UpUnspecified, firstPrimitive, parsedOp); // parse a new bond primitive
+                break;
+              }
+
+              /*
               std::size_t nextPos = m_pos();
               nextPos++;
               if (nextPos < m_str().size()) { // bounds checking
@@ -2440,12 +2482,18 @@ namespace Smiley {
                   break;
                 }
               }
+              */
               m_isUp = true;
               processBondPrimitive(BE_Up, firstPrimitive, parsedOp);
               break;
             }
             case '\\':
             {
+              if (checkNextChar('?')) {
+                processBondPrimitive(BE_DownUnspecified, firstPrimitive, parsedOp); // parse a new bond primitive
+                break;
+              }
+              /*
               std::size_t nextPos = m_pos();
               nextPos++;
               if (nextPos < m_str().size()) { // bounds checking
@@ -2455,6 +2503,7 @@ namespace Smiley {
                   break;
                 }
               }
+              */
               m_isDown = true;
               processBondPrimitive(BE_Down, firstPrimitive, parsedOp);
               break;
@@ -2778,11 +2827,11 @@ namespace Smiley {
                   // determining correct class requires knowledge of atom (TH vs. SP)
                   break;
                 case 5:
-                  m_chiralInfo()[i].chiral = TB1;
+                  m_chiralInfo()[i].chiral = TB2;
                   expectedValence = 5;
                   break;
                 case 6:
-                  m_chiralInfo()[i].chiral = OH1;
+                  m_chiralInfo()[i].chiral = OH2;
                   expectedValence = 6;
                   break;
               }
@@ -2797,11 +2846,11 @@ namespace Smiley {
                   expectedValence = 4;
                   break;
                 case 5:
-                  m_chiralInfo()[i].chiral = TB2;
+                  m_chiralInfo()[i].chiral = TB1;
                   expectedValence = 5;
                   break;
                 case 6:
-                  m_chiralInfo()[i].chiral = OH2;
+                  m_chiralInfo()[i].chiral = OH1;
                   expectedValence = 6;
                   break;
               }

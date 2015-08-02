@@ -469,7 +469,8 @@ void test_bond_ring()
   COMPARE(Smiley::BE_Single, root->right->type);
 }
 
-void test_smarts_match(const std::string &smarts, const std::string &smiles, bool expected = true, int mode = Smarts::OpenEye)
+void test_smarts_match(const std::string &smarts, const std::string &smiles,
+    bool expected = true, int mode = Smarts::OpenEye)
 {
   std::cout << "Testing: " << smarts << " in " << smiles << std::endl;
   Smarts s;
@@ -478,13 +479,17 @@ void test_smarts_match(const std::string &smarts, const std::string &smiles, boo
     return;
   }
 
-  HeMol mol = hemol_from_smiles(smiles);
+  HeMol mol;
+  Stereochemistry stereo;
+  Smiles SMILES;
+  ASSERT(SMILES.read(smiles, mol, stereo));
+
   RingSet<HeMol> rings = relevant_cycles(mol);
 
   if (s.requiresExplicitHydrogens())
     make_hydrogens_explicit(mol);
 
-  COMPARE(expected, s.find(mol, rings));
+  COMPARE(expected, s.find(mol, stereo, rings));
 }
 
 void test_simple_atom_match()
@@ -1168,6 +1173,146 @@ void test_modes()
   test_requires_cyclicity("C", Smarts::OpenEye, false);
 }
 
+void test_stereochemistry()
+{
+  //
+  // tetrahedral
+  //
+  // 24 permutations
+  test_smarts_match("[C@](C)(N)(O)S", "[C@](C)(N)(O)S");
+  test_smarts_match("[C@](C)(N)(S)O", "[C@](C)(N)(O)S", false); test_smarts_match("[C@@](C)(N)(S)O", "[C@](C)(N)(O)S");
+  test_smarts_match("[C@](C)(O)(N)S", "[C@](C)(N)(O)S", false); test_smarts_match("[C@@](C)(O)(N)S", "[C@](C)(N)(O)S");
+  test_smarts_match("[C@](C)(O)(S)N", "[C@](C)(N)(O)S");
+  test_smarts_match("[C@](C)(S)(N)O", "[C@](C)(N)(O)S");
+  test_smarts_match("[C@](C)(S)(O)N", "[C@](C)(N)(O)S", false); test_smarts_match("[C@@](C)(S)(O)N", "[C@](C)(N)(O)S");
+  test_smarts_match("[C@](N)(C)(O)S", "[C@](C)(N)(O)S", false); test_smarts_match("[C@@](N)(C)(O)S", "[C@](C)(N)(O)S");
+  test_smarts_match("[C@](N)(C)(S)O", "[C@](C)(N)(O)S");
+  test_smarts_match("[C@](N)(O)(C)S", "[C@](C)(N)(O)S");
+  test_smarts_match("[C@](N)(O)(S)C", "[C@](C)(N)(O)S", false); test_smarts_match("[C@@](N)(O)(S)C", "[C@](C)(N)(O)S");
+  test_smarts_match("[C@](N)(S)(C)O", "[C@](C)(N)(O)S", false); test_smarts_match("[C@@](N)(S)(C)O", "[C@](C)(N)(O)S");
+  test_smarts_match("[C@](N)(S)(O)C", "[C@](C)(N)(O)S");
+  test_smarts_match("[C@](O)(N)(C)S", "[C@](C)(N)(O)S", false); test_smarts_match("[C@@](O)(N)(C)S", "[C@](C)(N)(O)S");
+  test_smarts_match("[C@](O)(N)(S)C", "[C@](C)(N)(O)S");
+  test_smarts_match("[C@](O)(C)(N)S", "[C@](C)(N)(O)S");
+  test_smarts_match("[C@](O)(C)(S)N", "[C@](C)(N)(O)S", false); test_smarts_match("[C@@](O)(C)(S)N", "[C@](C)(N)(O)S");
+  test_smarts_match("[C@](O)(S)(N)C", "[C@](C)(N)(O)S", false); test_smarts_match("[C@@](O)(S)(N)C", "[C@](C)(N)(O)S");
+  test_smarts_match("[C@](O)(S)(C)N", "[C@](C)(N)(O)S");
+  test_smarts_match("[C@](S)(N)(O)C", "[C@](C)(N)(O)S", false); test_smarts_match("[C@@](S)(N)(O)C", "[C@](C)(N)(O)S");
+  test_smarts_match("[C@](S)(N)(C)O", "[C@](C)(N)(O)S");
+  test_smarts_match("[C@](S)(O)(N)C", "[C@](C)(N)(O)S");
+  test_smarts_match("[C@](S)(O)(C)N", "[C@](C)(N)(O)S", false); test_smarts_match("[C@@](S)(O)(C)N", "[C@](C)(N)(O)S");
+  test_smarts_match("[C@](S)(C)(N)O", "[C@](C)(N)(O)S", false); test_smarts_match("[C@@](S)(C)(N)O", "[C@](C)(N)(O)S");
+  test_smarts_match("[C@](S)(C)(O)N", "[C@](C)(N)(O)S");
+  // implicit H
+  test_smarts_match("C[C@](N)(O)S", "[C@](C)(N)(O)S");
+  test_smarts_match("C[C@@](O)(N)S", "[C@](C)(N)(O)S");
+  test_smarts_match("C[C@](N)(O)S", "[C@@](C)(N)(O)S", false);
+  test_smarts_match("C[C@@](O)(N)S", "[C@@](C)(N)(O)S", false);
+  test_smarts_match("C[C@@H](N)O", "[C@H](C)(N)O");
+  test_smarts_match("C[C@H](O)N", "[C@H](C)(N)O");
+  test_smarts_match("C[C@H](N)O", "[C@H](C)(N)O", false);
+  test_smarts_match("C[C@@H](O)N", "[C@H](C)(N)O", false);
+  test_smarts_match("[C@](C)(N)(O)S", "[C@](C)(N)(O)S");
+  test_smarts_match("[C@@](C)(O)(N)S", "[C@](C)(N)(O)S");
+  test_smarts_match("[C@](C)(N)(O)S", "[C@@](C)(N)(O)S", false);
+  test_smarts_match("[C@@](C)(O)(N)S", "[C@@](C)(N)(O)S", false);
+  test_smarts_match("[C@@H](C)(O)N", "[C@H](C)(N)O");
+  test_smarts_match("[C@H](C)(N)O", "[C@H](C)(N)O");
+  test_smarts_match("[C@H](C)(O)N", "[C@H](C)(N)O", false);
+  test_smarts_match("[C@@H](C)(N)O", "[C@H](C)(N)O", false);
+  // match in larger molecule
+  test_smarts_match("[C@](C)(N)(O)S", "CCCC[C@](N)(O)S");
+  test_smarts_match("[C@@](C)(N)(O)S", "CCCC[C@](N)(O)S", false);
+  test_smarts_match("[C@@](C)(N)(O)S", "CCCC[C@@](NCC)(OCC)SCC");
+  test_smarts_match("[C@](C)(N)(O)S", "CCCC[C@@](NCC)(OCC)SCC", false);
+  // two centers
+  test_smarts_match("C[C@](N)(O)CCC[C@](Cl)(Br)I", "C[C@](N)(O)CCC[C@](Cl)(Br)I");
+  test_smarts_match("C[C@@](N)(O)CCC[C@](Cl)(Br)I", "C[C@](N)(O)CCC[C@](Cl)(Br)I", false);
+  test_smarts_match("C[C@](N)(O)CCC[C@@](Cl)(Br)I", "C[C@](N)(O)CCC[C@](Cl)(Br)I", false);
+  test_smarts_match("C[C@@](N)(O)CCC[C@@](Cl)(Br)I", "C[C@](N)(O)CCC[C@](Cl)(Br)I", false);
+  // ring bonds
+  test_smarts_match("[C@]1234.C1.N2.O3.S4", "[C@](C)(N)(O)S");
+  test_smarts_match("[C@@]1234.C1.N2.O3.S4", "[C@](C)(N)(O)S", false);
+
+  //
+  // allene
+  //
+  test_smarts_match("CC(O)=[C@]=C(N)S", "CC(O)=[C@]=C(N)S");
+  test_smarts_match("CC(O)=[C@@]=C(N)S", "CC(O)=[C@]=C(N)S", false);
+  test_smarts_match("CC(O)=[C@]=C(N)S", "CC(O)=[C@@]=C(N)S", false);
+  test_smarts_match("CC(O)=[C@]=C(N)S", "CC(O)=[C@]=C(S)N", false);
+
+  //
+  // square-planar
+  //
+  test_smarts_match("[Pt@SP1](C)(N)(O)S", "[Pt@SP1](C)(N)(O)S");
+  test_smarts_match("[Pt@SP2](C)(N)(O)S", "[Pt@SP1](C)(N)(O)S", false);
+  test_smarts_match("[Pt@SP2](S)(N)(O)C", "[Pt@SP1](C)(N)(O)S");
+  test_smarts_match("[Pt@SP3](C)(N)(O)S", "[Pt@SP1](C)(N)(O)S", false);
+  test_smarts_match("[Pt@SP3](N)(C)(O)S", "[Pt@SP1](C)(N)(O)S");
+
+  //
+  // trigonal-bipyramidal
+  //
+  test_smarts_match("[As@](F)(C)(N)(O)I", "[As@](F)(C)(N)(O)I");
+  test_smarts_match("[As@TB1](F)(C)(N)(O)I", "[As@TB1](F)(C)(N)(O)I");
+  test_smarts_match("[As@@](F)(C)(N)(O)I", "[As@TB1](F)(C)(N)(O)I", false);
+  test_smarts_match("[As@TB2](F)(C)(N)(O)I", "[As@TB1](F)(C)(N)(O)I", false);
+  test_smarts_match("[As@@](F)(C)(O)(N)I", "[As@TB1](F)(C)(N)(O)I");
+  test_smarts_match("[As@TB2](F)(C)(O)(N)I", "[As@TB1](F)(C)(N)(O)I");
+
+  test_smarts_match("[As@TB3](F)(C)(N)(I)O", "[As@](F)(C)(N)(O)I");
+  test_smarts_match("[As@TB4](F)(C)(N)(I)O", "[As@](F)(C)(N)(O)I", false);
+  test_smarts_match("[As@TB4](F)(N)(C)(I)O", "[As@](F)(C)(N)(O)I");
+  test_smarts_match("[As@TB5](F)(C)(I)(N)O", "[As@](F)(C)(N)(O)I");
+  test_smarts_match("[As@TB6](F)(C)(I)(N)O", "[As@](F)(C)(N)(O)I", false);
+  test_smarts_match("[As@TB6](F)(C)(I)(O)N", "[As@](F)(C)(N)(O)I");
+
+  test_smarts_match("[As@H2](F)(C)N", "[As@H2](F)(C)N");
+  test_smarts_match("[As@H2](F)(C)N", "[As@H]([H])(F)(C)N");
+  test_smarts_match("[As@H2](F)(C)N", "[As@]([H])([H])(F)(C)N");
+  test_smarts_match("[As@@H2](F)(C)N", "[As@H2](F)(C)N", false);
+  test_smarts_match("[As@@H2](F)(C)N", "[As@H]([H])(F)(C)N", false);
+  test_smarts_match("[As@@H2](F)(C)N", "[As@]([H])([H])(F)(C)N", false);
+
+  //
+  // octahedral
+  //
+  test_smarts_match("[Co@](C)(N)(O)(P)(S)F", "[Co@](C)(N)(O)(P)(S)F");
+  test_smarts_match("[Co@@](C)(N)(O)(P)(S)F", "[Co@](C)(N)(O)(P)(S)F", false);
+  test_smarts_match("[Co@OH1](C)(N)(O)(P)(S)F", "[Co@](C)(N)(O)(P)(S)F");
+  test_smarts_match("[Co@OH2](C)(N)(O)(P)(S)F", "[Co@](C)(N)(O)(P)(S)F", false);
+
+  // 
+  // cis/trans
+  //
+  test_smarts_match("F/C=C/F", "F/C=C/F");
+  test_smarts_match("F\\C=C/F", "F/C=C/F", false);
+  test_smarts_match("F\\C=C\\F", "F/C=C/F");
+  test_smarts_match("F/C=C\\F", "F/C=C/F", false);
+
+
+  // components
+  test_smarts_match("CC.[C@](C)(N)(O)S", "CCCCCC[C@](N)(O)S");
+  test_smarts_match("CC.[C@@](C)(N)(O)S", "CCCCCC[C@](N)(O)S", false);
+  test_smarts_match("F/C=C/F.[C@](C)(N)(O)S", "F/C=C/F.[C@](C)(N)(O)S");
+  test_smarts_match("F\\C=C/F.[C@](C)(N)(O)S", "F/C=C/F.[C@](C)(N)(O)S", false);
+  test_smarts_match("F/C=C/F.[C@@](C)(N)(O)S", "F/C=C/F.[C@](C)(N)(O)S", false);
+  test_smarts_match("F/C=C/F.C[C@](N)(O)S", "F/C=C/F.[C@](C)(N)(O)S");
+  test_smarts_match("F/C=C/F.C[C@@](N)(O)S", "F/C=C/F.[C@](C)(N)(O)S", false);
+  test_smarts_match("F/C=C/F.C[C@@](O)(N)S", "F/C=C/F.[C@](C)(N)(O)S");
+  test_smarts_match("F\\C=C/F.C[C@@](O)(N)S", "F/C=C/F.[C@](C)(N)(O)S", false);
+
+  // recursive
+  test_smarts_match("[$(F[C@](N)(O)S)]", "F[C@](N)(O)S");
+  test_smarts_match("[$(F[C@@](N)(O)S)]", "F[C@](N)(O)S", false);
+  test_smarts_match("[$(F/C=C/F)]", "F/C=C/F");
+  test_smarts_match("[$(F\\C=C/F)]", "F/C=C/F", false);
+
+
+  //test_smarts_match("", "");
+}
+
 int main()
 {
   // test special case: [H]
@@ -1248,6 +1393,11 @@ int main()
   // SMARTS cycle matching modes
   //
   test_modes();
+
+  //
+  // Stereochemistry
+  //
+  test_stereochemistry();
 
   //print_smarts("[A$(CCC)R]");
 }

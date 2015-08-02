@@ -28,6 +28,7 @@
 #define HELIUM_ISOMORPHISM_H
 
 #include <Helium/molecule.h>
+#include <Helium/stereo.h>
 
 #include <vector>
 #include <cassert>
@@ -126,6 +127,10 @@ namespace Helium {
 
   namespace impl {
 
+    // defined in stereo.cpp
+    bool stereo_compare_undirected_cycles(const Stereo::Ref *refs, Stereo::Ref ref1, Stereo::Ref ref2,
+        Stereo::Ref ref3, Stereo::Ref ref4);
+
     /**
      * Clear mapping implementations.
      */
@@ -200,15 +205,15 @@ namespace Helium {
       public:
         typedef typename molecule_traits<QueryType>::atom_type query_atom_type;
         typedef typename molecule_traits<QueryType>::bond_type query_bond_type;
-        typedef typename molecule_traits<QueryType>::incident_iter query_incident_iter;
 
         typedef typename molecule_traits<MoleculeType>::atom_type atom_type;
         typedef typename molecule_traits<MoleculeType>::atom_iter atom_iter;
-        typedef typename molecule_traits<MoleculeType>::incident_iter incident_iter;
 
         Isomorphism(const MoleculeType &mol, const QueryType &query,
+            const Stereochemistry &molStereo, const Stereochemistry &queryStereo,
             const AtomMatcher &atomMatcher, const BondMatcher &bondMatcher)
-          : m_atomMatcher(atomMatcher), m_bondMatcher(bondMatcher), m_mol(mol), m_query(query)
+          : m_atomMatcher(atomMatcher), m_bondMatcher(bondMatcher), m_mol(mol), m_query(query),
+            m_molStereo(molStereo), m_queryStereo(queryStereo)
         {
           dfsBonds();
           m_map.resize(num_atoms(query), -1);
@@ -250,6 +255,101 @@ namespace Helium {
             std::cout << std::endl;
           }
           */
+        }
+
+        bool stereoMatches()
+        {
+          //std::cout << "stereoMatches()" << std::endl;
+          //std::cout << "  m_map: " << m_map << std::endl;
+          for (auto &queryStereo : m_queryStereo.allStereo()) {
+            if (queryStereo.type() == Stereo::None)
+              continue;
+
+            //std::cout << "  queryStereo: " << queryStereo << std::endl;
+
+            Stereo::Ref molCenter;
+            if (queryStereo.type() == Stereo::CisTrans) {
+              auto queryBond = get_bond(m_query, queryStereo.center());
+              auto querySource = get_source(m_query, queryBond);
+              auto queryTarget = get_target(m_query, queryBond);
+
+              auto molSource = get_atom(m_mol, m_map[get_index(m_query, querySource)]);
+              auto molTarget = get_atom(m_mol, m_map[get_index(m_query, queryTarget)]);
+              auto molBond = get_bond(m_mol, molSource, molTarget);
+              assert(molBond != molecule_traits<MoleculeType>::null_bond());
+
+              molCenter = get_index(m_mol, molBond);
+            } else
+              molCenter = m_map[queryStereo.center()];
+
+            //std::cout << "  molCenter: " << molCenter << std::endl;
+
+            // find matching stereo in mol
+            bool found = false;
+            for (auto &molStereo : m_molStereo.allStereo()) {
+              if (queryStereo.type() != molStereo.type())
+                continue;
+              if (molCenter != molStereo.center())
+                continue;
+
+              //std::cout << "  molStereo: " << molStereo << std::endl;
+
+              int numRefs = queryStereo.numRefs();
+
+              // map the query refs using the found mapping
+              Stereo::Ref queryRefs[6] = {Stereo::implRef(), Stereo::implRef(), Stereo::implRef(),
+                Stereo::implRef(), Stereo::implRef(), Stereo::implRef()};
+              for (int i = 0; i < numRefs; ++i)
+                if (queryStereo.ref(i) != Stereo::implRef())
+                  if (!is_hydrogen(m_query, get_atom(m_query, queryStereo.ref(i))))
+                    queryRefs[i] = m_map[queryStereo.ref(i)];
+
+              // make hydrogens implicit in molStereo
+              Stereo::Ref molRefs[6] = {Stereo::implRef(), Stereo::implRef(), Stereo::implRef(),
+                Stereo::implRef(), Stereo::implRef(), Stereo::implRef()};
+              for (int i = 0; i < numRefs; ++i)
+                if (molStereo.ref(i) != Stereo::implRef())
+                  if (!is_hydrogen(m_mol, get_atom(m_mol, molStereo.ref(i))))
+                    molRefs[i] = molStereo.ref(i);
+
+              StereoStorage storage(molStereo.type(), molStereo.center(), molRefs, molRefs + numRefs);
+              //std::cout << "  storage: " << storage << std::endl;
+
+              switch (queryStereo.type()) {
+                case Stereo::Tetrahedral:
+                case Stereo::Allene:
+                  found = (Stereo::TH1 == tetrahedral_class(storage, queryRefs[0], queryRefs[1],
+                        queryRefs[2], queryRefs[3]));
+                  break;
+                case Stereo::SquarePlanar:
+                  found = (Stereo::SP1 == squareplanar_class(storage, queryRefs[0], queryRefs[1],
+                        queryRefs[2], queryRefs[3]));
+                  break;
+                case Stereo::TrigonalBipyramidal:
+                  found = (Stereo::TB1 == trigonalbipyramidal_class(storage, queryRefs[0], queryRefs[1],
+                        queryRefs[2], queryRefs[3], queryRefs[4]));
+                  break;
+                case Stereo::Octahedral:
+                  found = (Stereo::OH1 == octahedral_class(storage, queryRefs[0], queryRefs[1], queryRefs[2],
+                        queryRefs[3], queryRefs[4], queryRefs[5]));
+                  break;
+                case Stereo::CisTrans:
+                  found = stereo_compare_undirected_cycles(queryRefs, molRefs[0], molRefs[1], molRefs[2], molRefs[3]);
+                  break;
+                default:
+                  break;
+              }
+
+              if (found)
+                break;
+            }
+
+            // if there is no stereo in mol, return false
+            if (!found)
+              return false;
+          }
+
+          return true;
         }
 
         void match(MappingType &mapping, int bondIndex)
@@ -313,7 +413,8 @@ namespace Helium {
               // add the mapping to the result if it is unique
               if (m_mappings.find(atoms) == m_mappings.end()) {
                 m_mappings.insert(atoms);
-                add_mapping(mapping, m_map);
+                if (stereoMatches())
+                  add_mapping(mapping, m_map);
               }
             } else
               match(mapping, bondIndex + 1);
@@ -413,6 +514,8 @@ namespace Helium {
         const BondMatcher &m_bondMatcher; // the bond matcher
         const MoleculeType &m_mol; // the queried molecule
         const QueryType &m_query; // the query
+        const Stereochemistry &m_molStereo;
+        const Stereochemistry &m_queryStereo;
         IsomorphismMapping  m_map; // current mapping: query atom index -> queried atom index
         std::set<std::vector<bool> > m_mappings; // keep track of unique mappins
         std::vector<Index> m_dfsBonds; // dfs bond order
@@ -497,14 +600,17 @@ namespace Helium {
    * @param mol The molecule (queried).
    * @param atom The first atom to be matched against query atom 0.
    * @param query The query.
+   * @param molStereo The molecule stereochemistry.
+   * @param queryStereo The query stereochemistry.
    * @param mapping The desired mapping (e.g. NoMapping, SingleMapping, ...).
    * @param atomMatcher The AtomMatcher functor.
    * @param bondMatcher The BondMatcher functor.
    *
    * @return True if the query is a substructure of @p mol.
    */
-  template<typename MoleculeType, typename AtomType, typename QueryType, typename MappingType, typename AtomMatcher, typename BondMatcher>
-  bool isomorphism_search(const MoleculeType &mol, AtomType atom, QueryType &query, MappingType &mapping,
+  template<typename MoleculeType, typename QueryType, typename MappingType, typename AtomMatcher, typename BondMatcher>
+  bool isomorphism_search(const MoleculeType &mol, typename molecule_traits<MoleculeType>::atom_type atom, QueryType &query,
+      const Stereochemistry &molStereo, const Stereochemistry &queryStereo, MappingType &mapping,
       const AtomMatcher &atomMatcher, const BondMatcher &bondMatcher)
   {
     impl::clear_mappig(mapping);
@@ -512,10 +618,22 @@ namespace Helium {
     if (!num_atoms(query))
       return false;
 
-    impl::Isomorphism<MoleculeType, QueryType, MappingType, AtomMatcher, BondMatcher> iso(mol, query, atomMatcher, bondMatcher);
+    impl::Isomorphism<MoleculeType, QueryType, MappingType, AtomMatcher, BondMatcher>
+      iso(mol, query, molStereo, queryStereo, atomMatcher, bondMatcher);
     iso.match(mapping, atom);
 
     return !impl::empty_mappig(mapping);
+  }
+
+  /**
+   * @overload
+   */
+  template<typename MoleculeType, typename QueryType, typename MappingType, typename AtomMatcher, typename BondMatcher>
+  bool isomorphism_search(const MoleculeType &mol, typename molecule_traits<MoleculeType>::atom_type atom, QueryType &query, MappingType &mapping,
+      const AtomMatcher &atomMatcher, const BondMatcher &bondMatcher)
+  {
+    Stereochemistry molStereo, queryStereo;
+    return isomorphism_search(mol, atom, query, molStereo, queryStereo, mapping, atomMatcher, bondMatcher);
   }
 
   /**
@@ -526,6 +644,8 @@ namespace Helium {
    *
    * @param mol The molecule (queried).
    * @param query The query.
+   * @param molStereo The molecule stereochemistry.
+   * @param queryStereo The query stereochemistry.
    * @param mapping The desired mapping (e.g. NoMapping, SingleMapping, ...).
    * @param atomMatcher The AtomMatcher functor.
    * @param bondMatcher The BondMatcher functor.
@@ -533,7 +653,8 @@ namespace Helium {
    * @return True if the query is a substructure of @p mol.
    */
   template<typename MoleculeType, typename QueryType, typename MappingType, typename AtomMatcher, typename BondMatcher>
-  bool isomorphism_search(const MoleculeType &mol, const QueryType &query, MappingType &mapping,
+  bool isomorphism_search(const MoleculeType &mol, const QueryType &query,
+      const Stereochemistry &molStereo, const Stereochemistry &queryStereo, MappingType &mapping,
       const AtomMatcher &atomMatcher, const BondMatcher &bondMatcher)
   {
     impl::clear_mappig(mapping);
@@ -541,10 +662,34 @@ namespace Helium {
     if (!num_atoms(query))
       return false;
 
-    impl::Isomorphism<MoleculeType, QueryType, MappingType, AtomMatcher, BondMatcher> iso(mol, query, atomMatcher, bondMatcher);
+    impl::Isomorphism<MoleculeType, QueryType, MappingType, AtomMatcher, BondMatcher>
+      iso(mol, query, molStereo, queryStereo, atomMatcher, bondMatcher);
     iso.match(mapping);
 
     return !impl::empty_mappig(mapping);
+  }
+
+  /**
+   * @overload
+   */
+  template<typename MoleculeType, typename QueryType, typename MappingType, typename AtomMatcher, typename BondMatcher>
+  bool isomorphism_search(const MoleculeType &mol, const QueryType &query, MappingType &mapping,
+      const AtomMatcher &atomMatcher, const BondMatcher &bondMatcher)
+  {
+    Stereochemistry molStereo, queryStereo;
+    return isomorphism_search(mol, query, molStereo, queryStereo, mapping, atomMatcher, bondMatcher);
+  }
+
+  /**
+   * @overload
+   */
+  template<typename MoleculeType, typename QueryType, typename AtomMatcher, typename BondMatcher>
+  bool isomorphism_search(const MoleculeType &mol, const QueryType &query,
+      const Stereochemistry &molStereo, const Stereochemistry &queryStereo,
+      const AtomMatcher &atomMatcher, const BondMatcher &bondMatcher)
+  {
+    NoMapping mapping;
+    return isomorphism_search(mol, query, molStereo, queryStereo, mapping, atomMatcher, bondMatcher);
   }
 
   /**

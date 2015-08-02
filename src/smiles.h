@@ -263,6 +263,435 @@ namespace Helium {
 
   namespace impl {
 
+    inline void replaceImplicitHydrogens(Stereo::Ref *refs, int size)
+    {
+      for (std::size_t i = 0; i < size; ++i)
+        if (refs[i] == Smiley::implicitHydrogen())
+          refs[i] = Stereo::implRef();
+    }
+
+    inline void SmileyCallback_setChiral(Stereochemistry &stereo, int index, Smiley::Chirality chirality,
+        const std::vector<int> &chiralNbrs)
+    {
+      //std::cout << "setChiral(index: " << index << ", type: " << chirality << ", chiralNbrs: " << chiralNbrs << ")" << std::endl;
+
+      Stereo::Ref refs[6];
+      Stereo::Type type = Stereo::None;
+      int numRefs = 0;
+
+      switch (chirality) {
+        case Smiley::AntiClockwise:
+        case Smiley::Clockwise:
+        case Smiley::TH1:
+        case Smiley::TH2:
+          type = Stereo::Tetrahedral;
+          numRefs = 4;
+          break;
+        case Smiley::AL1:
+        case Smiley::AL2:
+          type = Stereo::Allene;
+          numRefs = 4;
+          break;
+        case Smiley::SP1:
+        case Smiley::SP2:
+        case Smiley::SP3:
+          type = Stereo::SquarePlanar;
+          numRefs = 4;
+          break;
+        default:
+          if (chirality >= Smiley::TB1 && chirality <= Smiley::TB20) {
+            type = Stereo::TrigonalBipyramidal;
+            numRefs = 5;
+          } else if (chirality >= Smiley::OH1 && chirality <= Smiley::OH30) {
+            type = Stereo::Octahedral;
+            numRefs = 6;
+          }
+          break;
+      }
+
+      assert(type != Stereo::None);
+      assert(numRefs);
+
+      if (chiralNbrs.size() != numRefs) {
+        // FIXME: report invalid stereochemistry
+        return;
+      }
+
+      std::copy(chiralNbrs.begin(), chiralNbrs.end(), refs);
+      replaceImplicitHydrogens(refs, numRefs);
+
+      switch (chirality) {
+        case Smiley::NotChiral:
+          break;
+        case Smiley::AntiClockwise:
+        case Smiley::TH1:
+          break;
+        case Smiley::Clockwise:
+        case Smiley::TH2:
+          type = Stereo::Tetrahedral;
+          refs[0] = chiralNbrs[0];
+          std::copy(chiralNbrs.rbegin(), chiralNbrs.rbegin() + 3, refs + 1);
+          replaceImplicitHydrogens(refs, 4);
+          break;
+        case Smiley::AL1:
+          break;
+        case Smiley::AL2:
+          type = Stereo::Allene;
+          refs[0] = chiralNbrs[0];
+          std::copy(chiralNbrs.rbegin(), chiralNbrs.rbegin() + 3, refs + 1);
+          replaceImplicitHydrogens(refs, 4);
+          break;
+        case Smiley::SP1:
+          // U shape
+          break;
+        case Smiley::SP2:
+          // 4 shape -> U shape
+          std::swap(refs[1], refs[2]);
+          break;
+        case Smiley::SP3:
+          // Z shape -> U shape
+          std::swap(refs[0], refs[1]);
+          break;
+        case Smiley::TB1: // axis a-e, other @
+          break;
+        case Smiley::TB2: // axis a-e, other @@
+          std::swap(refs[0], refs[4]); // abcde -> ebcda
+          break;
+        case Smiley::TB3: // axis a-d, other @
+          std::swap(refs[3], refs[4]); // abcde -> abced
+          break;
+        case Smiley::TB4: // axis a-d, other @@
+          std::swap(refs[3], refs[4]); // abcde -> abced
+          std::swap(refs[0], refs[4]); // abcde -> dbcea
+          break;
+        case Smiley::TB5: // axis a-c, other @
+          std::rotate(refs + 2, refs + 3, refs + 5); // abcde -> abdec
+          break;
+        case Smiley::TB6: // axis a-c, other @@
+          std::rotate(refs + 2, refs + 3, refs + 5); // abcde -> abdec
+          std::swap(refs[0], refs[4]); // abdec -> cbdea
+          break;
+        case Smiley::TB7: // axis a-b, other @
+          std::rotate(refs + 1, refs + 2, refs + 5); // abcde -> acdeb
+          break;
+        case Smiley::TB8: // axis a-b, other @@
+          std::rotate(refs + 1, refs + 2, refs + 5); // abcde -> acdeb
+          std::swap(refs[0], refs[4]); // abdec -> cbdea
+          break;
+        case Smiley::TB9: // axis b-e, other @
+          std::swap(refs[0], refs[1]); // abcde -> bacde
+          break;
+        case Smiley::TB11: // axis b-e, other @@
+          std::swap(refs[0], refs[1]); // abcde -> bacde
+          std::swap(refs[0], refs[4]); // bacde -> eacdb
+          break;
+        case Smiley::TB10: // axis b-d, other @
+          std::swap(refs[0], refs[1]); // abcde -> bacde
+          std::swap(refs[3], refs[4]); // bacde -> baced
+          break;
+        case Smiley::TB12: // axis b-d, other @@
+          std::swap(refs[0], refs[1]); // abcde -> bacde
+          std::swap(refs[3], refs[4]); // bacde -> baced
+          std::swap(refs[0], refs[4]); // bacde -> eacdb
+          break;
+        case Smiley::TB13: // axis b-c, other @
+          std::swap(refs[0], refs[1]); // abcde -> bacde
+          std::rotate(refs + 2, refs + 3, refs + 5); // bacde -> badec
+          break;
+        case Smiley::TB14: // axis b-c, other @@
+          std::swap(refs[0], refs[1]); // abcde -> bacde
+          std::rotate(refs + 2, refs + 3, refs + 5); // bacde -> badec
+          std::swap(refs[0], refs[4]); // badec -> cadeb
+          break;
+        case Smiley::TB15: // axis c-e, other @
+          std::swap(refs[1], refs[2]); // abcde -> acbde
+          std::swap(refs[0], refs[1]); // acbde -> cabde
+          break;
+        case Smiley::TB20: // axis c-e, other @@
+          std::swap(refs[1], refs[2]); // abcde -> acbde
+          std::swap(refs[0], refs[1]); // acbde -> cabde
+          std::swap(refs[0], refs[4]); // cabde -> eabdc
+          break;
+        case Smiley::TB16: // axis c-d, other @
+          std::swap(refs[1], refs[2]); // abcde -> acbde
+          std::swap(refs[0], refs[1]); // acbde -> cabde
+          std::swap(refs[3], refs[4]); // cabde -> cabed
+          break;
+        case Smiley::TB19: // axis c-d, other @@
+          std::swap(refs[1], refs[2]); // abcde -> acbde
+          std::swap(refs[0], refs[1]); // acbde -> cabde
+          std::swap(refs[3], refs[4]); // cabde -> cabed
+          std::swap(refs[0], refs[4]); // cabde -> eabdc
+          break;
+        case Smiley::TB17: // axis d-e, other @
+          std::swap(refs[2], refs[3]); // abcde -> abdce
+          std::swap(refs[1], refs[2]); // abdce -> adbce
+          std::swap(refs[0], refs[1]); // adbce -> dabce
+          break;
+        case Smiley::TB18: // axis d-e, other @@
+          std::swap(refs[2], refs[3]); // abcde -> abdce
+          std::swap(refs[1], refs[2]); // abdce -> adbce
+          std::swap(refs[0], refs[1]); // adbce -> dabce
+          std::swap(refs[0], refs[4]); // cabde -> eabdc
+          break;
+        case Smiley::OH1: // axis a-f, other U-shape @
+          break;
+        case Smiley::OH2: // axis a-f, other U-shape @@
+          std::reverse(refs + 1, refs + 5);
+          break;
+        case Smiley::OH3: // axis a-e, other U-shape @
+          std::swap(refs[4], refs[5]); // abcdef -> abcdfe (a-f -> a-e)
+          break;
+        case Smiley::OH16: // axis a-e, other U-shape @@
+          std::swap(refs[4], refs[5]); // abcdef -> abcdfe (a-f -> a-e)
+          std::swap(refs[0], refs[5]); // abcdfe -> ebcdfa
+          break;
+        case Smiley::OH6: // axis a-d, other U-shape @
+          std::rotate(refs + 3, refs + 4, refs + 6); // abcdef -> abcefd (a-f -> a-d)
+          break;
+        case Smiley::OH18: // axis a-d, other U-shape @@
+          std::rotate(refs + 3, refs + 4, refs + 6); // abcdef -> abcefd (a-f -> a-d)
+          std::swap(refs[0], refs[5]); // abcefd -> dbcefa
+          break;
+        case Smiley::OH19: // axis a-c, other U-shape @
+          std::rotate(refs + 2, refs + 3, refs + 6); // abcdef -> abdefc (a-f -> a-c)
+          break;
+        case Smiley::OH24: // axis a-c, other U-shape @@
+          std::rotate(refs + 2, refs + 3, refs + 6); // abcdef -> abdefc (a-f -> a-c)
+          std::swap(refs[0], refs[5]); // abdefc -> cbdefa
+          break;
+        case Smiley::OH25: // axis a-b, other U-shape @
+          std::rotate(refs + 1, refs + 2, refs + 6); // abcdef -> acdefb (a-f -> a-b)
+          break;
+        case Smiley::OH30: // axis a-b, other U-shape @@
+          std::rotate(refs + 1, refs + 2, refs + 6); // abcdef -> acdefb (a-f -> a-b)
+          std::swap(refs[0], refs[5]); // acdefb -> bcdefa
+          break;
+        case Smiley::OH4: // axis a-f, other Z-shape @
+          std::swap(refs[3], refs[4]); // Z -> U
+          break;
+        case Smiley::OH14: // axis a-f, other Z-shape @@
+          std::swap(refs[3], refs[4]); // Z -> U
+          std::swap(refs[0], refs[5]); // a-f -> f-a
+          break;
+        case Smiley::OH5: // axis a-e, other Z-shape @
+          std::swap(refs[4], refs[5]); // abcdef -> abcdfe (a-f -> a-e)
+          std::swap(refs[3], refs[4]); // Z -> U
+          break;
+        case Smiley::OH15: // axis a-e, other Z-shape @@
+          std::swap(refs[4], refs[5]); // abcdef -> abcdfe (a-f -> a-e)
+          std::swap(refs[3], refs[4]); // Z -> U
+          std::swap(refs[0], refs[5]); // a-f -> f-a
+          break;
+        case Smiley::OH7: // axis a-d, other Z-shape @
+          std::rotate(refs + 3, refs + 4, refs + 6); // abcdef -> abcefd (a-f -> a-d)
+          std::swap(refs[3], refs[4]); // Z -> U
+          break;
+        case Smiley::OH17: // axis a-d, other Z-shape @@
+          std::rotate(refs + 3, refs + 4, refs + 6); // abcdef -> abcefd (a-f -> a-d)
+          std::swap(refs[3], refs[4]); // Z -> U
+          std::swap(refs[0], refs[5]); // a-f -> f-a
+          break;
+        case Smiley::OH20: // axis a-c, other Z-shape @
+          std::rotate(refs + 2, refs + 3, refs + 6); // abcdef -> abdefc (a-f -> a-c)
+          std::swap(refs[3], refs[4]); // Z -> U
+          break;
+        case Smiley::OH23: // axis a-c, other Z-shape @@
+          std::rotate(refs + 2, refs + 3, refs + 6); // abcdef -> abdefc (a-f -> a-c)
+          std::swap(refs[3], refs[4]); // Z -> U
+          std::swap(refs[0], refs[5]); // a-f -> f-a
+          break;
+        case Smiley::OH26: // axis a-b, other Z-shape @
+          std::rotate(refs + 1, refs + 2, refs + 6); // abcdef -> acdefb (a-f -> a-b)
+          std::swap(refs[3], refs[4]); // Z -> U
+          break;
+        case Smiley::OH29: // axis a-b, other Z-shape @@
+          std::rotate(refs + 1, refs + 2, refs + 6); // abcdef -> acdefb (a-f -> a-b)
+          std::swap(refs[3], refs[4]); // Z -> U
+          std::swap(refs[0], refs[5]); // a-f -> f-a
+          break;
+        case Smiley::OH10: // axis a-f, other 4-shape @
+          std::swap(refs[1], refs[4]); // 4 -> U
+          break;
+        case Smiley::OH8: // axis a-f, other 4-shape @@
+          std::swap(refs[1], refs[4]); // 4 -> U
+          std::swap(refs[0], refs[5]); // a-f -> f-a
+          break;
+        case Smiley::OH11: // axis a-e, other 4-shape @
+          std::swap(refs[4], refs[5]); // abcdef -> abcdfe (a-f -> a-e)
+          std::swap(refs[1], refs[4]); // 4 -> U
+          break;
+        case Smiley::OH9: // axis a-e, other 4-shape @@
+          std::swap(refs[4], refs[5]); // abcdef -> abcdfe (a-f -> a-e)
+          std::swap(refs[1], refs[4]); // 4 -> U
+          std::swap(refs[0], refs[5]); // a-f -> f-a
+          break;
+        case Smiley::OH13: // axis a-d, other 4-shape @
+          std::rotate(refs + 3, refs + 4, refs + 6); // abcdef -> abcefd (a-f -> a-d)
+          std::swap(refs[1], refs[4]); // 4 -> U
+          break;
+        case Smiley::OH12: // axis a-d, other 4-shape @@
+          std::rotate(refs + 3, refs + 4, refs + 6); // abcdef -> abcefd (a-f -> a-d)
+          std::swap(refs[1], refs[4]); // 4 -> U
+          std::swap(refs[0], refs[5]); // a-f -> f-a
+          break;
+        case Smiley::OH22: // axis a-c, other 4-shape @
+          std::rotate(refs + 2, refs + 3, refs + 6); // abcdef -> abdefc (a-f -> a-c)
+          std::swap(refs[1], refs[4]); // 4 -> U
+          break;
+        case Smiley::OH21: // axis a-c, other 4-shape @@
+          std::rotate(refs + 2, refs + 3, refs + 6); // abcdef -> abdefc (a-f -> a-c)
+          std::swap(refs[1], refs[4]); // 4 -> U
+          std::swap(refs[0], refs[5]); // a-f -> f-a
+          break;
+        case Smiley::OH28: // axis a-b, other 4-shape @
+          std::rotate(refs + 1, refs + 2, refs + 6); // abcdef -> acdefb (a-f -> a-b)
+          std::swap(refs[1], refs[4]); // 4 -> U
+          break;
+        case Smiley::OH27: // axis a-b, other 4-shape @@
+          std::rotate(refs + 1, refs + 2, refs + 6); // abcdef -> acdefb (a-f -> a-b)
+          std::swap(refs[1], refs[4]); // 4 -> U
+          std::swap(refs[0], refs[5]); // a-f -> f-a
+          break;
+      }
+
+      stereo.add(StereoStorage(type, index, refs, refs + numRefs));
+    }
+
+    // return false if there is no cis/trans stereochemistry
+    template<typename EditableMoleculeType, typename AtomType, typename BondType>
+    bool SmileyCallback_processUpDownBonds(const EditableMoleculeType &mol, const AtomType &doubleBondAtom,
+        const std::set<Index> &upBonds, const std::set<Index> &downBonds,
+        const BondType &bond1, const BondType &bond2, Stereo::Ref &upRef, Stereo::Ref &downRef)
+    {
+      auto other1 = get_other(mol, bond1, doubleBondAtom);
+
+      //std::cout << "processUpDownBonds(atom: " << get_index(mol, doubleBondAtom) << ")" << std::endl;
+
+      // check if bond is up/down
+      bool isRingBond1 = get_source(mol, bond1) > get_target(mol, bond1);
+      bool isUp1 = upBonds.find(get_index(mol, bond1)) != upBonds.end();
+      bool isDown1 = downBonds.find(get_index(mol, bond1)) != downBonds.end();
+      // if other atom is before atom1, meaning of / and \ changes
+      if (get_index(mol, other1) < get_index(mol, doubleBondAtom) && !isRingBond1)
+        std::swap(isUp1, isDown1);
+
+      // if there is only 1 bond that does not have up/down set, the double bond is not stereogenic
+      if (!isUp1 && !isDown1 && bond2 == molecule_traits<EditableMoleculeType>::null_bond())
+        return false;
+      if (isUp1)
+        upRef = get_index(mol, other1);
+      if (isDown1)
+        downRef = get_index(mol, other1);
+
+      if (bond2 != molecule_traits<EditableMoleculeType>::null_bond()) {
+        auto other2 = get_other(mol, bond2, doubleBondAtom);
+
+        bool isRingBond2 = get_source(mol, bond2) > get_target(mol, bond2);
+        bool isUp2 = upBonds.find(get_index(mol, bond2)) != upBonds.end();
+        bool isDown2 = downBonds.find(get_index(mol, bond2)) != downBonds.end();
+        if (get_index(mol, other2) < get_index(mol, doubleBondAtom) && !isRingBond2)
+          std::swap(isUp2, isDown2);
+
+        // if bond1 and bond2 are not up/down, there is no stereochemistry
+        if (!isUp1 && !isDown1 && !isUp2 && !isDown2)
+          return false;
+
+        if (!isUp1 && !isDown1) {
+          // case where only bond 2 specifies up/down
+          if (isUp2) {
+            upRef = get_index(mol, other2);
+            downRef = get_index(mol, other1);
+          }
+          if (isDown2) {
+            downRef = get_index(mol, other2);
+            upRef = get_index(mol, other1);
+          }
+        } else if (!isUp2 && !isDown2) {
+          // case where only bond 2 specifies up/down
+          if (isUp1) {
+            upRef = get_index(mol, other1);
+            downRef = get_index(mol, other2);
+          }
+          if (isDown1) {
+            downRef = get_index(mol, other1);
+            upRef = get_index(mol, other2);
+          }
+        } else {
+          // check for conflict
+          if ((isUp1 && isUp2) || (isDown1 && isDown2))
+            return false;
+
+          if (isUp2)
+            upRef = get_index(mol, other2);
+          if (isDown2)
+            downRef = get_index(mol, other2);
+        }
+
+        if (!isUp1 && !isDown1 && !isUp2 && !isDown2)
+          return false;
+
+        assert(upRef != Stereo::implRef() && downRef != Stereo::implRef());
+      }
+
+      assert(upRef != Stereo::implRef() || downRef != Stereo::implRef());
+      return true;
+    }
+
+    template<typename EditableMoleculeType>
+    void SmileyCallback_end(const EditableMoleculeType &mol, Stereochemistry &stereo,
+        const std::set<Index> &upBonds, const std::set<Index> &downBonds)
+    {
+      // add double bond stereochemistry
+      //
+      // ref = [ 0 1 2 3 ]
+      //
+      // 0        3
+      //  \      /
+      //   C == C
+      //  /      \
+      // 1        2
+      for (auto &bond : get_bonds(mol)) {
+        if (get_order(mol, bond) != 2)
+          continue;
+
+        // atom1 is the atom on the left side of the double bond
+        auto atom1 = get_source(mol, bond);
+        auto atom2 = get_target(mol, bond);
+        if (get_index(mol, atom2) < get_index(mol, atom1))
+          std::swap(atom1, atom2);
+
+        // find the up/down bonds (i.e. all bonds not equal to the double bond)
+        std::vector<Index> atom1bonds;
+        for (auto &b : get_bonds(mol, atom1))
+          if (b != bond)
+            atom1bonds.push_back(get_index(mol, b));
+        if (atom1bonds.size() == 0 || atom1bonds.size() > 2)
+          continue;
+
+        std::vector<Index> atom2bonds;
+        for (auto &b : get_bonds(mol, atom2))
+          if (b != bond)
+            atom2bonds.push_back(get_index(mol, b));
+        if (atom2bonds.size() == 0 || atom2bonds.size() > 2)
+          continue;
+
+        Stereo::Ref refs[4] = {Stereo::implRef(), Stereo::implRef(), Stereo::implRef(), Stereo::implRef()};
+
+        if (!SmileyCallback_processUpDownBonds(mol, atom1, upBonds, downBonds, get_bond(mol, atom1bonds[0]),
+              (atom1bonds.size() == 2) ? get_bond(mol, atom1bonds[1]) : molecule_traits<EditableMoleculeType>::null_bond(),
+              refs[0], refs[1]))
+          continue;
+
+        if (!SmileyCallback_processUpDownBonds(mol, atom2, upBonds, downBonds, get_bond(mol, atom2bonds[0]),
+              (atom2bonds.size() == 2) ? get_bond(mol, atom2bonds[1]) : molecule_traits<EditableMoleculeType>::null_bond(),
+              refs[3], refs[2]))
+          continue;
+
+        stereo.add(StereoStorage(Stereo::CisTrans, get_index(mol, bond), refs, refs + 4));
+      }
+    }
+
     template<typename EditableMoleculeType>
     struct SmileyCallback : public Smiley::CallbackBase
     {
@@ -324,298 +753,14 @@ namespace Helium {
           downBonds.insert(get_index(mol, bond));
       }
 
-      void replaceImplicitHydrogens(Stereo::Ref *refs, int size)
-      {
-        for (std::size_t i = 0; i < size; ++i)
-          if (refs[i] == Smiley::implicitHydrogen())
-            refs[i] = Stereo::implRef();
-      }
-
       void setChiral(int index, Smiley::Chirality chirality, const std::vector<int> &chiralNbrs)
       {
-        //std::cout << "setChiral(index: " << index << ", type: " << chirality << ", chiralNbrs: " << chiralNbrs << ")" << std::endl;
+        SmileyCallback_setChiral(stereo, index, chirality, chiralNbrs);
+      }
 
-        Stereo::Ref refs[6];
-        Stereo::Type type = Stereo::None;
-        int numRefs = 0;
-
-        switch (chirality) {
-          case Smiley::AntiClockwise:
-          case Smiley::Clockwise:
-          case Smiley::TH1:
-          case Smiley::TH2:
-            type = Stereo::Tetrahedral;
-            numRefs = 4;
-            break;
-          case Smiley::AL1:
-          case Smiley::AL2:
-            type = Stereo::Allene;
-            numRefs = 4;
-            break;
-          case Smiley::SP1:
-          case Smiley::SP2:
-          case Smiley::SP3:
-            type = Stereo::SquarePlanar;
-            numRefs = 4;
-            break;
-          default:
-            if (chirality >= Smiley::TB1 && chirality <= Smiley::TB20) {
-              type = Stereo::TrigonalBipyramidal;
-              numRefs = 5;
-            } else if (chirality >= Smiley::OH1 && chirality <= Smiley::OH30) {
-              type = Stereo::Octahedral;
-              numRefs = 6;
-            }
-            break;
-        }
-
-        assert(type != Stereo::None);
-        assert(numRefs);
-
-        if (chiralNbrs.size() != numRefs) {
-          // FIXME: report invalid stereochemistry
-          return;
-        }
-
-        std::copy(chiralNbrs.begin(), chiralNbrs.end(), refs);
-        replaceImplicitHydrogens(refs, numRefs);
-
-        switch (chirality) {
-          case Smiley::NotChiral:
-            break;
-          case Smiley::AntiClockwise:
-          case Smiley::TH1:
-            break;
-          case Smiley::Clockwise:
-          case Smiley::TH2:
-            type = Stereo::Tetrahedral;
-            refs[0] = chiralNbrs[0];
-            std::copy(chiralNbrs.rbegin(), chiralNbrs.rbegin() + 3, refs + 1);
-            replaceImplicitHydrogens(refs, 4);
-            break;
-          case Smiley::AL1:
-            break;
-          case Smiley::AL2:
-            type = Stereo::Allene;
-            refs[0] = chiralNbrs[0];
-            std::copy(chiralNbrs.rbegin(), chiralNbrs.rbegin() + 3, refs + 1);
-            replaceImplicitHydrogens(refs, 4);
-            break;
-          case Smiley::SP1:
-            // U shape
-            break;
-          case Smiley::SP2:
-            // 4 shape -> U shape
-            std::swap(refs[1], refs[2]);
-            break;
-          case Smiley::SP3:
-            // Z shape -> U shape
-            std::swap(refs[0], refs[1]);
-            break;
-          case Smiley::TB1: // axis a-e, other @
-            break;
-          case Smiley::TB2: // axis a-e, other @@
-            std::swap(refs[0], refs[4]); // abcde -> ebcda
-            break;
-          case Smiley::TB3: // axis a-d, other @
-            std::swap(refs[3], refs[4]); // abcde -> abced
-            break;
-          case Smiley::TB4: // axis a-d, other @@
-            std::swap(refs[3], refs[4]); // abcde -> abced
-            std::swap(refs[0], refs[4]); // abcde -> dbcea
-            break;
-          case Smiley::TB5: // axis a-c, other @
-            std::rotate(refs + 2, refs + 3, refs + 5); // abcde -> abdec
-            break;
-          case Smiley::TB6: // axis a-c, other @@
-            std::rotate(refs + 2, refs + 3, refs + 5); // abcde -> abdec
-            std::swap(refs[0], refs[4]); // abdec -> cbdea
-            break;
-          case Smiley::TB7: // axis a-b, other @
-            std::rotate(refs + 1, refs + 2, refs + 5); // abcde -> acdeb
-            break;
-          case Smiley::TB8: // axis a-b, other @@
-            std::rotate(refs + 1, refs + 2, refs + 5); // abcde -> acdeb
-            std::swap(refs[0], refs[4]); // abdec -> cbdea
-            break;
-          case Smiley::TB9: // axis b-e, other @
-            std::swap(refs[0], refs[1]); // abcde -> bacde
-            break;
-          case Smiley::TB11: // axis b-e, other @@
-            std::swap(refs[0], refs[1]); // abcde -> bacde
-            std::swap(refs[0], refs[4]); // bacde -> eacdb
-            break;
-          case Smiley::TB10: // axis b-d, other @
-            std::swap(refs[0], refs[1]); // abcde -> bacde
-            std::swap(refs[3], refs[4]); // bacde -> baced
-            break;
-          case Smiley::TB12: // axis b-d, other @@
-            std::swap(refs[0], refs[1]); // abcde -> bacde
-            std::swap(refs[3], refs[4]); // bacde -> baced
-            std::swap(refs[0], refs[4]); // bacde -> eacdb
-            break;
-          case Smiley::TB13: // axis b-c, other @
-            std::swap(refs[0], refs[1]); // abcde -> bacde
-            std::rotate(refs + 2, refs + 3, refs + 5); // bacde -> badec
-            break;
-          case Smiley::TB14: // axis b-c, other @@
-            std::swap(refs[0], refs[1]); // abcde -> bacde
-            std::rotate(refs + 2, refs + 3, refs + 5); // bacde -> badec
-            std::swap(refs[0], refs[4]); // badec -> cadeb
-            break;
-          case Smiley::TB15: // axis c-e, other @
-            std::swap(refs[1], refs[2]); // abcde -> acbde
-            std::swap(refs[0], refs[1]); // acbde -> cabde
-            break;
-          case Smiley::TB20: // axis c-e, other @@
-            std::swap(refs[1], refs[2]); // abcde -> acbde
-            std::swap(refs[0], refs[1]); // acbde -> cabde
-            std::swap(refs[0], refs[4]); // cabde -> eabdc
-            break;
-          case Smiley::TB16: // axis c-d, other @
-            std::swap(refs[1], refs[2]); // abcde -> acbde
-            std::swap(refs[0], refs[1]); // acbde -> cabde
-            std::swap(refs[3], refs[4]); // cabde -> cabed
-            break;
-          case Smiley::TB19: // axis c-d, other @@
-            std::swap(refs[1], refs[2]); // abcde -> acbde
-            std::swap(refs[0], refs[1]); // acbde -> cabde
-            std::swap(refs[3], refs[4]); // cabde -> cabed
-            std::swap(refs[0], refs[4]); // cabde -> eabdc
-            break;
-          case Smiley::TB17: // axis d-e, other @
-            std::swap(refs[2], refs[3]); // abcde -> abdce
-            std::swap(refs[1], refs[2]); // abdce -> adbce
-            std::swap(refs[0], refs[1]); // adbce -> dabce
-            break;
-          case Smiley::TB18: // axis d-e, other @@
-            std::swap(refs[2], refs[3]); // abcde -> abdce
-            std::swap(refs[1], refs[2]); // abdce -> adbce
-            std::swap(refs[0], refs[1]); // adbce -> dabce
-            std::swap(refs[0], refs[4]); // cabde -> eabdc
-            break;
-          case Smiley::OH1: // axis a-f, other U-shape @
-            break;
-          case Smiley::OH2: // axis a-f, other U-shape @@
-            std::reverse(refs + 1, refs + 5);
-            break;
-          case Smiley::OH3: // axis a-e, other U-shape @
-            std::swap(refs[4], refs[5]); // abcdef -> abcdfe (a-f -> a-e)
-            break;
-          case Smiley::OH16: // axis a-e, other U-shape @@
-            std::swap(refs[4], refs[5]); // abcdef -> abcdfe (a-f -> a-e)
-            std::swap(refs[0], refs[5]); // abcdfe -> ebcdfa
-            break;
-          case Smiley::OH6: // axis a-d, other U-shape @
-            std::rotate(refs + 3, refs + 4, refs + 6); // abcdef -> abcefd (a-f -> a-d)
-            break;
-          case Smiley::OH18: // axis a-d, other U-shape @@
-            std::rotate(refs + 3, refs + 4, refs + 6); // abcdef -> abcefd (a-f -> a-d)
-            std::swap(refs[0], refs[5]); // abcefd -> dbcefa
-            break;
-          case Smiley::OH19: // axis a-c, other U-shape @
-            std::rotate(refs + 2, refs + 3, refs + 6); // abcdef -> abdefc (a-f -> a-c)
-            break;
-          case Smiley::OH24: // axis a-c, other U-shape @@
-            std::rotate(refs + 2, refs + 3, refs + 6); // abcdef -> abdefc (a-f -> a-c)
-            std::swap(refs[0], refs[5]); // abdefc -> cbdefa
-            break;
-          case Smiley::OH25: // axis a-b, other U-shape @
-            std::rotate(refs + 1, refs + 2, refs + 6); // abcdef -> acdefb (a-f -> a-b)
-            break;
-          case Smiley::OH30: // axis a-b, other U-shape @@
-            std::rotate(refs + 1, refs + 2, refs + 6); // abcdef -> acdefb (a-f -> a-b)
-            std::swap(refs[0], refs[5]); // acdefb -> bcdefa
-            break;
-          case Smiley::OH4: // axis a-f, other Z-shape @
-            std::swap(refs[3], refs[4]); // Z -> U
-            break;
-          case Smiley::OH14: // axis a-f, other Z-shape @@
-            std::swap(refs[3], refs[4]); // Z -> U
-            std::swap(refs[0], refs[5]); // a-f -> f-a
-            break;
-          case Smiley::OH5: // axis a-e, other Z-shape @
-            std::swap(refs[4], refs[5]); // abcdef -> abcdfe (a-f -> a-e)
-            std::swap(refs[3], refs[4]); // Z -> U
-            break;
-          case Smiley::OH15: // axis a-e, other Z-shape @@
-            std::swap(refs[4], refs[5]); // abcdef -> abcdfe (a-f -> a-e)
-            std::swap(refs[3], refs[4]); // Z -> U
-            std::swap(refs[0], refs[5]); // a-f -> f-a
-            break;
-          case Smiley::OH7: // axis a-d, other Z-shape @
-            std::rotate(refs + 3, refs + 4, refs + 6); // abcdef -> abcefd (a-f -> a-d)
-            std::swap(refs[3], refs[4]); // Z -> U
-            break;
-          case Smiley::OH17: // axis a-d, other Z-shape @@
-            std::rotate(refs + 3, refs + 4, refs + 6); // abcdef -> abcefd (a-f -> a-d)
-            std::swap(refs[3], refs[4]); // Z -> U
-            std::swap(refs[0], refs[5]); // a-f -> f-a
-            break;
-          case Smiley::OH20: // axis a-c, other Z-shape @
-            std::rotate(refs + 2, refs + 3, refs + 6); // abcdef -> abdefc (a-f -> a-c)
-            std::swap(refs[3], refs[4]); // Z -> U
-            break;
-          case Smiley::OH23: // axis a-c, other Z-shape @@
-            std::rotate(refs + 2, refs + 3, refs + 6); // abcdef -> abdefc (a-f -> a-c)
-            std::swap(refs[3], refs[4]); // Z -> U
-            std::swap(refs[0], refs[5]); // a-f -> f-a
-            break;
-          case Smiley::OH26: // axis a-b, other Z-shape @
-            std::rotate(refs + 1, refs + 2, refs + 6); // abcdef -> acdefb (a-f -> a-b)
-            std::swap(refs[3], refs[4]); // Z -> U
-            break;
-          case Smiley::OH29: // axis a-b, other Z-shape @@
-            std::rotate(refs + 1, refs + 2, refs + 6); // abcdef -> acdefb (a-f -> a-b)
-            std::swap(refs[3], refs[4]); // Z -> U
-            std::swap(refs[0], refs[5]); // a-f -> f-a
-            break;
-          case Smiley::OH10: // axis a-f, other 4-shape @
-            std::swap(refs[1], refs[4]); // 4 -> U
-            break;
-          case Smiley::OH8: // axis a-f, other 4-shape @@
-            std::swap(refs[1], refs[4]); // 4 -> U
-            std::swap(refs[0], refs[5]); // a-f -> f-a
-            break;
-          case Smiley::OH11: // axis a-e, other 4-shape @
-            std::swap(refs[4], refs[5]); // abcdef -> abcdfe (a-f -> a-e)
-            std::swap(refs[1], refs[4]); // 4 -> U
-            break;
-          case Smiley::OH9: // axis a-e, other 4-shape @@
-            std::swap(refs[4], refs[5]); // abcdef -> abcdfe (a-f -> a-e)
-            std::swap(refs[1], refs[4]); // 4 -> U
-            std::swap(refs[0], refs[5]); // a-f -> f-a
-            break;
-          case Smiley::OH13: // axis a-d, other 4-shape @
-            std::rotate(refs + 3, refs + 4, refs + 6); // abcdef -> abcefd (a-f -> a-d)
-            std::swap(refs[1], refs[4]); // 4 -> U
-            break;
-          case Smiley::OH12: // axis a-d, other 4-shape @@
-            std::rotate(refs + 3, refs + 4, refs + 6); // abcdef -> abcefd (a-f -> a-d)
-            std::swap(refs[1], refs[4]); // 4 -> U
-            std::swap(refs[0], refs[5]); // a-f -> f-a
-            break;
-          case Smiley::OH22: // axis a-c, other 4-shape @
-            std::rotate(refs + 2, refs + 3, refs + 6); // abcdef -> abdefc (a-f -> a-c)
-            std::swap(refs[1], refs[4]); // 4 -> U
-            break;
-          case Smiley::OH21: // axis a-c, other 4-shape @@
-            std::rotate(refs + 2, refs + 3, refs + 6); // abcdef -> abdefc (a-f -> a-c)
-            std::swap(refs[1], refs[4]); // 4 -> U
-            std::swap(refs[0], refs[5]); // a-f -> f-a
-            break;
-          case Smiley::OH28: // axis a-b, other 4-shape @
-            std::rotate(refs + 1, refs + 2, refs + 6); // abcdef -> acdefb (a-f -> a-b)
-            std::swap(refs[1], refs[4]); // 4 -> U
-            break;
-          case Smiley::OH27: // axis a-b, other 4-shape @@
-            std::rotate(refs + 1, refs + 2, refs + 6); // abcdef -> acdefb (a-f -> a-b)
-            std::swap(refs[1], refs[4]); // 4 -> U
-            std::swap(refs[0], refs[5]); // a-f -> f-a
-            break;
-        }
-
-        stereo.add(StereoStorage(type, index, refs, refs + numRefs));
+      void end()
+      {
+        SmileyCallback_end(mol, stereo, upBonds, downBonds);
       }
 
       std::set<Index> upBonds;
@@ -684,7 +829,6 @@ namespace Helium {
       std::map<atom_type, std::vector<RingNumber>> ringNumbers;
       std::vector<int> outputIndices; // maps atom index to output index
     };
-
 
     template<typename MoleculeType>
     struct WriteSmilesVisitor : public DFSVisitor<MoleculeType>
@@ -1222,86 +1366,6 @@ namespace Helium {
       }
     }
 
-    // return false if there is no cis/trans stereochemistry
-    template<typename EditableMoleculeType, typename AtomType, typename BondType>
-    bool processUpDownBonds(const EditableMoleculeType &mol, const AtomType &doubleBondAtom,
-        const std::set<Index> &upBonds, const std::set<Index> &downBonds,
-        const BondType &bond1, const BondType &bond2, Stereo::Ref &upRef, Stereo::Ref &downRef)
-    {
-      auto other1 = get_other(mol, bond1, doubleBondAtom);
-
-      //std::cout << "processUpDownBonds(atom: " << get_index(mol, doubleBondAtom) << ")" << std::endl;
-
-      // check if bond is up/down
-      bool isRingBond1 = get_source(mol, bond1) > get_target(mol, bond1);
-      bool isUp1 = upBonds.find(get_index(mol, bond1)) != upBonds.end();
-      bool isDown1 = downBonds.find(get_index(mol, bond1)) != downBonds.end();
-      // if other atom is before atom1, meaning of / and \ changes
-      if (get_index(mol, other1) < get_index(mol, doubleBondAtom) && !isRingBond1)
-        std::swap(isUp1, isDown1);
-
-      // if there is only 1 bond that does not have up/down set, the double bond is not stereogenic
-      if (!isUp1 && !isDown1 && bond2 == molecule_traits<EditableMoleculeType>::null_bond())
-        return false;
-      if (isUp1)
-        upRef = get_index(mol, other1);
-      if (isDown1)
-        downRef = get_index(mol, other1);
-
-      if (bond2 != molecule_traits<EditableMoleculeType>::null_bond()) {
-        auto other2 = get_other(mol, bond2, doubleBondAtom);
-
-        bool isRingBond2 = get_source(mol, bond2) > get_target(mol, bond2);
-        bool isUp2 = upBonds.find(get_index(mol, bond2)) != upBonds.end();
-        bool isDown2 = downBonds.find(get_index(mol, bond2)) != downBonds.end();
-        if (get_index(mol, other2) < get_index(mol, doubleBondAtom) && !isRingBond2)
-          std::swap(isUp2, isDown2);
-
-        // if bond1 and bond2 are not up/down, there is no stereochemistry
-        if (!isUp1 && !isDown1 && !isUp2 && !isDown2)
-          return false;
-
-        if (!isUp1 && !isDown1) {
-          // case where only bond 2 specifies up/down
-          if (isUp2) {
-            upRef = get_index(mol, other2);
-            downRef = get_index(mol, other1);
-          }
-          if (isDown2) {
-            downRef = get_index(mol, other2);
-            upRef = get_index(mol, other1);
-          }
-        } else if (!isUp2 && !isDown2) {
-          // case where only bond 2 specifies up/down
-          if (isUp1) {
-            upRef = get_index(mol, other1);
-            downRef = get_index(mol, other2);
-          }
-          if (isDown1) {
-            downRef = get_index(mol, other1);
-            upRef = get_index(mol, other2);
-          }
-        } else {
-          // check for conflict
-          if ((isUp1 && isUp2) || (isDown1 && isDown2))
-            return false;
-
-          if (isUp2)
-            upRef = get_index(mol, other2);
-          if (isDown2)
-            downRef = get_index(mol, other2);
-        }
-
-        if (!isUp1 && !isDown1 && !isUp2 && !isDown2)
-          return false;
-
-        assert(upRef != Stereo::implRef() && downRef != Stereo::implRef());
-      }
-
-      assert(upRef != Stereo::implRef() || downRef != Stereo::implRef());
-      return true;
-    }
-
   } // namespace impl
 
   template<typename EditableMoleculeType>
@@ -1359,54 +1423,6 @@ namespace Helium {
         set_hydrogens(mol, atom, expValence - valence);
     }
 
-    // add double bond stereochemistry
-    //
-    // ref = [ 0 1 2 3 ]
-    //
-    // 0        3
-    //  \      /
-    //   C == C
-    //  /      \
-    // 1        2
-    for (auto &bond : get_bonds(mol)) {
-      if (get_order(mol, bond) != 2)
-        continue;
-
-      // atom1 is the atom on the left side of the double bond
-      auto atom1 = get_source(mol, bond);
-      auto atom2 = get_target(mol, bond);
-      if (get_index(mol, atom2) < get_index(mol, atom1))
-        std::swap(atom1, atom2);
-
-      // find the up/down bonds (i.e. all bonds not equal to the double bond)
-      std::vector<Index> atom1bonds;
-      for (auto &b : get_bonds(mol, atom1))
-        if (b != bond)
-          atom1bonds.push_back(get_index(mol, b));
-      if (atom1bonds.size() == 0 || atom1bonds.size() > 2)
-        continue;
-
-      std::vector<Index> atom2bonds;
-      for (auto &b : get_bonds(mol, atom2))
-        if (b != bond)
-          atom2bonds.push_back(get_index(mol, b));
-      if (atom2bonds.size() == 0 || atom2bonds.size() > 2)
-        continue;
-
-      Stereo::Ref refs[4] = {Stereo::implRef(), Stereo::implRef(), Stereo::implRef(), Stereo::implRef()};
-
-      if (!processUpDownBonds(mol, atom1, callback.upBonds, callback.downBonds, get_bond(mol, atom1bonds[0]),
-            (atom1bonds.size() == 2) ? get_bond(mol, atom1bonds[1]) : molecule_traits<EditableMoleculeType>::null_bond(),
-            refs[0], refs[1]))
-        continue;
-
-      if (!processUpDownBonds(mol, atom2, callback.upBonds, callback.downBonds, get_bond(mol, atom2bonds[0]),
-            (atom2bonds.size() == 2) ? get_bond(mol, atom2bonds[1]) : molecule_traits<EditableMoleculeType>::null_bond(),
-            refs[3], refs[2]))
-        continue;
-
-      stereo.add(StereoStorage(Stereo::CisTrans, get_index(mol, bond), refs, refs + 4));
-    }
 
     return true;
   }

@@ -1856,6 +1856,10 @@ namespace Smiley {
 
         processImplicitAnd(parsedOp, firstPrimitive);
         m_callback.atomPrimitive(type, defaultValue);
+
+        if (type == AE_TotalH)
+          m_hCount = defaultValue;
+
         return true;
       }
 
@@ -2190,10 +2194,12 @@ namespace Smiley {
           }
           // complex...
           parseChiral();
+          /*
           if (atomPrimitiveCallback(AE_Chirality, m_chiral, 0, parsedOp, first_primitive)) {
             first_primitive = false;
             continue;
           }
+          */
           // valence ::= ':' NUMBER
           parseClass();
           if (atomPrimitiveCallback(AE_AtomClass, m_class, 0, parsedOp, first_primitive)) {
@@ -2216,41 +2222,9 @@ namespace Smiley {
         }
       }
 
-      /**
-       * @code
-       * bracket_atom ::= '[' isotope? symbol chiral? hcount? charge? class? ']'
-       * @endcode
-       */
-      void parseBracketAtom()
+      // set chiral specifier and handle implicit H
+      void processChiralInfo()
       {
-        if (DEBUG)
-          std::cout << "parseBracketAtom(" << m_str().substr(m_pos()) << ")" << std::endl;
-
-        std::size_t close = findMatchingBracket("[", "]", m_pos());
-        ++m_pos();
-
-        if (m_mode == SmartsMode) {
-          m_callback.beginAtom();
-          parseAtomExpr();
-          m_callback.endAtom();
-
-          if (m_prev() != -1)
-            addBond(m_prev(), m_index(), m_bondOrder, m_isUp, m_isDown);
-
-          m_prev() = m_index();
-          ++m_index();
-          m_chiralInfo().push_back(ChiralInfo());
-
-          return;
-        }
-
-        parseIsotope();
-        parseSymbol();
-        parseChiral();
-        parseHydrogenCount();
-        parseCharge();
-        parseClass();
-
         // check number of implicit hydrogens
         switch (m_chiral) {
           //case AntiClockwise:
@@ -2277,7 +2251,46 @@ namespace Smiley {
         m_chiralInfo().back().chiral = static_cast<Chirality>(m_chiral);
         for (int i = 0; i < m_hCount; ++i)
           m_chiralInfo().back().nbrs.push_back(implicitHydrogen());
+      }
 
+      /**
+       * @code
+       * bracket_atom ::= '[' isotope? symbol chiral? hcount? charge? class? ']'
+       * @endcode
+       */
+      void parseBracketAtom()
+      {
+        if (DEBUG)
+          std::cout << "parseBracketAtom(" << m_str().substr(m_pos()) << ")" << std::endl;
+
+        std::size_t close = findMatchingBracket("[", "]", m_pos());
+        ++m_pos();
+
+        if (m_mode == SmartsMode) {
+          m_callback.beginAtom();
+          parseAtomExpr();
+          m_callback.endAtom();
+
+          processChiralInfo();
+
+          if (m_prev() != -1)
+            addBond(m_prev(), m_index(), m_bondOrder, m_isUp, m_isDown);
+
+          m_prev() = m_index();
+          ++m_index();
+          m_chiralInfo().push_back(ChiralInfo());
+
+          return;
+        }
+
+        parseIsotope();
+        parseSymbol();
+        parseChiral();
+        parseHydrogenCount();
+        parseCharge();
+        parseClass();
+
+        processChiralInfo();
 
         if (m_str()[m_pos()] != ']')
           throw Exception(Exception::SyntaxError, TrailingCharInBracketAtom,
@@ -2746,7 +2759,7 @@ namespace Smiley {
 
           // check for branch opening ::= '('?
           pos = std::string::npos;
-		  while (pos != m_pos() && m_pos() < m_str().size()) {
+          while (pos != m_pos() && m_pos() < m_str().size()) {
             pos = m_pos();
             if (m_str()[m_pos()] == '(') {
               if (DEBUG)

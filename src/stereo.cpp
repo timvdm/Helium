@@ -87,6 +87,14 @@ namespace Helium {
     return os;
   }
 
+  std::ostream& operator<<(std::ostream &os, const Stereochemistry &stereo)
+  {
+    os << "Stereochemistry:" << std::endl;
+    for (auto &storage : stereo.allStereo())
+      os << "    " << storage << std::endl;
+    return os;
+  }
+
   namespace impl {
 
     unsigned int stereo_num_inversions(const Stereo::Ref *refs, std::size_t size)
@@ -131,6 +139,7 @@ namespace Helium {
   namespace impl {
 
     // abcd = bcda = cdab = dabc
+    /*
     bool stereo_compare_directed_cycles(const Stereo::Ref *refs, Stereo::Ref ref1, Stereo::Ref ref2,
         Stereo::Ref ref3, Stereo::Ref ref4)
     {
@@ -145,24 +154,30 @@ namespace Helium {
 
       return false;
     }
+    */
 
     // abcd = bcda = cdab = dabc = dcba = cbad = badc = adcb
     bool stereo_compare_undirected_cycles(const Stereo::Ref *refs, Stereo::Ref ref1, Stereo::Ref ref2,
         Stereo::Ref ref3, Stereo::Ref ref4)
     {
-      Stereo::Ref ptr[4] = {ref1, ref2, ref3, ref4};
+      Stereo::Ref ptrA[4] = {refs[0], refs[1], refs[2], refs[3]};
+      Stereo::Ref ptrB[4] = {ref1, ref2, ref3, ref4};
+
+      // do not start comparing with implRef since there may be more than 1!
+      while (ptrA[0] == Stereo::implRef())
+        std::rotate(ptrA, ptrA + 1, ptrA + 4);
 
       // reduce problem to abcd or adcb
-      while (ptr[0] != refs[0])
-        std::rotate(ptr, ptr + 1, ptr + 4);
+      while (ptrB[0] != ptrA[0])
+        std::rotate(ptrB, ptrB + 1, ptrB + 4);
 
       // handle abcd = abcd
-      if (std::equal(refs + 1, refs + 4, ptr + 1))
+      if (std::equal(ptrA + 1, ptrA + 4, ptrB + 1))
         return true;
 
       // handle abcd = adcb
-      std::reverse(ptr + 1, ptr + 4);
-      if (std::equal(refs + 1, refs + 4, ptr + 1))
+      std::reverse(ptrB + 1, ptrB + 4);
+      if (std::equal(ptrA + 1, ptrA + 4, ptrB + 1))
         return true;
 
       return false;

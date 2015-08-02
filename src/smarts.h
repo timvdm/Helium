@@ -35,6 +35,7 @@
 #include <Helium/algorithms/cycles.h>
 #include <Helium/error.h>
 #include <Helium/smiley.h>
+#include <Helium/stereo.h>
 
 #include <iostream>
 
@@ -286,10 +287,12 @@ namespace Helium {
         typedef typename molecule_traits<MoleculeType>::atom_type atom_type;
         typedef typename molecule_traits<QueryType>::atom_type query_atom_type;
 
-        SmartsAtomMatcher(const std::vector<SmartsAtomExpr*> &atoms, const RingSet<MoleculeType> &rings,
-            const std::vector<HeMol> &recursiveMols, const std::vector<SmartsTrees> &recursiveTrees, int mode)
-          : m_atoms(atoms), m_rings(rings), m_recursiveMols(recursiveMols),
-            m_recursiveTrees(recursiveTrees), m_mode(mode)
+        SmartsAtomMatcher(const std::vector<SmartsAtomExpr*> &atoms, const Stereochemistry &stereo,
+            const RingSet<MoleculeType> &rings, const std::vector<HeMol> &recursiveMols,
+            const std::vector<SmartsTrees> &recursiveTrees,
+            const std::vector<Stereochemistry> &recursiveStereo, int mode)
+          : m_atoms(atoms), m_stereo(stereo), m_rings(rings), m_recursiveMols(recursiveMols),
+            m_recursiveTrees(recursiveTrees), m_recursiveStereo(recursiveStereo), m_mode(mode)
         {
         }
 
@@ -370,11 +373,13 @@ namespace Helium {
               {
                 assert(expr->value < m_recursiveMols.size());
                 assert(expr->value < m_recursiveTrees.size());
-                impl::SmartsAtomMatcher<HeMol, MoleculeType> atomMatcher(m_recursiveTrees[expr->value].atoms(),
-                    m_rings, m_recursiveMols, m_recursiveTrees, m_mode);
+                assert(expr->value < m_recursiveStereo.size());
+                impl::SmartsAtomMatcher<HeMol, MoleculeType> atomMatcher(m_recursiveTrees[expr->value].atoms(), m_stereo,
+                    m_rings, m_recursiveMols, m_recursiveTrees, m_recursiveStereo, m_mode);
                 impl::SmartsBondMatcher<HeMol, MoleculeType> bondMatcher(m_recursiveTrees[expr->value].bonds(), m_rings);
                 NoMapping mapping;
-                return isomorphism_search(mol, atom, m_recursiveMols[expr->value], mapping, atomMatcher, bondMatcher);
+                return isomorphism_search(mol, atom, m_recursiveMols[expr->value],
+                    m_stereo, m_recursiveStereo[expr->value], mapping, atomMatcher, bondMatcher);
               }
             case Smiley::OP_Not:
               return !match(mol, atom, expr->arg);
@@ -390,9 +395,11 @@ namespace Helium {
         }
 
         const std::vector<SmartsAtomExpr*> m_atoms;
+        const Stereochemistry &m_stereo;
         const RingSet<MoleculeType> &m_rings;
         const std::vector<HeMol> &m_recursiveMols;
         const std::vector<SmartsTrees> &m_recursiveTrees;
+        const std::vector<Stereochemistry> &m_recursiveStereo;
         int m_mode;
     };
 
@@ -623,6 +630,7 @@ namespace Helium {
        * This function should be used when requiresRingSet() returns true.
        *
        * @param mol The queried molecule.
+       * @param stereo The stereochemistry.
        * @param rings The ring set (needed for R<n>, r<n>, ...).
        * @param mapping The mapping to store the result.
        * @param uniqueComponents If true, an additional check will be performed
@@ -636,8 +644,20 @@ namespace Helium {
        * @return True if the SMARTS matches the molecule.
        */
       template<typename MoleculeType, typename MappingType>
+      bool findMapping(const MoleculeType &mol, const Stereochemistry &stereo,
+          const RingSet<MoleculeType> &rings, MappingType &mapping,
+          bool uniqueComponents = false);
+
+      /**
+       * @overload
+       */
+      template<typename MoleculeType, typename MappingType>
       bool findMapping(const MoleculeType &mol, const RingSet<MoleculeType> &rings,
-          MappingType &mapping, bool uniqueComponents = false);
+          MappingType &mapping, bool uniqueComponents = false)
+      {
+        Stereochemistry stereo;
+        return findMapping(mol, stereo, rings, mapping, uniqueComponents);
+      }
 
       /**
        * @brief Perform a SMARTS search on the specified molecule.
@@ -663,20 +683,30 @@ namespace Helium {
        * @return True if the SMARTS matches the molecule.
        */
       template<typename MoleculeType, typename MappingType>
+      bool findMapping(const MoleculeType &mol, const Stereochemistry &stereo,
+          const std::vector<bool> &cyclicAtoms, const std::vector<bool> &cyclicBonds,
+          MappingType &mapping, bool uniqueComponents = false)
+      {
+        RingSet<MoleculeType> rings(mol, cyclicAtoms, cyclicBonds);
+        return findMapping(mol, stereo, rings, mapping, uniqueComponents);
+      }
+
+      template<typename MoleculeType, typename MappingType>
       bool findMapping(const MoleculeType &mol, const std::vector<bool> &cyclicAtoms,
           const std::vector<bool> &cyclicBonds, MappingType &mapping,
           bool uniqueComponents = false)
       {
+        Stereochemistry stereo;
         RingSet<MoleculeType> rings(mol, cyclicAtoms, cyclicBonds);
-        return findMapping(mol, rings, mapping, uniqueComponents);
+        return findMapping(mol, stereo, rings, mapping, uniqueComponents);
       }
 
       /**
        * @overload
        */
       template<typename MoleculeType, typename MappingType>
-      bool findMapping(const MoleculeType &mol, MappingType &mapping,
-          bool uniqueComponents = false)
+      bool findMapping(const MoleculeType &mol, const Stereochemistry &stereo,
+          MappingType &mapping, bool uniqueComponents = false)
       {
         switch (m_mode) {
           case SSSR:
@@ -691,9 +721,31 @@ namespace Helium {
               std::vector<bool> cyclicBonds(num_bonds(mol));
               cycle_membership(mol, cyclicAtoms, cyclicBonds);
 
-              return findMapping(mol, cyclicAtoms, cyclicBonds, mapping, uniqueComponents);
+              return findMapping(mol, stereo, cyclicAtoms, cyclicBonds, mapping, uniqueComponents);
             }
         };
+      }
+
+      /**
+       * @overload
+       */
+      template<typename MoleculeType, typename MappingType>
+      bool findMapping(const MoleculeType &mol, MappingType &mapping,
+          bool uniqueComponents = false)
+      {
+        Stereochemistry stereo;
+        return findMapping(mol, stereo, mapping, uniqueComponents);
+      }
+
+      /**
+       * @overload
+       */
+      template<typename MoleculeType>
+      bool find(const MoleculeType &mol, const Stereochemistry &stereo,
+          const RingSet<MoleculeType> &rings, bool uniqueComponents = false)
+      {
+        NoMapping mapping;
+        return findMapping(mol, stereo, rings, mapping, uniqueComponents);
       }
 
       /**
@@ -703,8 +755,21 @@ namespace Helium {
       bool find(const MoleculeType &mol, const RingSet<MoleculeType> &rings,
           bool uniqueComponents = false)
       {
+        Stereochemistry stereo;
         NoMapping mapping;
-        return findMapping(mol, rings, mapping, uniqueComponents);
+        return findMapping(mol, stereo, rings, mapping, uniqueComponents);
+      }
+
+      /**
+       * @overload
+       */
+      template<typename MoleculeType>
+      bool find(const MoleculeType &mol, const Stereochemistry &stereo,
+          const std::vector<bool> &cyclicAtoms, const std::vector<bool> &cyclicBonds,
+          bool uniqueComponents = false)
+      {
+        NoMapping mapping;
+        return findMapping(mol, stereo, cyclicBonds, cyclicAtoms, mapping, uniqueComponents);
       }
 
       /**
@@ -714,8 +779,9 @@ namespace Helium {
       bool find(const MoleculeType &mol, const std::vector<bool> &cyclicAtoms,
           const std::vector<bool> &cyclicBonds, bool uniqueComponents = false)
       {
+        Stereochemistry stereo;
         NoMapping mapping;
-        return findMapping(mol, cyclicBonds, cyclicAtoms, mapping, uniqueComponents);
+        return findMapping(mol, stereo, cyclicBonds, cyclicAtoms, mapping, uniqueComponents);
       }
 
       /**
@@ -724,17 +790,24 @@ namespace Helium {
       template<typename MoleculeType>
       bool find(const MoleculeType &mol, bool uniqueComponents = false)
       {
+        Stereochemistry stereo;
         NoMapping mapping;
-        return findMapping(mol, mapping, uniqueComponents);
+        return findMapping(mol, stereo, mapping, uniqueComponents);
       }
 
     private:
       HeMol m_query; //!< The query
       impl::SmartsTrees m_trees; //!< The SMARTS expression trees
+      Stereochemistry m_stereo;
+
       std::vector<HeMol> m_components; //!< The query components
       std::vector<impl::SmartsTrees> m_componentTrees; //!< The SMARTS component expression trees
+      std::vector<Stereochemistry> m_componentStereo;
+
       std::vector<HeMol> m_recursiveMols; //!< The recursive molecules
       std::vector<impl::SmartsTrees> m_recursiveTrees; //!< The recursive expression trees
+      std::vector<Stereochemistry> m_recursiveStereo; //!< The recursive stereochemistry
+
       std::vector<std::vector<Index> > m_atomMaps; //!< m_components atom index to original smarts index
       //std::vector<std::vector<Index> > m_bondMaps; //!< m_components bond index to original smarts index
       Error m_error;
@@ -797,28 +870,28 @@ namespace Helium {
   }
 
   template<typename MoleculeType, typename MappingType>
-  bool Smarts::findMapping(const MoleculeType &mol, const RingSet<MoleculeType> &rings,
-      MappingType &mapping, bool uniqueComponents)
+  bool Smarts::findMapping(const MoleculeType &mol, const Stereochemistry &stereo,
+      const RingSet<MoleculeType> &rings, MappingType &mapping, bool uniqueComponents)
   {
     if (m_components.empty())
       return false;
 
     if (m_components.size() == 1) {
       // simple case: single SMARTS fragment
-      impl::SmartsAtomMatcher<HeMol, MoleculeType> atomMatcher(m_componentTrees[0].atoms(),
-          rings, m_recursiveMols, m_recursiveTrees, m_mode);
+      impl::SmartsAtomMatcher<HeMol, MoleculeType> atomMatcher(m_componentTrees[0].atoms(), stereo,
+          rings, m_recursiveMols, m_recursiveTrees, m_recursiveStereo, m_mode);
       impl::SmartsBondMatcher<HeMol, MoleculeType> bondMatcher(m_componentTrees[0].bonds(), rings);
-      return isomorphism_search(mol, m_components[0], mapping, atomMatcher, bondMatcher);
+      return isomorphism_search(mol, m_components[0], stereo, m_componentStereo[0], mapping, atomMatcher, bondMatcher);
     } else {
       // match each fragment seperatly and store results in mappings
       int numQueryAtoms = 0;
       std::vector<MappingList> mappings(m_components.size());
       for (std::size_t i = 0; i < m_components.size(); ++i) {
         numQueryAtoms += num_atoms(m_components[i]);
-        impl::SmartsAtomMatcher<HeMol, MoleculeType> atomMatcher(m_componentTrees[i].atoms(),
-            rings, m_recursiveMols, m_recursiveTrees, m_mode);
+        impl::SmartsAtomMatcher<HeMol, MoleculeType> atomMatcher(m_componentTrees[i].atoms(), stereo,
+            rings, m_recursiveMols, m_recursiveTrees, m_recursiveStereo, m_mode);
         impl::SmartsBondMatcher<HeMol, MoleculeType> bondMatcher(m_componentTrees[i].bonds(), rings);
-        if (!isomorphism_search(mol, m_components[i], mappings[i], atomMatcher, bondMatcher))
+        if (!isomorphism_search(mol, m_components[i], stereo, m_componentStereo[i], mappings[i], atomMatcher, bondMatcher))
           return false;
       }
 

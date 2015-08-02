@@ -174,6 +174,17 @@ namespace Helium {
       /**
        * @brief Check if the stored stereochmistry is valid.
        *
+       * This function considers a the stored stereochemistry valid if the
+       * following conditions are met:
+       * - The type is not Stereo::None
+       * - The stereo center is not Stereo::nullRef() or Stereo::implRef()
+       * - Tetrahedral: at most 1 Stereo::implRef()
+       * - Allene: at most 1 Stereo::implRef() per side
+       * - CisTrans: at most 1 Stereo::implRef() per side
+       * - Square-planar: at most 2 Stereo::implRef()
+       * - Trigonal-Bipyramidal: at most 2 Stereo::implRef()
+       * - Octahedral: at most 4 Stereo::implRef()
+       *
        * @return True if the stored stereochemistry is valid.
        */
       bool isValid() const
@@ -585,6 +596,16 @@ namespace Helium {
       StereoStorage m_invalid; //!< An invalid StereoStorage object.
       std::vector<StereoStorage> m_stereo; //!< The StereoStorage objects.
   };
+
+  /**
+   * @brief STL output stream operator for Stereochemistry.
+   *
+   * @param os The STL output stream.
+   * @param stereo The stereochemistry.
+   *
+   * @return The STL output stream.
+   */
+  std::ostream& operator<<(std::ostream &os, const Stereochemistry &stereo);
 
   /**
    * @brief Get the tetrahedral stereochemistry class.

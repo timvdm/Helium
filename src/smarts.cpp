@@ -25,6 +25,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 #include <Helium/smarts.h>
+#include <Helium/smiles.h>
 
 namespace Helium {
 
@@ -114,9 +115,11 @@ namespace Helium {
           int recursion;
         };
 
-        SmartsCallback(HeMol &mol, SmartsTrees &trees, std::vector<HeMol> &recursiveMols,
-            std::vector<SmartsTrees> &recursiveTrees)
-          : m_mol(mol), m_trees(trees), m_recursiveMols(recursiveMols), m_recursiveTrees(recursiveTrees)
+        SmartsCallback(HeMol &mol, SmartsTrees &trees, Stereochemistry &stereo,
+            std::vector<HeMol> &recursiveMols, std::vector<SmartsTrees> &recursiveTrees,
+            std::vector<Stereochemistry> &recursiveStereo)
+          : m_mol(mol), m_trees(trees), m_stereo(stereo), m_recursiveMols(recursiveMols),
+            m_recursiveTrees(recursiveTrees), m_recursiveStereo(recursiveStereo)
         {
         }
 
@@ -139,6 +142,30 @@ namespace Helium {
             return m_trees;
           assert(!m_recursiveTrees.empty());
           return m_recursiveTrees[state().recursion];
+        }
+
+        Stereochemistry& stereo()
+        {
+          if (m_states.size() == 1)
+            return m_stereo;
+          assert(!m_recursiveStereo.empty());
+          return m_recursiveStereo[state().recursion];
+        }
+
+        std::set<Index>& upBonds()
+        {
+          if (m_states.size() == 1)
+            return m_upBonds;
+          assert(!m_recursiveUpBonds.empty());
+          return m_recursiveUpBonds[state().recursion];
+        }
+
+        std::set<Index>& downBonds()
+        {
+          if (m_states.size() == 1)
+            return m_downBonds;
+          assert(!m_recursiveDownBonds.empty());
+          return m_recursiveDownBonds[state().recursion];
         }
 
         std::vector<SmartsAtomExpr*>& atomStack()
@@ -187,8 +214,16 @@ namespace Helium {
          * Set the chirality for an atom. This method is invoked when the entire
          * SMILES/SMARTS is parsed.
          */
-        void setChiral(int index, Smiley::Chirality chirality, const std::vector<int> &chiralNbrs) {}
-        void end() {}
+        void setChiral(int index, Smiley::Chirality chirality, const std::vector<int> &chiralNbrs)
+        {
+          SmileyCallback_setChiral(stereo(), index, chirality, chiralNbrs);
+        }
+
+        void end()
+        {
+          SmileyCallback_end(mol(), stereo(), upBonds(), downBonds());
+        }
+
         // SMILES
         /**
          * Invoked when an atom is completly parsed.
@@ -229,11 +264,13 @@ namespace Helium {
         }
 
         /**
-         * Invoked once both bon atom are added using addAtom().
+         * Invoked once both bond atom are added using addAtom().
          */
         void addBond(int source, int target, int order, bool isUp, bool isDown)
         {
-          mol().addBond(mol().atom(source), mol().atom(target));
+          //std::cout << "addBond(..., " << order << ", " << isUp << ", " << isDown << ")" << std::endl;
+          auto bond = mol().addBond(mol().atom(source), mol().atom(target));
+          bond.setOrder(order);
 
           // process parsed bond primitives
           if (!bondRing())
@@ -255,6 +292,11 @@ namespace Helium {
           trees().addBond(bondStack().back());
           bondStack().clear();
           bondPostfix().clear();
+
+          if (isUp && !isDown)
+            upBonds().insert(get_index(mol(), bond));
+          if (!isUp && isDown)
+            downBonds().insert(get_index(mol(), bond));
         }
 
         int precedence(int type)
@@ -464,18 +506,28 @@ namespace Helium {
           m_states.push_back(State(index));
           m_recursiveMols.resize(m_recursiveMols.size() + 1);
           m_recursiveTrees.resize(m_recursiveTrees.size() + 1);
+          m_recursiveStereo.resize(m_recursiveStereo.size() + 1);
+          m_recursiveUpBonds.resize(m_recursiveUpBonds.size() + 1);
+          m_recursiveDownBonds.resize(m_recursiveDownBonds.size() + 1);
         }
 
         void popState()
         {
+          SmileyCallback_end(mol(), stereo(), upBonds(), downBonds());
           m_states.pop_back();
         }
 
       private:
         HeMol &m_mol;
         SmartsTrees &m_trees;
+        Stereochemistry &m_stereo;
+        std::set<Index> m_upBonds;
+        std::set<Index> m_downBonds;
         std::vector<HeMol> &m_recursiveMols;
         std::vector<SmartsTrees> &m_recursiveTrees;
+        std::vector<Stereochemistry> &m_recursiveStereo;
+        std::vector<std::set<Index>> m_recursiveUpBonds;
+        std::vector<std::set<Index>> m_recursiveDownBonds;
         std::vector<State> m_states;
     };
 
@@ -567,15 +619,18 @@ namespace Helium {
 
     m_query.clear();
     m_trees.clear();
+    m_stereo.clear();
     m_components.clear();
     m_componentTrees.clear();
+    m_componentStereo.clear();
     m_recursiveMols.clear();
     m_recursiveTrees.clear();
+    m_recursiveStereo.clear();
     m_atomMaps.clear();
     //m_bondMaps.clear();
 
     // create SMARTS parser callback
-    impl::SmartsCallback callback(m_query, m_trees, m_recursiveMols, m_recursiveTrees);
+    impl::SmartsCallback callback(m_query, m_trees, m_stereo, m_recursiveMols, m_recursiveTrees, m_recursiveStereo);
     // create the parser
     Smiley::Parser<impl::SmartsCallback> parser(callback, Smiley::Parser<impl::SmartsCallback>::SmartsMode);
 
@@ -607,6 +662,7 @@ namespace Helium {
     if (numComponents <= 1) {
       m_components.push_back(m_query);
       m_componentTrees.push_back(m_trees);
+      m_componentStereo.push_back(m_stereo);
     } else {
       m_atomMaps.resize(numComponents);
       //m_bondMaps.resize(numComponents);
@@ -651,6 +707,54 @@ namespace Helium {
 
         m_components.push_back(q);
         m_componentTrees.push_back(t);
+
+        m_componentStereo.resize(m_componentStereo.size() + 1);
+        for (auto &storage : m_stereo.allStereo()) {
+          if (storage.type() == Stereo::None)
+            continue;
+
+          Stereo::Ref componentCenter;
+          if (storage.type() == Stereo::CisTrans) {
+            // skip this StereoStorage if it is not in component c
+            if (bondComponents[storage.center()] != c)
+              continue;
+
+            auto queryBond = get_bond(m_query, storage.center());
+            auto querySource = get_index(m_query, get_source(m_query, queryBond));
+            auto queryTarget = get_index(m_query, get_target(m_query, queryBond));
+            auto componentSource = get_atom(q, reverseAtomMap[querySource]);
+            auto componentTarget = get_atom(q, reverseAtomMap[queryTarget]);
+            auto componentBond = get_bond(q, componentSource, componentTarget);
+            componentCenter = get_index(q, componentBond);
+          } else {
+            // skip this StereoStorage if it is not in component c
+            if (atomComponents[storage.center()] != c)
+              continue;
+
+            componentCenter = reverseAtomMap[storage.center()];
+          }
+
+          int numRefs;
+          switch (storage.type()) {
+            case Stereo::TrigonalBipyramidal:
+              numRefs = 5;
+              break;
+            case Stereo::Octahedral:
+              numRefs = 6;
+              break;
+            default:
+              numRefs = 4;
+              break;
+          }
+
+          Stereo::Ref refs[6];
+
+          for (int i = 0; i < numRefs; ++i)
+            refs[i] = (storage.ref(i) == Stereo::implRef()) ? Stereo::implRef() : reverseAtomMap[storage.ref(i)];
+
+          m_componentStereo.back().add(StereoStorage(storage.type(), componentCenter, refs, refs + numRefs));
+        }
+
       }
     }
 
